@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState, useRef, useEffect, useCallback } from "react";
+import { useMemo, useState, useRef, useEffect, useCallback, lazy, Suspense } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -13,9 +13,12 @@ import {
   addCommercialTier,
   saveTalent,
   deleteTalent,
+  saveFloorplan,
 } from "@/lib/event-dashboard.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
+const RobustMap = lazy(() => import("@/components/RobustMap"));
 
 const CT_TZ = "America/Chicago";
 
