@@ -108,6 +108,8 @@ export const submitReservationRequest = createServerFn({ method: "POST" })
 
     const { error } = await supabaseAdmin.from("room_reservations").insert({
       ...data,
+      requester_email: email,
+      requester_user_id: context.userId,
       status: "pending",
     });
     if (error) throw new Error(error.message);
