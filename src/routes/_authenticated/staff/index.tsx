@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listEvents, createEvent, deleteEvent } from "@/lib/events.functions";
@@ -6,7 +6,7 @@ import { listVenues } from "@/lib/venues.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Trash2 } from "lucide-react";
+import { Trash2, ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/staff/")({
   component: EventsPage,
@@ -211,7 +211,7 @@ function EventsPage() {
             </select>
           </div>
 
-          <div className="px-4 py-2 grid grid-cols-[1fr_200px_80px] gap-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+          <div className="px-4 py-2 grid grid-cols-[1fr_200px_120px] gap-3 text-xs font-bold uppercase tracking-wider text-slate-500">
             <div>Event</div>
             <div>Type / Venue</div>
             <div className="text-right">Actions</div>
@@ -222,7 +222,7 @@ function EventsPage() {
               <div className="p-10 text-center text-sm text-slate-400">No events found.</div>
             ) : (
               filtered.map((e: any) => (
-                <div key={e.id} className="px-4 py-3 grid grid-cols-[1fr_200px_80px] gap-3 items-center hover:bg-slate-50">
+                <div key={e.id} className="px-4 py-3 grid grid-cols-[1fr_200px_120px] gap-3 items-center hover:bg-slate-50">
                   <div className="flex items-center gap-3">
                     <Checkbox checked={selected.has(e.id)} onCheckedChange={() => toggleSelect(e.id)} />
                     <div>
@@ -237,7 +237,12 @@ function EventsPage() {
                     <div>{e.event_type || "—"}</div>
                     <div className="text-xs text-slate-400">{e.venues?.name || e.location || "—"}</div>
                   </div>
-                  <div className="flex justify-end">
+                  <div className="flex justify-end gap-1">
+                    <Button asChild size="sm" variant="outline">
+                      <Link to="/staff/events/$id" params={{ id: String(e.id) }}>
+                        <ExternalLink className="h-3.5 w-3.5 mr-1" /> Manage
+                      </Link>
+                    </Button>
                     <Button size="icon" variant="ghost"
                       onClick={() => confirm(`Delete "${e.title}"?`) && del.mutate(e.id)}>
                       <Trash2 className="h-4 w-4" />
