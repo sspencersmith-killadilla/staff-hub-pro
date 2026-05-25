@@ -16,20 +16,30 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useModules } from "@/hooks/use-modules";
+import type { ModuleKey } from "@/lib/platform-modules.functions";
 
-const items = [
+type Item = {
+  title: string;
+  url: string;
+  icon: typeof Calendar;
+  exact?: boolean;
+  module?: ModuleKey;
+};
+
+const items: Item[] = [
   { title: "Events", url: "/staff", icon: Calendar, exact: true },
   { title: "Venues & Stages", url: "/staff/venues", icon: Building2 },
   { title: "Map", url: "/staff/map", icon: Map },
   { title: "Attendees", url: "/staff/attendees", icon: Users },
-  { title: "Vendors", url: "/staff/vendors", icon: Store },
-  { title: "Sponsors", url: "/staff/sponsors", icon: Sparkles },
-  { title: "Community Music", url: "/staff/community-music", icon: Music },
-  { title: "Community Orgs", url: "/staff/community-organizations", icon: HeartHandshake },
-  { title: "Community Events", url: "/staff/community-events", icon: CalendarDays },
-  { title: "Room Reservations", url: "/staff/room-reservations", icon: BedDouble },
+  { title: "Vendors", url: "/staff/vendors", icon: Store, module: "vendors_sponsors" },
+  { title: "Sponsors", url: "/staff/sponsors", icon: Sparkles, module: "vendors_sponsors" },
+  { title: "Community Music", url: "/staff/community-music", icon: Music, module: "streetbeats" },
+  { title: "Community Orgs", url: "/staff/community-organizations", icon: HeartHandshake, module: "community_orgs" },
+  { title: "Community Events", url: "/staff/community-events", icon: CalendarDays, module: "community_orgs" },
+  { title: "Room Reservations", url: "/staff/room-reservations", icon: BedDouble, module: "room_reservations" },
   { title: "Platform Settings", url: "/staff/settings", icon: Settings },
-] as const;
+];
 
 export function EventOpsSidebar() {
   const path = useRouterState({ select: (r) => r.location.pathname });
