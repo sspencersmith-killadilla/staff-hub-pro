@@ -8,7 +8,10 @@ import {
 } from "@/lib/streetbeats-public.functions";
 import { SiteHeader } from "@/components/site-header";
 
+import { requireModule } from "@/lib/require-module";
+
 export const Route = createFileRoute("/streetbeats")({
+  beforeLoad: () => requireModule("streetbeats"),
   head: () => ({
     meta: [
       { title: "Streetbeats — Community Music" },
