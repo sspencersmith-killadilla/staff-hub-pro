@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
+import { useModules } from "@/hooks/use-modules";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -20,6 +21,7 @@ const NAVY = "#002f49";
 
 function Home() {
   const year = new Date().getFullYear();
+  const { isEnabled } = useModules();
 
   return (
     <div className="min-h-screen bg-[#f8fafc] flex flex-col font-sans text-gray-800">
