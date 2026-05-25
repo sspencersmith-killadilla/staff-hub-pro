@@ -351,6 +351,38 @@ function EventsPage() {
                           {e.description}
                         </p>
                       )}
+                      {e.sponsors && e.sponsors.length > 0 && (
+                        <div className="mt-3 rounded-md border border-slate-100 bg-slate-50 p-2">
+                          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">
+                            Presented in partnership with
+                          </p>
+                          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                            {e.sponsors.slice(0, 4).map((s) =>
+                              s.logo_url ? (
+                                <img
+                                  key={s.id}
+                                  src={s.logo_url}
+                                  alt={s.company_name ?? "sponsor"}
+                                  className="h-6 w-auto max-w-[64px] object-contain"
+                                  crossOrigin="anonymous"
+                                />
+                              ) : (
+                                <span
+                                  key={s.id}
+                                  className="text-[11px] font-semibold text-slate-700"
+                                >
+                                  {s.company_name}
+                                </span>
+                              ),
+                            )}
+                            {e.sponsors.length > 4 && (
+                              <span className="text-[10px] font-semibold text-slate-500">
+                                +{e.sponsors.length - 4} more
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
                       <div className="mt-4 flex-1" />
                       {e.ticketed ? (
                         <Link
