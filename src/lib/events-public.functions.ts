@@ -216,6 +216,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         cost_text: "Free",
         ticketed: false,
         detail_href: (s as any).busker_id ? `/artists/${(s as any).busker_id}` : "/streetbeats",
+        sponsors: [],
       });
     }
 
