@@ -356,10 +356,3 @@ export function RoomReservationForm({
     </div>
   );
 }
-        <p className="text-xs text-slate-500">
-          Limits: up to 3 active bookings, and up to 2 hours per day.
-        </p>
-      </form>
-    </div>
-  );
-}
