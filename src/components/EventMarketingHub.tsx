@@ -517,10 +517,10 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
                         Location
                       </p>
                       <p className="text-lg font-bold text-gray-900 leading-tight pr-4">
-                        {event.stages?.name || "TBA"}
+                        {locationPrimary}
                       </p>
                       <p className="text-xs text-gray-500 leading-tight pr-4 mt-1">
-                        {event.stages?.address || "McKinney, TX"}
+                        {venueAddress}
                       </p>
                     </div>
                   </div>
