@@ -27,18 +27,22 @@ export function SiteHeader() {
           >
             Events
           </Link>
-          <Link
-            to="/rooms"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            Rooms
-          </Link>
-          <Link
-            to="/streetbeats"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            Streetbeats
-          </Link>
+          {isEnabled("room_reservations") && (
+            <Link
+              to="/rooms"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Rooms
+            </Link>
+          )}
+          {isEnabled("streetbeats") && (
+            <Link
+              to="/streetbeats"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Streetbeats
+            </Link>
+          )}
           {isAuthenticated && (
             <>
               <Link
@@ -47,12 +51,14 @@ export function SiteHeader() {
               >
                 My Tickets
               </Link>
-              <Link
-                to="/my-reservations"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                My Reservations
-              </Link>
+              {isEnabled("room_reservations") && (
+                <Link
+                  to="/my-reservations"
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  My Reservations
+                </Link>
+              )}
             </>
           )}
           {isStaff && (
