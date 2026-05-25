@@ -73,6 +73,7 @@ function EventsPage() {
   const [includeArchived, setIncludeArchived] = useState(false);
   const [source, setSource] = useState<SourceFilter>("all");
   const [venue, setVenue] = useState<string>("all");
+  const [subLocation, setSubLocation] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
@@ -92,6 +93,19 @@ function EventsPage() {
     return Array.from(set).sort();
   }, [all]);
 
+  // Sub-locations (stages/rooms) scoped to the chosen venue
+  const subLocations = useMemo(() => {
+    const map = new Map<string, "stage" | "room">();
+    for (const e of all) {
+      if (!e.sub_location_name || !e.sub_location_type) continue;
+      if (venue !== "all" && e.venue_name !== venue) continue;
+      map.set(e.sub_location_name, e.sub_location_type);
+    }
+    return Array.from(map.entries())
+      .map(([name, type]) => ({ name, type }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [all, venue]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const startTs = start ? new Date(start).getTime() : null;
@@ -99,8 +113,9 @@ function EventsPage() {
     let list = all.filter((e) => {
       if (source !== "all" && e.source !== source) return false;
       if (venue !== "all" && e.venue_name !== venue) return false;
+      if (subLocation !== "all" && e.sub_location_name !== subLocation) return false;
       if (q) {
-        const blob = [e.title, e.description, e.venue_name, e.org_name]
+        const blob = [e.title, e.description, e.venue_name, e.sub_location_name, e.org_name]
           .filter(Boolean)
           .join(" ")
           .toLowerCase();
@@ -120,7 +135,7 @@ function EventsPage() {
       return sort === "date_asc" ? at - bt : bt - at;
     });
     return list;
-  }, [all, source, venue, search, start, end, sort]);
+  }, [all, source, venue, subLocation, search, start, end, sort]);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -152,7 +167,7 @@ function EventsPage() {
         </div>
 
         {/* Filters */}
-        <div className="mt-8 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-6">
+        <div className="mt-8 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-7">
           <div className="lg:col-span-2">
             <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
               Search
@@ -185,13 +200,34 @@ function EventsPage() {
             </label>
             <select
               value={venue}
-              onChange={(e) => setVenue(e.target.value)}
+              onChange={(e) => {
+                setVenue(e.target.value);
+                setSubLocation("all");
+              }}
               className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
             >
               <option value="all">All venues</option>
               {venues.map((v) => (
                 <option key={v} value={v}>
                   {v}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              Stage / Room
+            </label>
+            <select
+              value={subLocation}
+              onChange={(e) => setSubLocation(e.target.value)}
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              disabled={subLocations.length === 0}
+            >
+              <option value="all">All stages &amp; rooms</option>
+              {subLocations.map((s) => (
+                <option key={s.name} value={s.name}>
+                  {s.name} {s.type === "room" ? "(Room)" : "(Stage)"}
                 </option>
               ))}
             </select>
@@ -218,7 +254,7 @@ function EventsPage() {
               className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
             />
           </div>
-          <div className="lg:col-span-6 flex items-center justify-between gap-3">
+          <div className="lg:col-span-7 flex items-center justify-between gap-3">
             <div className="text-xs text-slate-500">
               {filtered.length} event{filtered.length === 1 ? "" : "s"}
             </div>
@@ -291,11 +327,16 @@ function EventsPage() {
                       <div className="mt-1 text-sm text-slate-600">
                         {fmtWhen(e.starts_at, e.ends_at)}
                       </div>
-                      {(e.venue_name || e.venue_city) && (
+                      {(e.venue_name || e.venue_city || e.sub_location_name) && (
                         <div className="mt-2 flex items-start gap-1 text-xs text-slate-500">
                           <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                           <span>
                             {e.venue_name}
+                            {e.sub_location_name &&
+                              e.sub_location_name !== e.venue_name &&
+                              ` — ${e.sub_location_name}${
+                                e.sub_location_type === "room" ? " (Room)" : ""
+                              }`}
                             {e.venue_city && `, ${e.venue_city}`}
                           </span>
                         </div>

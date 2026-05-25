@@ -15,6 +15,8 @@ export type UnifiedEvent = {
   image_url: string | null;
   venue_name: string | null;
   venue_city: string | null;
+  sub_location_name: string | null; // stage or room name
+  sub_location_type: "stage" | "room" | null;
   org_name: string | null;
   cost_text: string | null;
   ticketed: boolean; // city events route to /events/:id ticketing
@@ -34,7 +36,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
     // 1. City sessions
     const sessionsQ = supabaseAdmin
       .from("sessions")
-      .select("id, title, start_time, end_time, image_url, event_type, speaker_name, stage_id, stages(id,name,venue_id)")
+      .select("id, title, start_time, end_time, image_url, event_type, speaker_name, stage_id, room_id, stages(id,name,venue_id), rooms(id,name,venue_id)")
       .order("start_time", { ascending: true });
     if (!includeArchived) sessionsQ.gte("end_time", nowIso);
 
@@ -60,19 +62,30 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
     if (commRes.error) throw new Error(commRes.error.message);
     if (slotRes.error) throw new Error(slotRes.error.message);
 
-    // Resolve venues for sessions + slots via their stages.
+    // Resolve venues for sessions + slots via their stages or rooms.
     const stageIds = new Set<string>();
-    for (const s of sessRes.data ?? []) if ((s as any).stage_id) stageIds.add((s as any).stage_id);
+    const roomIds = new Set<string>();
+    for (const s of sessRes.data ?? []) {
+      if ((s as any).stage_id) stageIds.add((s as any).stage_id);
+      if ((s as any).room_id) roomIds.add((s as any).room_id);
+    }
     for (const s of slotRes.data ?? []) if ((s as any).stage_id) stageIds.add((s as any).stage_id);
-    const stagesRes = stageIds.size
-      ? await supabaseAdmin
-          .from("stages")
-          .select("id, name, venue_id")
-          .in("id", Array.from(stageIds))
-      : { data: [] as any[] };
+    const [stagesRes, roomsRes] = await Promise.all([
+      stageIds.size
+        ? supabaseAdmin.from("stages").select("id, name, venue_id").in("id", Array.from(stageIds))
+        : Promise.resolve({ data: [] as any[] }),
+      roomIds.size
+        ? supabaseAdmin.from("rooms").select("id, name, venue_id").in("id", Array.from(roomIds))
+        : Promise.resolve({ data: [] as any[] }),
+    ]);
     const stagesById = new Map((stagesRes.data ?? []).map((s: any) => [s.id, s]));
+    const roomsById = new Map((roomsRes.data ?? []).map((r: any) => [r.id, r]));
     const venueIds = Array.from(
-      new Set((stagesRes.data ?? []).map((s: any) => s.venue_id).filter(Boolean)),
+      new Set(
+        [...(stagesRes.data ?? []), ...(roomsRes.data ?? [])]
+          .map((s: any) => s.venue_id)
+          .filter(Boolean),
+      ),
     );
     const venuesRes = venueIds.length
       ? await supabaseAdmin.from("venues").select("id, name, city").in("id", venueIds as any)
@@ -107,7 +120,12 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
 
     for (const s of sessRes.data ?? []) {
       const stage = (s as any).stage_id ? stagesById.get((s as any).stage_id) : null;
-      const venue = stage?.venue_id ? venuesById.get(stage.venue_id) : null;
+      const room = (s as any).room_id ? roomsById.get((s as any).room_id) : null;
+      const venue =
+        (stage?.venue_id && venuesById.get(stage.venue_id)) ||
+        (room?.venue_id && venuesById.get(room.venue_id)) ||
+        null;
+      const sub = stage ?? room;
       out.push({
         id: String((s as any).id),
         source: "city",
@@ -116,8 +134,10 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         starts_at: (s as any).start_time ?? null,
         ends_at: (s as any).end_time ?? null,
         image_url: (s as any).image_url ?? null,
-        venue_name: venue?.name ?? stage?.name ?? null,
+        venue_name: venue?.name ?? sub?.name ?? null,
         venue_city: venue?.city ?? null,
+        sub_location_name: sub?.name ?? null,
+        sub_location_type: stage ? "stage" : room ? "room" : null,
         org_name: (s as any).speaker_name ?? null,
         cost_text: null,
         ticketed: true,
@@ -137,6 +157,8 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         image_url: (e as any).image_url ?? null,
         venue_name: (e as any).location ?? null,
         venue_city: null,
+        sub_location_name: null,
+        sub_location_type: null,
         org_name: org?.name ?? null,
         cost_text: null,
         ticketed: false,
@@ -158,6 +180,8 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         image_url: busker?.avatar_url ?? null,
         venue_name: venue?.name ?? stage?.name ?? null,
         venue_city: venue?.city ?? null,
+        sub_location_name: stage?.name ?? null,
+        sub_location_type: stage ? "stage" : null,
         org_name: busker?.full_name ?? null,
         cost_text: "Free",
         ticketed: false,
