@@ -73,6 +73,7 @@ function EventsPage() {
   const [includeArchived, setIncludeArchived] = useState(false);
   const [source, setSource] = useState<SourceFilter>("all");
   const [venue, setVenue] = useState<string>("all");
+  const [subLocation, setSubLocation] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
@@ -92,6 +93,19 @@ function EventsPage() {
     return Array.from(set).sort();
   }, [all]);
 
+  // Sub-locations (stages/rooms) scoped to the chosen venue
+  const subLocations = useMemo(() => {
+    const map = new Map<string, "stage" | "room">();
+    for (const e of all) {
+      if (!e.sub_location_name || !e.sub_location_type) continue;
+      if (venue !== "all" && e.venue_name !== venue) continue;
+      map.set(e.sub_location_name, e.sub_location_type);
+    }
+    return Array.from(map.entries())
+      .map(([name, type]) => ({ name, type }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [all, venue]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const startTs = start ? new Date(start).getTime() : null;
@@ -99,8 +113,9 @@ function EventsPage() {
     let list = all.filter((e) => {
       if (source !== "all" && e.source !== source) return false;
       if (venue !== "all" && e.venue_name !== venue) return false;
+      if (subLocation !== "all" && e.sub_location_name !== subLocation) return false;
       if (q) {
-        const blob = [e.title, e.description, e.venue_name, e.org_name]
+        const blob = [e.title, e.description, e.venue_name, e.sub_location_name, e.org_name]
           .filter(Boolean)
           .join(" ")
           .toLowerCase();
@@ -120,7 +135,7 @@ function EventsPage() {
       return sort === "date_asc" ? at - bt : bt - at;
     });
     return list;
-  }, [all, source, venue, search, start, end, sort]);
+  }, [all, source, venue, subLocation, search, start, end, sort]);
 
   return (
     <div className="min-h-screen bg-slate-50">
