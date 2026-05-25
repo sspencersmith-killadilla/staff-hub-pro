@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
-import { ArrowLeft, CalendarDays, MapPin, Ticket } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import QRCode from "qrcode";
+import { ArrowLeft, CalendarDays, Download, MapPin, Ticket } from "lucide-react";
 import {
   getPublicCityEvent,
   registerForCityEvent,
