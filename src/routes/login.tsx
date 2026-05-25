@@ -32,7 +32,7 @@ function LoginPage() {
       setError(error.message);
       return;
     }
-    navigate({ to: search.redirect || "/staff" });
+    navigate({ to: search.redirect || "/hub" });
   };
 
   return (
