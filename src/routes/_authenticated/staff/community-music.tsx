@@ -585,5 +585,7 @@ function ArtistsTab() {
         </li>
       ))}
     </ul>
+      )}
+    </div>
   );
 }
