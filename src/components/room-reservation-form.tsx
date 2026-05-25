@@ -84,6 +84,7 @@ export function RoomReservationForm({
   const [picked, setPicked] = useState<{ start: string; end: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const { from, to, days } = useMemo(() => {
     if (!hydrated) return { from: "", to: "", days: [] as Date[] };
