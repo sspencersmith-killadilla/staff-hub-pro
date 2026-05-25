@@ -16,10 +16,8 @@ function Home() {
           Public site coming soon. Staff sign in to manage gigs, events, venues, and rooms.
         </p>
         <div className="mt-8 flex justify-center gap-3">
-          <Link to="/login"><Button>Staff log in</Button></Link>
-          <Link to="/staff">
-            <Button variant="outline">Staff Portal</Button>
-          </Link>
+          <Link to="/venues"><Button>Browse Venues</Button></Link>
+          <Link to="/login"><Button variant="outline">Staff log in</Button></Link>
         </div>
       </section>
     </div>
