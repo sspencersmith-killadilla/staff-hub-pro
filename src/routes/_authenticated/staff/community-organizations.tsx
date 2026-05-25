@@ -7,9 +7,14 @@ import { Check, X } from "lucide-react";
 import { listOrgsStaff, setOrgStatus } from "@/lib/community.functions";
 import { Button } from "@/components/ui/button";
 
+import { requireModule } from "@/lib/require-module";
+
 export const Route = createFileRoute(
   "/_authenticated/staff/community-organizations",
-)({ component: OrgsPage });
+)({
+  beforeLoad: () => requireModule("community_orgs"),
+  component: OrgsPage,
+});
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-amber-100 text-amber-900",

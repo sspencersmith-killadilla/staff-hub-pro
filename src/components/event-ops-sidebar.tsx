@@ -16,24 +16,35 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useModules } from "@/hooks/use-modules";
+import type { ModuleKey } from "@/lib/platform-modules.functions";
 
-const items = [
+type Item = {
+  title: string;
+  url: string;
+  icon: typeof Calendar;
+  exact?: boolean;
+  module?: ModuleKey;
+};
+
+const items: Item[] = [
   { title: "Events", url: "/staff", icon: Calendar, exact: true },
   { title: "Venues & Stages", url: "/staff/venues", icon: Building2 },
   { title: "Map", url: "/staff/map", icon: Map },
   { title: "Attendees", url: "/staff/attendees", icon: Users },
-  { title: "Vendors", url: "/staff/vendors", icon: Store },
-  { title: "Sponsors", url: "/staff/sponsors", icon: Sparkles },
-  { title: "Community Music", url: "/staff/community-music", icon: Music },
-  { title: "Community Orgs", url: "/staff/community-organizations", icon: HeartHandshake },
-  { title: "Community Events", url: "/staff/community-events", icon: CalendarDays },
-  { title: "Room Reservations", url: "/staff/room-reservations", icon: BedDouble },
+  { title: "Vendors", url: "/staff/vendors", icon: Store, module: "vendors_sponsors" },
+  { title: "Sponsors", url: "/staff/sponsors", icon: Sparkles, module: "vendors_sponsors" },
+  { title: "Community Music", url: "/staff/community-music", icon: Music, module: "streetbeats" },
+  { title: "Community Orgs", url: "/staff/community-organizations", icon: HeartHandshake, module: "community_orgs" },
+  { title: "Community Events", url: "/staff/community-events", icon: CalendarDays, module: "community_orgs" },
+  { title: "Room Reservations", url: "/staff/room-reservations", icon: BedDouble, module: "room_reservations" },
   { title: "Platform Settings", url: "/staff/settings", icon: Settings },
-] as const;
+];
 
 export function EventOpsSidebar() {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { isAdmin } = useAuth();
+  const { isEnabled } = useModules();
   const navigate = useNavigate();
 
   const isActive = (url: string, exact?: boolean) =>
@@ -44,14 +55,16 @@ export function EventOpsSidebar() {
     navigate({ to: "/login" });
   };
 
+  const visibleItems = items.filter((it) => !it.module || isEnabled(it.module));
+
   return (
     <aside className="hidden md:flex w-60 shrink-0 flex-col bg-[hsl(210_60%_12%)] text-white">
       <div className="px-5 py-5 border-b border-white/10">
         <div className="text-lg font-black italic tracking-tight">EVENT OPS</div>
       </div>
       <nav className="flex-1 overflow-y-auto py-3">
-        {items.map((it) => {
-          const active = isActive(it.url, "exact" in it ? it.exact : false);
+        {visibleItems.map((it) => {
+          const active = isActive(it.url, it.exact);
           return (
             <Link
               key={it.url}

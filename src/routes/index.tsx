@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
+import { useModules } from "@/hooks/use-modules";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -20,6 +21,7 @@ const NAVY = "#002f49";
 
 function Home() {
   const year = new Date().getFullYear();
+  const { isEnabled } = useModules();
 
   return (
     <div className="min-h-screen bg-[#f8fafc] flex flex-col font-sans text-gray-800">
@@ -55,30 +57,38 @@ function Home() {
               >
                 Upcoming Events
               </Link>
-              <Link
-                to="/vendor"
-                className="bg-white/10 hover:bg-white/20 text-white border border-white/30 font-bold py-3 px-6 rounded-lg transition-colors text-center uppercase tracking-wider text-sm w-full sm:w-auto"
-              >
-                Businesses Hub
-              </Link>
-              <Link
-                to="/community"
-                className="bg-white/10 hover:bg-white/20 text-white border border-white/30 font-bold py-3 px-6 rounded-lg transition-colors text-center uppercase tracking-wider text-sm w-full sm:w-auto"
-              >
-                Organizations Portal
-              </Link>
-              <Link
-                to="/streetbeats"
-                className="bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg text-center uppercase tracking-wider text-sm w-full sm:w-auto border border-pink-500"
-              >
-                StreetBeats Portal
-              </Link>
-              <Link
-                to="/rooms"
-                className="bg-white/10 hover:bg-white/20 text-white border border-white/30 font-bold py-3 px-6 rounded-lg transition-colors text-center uppercase tracking-wider text-sm w-full sm:w-auto"
-              >
-                Room Reservations
-              </Link>
+              {isEnabled("vendors_sponsors") && (
+                <Link
+                  to="/vendor"
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/30 font-bold py-3 px-6 rounded-lg transition-colors text-center uppercase tracking-wider text-sm w-full sm:w-auto"
+                >
+                  Businesses Hub
+                </Link>
+              )}
+              {isEnabled("community_orgs") && (
+                <Link
+                  to="/community"
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/30 font-bold py-3 px-6 rounded-lg transition-colors text-center uppercase tracking-wider text-sm w-full sm:w-auto"
+                >
+                  Organizations Portal
+                </Link>
+              )}
+              {isEnabled("streetbeats") && (
+                <Link
+                  to="/streetbeats"
+                  className="bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg text-center uppercase tracking-wider text-sm w-full sm:w-auto border border-pink-500"
+                >
+                  StreetBeats Portal
+                </Link>
+              )}
+              {isEnabled("room_reservations") && (
+                <Link
+                  to="/rooms"
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/30 font-bold py-3 px-6 rounded-lg transition-colors text-center uppercase tracking-wider text-sm w-full sm:w-auto"
+                >
+                  Room Reservations
+                </Link>
+              )}
             </nav>
           </div>
         </div>
@@ -102,54 +112,62 @@ function Home() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
             }
           />
-          <PortalCard
-            iconBg="bg-amber-50 border-amber-200"
-            iconColor="text-amber-600"
-            title="Businesses"
-            description="Apply for vendor booths or purchase sponsorships. After city staff review, manage your logistics, booth assignment, and invoices from your partner dashboard."
-            linkColor="text-amber-600"
-            linkTo="/vendor"
-            linkText="Partner Portal →"
-            icon={
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            }
-          />
-          <PortalCard
-            iconBg="bg-green-50 border-green-200"
-            iconColor="text-green-700"
-            title="Organizations"
-            description="HOAs, nonprofits, and schools can submit events for the community calendar after city approval."
-            linkColor="text-green-700"
-            linkTo="/community"
-            linkText="Apply to Post →"
-            icon={
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            }
-          />
-          <PortalCard
-            iconBg="bg-cyan-50 border-cyan-200"
-            iconColor="text-cyan-600"
-            title="Room Reservations"
-            description="Browse available city meeting rooms. View the live 7-day availability grid, select your time, and submit a request. System validates instantly for conflicts."
-            linkColor="text-cyan-600"
-            linkTo="/rooms"
-            linkText="Reserve a Room →"
-            icon={
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            }
-          />
-          <PortalCard
-            iconBg="bg-pink-50 border-pink-100"
-            iconColor="text-pink-500"
-            title="Musicians"
-            description="Join the city's StreetBeats busking roster. Claim performance slots, build your profile, and connect your digital tip jar for direct fan support."
-            linkColor="text-pink-500"
-            linkTo="/streetbeats"
-            linkText="Artist Portal →"
-            icon={
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-            }
-          />
+          {isEnabled("vendors_sponsors") && (
+            <PortalCard
+              iconBg="bg-amber-50 border-amber-200"
+              iconColor="text-amber-600"
+              title="Businesses"
+              description="Apply for vendor booths or purchase sponsorships. After city staff review, manage your logistics, booth assignment, and invoices from your partner dashboard."
+              linkColor="text-amber-600"
+              linkTo="/vendor"
+              linkText="Partner Portal →"
+              icon={
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              }
+            />
+          )}
+          {isEnabled("community_orgs") && (
+            <PortalCard
+              iconBg="bg-green-50 border-green-200"
+              iconColor="text-green-700"
+              title="Organizations"
+              description="HOAs, nonprofits, and schools can submit events for the community calendar after city approval."
+              linkColor="text-green-700"
+              linkTo="/community"
+              linkText="Apply to Post →"
+              icon={
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              }
+            />
+          )}
+          {isEnabled("room_reservations") && (
+            <PortalCard
+              iconBg="bg-cyan-50 border-cyan-200"
+              iconColor="text-cyan-600"
+              title="Room Reservations"
+              description="Browse available city meeting rooms. View the live 7-day availability grid, select your time, and submit a request. System validates instantly for conflicts."
+              linkColor="text-cyan-600"
+              linkTo="/rooms"
+              linkText="Reserve a Room →"
+              icon={
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              }
+            />
+          )}
+          {isEnabled("streetbeats") && (
+            <PortalCard
+              iconBg="bg-pink-50 border-pink-100"
+              iconColor="text-pink-500"
+              title="Musicians"
+              description="Join the city's StreetBeats busking roster. Claim performance slots, build your profile, and connect your digital tip jar for direct fan support."
+              linkColor="text-pink-500"
+              linkTo="/streetbeats"
+              linkText="Artist Portal →"
+              icon={
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+              }
+            />
+          )}
           <PortalCard
             iconBg="bg-blue-50 border-blue-100"
             iconColor="text-blue-600"

@@ -4,7 +4,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { listPublicSponsors } from "@/lib/vendor-portal.functions";
 import { SiteHeader } from "@/components/site-header";
 
+import { requireModule } from "@/lib/require-module";
+
 export const Route = createFileRoute("/sponsors")({
+  beforeLoad: () => requireModule("vendors_sponsors"),
   head: () => ({
     meta: [
       { title: "Community Partners — Sponsors" },

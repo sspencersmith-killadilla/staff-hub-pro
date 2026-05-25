@@ -33,7 +33,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
+import { requireModule } from "@/lib/require-module";
+
 export const Route = createFileRoute("/_authenticated/staff/community-music")({
+  beforeLoad: () => requireModule("streetbeats"),
   component: CommunityMusicPage,
 });
 

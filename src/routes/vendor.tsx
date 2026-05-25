@@ -15,7 +15,10 @@ import {
 
 const RobustMap = lazy(() => import("@/components/RobustMap"));
 
+import { requireModule } from "@/lib/require-module";
+
 export const Route = createFileRoute("/vendor")({
+  beforeLoad: () => requireModule("vendors_sponsors"),
   head: () => ({
     meta: [
       { title: "Vendor & Sponsor Portal" },

@@ -9,7 +9,10 @@ const roomsQO = queryOptions({
   queryFn: () => listRoomsPublic(),
 });
 
+import { requireModule } from "@/lib/require-module";
+
 export const Route = createFileRoute("/rooms/")({
+  beforeLoad: () => requireModule("room_reservations"),
   head: () => ({
     meta: [
       { title: "Reserve a Room — Total Event Systems" },

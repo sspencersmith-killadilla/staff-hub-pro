@@ -13,7 +13,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+import { requireModule } from "@/lib/require-module";
+
 export const Route = createFileRoute("/_authenticated/streetbeats/apply")({
+  beforeLoad: () => requireModule("streetbeats"),
   head: () => ({
     meta: [
       { title: "Apply to perform — Streetbeats" },
