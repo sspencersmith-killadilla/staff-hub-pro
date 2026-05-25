@@ -110,3 +110,61 @@ export const submitReservationRequest = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const getRoomAvailability = createServerFn({ method: "GET" })
+  .inputValidator((i) =>
+    z
+      .object({
+        room_id: z.string().uuid(),
+        from: z.string().min(1),
+        to: z.string().min(1),
+      })
+      .parse(i),
+  )
+  .handler(async ({ data }) => {
+    const { data: rows, error } = await supabaseAdmin
+      .from("room_reservations")
+      .select("id, starts_at, ends_at, status")
+      .eq("room_id", data.room_id)
+      .eq("status", "approved")
+      .lt("starts_at", data.to)
+      .gt("ends_at", data.from)
+      .order("starts_at");
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
+export const lookupReservationsByEmail = createServerFn({ method: "POST" })
+  .inputValidator((i) =>
+    z.object({ email: z.string().trim().email().max(255) }).parse(i),
+  )
+  .handler(async ({ data }) => {
+    const { data: rows, error } = await supabaseAdmin
+      .from("room_reservations")
+      .select(
+        "id, starts_at, ends_at, status, purpose, party_size, notes, room_id, requester_name, created_at",
+      )
+      .ilike("requester_email", data.email)
+      .order("starts_at", { ascending: false })
+      .limit(100);
+    if (error) throw new Error(error.message);
+    const roomIds = Array.from(new Set((rows ?? []).map((r) => r.room_id)));
+    let rooms: any[] = [];
+    if (roomIds.length) {
+      const { data: rs } = await supabaseAdmin
+        .from("rooms")
+        .select("id, name, venue_id")
+        .in("id", roomIds);
+      rooms = rs ?? [];
+    }
+    const venueIds = Array.from(new Set(rooms.map((r) => r.venue_id)));
+    let venues: any[] = [];
+    if (venueIds.length) {
+      const { data: vs } = await supabaseAdmin
+        .from("venues")
+        .select("id, name")
+        .in("id", venueIds);
+      venues = vs ?? [];
+    }
+    return { reservations: rows ?? [], rooms, venues };
+  });
