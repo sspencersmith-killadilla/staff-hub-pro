@@ -19,6 +19,12 @@ export function SiteHeader() {
           <Home className="h-4 w-4" /> Home
         </Link>
         <nav className="flex items-center gap-3 text-sm">
+          <Link
+            to="/streetbeats"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            Streetbeats
+          </Link>
           {isAuthenticated && (
             <Link
               to="/my-reservations"
