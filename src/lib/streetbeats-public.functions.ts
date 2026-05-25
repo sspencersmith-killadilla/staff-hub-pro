@@ -131,14 +131,92 @@ export const listScheduledGigs = createServerFn({ method: "GET" }).handler(async
 
 // ---------- Artist self-service ----------
 
+function urlOrEmpty(v: string | null | undefined) {
+  if (!v) return null;
+  const s = String(v).trim();
+  return s === "" ? null : s;
+}
+
 const artistInput = z.object({
-  stage_name: z.string().trim().min(1).max(120),
-  contact_email: z.string().trim().email().max(255).optional().nullable(),
-  phone: z.string().trim().max(40).optional().nullable(),
-  genre: z.string().trim().max(120).optional().nullable(),
-  bio: z.string().trim().max(2000).optional().nullable(),
-  website: z.string().trim().max(500).optional().nullable().or(z.literal("")),
+  full_name: z.string().trim().min(1).max(120),
+  email: z.string().trim().email().max(255).optional().nullable().or(z.literal("")),
+  genre: z.string().trim().max(120).optional().nullable().or(z.literal("")),
+  bio: z.string().trim().max(4000).optional().nullable().or(z.literal("")),
+  avatar_url: z.string().trim().max(1000).optional().nullable().or(z.literal("")),
+  spotify_link: z.string().trim().max(500).optional().nullable().or(z.literal("")),
+  youtube_link: z.string().trim().max(500).optional().nullable().or(z.literal("")),
+  soundcloud_link: z.string().trim().max(500).optional().nullable().or(z.literal("")),
+  tip_link: z.string().trim().max(500).optional().nullable().or(z.literal("")),
+  other_link_url: z.string().trim().max(500).optional().nullable().or(z.literal("")),
+  other_link_name: z.string().trim().max(120).optional().nullable().or(z.literal("")),
 });
+
+function profileToEditable(p: any) {
+  if (!p) return null;
+  return {
+    id: p.id,
+    full_name: p.full_name ?? "",
+    email: p.email ?? "",
+    genre: p.genre ?? "",
+    bio: p.bio ?? "",
+    avatar_url: p.avatar_url ?? "",
+    spotify_link: p.spotify_link ?? "",
+    youtube_link: p.youtube_link ?? "",
+    soundcloud_link: p.soundcloud_link ?? "",
+    tip_link: p.tip_link ?? "",
+    other_link_url: p.other_link_url ?? "",
+    other_link_name: p.other_link_name ?? "",
+    status: p.is_approved ? "approved" : "pending",
+    is_approved: !!p.is_approved,
+    // Back-compat for any older callers
+    stage_name: p.full_name ?? p.email ?? "",
+    contact_email: p.email ?? null,
+    staff_notes: null as string | null,
+  };
+}
+
+async function listUpcomingGigsFor(userId: string) {
+  const nowIso = new Date().toISOString();
+  const { data: slots, error } = await supabaseAdmin
+    .from("slots")
+    .select("id, title, start_time, end_time, stage_id")
+    .eq("busker_id", userId)
+    .eq("is_booked", true)
+    .gte("start_time", nowIso)
+    .order("start_time", { ascending: true });
+  if (error) throw new Error(error.message);
+
+  const stageIds = Array.from(
+    new Set((slots ?? []).map((s: any) => s.stage_id).filter(Boolean)),
+  );
+  const stagesRes = stageIds.length
+    ? await supabaseAdmin
+        .from("stages")
+        .select("id, name, venue_id")
+        .in("id", stageIds as any)
+    : { data: [] as any[] };
+  const stagesById = new Map((stagesRes.data ?? []).map((s: any) => [s.id, s]));
+  const venueIds = Array.from(
+    new Set((stagesRes.data ?? []).map((s: any) => s.venue_id).filter(Boolean)),
+  );
+  const venuesRes = venueIds.length
+    ? await supabaseAdmin.from("venues").select("id, name").in("id", venueIds as any)
+    : { data: [] as any[] };
+  const venuesById = new Map((venuesRes.data ?? []).map((v: any) => [v.id, v]));
+
+  return (slots ?? []).map((s: any) => {
+    const stage = s.stage_id ? stagesById.get(s.stage_id) : null;
+    const venue = stage?.venue_id ? venuesById.get(stage.venue_id) : null;
+    return {
+      id: s.id as number,
+      title: s.title ?? null,
+      start_time: s.start_time ?? null,
+      end_time: s.end_time ?? null,
+      stage_name: stage?.name ?? null,
+      venue_name: venue?.name ?? null,
+    };
+  });
+}
 
 export const getMyArtistProfile = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -149,7 +227,9 @@ export const getMyArtistProfile = createServerFn({ method: "GET" })
       .eq("id", context.userId)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return profileToArtist(data);
+    const artist = profileToEditable(data);
+    const gigs = data ? await listUpcomingGigsFor(context.userId) : [];
+    return { artist, gigs };
   });
 
 export const upsertMyArtistProfile = createServerFn({ method: "POST" })
@@ -158,20 +238,28 @@ export const upsertMyArtistProfile = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const patch: Record<string, unknown> = {
       id: context.userId,
-      full_name: data.stage_name,
-      genre: data.genre ?? null,
-      bio: data.bio ?? null,
-      other_link_url: data.website || null,
+      full_name: data.full_name,
+      genre: urlOrEmpty(data.genre),
+      bio: urlOrEmpty(data.bio),
+      avatar_url: urlOrEmpty(data.avatar_url),
+      spotify_link: urlOrEmpty(data.spotify_link),
+      youtube_link: urlOrEmpty(data.youtube_link),
+      soundcloud_link: urlOrEmpty(data.soundcloud_link),
+      tip_link: urlOrEmpty(data.tip_link),
+      other_link_url: urlOrEmpty(data.other_link_url),
+      other_link_name: urlOrEmpty(data.other_link_name),
       updated_at: new Date().toISOString(),
     };
-    if (data.contact_email) patch.email = data.contact_email;
+    if (data.email) patch.email = data.email;
     const { data: row, error } = await supabaseAdmin
       .from("profiles")
       .upsert(patch, { onConflict: "id" })
       .select("*")
       .single();
     if (error) throw new Error(error.message);
-    return profileToArtist(row);
+    const artist = profileToEditable(row);
+    const gigs = await listUpcomingGigsFor(context.userId);
+    return { artist, gigs };
   });
 
 // ---------- Claim / release ----------
