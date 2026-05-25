@@ -146,6 +146,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
     for (const s of slotRes.data ?? []) {
       const stage = (s as any).stage_id ? stagesById.get((s as any).stage_id) : null;
       const venue = stage?.venue_id ? venuesById.get(stage.venue_id) : null;
+      const busker = (s as any).busker_id ? buskersById.get((s as any).busker_id) : null;
       out.push({
         id: `slot-${(s as any).id}`,
         source: "music",
@@ -153,10 +154,10 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         description: (s as any).description ?? null,
         starts_at: (s as any).start_time ?? null,
         ends_at: (s as any).end_time ?? null,
-        image_url: null,
+        image_url: busker?.avatar_url ?? null,
         venue_name: venue?.name ?? stage?.name ?? null,
         venue_city: venue?.city ?? null,
-        org_name: null,
+        org_name: busker?.full_name ?? null,
         cost_text: "Free",
         ticketed: false,
         detail_href: "/streetbeats",
