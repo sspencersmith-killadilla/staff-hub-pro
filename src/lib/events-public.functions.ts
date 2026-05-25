@@ -49,7 +49,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
     // 3. Music gigs (booked slots)
     const slotsQ = supabaseAdmin
       .from("slots")
-      .select("id, title, description, start_time, end_time, is_booked, stage_id")
+      .select("id, title, description, start_time, end_time, is_booked, stage_id, busker_id")
       .eq("is_booked", true)
       .order("start_time", { ascending: true });
     if (!includeArchived) slotsQ.gte("end_time", nowIso);
@@ -89,6 +89,18 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
           .in("id", orgIds as any)
       : { data: [] as any[] };
     const orgsById = new Map((orgsRes.data ?? []).map((o: any) => [o.id, o]));
+
+    // Busker profiles for music gigs
+    const buskerIds = Array.from(
+      new Set((slotRes.data ?? []).map((s: any) => s.busker_id).filter(Boolean)),
+    );
+    const buskersRes = buskerIds.length
+      ? await supabaseAdmin
+          .from("profiles")
+          .select("id, full_name, avatar_url")
+          .in("id", buskerIds as any)
+      : { data: [] as any[] };
+    const buskersById = new Map((buskersRes.data ?? []).map((p: any) => [p.id, p]));
 
     const out: UnifiedEvent[] = [];
 
@@ -134,6 +146,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
     for (const s of slotRes.data ?? []) {
       const stage = (s as any).stage_id ? stagesById.get((s as any).stage_id) : null;
       const venue = stage?.venue_id ? venuesById.get(stage.venue_id) : null;
+      const busker = (s as any).busker_id ? buskersById.get((s as any).busker_id) : null;
       out.push({
         id: `slot-${(s as any).id}`,
         source: "music",
@@ -141,10 +154,10 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         description: (s as any).description ?? null,
         starts_at: (s as any).start_time ?? null,
         ends_at: (s as any).end_time ?? null,
-        image_url: null,
+        image_url: busker?.avatar_url ?? null,
         venue_name: venue?.name ?? stage?.name ?? null,
         venue_city: venue?.city ?? null,
-        org_name: null,
+        org_name: busker?.full_name ?? null,
         cost_text: "Free",
         ticketed: false,
         detail_href: "/streetbeats",
