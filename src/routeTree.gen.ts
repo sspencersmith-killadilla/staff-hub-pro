@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VenuesRouteImport } from './routes/venues'
+import { Route as StreetbeatsRouteImport } from './routes/streetbeats'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as NoAccessRouteImport } from './routes/no-access'
 import { Route as LoginRouteImport } from './routes/login'
@@ -21,6 +22,8 @@ import { Route as RoomsIdRouteImport } from './routes/rooms.$id'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
 import { Route as AuthenticatedMyReservationsRouteImport } from './routes/_authenticated/my-reservations'
 import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff/index'
+import { Route as AuthenticatedStreetbeatsMyGigsRouteImport } from './routes/_authenticated/streetbeats/my-gigs'
+import { Route as AuthenticatedStreetbeatsApplyRouteImport } from './routes/_authenticated/streetbeats/apply'
 import { Route as AuthenticatedStaffVenuesRouteImport } from './routes/_authenticated/staff/venues'
 import { Route as AuthenticatedStaffVendorsRouteImport } from './routes/_authenticated/staff/vendors'
 import { Route as AuthenticatedStaffSponsorsRouteImport } from './routes/_authenticated/staff/sponsors'
@@ -35,6 +38,11 @@ import { Route as AuthenticatedStaffAdminRouteImport } from './routes/_authentic
 const VenuesRoute = VenuesRouteImport.update({
   id: '/venues',
   path: '/venues',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StreetbeatsRoute = StreetbeatsRouteImport.update({
+  id: '/streetbeats',
+  path: '/streetbeats',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignupRoute = SignupRouteImport.update({
@@ -92,6 +100,18 @@ const AuthenticatedStaffIndexRoute = AuthenticatedStaffIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedStaffRoute,
 } as any)
+const AuthenticatedStreetbeatsMyGigsRoute =
+  AuthenticatedStreetbeatsMyGigsRouteImport.update({
+    id: '/streetbeats/my-gigs',
+    path: '/streetbeats/my-gigs',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedStreetbeatsApplyRoute =
+  AuthenticatedStreetbeatsApplyRouteImport.update({
+    id: '/streetbeats/apply',
+    path: '/streetbeats/apply',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedStaffVenuesRoute =
   AuthenticatedStaffVenuesRouteImport.update({
     id: '/venues',
@@ -156,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
+  '/streetbeats': typeof StreetbeatsRoute
   '/venues': typeof VenuesRouteWithChildren
   '/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/staff': typeof AuthenticatedStaffRouteWithChildren
@@ -172,6 +193,8 @@ export interface FileRoutesByFullPath {
   '/staff/sponsors': typeof AuthenticatedStaffSponsorsRoute
   '/staff/vendors': typeof AuthenticatedStaffVendorsRoute
   '/staff/venues': typeof AuthenticatedStaffVenuesRoute
+  '/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
+  '/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
 }
 export interface FileRoutesByTo {
@@ -179,6 +202,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
+  '/streetbeats': typeof StreetbeatsRoute
   '/venues': typeof VenuesRouteWithChildren
   '/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/rooms/$id': typeof RoomsIdRoute
@@ -194,6 +218,8 @@ export interface FileRoutesByTo {
   '/staff/sponsors': typeof AuthenticatedStaffSponsorsRoute
   '/staff/vendors': typeof AuthenticatedStaffVendorsRoute
   '/staff/venues': typeof AuthenticatedStaffVenuesRoute
+  '/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
+  '/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
 }
 export interface FileRoutesById {
@@ -203,6 +229,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
+  '/streetbeats': typeof StreetbeatsRoute
   '/venues': typeof VenuesRouteWithChildren
   '/_authenticated/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRouteWithChildren
@@ -219,6 +246,8 @@ export interface FileRoutesById {
   '/_authenticated/staff/sponsors': typeof AuthenticatedStaffSponsorsRoute
   '/_authenticated/staff/vendors': typeof AuthenticatedStaffVendorsRoute
   '/_authenticated/staff/venues': typeof AuthenticatedStaffVenuesRoute
+  '/_authenticated/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
+  '/_authenticated/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
 }
 export interface FileRouteTypes {
@@ -228,6 +257,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/no-access'
     | '/signup'
+    | '/streetbeats'
     | '/venues'
     | '/my-reservations'
     | '/staff'
@@ -244,6 +274,8 @@ export interface FileRouteTypes {
     | '/staff/sponsors'
     | '/staff/vendors'
     | '/staff/venues'
+    | '/streetbeats/apply'
+    | '/streetbeats/my-gigs'
     | '/staff/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -251,6 +283,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/no-access'
     | '/signup'
+    | '/streetbeats'
     | '/venues'
     | '/my-reservations'
     | '/rooms/$id'
@@ -266,6 +299,8 @@ export interface FileRouteTypes {
     | '/staff/sponsors'
     | '/staff/vendors'
     | '/staff/venues'
+    | '/streetbeats/apply'
+    | '/streetbeats/my-gigs'
     | '/staff'
   id:
     | '__root__'
@@ -274,6 +309,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/no-access'
     | '/signup'
+    | '/streetbeats'
     | '/venues'
     | '/_authenticated/my-reservations'
     | '/_authenticated/staff'
@@ -290,6 +326,8 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/sponsors'
     | '/_authenticated/staff/vendors'
     | '/_authenticated/staff/venues'
+    | '/_authenticated/streetbeats/apply'
+    | '/_authenticated/streetbeats/my-gigs'
     | '/_authenticated/staff/'
   fileRoutesById: FileRoutesById
 }
@@ -299,6 +337,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   NoAccessRoute: typeof NoAccessRoute
   SignupRoute: typeof SignupRoute
+  StreetbeatsRoute: typeof StreetbeatsRoute
   VenuesRoute: typeof VenuesRouteWithChildren
   RoomsIdRoute: typeof RoomsIdRoute
   StagesIdRoute: typeof StagesIdRoute
@@ -311,6 +350,13 @@ declare module '@tanstack/react-router' {
       path: '/venues'
       fullPath: '/venues'
       preLoaderRoute: typeof VenuesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/streetbeats': {
+      id: '/streetbeats'
+      path: '/streetbeats'
+      fullPath: '/streetbeats'
+      preLoaderRoute: typeof StreetbeatsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signup': {
@@ -389,6 +435,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/staff/'
       preLoaderRoute: typeof AuthenticatedStaffIndexRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/streetbeats/my-gigs': {
+      id: '/_authenticated/streetbeats/my-gigs'
+      path: '/streetbeats/my-gigs'
+      fullPath: '/streetbeats/my-gigs'
+      preLoaderRoute: typeof AuthenticatedStreetbeatsMyGigsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/streetbeats/apply': {
+      id: '/_authenticated/streetbeats/apply'
+      path: '/streetbeats/apply'
+      fullPath: '/streetbeats/apply'
+      preLoaderRoute: typeof AuthenticatedStreetbeatsApplyRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/staff/venues': {
       id: '/_authenticated/staff/venues'
@@ -499,11 +559,15 @@ const AuthenticatedStaffRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedMyReservationsRoute: typeof AuthenticatedMyReservationsRoute
   AuthenticatedStaffRoute: typeof AuthenticatedStaffRouteWithChildren
+  AuthenticatedStreetbeatsApplyRoute: typeof AuthenticatedStreetbeatsApplyRoute
+  AuthenticatedStreetbeatsMyGigsRoute: typeof AuthenticatedStreetbeatsMyGigsRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMyReservationsRoute: AuthenticatedMyReservationsRoute,
   AuthenticatedStaffRoute: AuthenticatedStaffRouteWithChildren,
+  AuthenticatedStreetbeatsApplyRoute: AuthenticatedStreetbeatsApplyRoute,
+  AuthenticatedStreetbeatsMyGigsRoute: AuthenticatedStreetbeatsMyGigsRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -527,6 +591,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   NoAccessRoute: NoAccessRoute,
   SignupRoute: SignupRoute,
+  StreetbeatsRoute: StreetbeatsRoute,
   VenuesRoute: VenuesRouteWithChildren,
   RoomsIdRoute: RoomsIdRoute,
   StagesIdRoute: StagesIdRoute,
