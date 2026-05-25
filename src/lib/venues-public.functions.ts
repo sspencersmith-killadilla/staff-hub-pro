@@ -19,6 +19,27 @@ export const listVenuesPublic = createServerFn({ method: "GET" }).handler(
   },
 );
 
+export const listRoomsPublic = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const { data: rooms, error } = await supabaseAdmin
+      .from("rooms")
+      .select(ROOM_COLS)
+      .eq("is_publicly_bookable", true)
+      .order("name");
+    if (error) throw new Error(error.message);
+    const venueIds = Array.from(new Set((rooms ?? []).map((r: any) => r.venue_id).filter(Boolean)));
+    let venuesById: Record<string, any> = {};
+    if (venueIds.length) {
+      const { data: venues } = await supabaseAdmin
+        .from("venues")
+        .select("id, name, address, city, state, zip")
+        .in("id", venueIds);
+      venuesById = Object.fromEntries((venues ?? []).map((v: any) => [String(v.id), v]));
+    }
+    return (rooms ?? []).map((r: any) => ({ ...r, venue: venuesById[String(r.venue_id)] ?? null }));
+  },
+);
+
 export const getVenuePublic = createServerFn({ method: "GET" })
   .inputValidator((i) => z.object({ id: z.number().int() }).parse(i))
   .handler(async ({ data }) => {
