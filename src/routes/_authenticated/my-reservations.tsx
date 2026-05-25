@@ -1,12 +1,8 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { listMyReservations } from "@/lib/room-reservations-public.functions";
 import { SiteHeader } from "@/components/site-header";
-
-const myReservationsQO = queryOptions({
-  queryKey: ["me", "reservations"],
-  queryFn: () => listMyReservations(),
-});
 
 export const Route = createFileRoute("/_authenticated/my-reservations")({
   head: () => ({
@@ -19,13 +15,6 @@ export const Route = createFileRoute("/_authenticated/my-reservations")({
       { property: "og:title", content: "My Reservations" },
     ],
   }),
-  loader: ({ context }) => {
-    try {
-      return context.queryClient.ensureQueryData(myReservationsQO);
-    } catch (e) {
-      throw redirect({ to: "/login", search: { redirect: "/my-reservations" } });
-    }
-  },
   component: MyReservationsPage,
 });
 
@@ -51,7 +40,21 @@ function fmtRange(starts: string, ends: string) {
 }
 
 function MyReservationsPage() {
-  const { data } = useSuspenseQuery(myReservationsQO);
+  const fetchMine = useServerFn(listMyReservations);
+  const { data, isLoading } = useQuery({
+    queryKey: ["me", "reservations"],
+    queryFn: () => fetchMine(),
+  });
+  if (isLoading || !data) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <SiteHeader />
+        <main className="mx-auto max-w-3xl px-6 py-12">
+          <p className="text-sm text-slate-500">Loading…</p>
+        </main>
+      </div>
+    );
+  }
   const roomById = new Map((data.rooms ?? []).map((r: any) => [r.id, r]));
   const venueById = new Map((data.venues ?? []).map((v: any) => [v.id, v]));
 
