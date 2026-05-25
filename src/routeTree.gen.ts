@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VenuesRouteImport } from './routes/venues'
+import { Route as VendorRouteImport } from './routes/vendor'
 import { Route as StreetbeatsRouteImport } from './routes/streetbeats'
+import { Route as SponsorsRouteImport } from './routes/sponsors'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as NoAccessRouteImport } from './routes/no-access'
 import { Route as LoginRouteImport } from './routes/login'
@@ -45,9 +47,19 @@ const VenuesRoute = VenuesRouteImport.update({
   path: '/venues',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VendorRoute = VendorRouteImport.update({
+  id: '/vendor',
+  path: '/vendor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StreetbeatsRoute = StreetbeatsRouteImport.update({
   id: '/streetbeats',
   path: '/streetbeats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SponsorsRoute = SponsorsRouteImport.update({
+  id: '/sponsors',
+  path: '/sponsors',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignupRoute = SignupRouteImport.update({
@@ -211,7 +223,9 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
+  '/sponsors': typeof SponsorsRoute
   '/streetbeats': typeof StreetbeatsRoute
+  '/vendor': typeof VendorRoute
   '/venues': typeof VenuesRouteWithChildren
   '/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/staff': typeof AuthenticatedStaffRouteWithChildren
@@ -242,7 +256,9 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
+  '/sponsors': typeof SponsorsRoute
   '/streetbeats': typeof StreetbeatsRoute
+  '/vendor': typeof VendorRoute
   '/venues': typeof VenuesRouteWithChildren
   '/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/rooms/$id': typeof RoomsIdRoute
@@ -274,7 +290,9 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
+  '/sponsors': typeof SponsorsRoute
   '/streetbeats': typeof StreetbeatsRoute
+  '/vendor': typeof VendorRoute
   '/venues': typeof VenuesRouteWithChildren
   '/_authenticated/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRouteWithChildren
@@ -307,7 +325,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/no-access'
     | '/signup'
+    | '/sponsors'
     | '/streetbeats'
+    | '/vendor'
     | '/venues'
     | '/my-reservations'
     | '/staff'
@@ -338,7 +358,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/no-access'
     | '/signup'
+    | '/sponsors'
     | '/streetbeats'
+    | '/vendor'
     | '/venues'
     | '/my-reservations'
     | '/rooms/$id'
@@ -369,7 +391,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/no-access'
     | '/signup'
+    | '/sponsors'
     | '/streetbeats'
+    | '/vendor'
     | '/venues'
     | '/_authenticated/my-reservations'
     | '/_authenticated/staff'
@@ -402,7 +426,9 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   NoAccessRoute: typeof NoAccessRoute
   SignupRoute: typeof SignupRoute
+  SponsorsRoute: typeof SponsorsRoute
   StreetbeatsRoute: typeof StreetbeatsRoute
+  VendorRoute: typeof VendorRoute
   VenuesRoute: typeof VenuesRouteWithChildren
   RoomsIdRoute: typeof RoomsIdRoute
   StagesIdRoute: typeof StagesIdRoute
@@ -417,11 +443,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VenuesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vendor': {
+      id: '/vendor'
+      path: '/vendor'
+      fullPath: '/vendor'
+      preLoaderRoute: typeof VendorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/streetbeats': {
       id: '/streetbeats'
       path: '/streetbeats'
       fullPath: '/streetbeats'
       preLoaderRoute: typeof StreetbeatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sponsors': {
+      id: '/sponsors'
+      path: '/sponsors'
+      fullPath: '/sponsors'
+      preLoaderRoute: typeof SponsorsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signup': {
@@ -701,7 +741,9 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   NoAccessRoute: NoAccessRoute,
   SignupRoute: SignupRoute,
+  SponsorsRoute: SponsorsRoute,
   StreetbeatsRoute: StreetbeatsRoute,
+  VendorRoute: VendorRoute,
   VenuesRoute: VenuesRouteWithChildren,
   RoomsIdRoute: RoomsIdRoute,
   StagesIdRoute: StagesIdRoute,
