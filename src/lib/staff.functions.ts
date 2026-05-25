@@ -16,7 +16,7 @@ export const listStaff = createServerFn({ method: "GET" })
 
     const { data: roles, error } = await supabaseAdmin
       .from("user_roles")
-      .select("user_id, role, created_at");
+      .select("user_id, role");
     if (error) throw new Error(error.message);
 
     const ids = Array.from(new Set((roles ?? []).map((r) => r.user_id)));
