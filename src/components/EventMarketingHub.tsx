@@ -634,14 +634,6 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
                     <p className="text-teal-800 font-black uppercase tracking-widest text-[11px] mb-1">
                       Admissions & Tickets
                     </p>
-                    <a
-                      href={ticketsHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xl font-black text-[#00a91c] leading-none break-all hover:underline block"
-                    >
-                      {shortUrl}
-                    </a>
                     <p className="text-[11px] text-teal-700 mt-2">Scan or tap to open</p>
                   </div>
                 </div>
@@ -906,24 +898,7 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
                     >
                       Admissions & Tickets
                     </p>
-                    <a
-                      href={ticketsHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        fontSize: 15,
-                        fontWeight: 900,
-                        color: "#00a91c",
-                        lineHeight: 1,
-                        margin: 0,
-                        wordBreak: "break-all",
-                        textDecoration: "none",
-                        display: "block",
-                      }}
-                    >
-                      {shortUrl}
-                    </a>
-                    <p style={{ fontSize: 10, color: "#0f766e", margin: "4px 0 0 0" }}>
+                    <p style={{ fontSize: 10, color: "#0f766e", margin: "4px 0 0 5px" }}>
                       Scan or tap to open
                     </p>
                   </div>
