@@ -163,7 +163,9 @@ export function RoomReservationForm({
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setSubmitError(null);
     if (!picked) {
+      setSubmitError("Pick a time slot first.");
       toast.error("Pick a time slot first");
       return;
     }
@@ -189,7 +191,10 @@ export function RoomReservationForm({
       qc.invalidateQueries({ queryKey: ["public", "room", roomId] });
       setDone(true);
     } catch (err: any) {
-      toast.error(err?.message ?? "Failed to submit request");
+      const msg = err?.message ?? "Failed to submit request";
+      console.error("Reservation submit failed:", err);
+      setSubmitError(msg);
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
