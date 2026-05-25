@@ -149,6 +149,27 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const [isDownloading, setIsDownloading] = useState(false);
 
+  // Resolve venue/sub-stage/sub-room hierarchy.
+  // Sessions link to either a stage (with parent venue) or a room (with parent venue).
+  const stage: any = (event as any)?.stages ?? null;
+  const room: any = (event as any)?.rooms ?? null;
+  const venue: any = stage?.venues ?? room?.venues ?? null;
+
+  const venueName: string =
+    venue?.name || stage?.name || room?.name || "TBA";
+  const subSpaceName: string | null = venue
+    ? room?.name || stage?.name || null
+    : null;
+  const venueAddress: string = (() => {
+    const parts = [
+      venue?.address || stage?.address || null,
+      venue?.city || null,
+      venue?.state || null,
+    ].filter(Boolean);
+    return parts.length ? parts.join(", ") : "McKinney, TX";
+  })();
+  const locationPrimary = subSpaceName ? `${venueName} — ${subSpaceName}` : venueName;
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       setTicketsHref(`${window.location.origin}/tickets`);
