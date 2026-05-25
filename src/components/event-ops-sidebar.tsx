@@ -30,7 +30,6 @@ type Item = {
 const items: Item[] = [
   { title: "Events", url: "/staff", icon: Calendar, exact: true },
   { title: "Venues & Stages", url: "/staff/venues", icon: Building2 },
-  { title: "Map", url: "/staff/map", icon: Map },
   { title: "Attendees", url: "/staff/attendees", icon: Users },
   { title: "Vendors", url: "/staff/vendors", icon: Store, module: "vendors_sponsors" },
   { title: "Sponsors", url: "/staff/sponsors", icon: Sparkles, module: "vendors_sponsors" },
