@@ -19,6 +19,7 @@ import { Route as VenuesIdRouteImport } from './routes/venues.$id'
 import { Route as StagesIdRouteImport } from './routes/stages.$id'
 import { Route as RoomsIdRouteImport } from './routes/rooms.$id'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
+import { Route as AuthenticatedMyReservationsRouteImport } from './routes/_authenticated/my-reservations'
 import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff/index'
 import { Route as AuthenticatedStaffVenuesRouteImport } from './routes/_authenticated/staff/venues'
 import { Route as AuthenticatedStaffVendorsRouteImport } from './routes/_authenticated/staff/vendors'
@@ -80,6 +81,12 @@ const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
   path: '/staff',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedMyReservationsRoute =
+  AuthenticatedMyReservationsRouteImport.update({
+    id: '/my-reservations',
+    path: '/my-reservations',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedStaffIndexRoute = AuthenticatedStaffIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -150,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
   '/venues': typeof VenuesRouteWithChildren
+  '/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/staff': typeof AuthenticatedStaffRouteWithChildren
   '/rooms/$id': typeof RoomsIdRoute
   '/stages/$id': typeof StagesIdRoute
@@ -172,6 +180,7 @@ export interface FileRoutesByTo {
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
   '/venues': typeof VenuesRouteWithChildren
+  '/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/rooms/$id': typeof RoomsIdRoute
   '/stages/$id': typeof StagesIdRoute
   '/venues/$id': typeof VenuesIdRoute
@@ -195,6 +204,7 @@ export interface FileRoutesById {
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
   '/venues': typeof VenuesRouteWithChildren
+  '/_authenticated/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRouteWithChildren
   '/rooms/$id': typeof RoomsIdRoute
   '/stages/$id': typeof StagesIdRoute
@@ -219,6 +229,7 @@ export interface FileRouteTypes {
     | '/no-access'
     | '/signup'
     | '/venues'
+    | '/my-reservations'
     | '/staff'
     | '/rooms/$id'
     | '/stages/$id'
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/no-access'
     | '/signup'
     | '/venues'
+    | '/my-reservations'
     | '/rooms/$id'
     | '/stages/$id'
     | '/venues/$id'
@@ -263,6 +275,7 @@ export interface FileRouteTypes {
     | '/no-access'
     | '/signup'
     | '/venues'
+    | '/_authenticated/my-reservations'
     | '/_authenticated/staff'
     | '/rooms/$id'
     | '/stages/$id'
@@ -361,6 +374,13 @@ declare module '@tanstack/react-router' {
       path: '/staff'
       fullPath: '/staff'
       preLoaderRoute: typeof AuthenticatedStaffRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/my-reservations': {
+      id: '/_authenticated/my-reservations'
+      path: '/my-reservations'
+      fullPath: '/my-reservations'
+      preLoaderRoute: typeof AuthenticatedMyReservationsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/staff/': {
@@ -477,10 +497,12 @@ const AuthenticatedStaffRouteWithChildren =
   AuthenticatedStaffRoute._addFileChildren(AuthenticatedStaffRouteChildren)
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedMyReservationsRoute: typeof AuthenticatedMyReservationsRoute
   AuthenticatedStaffRoute: typeof AuthenticatedStaffRouteWithChildren
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedMyReservationsRoute: AuthenticatedMyReservationsRoute,
   AuthenticatedStaffRoute: AuthenticatedStaffRouteWithChildren,
 }
 
@@ -512,13 +534,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
