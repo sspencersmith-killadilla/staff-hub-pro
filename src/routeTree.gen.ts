@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as VenuesRouteImport } from './routes/venues'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as NoAccessRouteImport } from './routes/no-access'
+import { Route as MyReservationsRouteImport } from './routes/my-reservations'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
@@ -44,6 +45,11 @@ const SignupRoute = SignupRouteImport.update({
 const NoAccessRoute = NoAccessRouteImport.update({
   id: '/no-access',
   path: '/no-access',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyReservationsRoute = MyReservationsRouteImport.update({
+  id: '/my-reservations',
+  path: '/my-reservations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -147,6 +153,7 @@ const AuthenticatedStaffAdminRoute = AuthenticatedStaffAdminRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/my-reservations': typeof MyReservationsRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
   '/venues': typeof VenuesRouteWithChildren
@@ -169,6 +176,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/my-reservations': typeof MyReservationsRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
   '/venues': typeof VenuesRouteWithChildren
@@ -192,6 +200,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
+  '/my-reservations': typeof MyReservationsRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
   '/venues': typeof VenuesRouteWithChildren
@@ -216,6 +225,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/my-reservations'
     | '/no-access'
     | '/signup'
     | '/venues'
@@ -238,6 +248,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/my-reservations'
     | '/no-access'
     | '/signup'
     | '/venues'
@@ -260,6 +271,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/login'
+    | '/my-reservations'
     | '/no-access'
     | '/signup'
     | '/venues'
@@ -284,6 +296,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
+  MyReservationsRoute: typeof MyReservationsRoute
   NoAccessRoute: typeof NoAccessRoute
   SignupRoute: typeof SignupRoute
   VenuesRoute: typeof VenuesRouteWithChildren
@@ -312,6 +325,13 @@ declare module '@tanstack/react-router' {
       path: '/no-access'
       fullPath: '/no-access'
       preLoaderRoute: typeof NoAccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-reservations': {
+      id: '/my-reservations'
+      path: '/my-reservations'
+      fullPath: '/my-reservations'
+      preLoaderRoute: typeof MyReservationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -503,6 +523,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
+  MyReservationsRoute: MyReservationsRoute,
   NoAccessRoute: NoAccessRoute,
   SignupRoute: SignupRoute,
   VenuesRoute: VenuesRouteWithChildren,
