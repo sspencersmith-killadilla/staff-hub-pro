@@ -201,8 +201,9 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
             "textDecorationColor",
             "columnRuleColor",
           ] as const;
+          const cloneWin = clonedDoc.defaultView || window;
           const sanitize = (el: Element) => {
-            const cs = getComputedStyle(el);
+            const cs = cloneWin.getComputedStyle(el);
             colorProps.forEach((p) => {
               const v = cs[p as any] as string;
               if (v && v.includes("oklch")) {
