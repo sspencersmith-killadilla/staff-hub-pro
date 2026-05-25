@@ -62,19 +62,30 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
     if (commRes.error) throw new Error(commRes.error.message);
     if (slotRes.error) throw new Error(slotRes.error.message);
 
-    // Resolve venues for sessions + slots via their stages.
+    // Resolve venues for sessions + slots via their stages or rooms.
     const stageIds = new Set<string>();
-    for (const s of sessRes.data ?? []) if ((s as any).stage_id) stageIds.add((s as any).stage_id);
+    const roomIds = new Set<string>();
+    for (const s of sessRes.data ?? []) {
+      if ((s as any).stage_id) stageIds.add((s as any).stage_id);
+      if ((s as any).room_id) roomIds.add((s as any).room_id);
+    }
     for (const s of slotRes.data ?? []) if ((s as any).stage_id) stageIds.add((s as any).stage_id);
-    const stagesRes = stageIds.size
-      ? await supabaseAdmin
-          .from("stages")
-          .select("id, name, venue_id")
-          .in("id", Array.from(stageIds))
-      : { data: [] as any[] };
+    const [stagesRes, roomsRes] = await Promise.all([
+      stageIds.size
+        ? supabaseAdmin.from("stages").select("id, name, venue_id").in("id", Array.from(stageIds))
+        : Promise.resolve({ data: [] as any[] }),
+      roomIds.size
+        ? supabaseAdmin.from("rooms").select("id, name, venue_id").in("id", Array.from(roomIds))
+        : Promise.resolve({ data: [] as any[] }),
+    ]);
     const stagesById = new Map((stagesRes.data ?? []).map((s: any) => [s.id, s]));
+    const roomsById = new Map((roomsRes.data ?? []).map((r: any) => [r.id, r]));
     const venueIds = Array.from(
-      new Set((stagesRes.data ?? []).map((s: any) => s.venue_id).filter(Boolean)),
+      new Set(
+        [...(stagesRes.data ?? []), ...(roomsRes.data ?? [])]
+          .map((s: any) => s.venue_id)
+          .filter(Boolean),
+      ),
     );
     const venuesRes = venueIds.length
       ? await supabaseAdmin.from("venues").select("id, name, city").in("id", venueIds as any)
