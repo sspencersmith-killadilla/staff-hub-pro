@@ -347,7 +347,7 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
     return (
       <div>
         <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2 text-center">
-          Proudly Supported By
+          Presented in partnership with
         </p>
         <div className="flex justify-center items-center" style={{ gap: `${gap}px` }}>
           {list.map((s, i) => (
