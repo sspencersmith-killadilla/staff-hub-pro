@@ -9,11 +9,15 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VenuesRouteImport } from './routes/venues'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as NoAccessRouteImport } from './routes/no-access'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VenuesIdRouteImport } from './routes/venues.$id'
+import { Route as StagesIdRouteImport } from './routes/stages.$id'
+import { Route as RoomsIdRouteImport } from './routes/rooms.$id'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
 import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff/index'
 import { Route as AuthenticatedStaffVenuesRouteImport } from './routes/_authenticated/staff/venues'
@@ -27,6 +31,11 @@ import { Route as AuthenticatedStaffCommunityEventsRouteImport } from './routes/
 import { Route as AuthenticatedStaffAttendeesRouteImport } from './routes/_authenticated/staff/attendees'
 import { Route as AuthenticatedStaffAdminRouteImport } from './routes/_authenticated/staff/admin'
 
+const VenuesRoute = VenuesRouteImport.update({
+  id: '/venues',
+  path: '/venues',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -49,6 +58,21 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VenuesIdRoute = VenuesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => VenuesRoute,
+} as any)
+const StagesIdRoute = StagesIdRouteImport.update({
+  id: '/stages/$id',
+  path: '/stages/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoomsIdRoute = RoomsIdRouteImport.update({
+  id: '/rooms/$id',
+  path: '/rooms/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
@@ -125,7 +149,11 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
+  '/venues': typeof VenuesRouteWithChildren
   '/staff': typeof AuthenticatedStaffRouteWithChildren
+  '/rooms/$id': typeof RoomsIdRoute
+  '/stages/$id': typeof StagesIdRoute
+  '/venues/$id': typeof VenuesIdRoute
   '/staff/admin': typeof AuthenticatedStaffAdminRoute
   '/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
   '/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
@@ -143,6 +171,10 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
+  '/venues': typeof VenuesRouteWithChildren
+  '/rooms/$id': typeof RoomsIdRoute
+  '/stages/$id': typeof StagesIdRoute
+  '/venues/$id': typeof VenuesIdRoute
   '/staff/admin': typeof AuthenticatedStaffAdminRoute
   '/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
   '/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
@@ -162,7 +194,11 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
+  '/venues': typeof VenuesRouteWithChildren
   '/_authenticated/staff': typeof AuthenticatedStaffRouteWithChildren
+  '/rooms/$id': typeof RoomsIdRoute
+  '/stages/$id': typeof StagesIdRoute
+  '/venues/$id': typeof VenuesIdRoute
   '/_authenticated/staff/admin': typeof AuthenticatedStaffAdminRoute
   '/_authenticated/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
   '/_authenticated/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
@@ -182,7 +218,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/no-access'
     | '/signup'
+    | '/venues'
     | '/staff'
+    | '/rooms/$id'
+    | '/stages/$id'
+    | '/venues/$id'
     | '/staff/admin'
     | '/staff/attendees'
     | '/staff/community-events'
@@ -200,6 +240,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/no-access'
     | '/signup'
+    | '/venues'
+    | '/rooms/$id'
+    | '/stages/$id'
+    | '/venues/$id'
     | '/staff/admin'
     | '/staff/attendees'
     | '/staff/community-events'
@@ -218,7 +262,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/no-access'
     | '/signup'
+    | '/venues'
     | '/_authenticated/staff'
+    | '/rooms/$id'
+    | '/stages/$id'
+    | '/venues/$id'
     | '/_authenticated/staff/admin'
     | '/_authenticated/staff/attendees'
     | '/_authenticated/staff/community-events'
@@ -238,10 +286,20 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   NoAccessRoute: typeof NoAccessRoute
   SignupRoute: typeof SignupRoute
+  VenuesRoute: typeof VenuesRouteWithChildren
+  RoomsIdRoute: typeof RoomsIdRoute
+  StagesIdRoute: typeof StagesIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/venues': {
+      id: '/venues'
+      path: '/venues'
+      fullPath: '/venues'
+      preLoaderRoute: typeof VenuesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -275,6 +333,27 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/venues/$id': {
+      id: '/venues/$id'
+      path: '/$id'
+      fullPath: '/venues/$id'
+      preLoaderRoute: typeof VenuesIdRouteImport
+      parentRoute: typeof VenuesRoute
+    }
+    '/stages/$id': {
+      id: '/stages/$id'
+      path: '/stages/$id'
+      fullPath: '/stages/$id'
+      preLoaderRoute: typeof StagesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rooms/$id': {
+      id: '/rooms/$id'
+      path: '/rooms/$id'
+      fullPath: '/rooms/$id'
+      preLoaderRoute: typeof RoomsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/staff': {
@@ -409,23 +488,27 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface VenuesRouteChildren {
+  VenuesIdRoute: typeof VenuesIdRoute
+}
+
+const VenuesRouteChildren: VenuesRouteChildren = {
+  VenuesIdRoute: VenuesIdRoute,
+}
+
+const VenuesRouteWithChildren =
+  VenuesRoute._addFileChildren(VenuesRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
   NoAccessRoute: NoAccessRoute,
   SignupRoute: SignupRoute,
+  VenuesRoute: VenuesRouteWithChildren,
+  RoomsIdRoute: RoomsIdRoute,
+  StagesIdRoute: StagesIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
