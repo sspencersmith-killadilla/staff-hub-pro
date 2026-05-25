@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (s: Record<string, unknown>) => ({
-    redirect: (s.redirect as string) || "/staff",
+    redirect: (s.redirect as string) || "/hub",
   }),
   component: LoginPage,
 });
@@ -32,7 +32,7 @@ function LoginPage() {
       setError(error.message);
       return;
     }
-    navigate({ to: search.redirect || "/staff" });
+    navigate({ to: search.redirect || "/hub" });
   };
 
   return (
@@ -41,7 +41,7 @@ function LoginPage() {
       <div className="mx-auto max-w-md px-4 py-12">
         <Card>
           <CardHeader>
-            <CardTitle>Staff log in</CardTitle>
+            <CardTitle>Log in</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={onSubmit} className="space-y-4">
