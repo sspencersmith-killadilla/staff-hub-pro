@@ -1,8 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { createClient } from "@supabase/supabase-js";
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/config";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export type ModuleKey =
   | "vendors_sponsors"
@@ -15,6 +14,7 @@ export type PlatformModule = {
   label: string;
   description: string;
   enabled: boolean;
+  unavailable?: boolean;
 };
 
 const DEFAULT_MODULES: PlatformModule[] = [
@@ -34,6 +34,10 @@ function mergeWithDefaults(modules?: PlatformModule[] | null) {
   return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
 }
 
+function markUnavailable(modules: PlatformModule[]) {
+  return modules.map((module) => ({ ...module, unavailable: true }));
+}
+
 function shouldUseDefaultModules(error: unknown) {
   if (!error) return false;
   const message = error instanceof Error ? error.message : String(error);
@@ -47,10 +51,7 @@ function shouldUseDefaultModules(error: unknown) {
 export const listPlatformModules = createServerFn({ method: "GET" }).handler(
   async () => {
     try {
-      const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-        auth: { persistSession: false, autoRefreshToken: false },
-      });
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from("platform_modules")
         .select("key,label,description,enabled")
         .order("label");
@@ -58,7 +59,7 @@ export const listPlatformModules = createServerFn({ method: "GET" }).handler(
       if (error) {
         if (shouldUseDefaultModules(error)) {
           console.warn("[platform_modules] falling back to defaults:", error.message);
-          return DEFAULT_MODULES;
+          return markUnavailable(DEFAULT_MODULES);
         }
 
         throw new Error(error.message);
@@ -68,7 +69,7 @@ export const listPlatformModules = createServerFn({ method: "GET" }).handler(
     } catch (error) {
       if (shouldUseDefaultModules(error)) {
         console.warn("[platform_modules] falling back to defaults:", error);
-        return DEFAULT_MODULES;
+        return markUnavailable(DEFAULT_MODULES);
       }
 
       throw error;
@@ -82,9 +83,10 @@ export const setPlatformModule = createServerFn({ method: "POST" })
     z.object({ key: z.string().min(1).max(64), enabled: z.boolean() }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    // verify admin via user_roles
-    const { data: roles, error: rolesErr } = await supabase
+    const { userId } = context;
+    const moduleDefaults = DEFAULT_MODULES.find((module) => module.key === data.key);
+
+    const { data: roles, error: rolesErr } = await supabaseAdmin
       .from("user_roles")
       .select("role")
       .eq("user_id", userId)
@@ -92,34 +94,17 @@ export const setPlatformModule = createServerFn({ method: "POST" })
     if (rolesErr) throw new Error(rolesErr.message);
     if (!roles || roles.length === 0) throw new Error("Forbidden: admin required");
 
-    const { data: existing, error: readError } = await supabase
-      .from("platform_modules")
-      .select("key")
-      .eq("key", data.key)
-      .maybeSingle();
+    const { error } = await supabaseAdmin.from("platform_modules").upsert(
+      {
+        key: data.key,
+        label: moduleDefaults?.label ?? data.key,
+        description: moduleDefaults?.description ?? "",
+        enabled: data.enabled,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "key" },
+    );
 
-    if (readError) {
-      if (shouldUseDefaultModules(readError)) {
-        throw new Error("Platform module settings are not ready yet. Run the platform_modules migration first.");
-      }
-
-      throw new Error(readError.message);
-    }
-
-    const mutation = existing
-      ? supabase
-          .from("platform_modules")
-          .update({ enabled: data.enabled, updated_at: new Date().toISOString() })
-          .eq("key", data.key)
-      : supabase.from("platform_modules").insert({
-          key: data.key,
-          label: DEFAULT_MODULES.find((module) => module.key === data.key)?.label ?? data.key,
-          description:
-            DEFAULT_MODULES.find((module) => module.key === data.key)?.description ?? "",
-          enabled: data.enabled,
-        });
-
-    const { error } = await mutation;
     if (error && shouldUseDefaultModules(error)) {
       throw new Error("Platform module settings are not ready yet. Run the platform_modules migration first.");
     }
