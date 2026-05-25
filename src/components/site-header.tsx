@@ -1,10 +1,12 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { Home, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useModules } from "@/hooks/use-modules";
 import { Button } from "@/components/ui/button";
 
 export function SiteHeader() {
   const { me, isAuthenticated, isStaff, isAdmin, logout } = useAuth();
+  const { isEnabled } = useModules();
   const router = useRouter();
 
   const handleLogout = async () => {
