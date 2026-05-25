@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { useHydrated } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { submitReservationRequest } from "@/lib/room-reservations-public.functions";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 export function RoomReservationForm({ roomId }: { roomId: string }) {
+  const hydrated = useHydrated();
   const submit = useServerFn(submitReservationRequest);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
@@ -58,7 +60,7 @@ export function RoomReservationForm({ roomId }: { roomId: string }) {
     );
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = hydrated ? new Date().toISOString().slice(0, 10) : undefined;
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
