@@ -4,8 +4,8 @@ import { getMyRoles } from "@/lib/auth.functions";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ location }) => {
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) {
       throw redirect({
         to: "/login",
         search: { redirect: location.href },
