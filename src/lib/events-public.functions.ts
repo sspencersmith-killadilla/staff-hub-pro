@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 // Unified public events feed: city sessions + approved community events + booked streetbeats gigs.
 
@@ -201,6 +202,7 @@ export const getPublicCityEvent = createServerFn({ method: "GET" })
   });
 
 export const registerForCityEvent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((i) =>
     z
       .object({
@@ -212,8 +214,8 @@ export const registerForCityEvent = createServerFn({ method: "POST" })
       })
       .parse(i),
   )
-  .handler(async ({ data }) => {
-    // Validate the tier (if provided) actually belongs to this session.
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
     if (data.ticket_tier_id) {
       const { data: tier } = await supabaseAdmin
         .from("ticket_tiers")
@@ -224,9 +226,20 @@ export const registerForCityEvent = createServerFn({ method: "POST" })
         throw new Error("Invalid ticket tier for this event");
       }
     }
+    // Prevent the same user from double-registering for the same event.
+    const { data: existing } = await supabaseAdmin
+      .from("attendees")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("session_id", data.session_id)
+      .maybeSingle();
+    if (existing) return { id: existing.id };
+
     const { data: row, error } = await supabaseAdmin
       .from("attendees")
       .insert({
+        user_id: userId,
+        session_id: data.session_id,
         full_name: data.full_name,
         email: data.email,
         ticket_tier_id: data.ticket_tier_id ?? null,
