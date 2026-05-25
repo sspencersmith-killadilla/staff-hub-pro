@@ -327,11 +327,16 @@ function EventsPage() {
                       <div className="mt-1 text-sm text-slate-600">
                         {fmtWhen(e.starts_at, e.ends_at)}
                       </div>
-                      {(e.venue_name || e.venue_city) && (
+                      {(e.venue_name || e.venue_city || e.sub_location_name) && (
                         <div className="mt-2 flex items-start gap-1 text-xs text-slate-500">
                           <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                           <span>
                             {e.venue_name}
+                            {e.sub_location_name &&
+                              e.sub_location_name !== e.venue_name &&
+                              ` — ${e.sub_location_name}${
+                                e.sub_location_type === "room" ? " (Room)" : ""
+                              }`}
                             {e.venue_city && `, ${e.venue_city}`}
                           </span>
                         </div>
