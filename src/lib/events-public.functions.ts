@@ -120,7 +120,12 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
 
     for (const s of sessRes.data ?? []) {
       const stage = (s as any).stage_id ? stagesById.get((s as any).stage_id) : null;
-      const venue = stage?.venue_id ? venuesById.get(stage.venue_id) : null;
+      const room = (s as any).room_id ? roomsById.get((s as any).room_id) : null;
+      const venue =
+        (stage?.venue_id && venuesById.get(stage.venue_id)) ||
+        (room?.venue_id && venuesById.get(room.venue_id)) ||
+        null;
+      const sub = stage ?? room;
       out.push({
         id: String((s as any).id),
         source: "city",
@@ -129,8 +134,10 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         starts_at: (s as any).start_time ?? null,
         ends_at: (s as any).end_time ?? null,
         image_url: (s as any).image_url ?? null,
-        venue_name: venue?.name ?? stage?.name ?? null,
+        venue_name: venue?.name ?? sub?.name ?? null,
         venue_city: venue?.city ?? null,
+        sub_location_name: sub?.name ?? null,
+        sub_location_type: stage ? "stage" : room ? "room" : null,
         org_name: (s as any).speaker_name ?? null,
         cost_text: null,
         ticketed: true,
