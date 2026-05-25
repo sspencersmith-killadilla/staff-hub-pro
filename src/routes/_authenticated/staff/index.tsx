@@ -279,6 +279,9 @@ function EventsPage() {
                     <div className="text-xs text-slate-400">{e.venues?.name || e.location || "—"}</div>
                   </div>
                   <div className="flex justify-end gap-1">
+                    <Button size="icon" variant="ghost" title="Edit" onClick={() => startEdit(e)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
                     <Button asChild size="sm" variant="outline">
                       <Link to="/staff/events/$id" params={{ id: String(e.id) }}>
                         <ExternalLink className="h-3.5 w-3.5 mr-1" /> Manage
