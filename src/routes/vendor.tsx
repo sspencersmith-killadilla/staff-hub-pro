@@ -374,7 +374,7 @@ function ApplicationCard({
           application_notes: form.application_notes || null,
           photo_urls: form.photo_urls
             .split(",")
-            .map((s) => s.trim())
+            .map((s: string) => s.trim())
             .filter(Boolean),
         },
       });
