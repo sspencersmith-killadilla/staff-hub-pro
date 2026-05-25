@@ -145,7 +145,6 @@ async function toDataURL(url: string): Promise<string> {
 
 export default function EventMarketingHub({ event, sponsors, talent }: Props) {
   const [activeTab, setActiveTab] = useState<"flyer" | "ig" | "fb">("flyer");
-  const [shortUrl, setShortUrl] = useState("mckinneylibrary.org/tickets");
   const [ticketsHref, setTicketsHref] = useState("https://mckinneylibrary.org/tickets");
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const [isDownloading, setIsDownloading] = useState(false);
