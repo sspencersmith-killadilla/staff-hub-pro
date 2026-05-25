@@ -146,11 +146,14 @@ async function toDataURL(url: string): Promise<string> {
 export default function EventMarketingHub({ event, sponsors, talent }: Props) {
   const [activeTab, setActiveTab] = useState<"flyer" | "ig" | "fb">("flyer");
   const [shortUrl, setShortUrl] = useState("mckinneylibrary.org/tickets");
+  const [ticketsHref, setTicketsHref] = useState("https://mckinneylibrary.org/tickets");
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       setShortUrl(`${window.location.host}/tickets`);
+      setTicketsHref(`${window.location.origin}/tickets`);
     }
     // Preload font + html2canvas
     const link = document.createElement("link");
@@ -160,6 +163,21 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
     document.head.appendChild(link);
     loadHtml2Canvas().catch(() => {});
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    import("qrcode").then((QR) => {
+      QR.toDataURL(ticketsHref, { margin: 1, width: 320, errorCorrectionLevel: "M" })
+        .then((url) => {
+          if (!cancelled) setQrDataUrl(url);
+        })
+        .catch(() => {});
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [ticketsHref]);
+
 
   const getUniqueSponsors = () => {
     const seen = new Set();
