@@ -738,9 +738,16 @@ function ApplyTab({
 
   return (
     <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200 max-w-2xl">
-      <h2 className="text-2xl font-bold text-[#112e51] mb-6">
+      <h2 className="text-2xl font-bold text-[#112e51] mb-2">
         Submit Application
       </h2>
+      <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+        You can submit <strong>as many applications as you like</strong> from
+        this one account — one per event, and you can use a{" "}
+        <strong>different business or sponsor name</strong> on each.
+        Multi-brand owners, agencies, and businesses with several locations all
+        manage their applications here.
+      </p>
 
       <div className="flex gap-4 mb-6 bg-gray-50 p-2 rounded-lg border border-gray-200">
         <button
