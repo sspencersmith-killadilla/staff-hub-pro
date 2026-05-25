@@ -56,10 +56,18 @@ function EventDetail() {
   const router = useRouter();
   const fetchEvent = useServerFn(getPublicCityEvent);
   const register = useServerFn(registerForCityEvent);
+  const fetchPaymentsStatus = useServerFn(getPaymentsStatus);
+  const payAndRegister = useServerFn(payAndRegisterForCityEvent);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["city-event", id],
     queryFn: () => fetchEvent({ data: { id } }),
+  });
+
+  const { data: paymentsStatus } = useQuery({
+    queryKey: ["payments-status"],
+    queryFn: () => fetchPaymentsStatus(),
+    staleTime: 60_000,
   });
 
   const [selectedTier, setSelectedTier] = useState<string>("");
@@ -72,23 +80,57 @@ function EventDetail() {
     if (selectedTier) return selectedTier;
     return tiers[0]?.id ?? "";
   }, [selectedTier, tiers]);
+  const activeTier = useMemo(
+    () => tiers.find((t: any) => t.id === tierId) ?? null,
+    [tiers, tierId],
+  );
+  const tierPrice = Number(activeTier?.price ?? 0);
+  const isPaid = tierPrice > 0;
+  const paymentsReady = !!paymentsStatus?.configured;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
     setFormError(null);
     const fd = new FormData(e.currentTarget);
+    const full_name = String(fd.get("full_name") ?? "");
+    const email = String(fd.get("email") ?? "");
+    const quantity = Number(fd.get("quantity") ?? 1);
     try {
-      const res = await register({
-        data: {
-          session_id: id,
-          ticket_tier_id: tierId || null,
-          full_name: String(fd.get("full_name") ?? ""),
-          email: String(fd.get("email") ?? ""),
-          quantity: Number(fd.get("quantity") ?? 1),
-        },
-      });
-      setSuccess(res.id);
+      if (isPaid) {
+        if (!paymentsReady) {
+          throw new Error(
+            "Payments are not yet configured for this site. Please contact the organizer.",
+          );
+        }
+        const res = await payAndRegister({
+          data: {
+            session_id: id,
+            ticket_tier_id: tierId,
+            full_name,
+            email,
+            quantity,
+            card: {
+              number: String(fd.get("card_number") ?? ""),
+              expiration: String(fd.get("card_exp") ?? ""),
+              cvc: String(fd.get("card_cvc") ?? ""),
+              avs_zip: String(fd.get("card_zip") ?? "") || undefined,
+            },
+          },
+        });
+        setSuccess(res.id);
+      } else {
+        const res = await register({
+          data: {
+            session_id: id,
+            ticket_tier_id: tierId || null,
+            full_name,
+            email,
+            quantity,
+          },
+        });
+        setSuccess(res.id);
+      }
     } catch (err: any) {
       setFormError(err?.message ?? "Registration failed");
     } finally {
