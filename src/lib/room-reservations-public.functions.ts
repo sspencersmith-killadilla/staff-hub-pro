@@ -120,6 +120,18 @@ export const submitReservationRequest = createServerFn({ method: "POST" })
       throw new Error("That time is already booked or pending review");
     }
 
+    // No conflicts with a scheduled city event in this room
+    const { data: sessionOverlaps } = await supabaseAdmin
+      .from("sessions")
+      .select("id")
+      .eq("room_id", data.room_id)
+      .lt("start_time", data.ends_at)
+      .gt("end_time", data.starts_at);
+    if ((sessionOverlaps ?? []).length > 0) {
+      throw new Error("This room is reserved for a city event at that time");
+    }
+
+
     // Per-user limits — count this user's active future bookings
     const nowIso = new Date().toISOString();
     const { data: mine } = await supabaseAdmin
@@ -175,17 +187,33 @@ export const getRoomAvailability = createServerFn({ method: "GET" })
   )
   .handler(async ({ data }) => {
     // Include pending + approved so users can't double-book against either.
-    const { data: rows, error } = await supabaseAdmin
-      .from("room_reservations")
-      .select("id, starts_at, ends_at, status")
-      .eq("room_id", data.room_id)
-      .in("status", ACTIVE_STATUSES as unknown as string[])
-      .lt("starts_at", data.to)
-      .gt("ends_at", data.from)
-      .order("starts_at");
-    if (error) throw new Error(error.message);
-    return rows ?? [];
+    const [resvRes, sessRes] = await Promise.all([
+      supabaseAdmin
+        .from("room_reservations")
+        .select("id, starts_at, ends_at, status")
+        .eq("room_id", data.room_id)
+        .in("status", ACTIVE_STATUSES as unknown as string[])
+        .lt("starts_at", data.to)
+        .gt("ends_at", data.from)
+        .order("starts_at"),
+      supabaseAdmin
+        .from("sessions")
+        .select("id, start_time, end_time, title")
+        .eq("room_id", data.room_id)
+        .lt("start_time", data.to)
+        .gt("end_time", data.from),
+    ]);
+    if (resvRes.error) throw new Error(resvRes.error.message);
+    if (sessRes.error) throw new Error(sessRes.error.message);
+    const sessions = (sessRes.data ?? []).map((s: any) => ({
+      id: `session:${s.id}`,
+      starts_at: s.start_time,
+      ends_at: s.end_time,
+      status: "event" as const,
+    }));
+    return [...(resvRes.data ?? []), ...sessions];
   });
+
 
 export const getMyReservationStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
