@@ -1,12 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { listEvents, createEvent, updateEvent, deleteEvent } from "@/lib/events.functions";
-import { listVenues } from "@/lib/venues.functions";
+import {
+  listEvents,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  bulkUpsertEvents,
+  listEventLocations,
+} from "@/lib/events.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Trash2, ExternalLink, Pencil, X } from "lucide-react";
+import { Trash2, ExternalLink, Pencil, X, Upload, Download } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/staff/")({
   component: EventsPage,
@@ -24,17 +31,137 @@ const emptyForm = {
   title: "",
   event_type: "",
   featured_guest: "",
-  venue_id: "" as string,
+  location: "" as string, // "room:<uuid>" or "stage:<uuid>"
   start_time: "",
   end_time: "",
   image_url: "",
   open_to_vendors: false,
 };
 
+function locationValue(e: any) {
+  if (e.room_id) return `room:${e.room_id}`;
+  if (e.stage_id) return `stage:${e.stage_id}`;
+  return "";
+}
+
+function parseLocation(v: string): { room_id: string | null; stage_id: string | null } {
+  if (v.startsWith("room:")) return { room_id: v.slice(5), stage_id: null };
+  if (v.startsWith("stage:")) return { room_id: null, stage_id: v.slice(6) };
+  return { room_id: null, stage_id: null };
+}
+
+// ---------- CSV helpers ----------
+const CSV_COLS = [
+  "id",
+  "title",
+  "event_type",
+  "featured_guest",
+  "room_id",
+  "stage_id",
+  "start_time",
+  "end_time",
+  "image_url",
+  "open_to_vendors",
+] as const;
+
+function csvEscape(v: unknown): string {
+  if (v == null) return "";
+  const s = String(v);
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+function rowsToCsv(rows: any[]): string {
+  const header = CSV_COLS.join(",");
+  const body = rows
+    .map((r) =>
+      CSV_COLS.map((c) => {
+        if (c === "open_to_vendors") return csvEscape(!!r.open_to_vendors);
+        return csvEscape(r[c] ?? "");
+      }).join(","),
+    )
+    .join("\n");
+  return `${header}\n${body}\n`;
+}
+
+function parseCsv(text: string): Record<string, string>[] {
+  const rows: string[][] = [];
+  let cur: string[] = [];
+  let field = "";
+  let inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQ) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          inQ = false;
+        }
+      } else {
+        field += ch;
+      }
+    } else {
+      if (ch === '"') inQ = true;
+      else if (ch === ",") {
+        cur.push(field);
+        field = "";
+      } else if (ch === "\n" || ch === "\r") {
+        if (field.length || cur.length) {
+          cur.push(field);
+          rows.push(cur);
+          cur = [];
+          field = "";
+        }
+        if (ch === "\r" && text[i + 1] === "\n") i++;
+      } else field += ch;
+    }
+  }
+  if (field.length || cur.length) {
+    cur.push(field);
+    rows.push(cur);
+  }
+  if (rows.length === 0) return [];
+  const header = rows[0].map((h) => h.trim());
+  return rows.slice(1).map((r) => {
+    const obj: Record<string, string> = {};
+    header.forEach((h, idx) => {
+      obj[h] = (r[idx] ?? "").trim();
+    });
+    return obj;
+  });
+}
+
+function csvRowToInput(r: Record<string, string>) {
+  const toIso = (v: string) => {
+    if (!v) return null;
+    const d = new Date(v);
+    return isNaN(d.getTime()) ? v : d.toISOString();
+  };
+  return {
+    id: r.id || undefined,
+    title: r.title || "",
+    event_type: r.event_type || null,
+    featured_guest: r.featured_guest || null,
+    room_id: r.room_id || null,
+    stage_id: r.stage_id || null,
+    start_time: toIso(r.start_time),
+    end_time: toIso(r.end_time),
+    image_url: r.image_url || null,
+    open_to_vendors: /^(1|true|yes)$/i.test(r.open_to_vendors ?? ""),
+  };
+}
+
 function EventsPage() {
   const qc = useQueryClient();
   const { data: events = [] } = useQuery({ queryKey: ["events"], queryFn: () => listEvents() });
-  const { data: venues = [] } = useQuery({ queryKey: ["venues"], queryFn: () => listVenues() });
+  const { data: locations } = useQuery({
+    queryKey: ["event-locations"],
+    queryFn: () => listEventLocations(),
+  });
+  const rooms = locations?.rooms ?? [];
+  const stages = locations?.stages ?? [];
 
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -44,6 +171,7 @@ function EventsPage() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [sort, setSort] = useState<"closest" | "farthest">("closest");
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const resetForm = () => {
     setForm(emptyForm);
@@ -56,7 +184,7 @@ function EventsPage() {
       title: e.title ?? "",
       event_type: e.event_type ?? "",
       featured_guest: e.featured_guest ?? "",
-      venue_id: e.venue_id != null ? String(e.venue_id) : "",
+      location: locationValue(e),
       start_time: toLocalInput(e.start_time),
       end_time: toLocalInput(e.end_time),
       image_url: e.image_url ?? "",
@@ -67,11 +195,13 @@ function EventsPage() {
 
   const save = useMutation({
     mutationFn: () => {
+      const loc = parseLocation(form.location);
       const patch = {
         title: form.title,
         event_type: form.event_type || null,
         featured_guest: form.featured_guest || null,
-        venue_id: form.venue_id ? Number(form.venue_id) : null,
+        room_id: loc.room_id,
+        stage_id: loc.stage_id,
         start_time: form.start_time ? new Date(form.start_time).toISOString() : null,
         end_time: form.end_time ? new Date(form.end_time).toISOString() : null,
         image_url: form.image_url || null,
@@ -84,12 +214,31 @@ function EventsPage() {
     onSuccess: () => {
       resetForm();
       qc.invalidateQueries({ queryKey: ["events"] });
+      qc.invalidateQueries({ queryKey: ["public", "room"] });
+      toast.success("Event saved");
     },
+    onError: (err: any) => toast.error(err?.message ?? "Failed to save"),
   });
 
   const del = useMutation({
     mutationFn: (id: string) => deleteEvent({ data: { id } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["events"] }),
+  });
+
+  const bulk = useMutation({
+    mutationFn: (rows: any[]) => bulkUpsertEvents({ data: { rows } }),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ["events"] });
+      qc.invalidateQueries({ queryKey: ["public", "room"] });
+      const msg = `${res.updated} updated, ${res.created} created`;
+      if (res.errors.length) {
+        toast.error(`${msg}. ${res.errors.length} failed`);
+        console.error(res.errors);
+      } else {
+        toast.success(msg);
+      }
+    },
+    onError: (err: any) => toast.error(err?.message ?? "Import failed"),
   });
 
   const filtered = useMemo(() => {
@@ -128,6 +277,45 @@ function EventsPage() {
     else setSelected(new Set(filtered.map((e) => e.id)));
   };
 
+  function locationLabelFor(e: any) {
+    if (e.rooms?.name) return `Room: ${e.rooms.name}`;
+    if (e.stages?.name) return `Stage: ${e.stages.name}`;
+    return "—";
+  }
+
+  function exportSelectedCsv() {
+    const rows = selected.size
+      ? filtered.filter((e) => selected.has(e.id))
+      : filtered;
+    if (!rows.length) {
+      toast.error("Nothing to export");
+      return;
+    }
+    const csv = rowsToCsv(rows);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `events-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleFile(file: File) {
+    const text = await file.text();
+    const parsed = parseCsv(text);
+    if (!parsed.length) {
+      toast.error("CSV is empty");
+      return;
+    }
+    const rows = parsed.map(csvRowToInput).filter((r) => r.title);
+    if (!rows.length) {
+      toast.error("No rows with a title");
+      return;
+    }
+    bulk.mutate(rows);
+  }
+
   return (
     <div className="p-8 max-w-[1400px]">
       <h1 className="text-4xl font-black tracking-tight text-slate-900 uppercase mb-2">
@@ -136,7 +324,6 @@ function EventsPage() {
       <div className="h-px bg-slate-200 mb-6" />
 
       <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-6">
-        {/* Left: New Event + Batch Import */}
         <div className="space-y-6">
           <div className="bg-white rounded-lg border border-slate-200 p-5">
             <div className="flex items-center justify-between mb-4">
@@ -167,15 +354,36 @@ function EventsPage() {
               <Input placeholder="Featured Guest" value={form.featured_guest}
                 onChange={(e) => setForm({ ...form, featured_guest: e.target.value })} />
               <select
+                required
                 className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm font-semibold text-slate-700"
-                value={form.venue_id}
-                onChange={(e) => setForm({ ...form, venue_id: e.target.value })}
+                value={form.location}
+                onChange={(e) => setForm({ ...form, location: e.target.value })}
               >
-                <option value="">Select Venue</option>
-                {(venues as any[]).map((v) => (
-                  <option key={v.id} value={v.id}>{v.name}</option>
-                ))}
+                <option value="">Select Room or Stage *</option>
+                {rooms.length > 0 && (
+                  <optgroup label="Rooms">
+                    {rooms.map((r) => (
+                      <option key={r.id} value={`room:${r.id}`}>
+                        {r.name}
+                        {r.venue_name ? ` — ${r.venue_name}` : ""}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+                {stages.length > 0 && (
+                  <optgroup label="Stages">
+                    {stages.map((s) => (
+                      <option key={s.id} value={`stage:${s.id}`}>
+                        {s.name}
+                        {s.venue_name ? ` — ${s.venue_name}` : ""}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
+              <p className="text-[11px] text-slate-500">
+                Booking this room or stage blocks other room reservations and busking gigs at the same time.
+              </p>
               <div className="grid grid-cols-2 gap-3">
                 <Input type="datetime-local" value={form.start_time}
                   onChange={(e) => setForm({ ...form, start_time: e.target.value })} />
@@ -189,9 +397,6 @@ function EventsPage() {
                   onCheckedChange={(c) => setForm({ ...form, open_to_vendors: c === true })} />
                 Open to Vendors
               </label>
-              {save.error && (
-                <p className="text-xs text-destructive">{(save.error as Error).message}</p>
-              )}
               <Button type="submit" className="w-full bg-[hsl(220_90%_55%)] hover:bg-[hsl(220_90%_48%)]"
                 disabled={save.isPending}>
                 {save.isPending ? "Saving…" : editingId ? "Update Event" : "Save Event"}
@@ -199,18 +404,36 @@ function EventsPage() {
             </form>
           </div>
 
-          <div className="bg-white rounded-lg border-2 border-dashed border-slate-300 p-5">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-center text-slate-900 mb-4">
-              Batch Import
+          <div className="bg-white rounded-lg border-2 border-dashed border-slate-300 p-5 space-y-3">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-center text-slate-900">
+              Batch CSV
             </h2>
-            <Button variant="outline" className="w-full" disabled>
-              Upload Events CSV
+            <p className="text-xs text-slate-500 text-center">
+              Export selected events, edit in a spreadsheet, then re-upload to overwrite. Keep the <code>id</code> column to update; clear it to create a new event.
+            </p>
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleFile(f);
+                if (fileRef.current) fileRef.current.value = "";
+              }}
+            />
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => fileRef.current?.click()}
+              disabled={bulk.isPending}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              {bulk.isPending ? "Importing…" : "Upload Events CSV"}
             </Button>
-            <p className="mt-2 text-xs text-slate-500 text-center">Coming soon</p>
           </div>
         </div>
 
-        {/* Right: Master Schedule list */}
         <div className="bg-white rounded-lg border border-slate-200">
           <div className="p-4 border-b border-slate-200">
             <div className="flex items-center justify-between mb-4">
@@ -222,10 +445,22 @@ function EventsPage() {
                 {selected.size} Selected
               </label>
               <div className="flex gap-2">
-                <Button variant="secondary" size="sm" disabled={selected.size === 0}>
-                  Export Selected
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={exportSelectedCsv}
+                  disabled={filtered.length === 0}
+                >
+                  <Download className="h-4 w-4 mr-1.5" />
+                  {selected.size ? "Export Selected" : "Export All"}
                 </Button>
-                <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" disabled>
+                <Button
+                  size="sm"
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={bulk.isPending}
+                >
+                  <Upload className="h-4 w-4 mr-1.5" />
                   Import Updates
                 </Button>
               </div>
@@ -252,9 +487,9 @@ function EventsPage() {
             </select>
           </div>
 
-          <div className="px-4 py-2 grid grid-cols-[1fr_200px_120px] gap-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+          <div className="px-4 py-2 grid grid-cols-[1fr_220px_120px] gap-3 text-xs font-bold uppercase tracking-wider text-slate-500">
             <div>Event</div>
-            <div>Type / Venue</div>
+            <div>Type / Location</div>
             <div className="text-right">Actions</div>
           </div>
 
@@ -263,7 +498,7 @@ function EventsPage() {
               <div className="p-10 text-center text-sm text-slate-400">No events found.</div>
             ) : (
               filtered.map((e: any) => (
-                <div key={e.id} className="px-4 py-3 grid grid-cols-[1fr_200px_120px] gap-3 items-center hover:bg-slate-50">
+                <div key={e.id} className="px-4 py-3 grid grid-cols-[1fr_220px_120px] gap-3 items-center hover:bg-slate-50">
                   <div className="flex items-center gap-3">
                     <Checkbox checked={selected.has(e.id)} onCheckedChange={() => toggleSelect(e.id)} />
                     <div>
@@ -276,7 +511,7 @@ function EventsPage() {
                   </div>
                   <div className="text-sm text-slate-600">
                     <div>{e.event_type || "—"}</div>
-                    <div className="text-xs text-slate-400">{e.venues?.name || e.location || "—"}</div>
+                    <div className="text-xs text-slate-400">{locationLabelFor(e)}</div>
                   </div>
                   <div className="flex justify-end gap-1">
                     <Button size="icon" variant="ghost" title="Edit" onClick={() => startEdit(e)}>
