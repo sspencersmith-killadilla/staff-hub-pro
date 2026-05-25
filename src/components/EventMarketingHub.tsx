@@ -34,13 +34,26 @@ function loadHtml2Canvas(): Promise<any> {
 }
 
 async function toDataURL(url: string): Promise<string> {
-  const res = await fetch(url);
-  const blob = await res.blob();
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.readAsDataURL(blob);
-  });
+  // Try direct fetch first; fall back to a CORS proxy for cross-origin images
+  // whose servers don't send Access-Control-Allow-Origin.
+  const attempts = [url, `https://images.weserv.nl/?url=${encodeURIComponent(url.replace(/^https?:\/\//, ""))}`];
+  let lastErr: unknown;
+  for (const u of attempts) {
+    try {
+      const res = await fetch(u, { mode: "cors" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      return await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr ?? new Error("failed to fetch image");
 }
 
 export default function EventMarketingHub({ event, sponsors, talent }: Props) {
