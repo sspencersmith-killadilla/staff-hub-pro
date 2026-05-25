@@ -36,7 +36,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
     // 1. City sessions
     const sessionsQ = supabaseAdmin
       .from("sessions")
-      .select("id, title, start_time, end_time, image_url, event_type, speaker_name, stage_id, stages(id,name,venue_id)")
+      .select("id, title, start_time, end_time, image_url, event_type, speaker_name, stage_id, room_id, stages(id,name,venue_id), rooms(id,name,venue_id)")
       .order("start_time", { ascending: true });
     if (!includeArchived) sessionsQ.gte("end_time", nowIso);
 
