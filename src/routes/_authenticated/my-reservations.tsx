@@ -4,7 +4,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { listMyReservations } from "@/lib/room-reservations-public.functions";
 import { SiteHeader } from "@/components/site-header";
 
+import { requireModule } from "@/lib/require-module";
+
 export const Route = createFileRoute("/_authenticated/my-reservations")({
+  beforeLoad: () => requireModule("room_reservations"),
   head: () => ({
     meta: [
       { title: "My Reservations" },
