@@ -49,14 +49,20 @@ function inlineSnapshotStyles(sourceRoot: HTMLElement, clonedRoot: HTMLElement, 
   resolver.style.display = "none";
   clonedDoc.body.appendChild(resolver);
 
+  const MODERN_COLOR_RE = /\b(oklch|oklab|color-mix|color\(|lab\(|lch\()/i;
+  const hasModernColor = (v: string) => !!v && MODERN_COLOR_RE.test(v);
+
   const resolveColor = (value: string) => {
-    if (!value || !value.includes("oklch")) return value;
+    if (!hasModernColor(value)) return value;
     try {
+      resolver.style.color = "";
       resolver.style.color = value;
-      return cloneWin.getComputedStyle(resolver).color || value;
+      const resolved = cloneWin.getComputedStyle(resolver).color;
+      if (resolved && !hasModernColor(resolved)) return resolved;
     } catch {
-      return value;
+      // fall through
     }
+    return "rgb(0,0,0)";
   };
 
   sourceNodes.forEach((sourceNode, index) => {
@@ -70,20 +76,24 @@ function inlineSnapshotStyles(sourceRoot: HTMLElement, clonedRoot: HTMLElement, 
       let value = sourceStyles.getPropertyValue(prop);
       if (!value) continue;
 
-      if (value.includes("oklch")) {
+      if (hasModernColor(value)) {
         if (COLOR_STYLE_PROPS.has(prop)) {
           value = resolveColor(value);
         } else if (prop === "background-image") {
           value = targetStyle.backgroundImage || "none";
         } else if (prop in COMPLEX_STYLE_FALLBACKS) {
           value = COMPLEX_STYLE_FALLBACKS[prop];
+        } else {
+          // Unknown property containing a modern color function — skip to avoid html2canvas parse errors
+          continue;
         }
       }
 
-      if (!value.includes("oklch")) {
+      if (!hasModernColor(value)) {
         targetStyle.setProperty(prop, value, sourceStyles.getPropertyPriority(prop));
       }
     }
+
 
     clonedNode.removeAttribute("class");
   });
