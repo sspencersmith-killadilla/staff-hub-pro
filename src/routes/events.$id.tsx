@@ -416,7 +416,7 @@ function EventDetail() {
           <aside className="lg:col-span-1">
             <div className="sticky top-6">
               {success ? (
-                <TicketSuccess attendeeId={success} eventTitle={event.title} />
+                <TicketSuccess attendeeId={success} eventTitle={event.title} sponsors={sponsors} />
               ) : (
                 <form
                   onSubmit={handleSubmit}
