@@ -172,6 +172,8 @@ function EventDetail() {
   const stage = (data as any).stage;
   const room = (data as any).room;
   const talent = (data as any).talent ?? [];
+  const sponsors: { id: string; company_name: string | null; logo_url: string | null }[] =
+    (data as any).sponsors ?? [];
 
   const subLocation = stage
     ? { name: stage.name, type: "Stage" as const, extra: stage.description }
