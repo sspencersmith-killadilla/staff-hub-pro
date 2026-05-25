@@ -259,7 +259,7 @@ function EventsPage() {
                 return (
                   <li
                     key={`${e.source}-${e.id}`}
-                    className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white"
+                    className={`flex flex-col overflow-hidden rounded-xl bg-white ${meta.outline}`}
                   >
                     {e.image_url ? (
                       <div className="aspect-[16/9] w-full overflow-hidden bg-slate-100">
