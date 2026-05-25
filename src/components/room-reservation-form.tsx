@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { submitReservationRequest } from "@/lib/room-reservations-public.functions";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ export function RoomReservationForm({ roomId }: { roomId: string }) {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const startDate = String(fd.get("date") ?? "");
