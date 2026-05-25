@@ -280,6 +280,11 @@ function DashboardTab({
         <p className="text-gray-500 text-lg font-medium">
           You haven&apos;t submitted any applications yet.
         </p>
+        <p className="text-gray-500 text-sm mt-2">
+          One account can hold multiple vendor businesses and sponsor brands —
+          submit a separate application for each event you want to participate
+          in.
+        </p>
         <button
           onClick={goApply}
           className="mt-4 text-[#005ea2] font-bold hover:underline"
