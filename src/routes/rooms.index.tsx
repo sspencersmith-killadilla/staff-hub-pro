@@ -9,7 +9,7 @@ const roomsQO = queryOptions({
   queryFn: () => listRoomsPublic(),
 });
 
-export const Route = createFileRoute("/rooms")({
+export const Route = createFileRoute("/rooms/")({
   head: () => ({
     meta: [
       { title: "Reserve a Room — Total Event Systems" },
