@@ -50,7 +50,7 @@ function Home() {
               className="flex flex-wrap gap-4 justify-center md:justify-start"
             >
               <Link
-                to="/community"
+                to="/events"
                 className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg text-center uppercase tracking-wider text-sm w-full sm:w-auto"
               >
                 Upcoming Events
