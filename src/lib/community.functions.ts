@@ -4,6 +4,9 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { assertStaff } from "./staff-guard";
 
+// Staff moderation. Orgs live on community_organizations (new table).
+// Community events live on the legacy `events` table (is_community=true).
+
 // ---------- Orgs ----------
 
 export const listOrgsStaff = createServerFn({ method: "GET" })
@@ -39,42 +42,42 @@ export const setOrgStatus = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-// ---------- Events ----------
+// ---------- Community Events (from legacy `events` table) ----------
+
+const EVENT_COLS =
+  "id, organization_id, title, description, start_time, end_time, location, image_url, approval_status, reviewer_notes, submitted_by, is_community";
 
 export const listCommunityEventsStaff = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertStaff(context.userId);
     const { data, error } = await supabaseAdmin
-      .from("community_events")
-      .select("*")
-      .order("starts_at", { ascending: false });
+      .from("events")
+      .select(EVENT_COLS)
+      .eq("is_community", true)
+      .order("start_time", { ascending: false });
     if (error) throw new Error(error.message);
     const rows = data ?? [];
-    const orgIds = Array.from(new Set(rows.map((r) => r.org_id).filter(Boolean)));
-    const locIds = Array.from(
-      new Set(rows.map((r) => r.location_id).filter(Boolean)),
+    const orgIds = Array.from(
+      new Set(rows.map((r) => r.organization_id).filter(Boolean)),
     );
-    const [orgsRes, locsRes] = await Promise.all([
-      orgIds.length
-        ? supabaseAdmin
-            .from("community_organizations")
-            .select("id, name, contact_email, status")
-            .in("id", orgIds)
-        : Promise.resolve({ data: [] as any[] }),
-      locIds.length
-        ? supabaseAdmin
-            .from("community_event_locations")
-            .select("id, name, address, city")
-            .in("id", locIds)
-        : Promise.resolve({ data: [] as any[] }),
-    ]);
+    const orgsRes = orgIds.length
+      ? await supabaseAdmin
+          .from("community_organizations")
+          .select("id, name, contact_email, status")
+          .in("id", orgIds)
+      : { data: [] as any[] };
     const orgs = new Map((orgsRes.data ?? []).map((o: any) => [o.id, o]));
-    const locs = new Map((locsRes.data ?? []).map((l: any) => [l.id, l]));
     return rows.map((r) => ({
-      ...r,
-      org: r.org_id ? orgs.get(r.org_id) ?? null : null,
-      location: r.location_id ? locs.get(r.location_id) ?? null : null,
+      id: r.id,
+      title: r.title,
+      description: r.description,
+      starts_at: r.start_time,
+      ends_at: r.end_time,
+      status: r.approval_status ?? "pending",
+      staff_notes: r.reviewer_notes ?? null,
+      location: r.location ? { name: r.location, address: null, city: null } : null,
+      org: r.organization_id ? orgs.get(r.organization_id) ?? null : null,
     }));
   });
 
@@ -91,10 +94,17 @@ export const setCommunityEventStatus = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
+    const mapped =
+      data.status === "cancelled" ? "rejected" : data.status;
     const { error } = await supabaseAdmin
-      .from("community_events")
-      .update({ status: data.status, staff_notes: data.staff_notes ?? null })
-      .eq("id", data.id);
+      .from("events")
+      .update({
+        approval_status: mapped,
+        reviewer_notes: data.staff_notes ?? null,
+        reviewed_at: new Date().toISOString(),
+      })
+      .eq("id", data.id)
+      .eq("is_community", true);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -105,9 +115,10 @@ export const deleteCommunityEventStaff = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
     const { error } = await supabaseAdmin
-      .from("community_events")
+      .from("events")
       .delete()
-      .eq("id", data.id);
+      .eq("id", data.id)
+      .eq("is_community", true);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
