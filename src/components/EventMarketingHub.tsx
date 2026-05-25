@@ -146,11 +146,14 @@ async function toDataURL(url: string): Promise<string> {
 export default function EventMarketingHub({ event, sponsors, talent }: Props) {
   const [activeTab, setActiveTab] = useState<"flyer" | "ig" | "fb">("flyer");
   const [shortUrl, setShortUrl] = useState("mckinneylibrary.org/tickets");
+  const [ticketsHref, setTicketsHref] = useState("https://mckinneylibrary.org/tickets");
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       setShortUrl(`${window.location.host}/tickets`);
+      setTicketsHref(`${window.location.origin}/tickets`);
     }
     // Preload font + html2canvas
     const link = document.createElement("link");
@@ -160,6 +163,21 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
     document.head.appendChild(link);
     loadHtml2Canvas().catch(() => {});
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    import("qrcode").then((QR) => {
+      QR.toDataURL(ticketsHref, { margin: 1, width: 320, errorCorrectionLevel: "M" })
+        .then((url) => {
+          if (!cancelled) setQrDataUrl(url);
+        })
+        .catch(() => {});
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [ticketsHref]);
+
 
   const getUniqueSponsors = () => {
     const seen = new Set();
@@ -490,14 +508,37 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
                   <div className="flex flex-col">
                     <RunOfShow />
                     <div className="mt-auto pt-6">
-                      <div className="bg-teal-50 rounded-xl p-5 border border-teal-100 w-full">
-                        <p className="text-teal-800 font-black uppercase tracking-widest text-[10px] mb-1">
-                          Admissions & Tickets
-                        </p>
-                        <p className="text-lg font-black text-[#00a91c] leading-tight break-all">
-                          {shortUrl}
-                        </p>
+                      <div className="bg-teal-50 rounded-xl p-5 border border-teal-100 w-full flex items-center gap-4">
+                        <a
+                          href={ticketsHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="shrink-0 bg-white rounded-lg p-1.5 border border-teal-200 hover:border-teal-400 transition"
+                          aria-label="Open admissions & tickets page"
+                          title="Scan or click to open tickets"
+                        >
+                          {qrDataUrl ? (
+                            <img src={qrDataUrl} alt="Tickets QR code" width={96} height={96} />
+                          ) : (
+                            <div style={{ width: 96, height: 96 }} />
+                          )}
+                        </a>
+                        <div className="min-w-0">
+                          <p className="text-teal-800 font-black uppercase tracking-widest text-[10px] mb-1">
+                            Admissions & Tickets
+                          </p>
+                          <a
+                            href={ticketsHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-lg font-black text-[#00a91c] leading-tight break-all hover:underline block"
+                          >
+                            {shortUrl}
+                          </a>
+                          <p className="text-[10px] text-teal-700 mt-1">Scan or tap to open</p>
+                        </div>
                       </div>
+
                     </div>
                   </div>
                 </div>
@@ -582,12 +623,37 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
                   )}
                 </div>
                 <RunOfShow />
-                <div className="bg-teal-50 rounded-2xl p-5 border border-teal-100 w-full">
-                  <p className="text-teal-800 font-black uppercase tracking-widest text-[11px] mb-1">
-                    Admissions & Tickets
-                  </p>
-                  <p className="text-xl font-black text-[#00a91c] leading-none break-all">{shortUrl}</p>
+                <div className="bg-teal-50 rounded-2xl p-5 border border-teal-100 w-full flex items-center gap-5">
+                  <a
+                    href={ticketsHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 bg-white rounded-xl p-2 border border-teal-200 hover:border-teal-400 transition"
+                    aria-label="Open admissions & tickets page"
+                    title="Scan or click to open tickets"
+                  >
+                    {qrDataUrl ? (
+                      <img src={qrDataUrl} alt="Tickets QR code" width={128} height={128} />
+                    ) : (
+                      <div style={{ width: 128, height: 128 }} />
+                    )}
+                  </a>
+                  <div className="min-w-0">
+                    <p className="text-teal-800 font-black uppercase tracking-widest text-[11px] mb-1">
+                      Admissions & Tickets
+                    </p>
+                    <a
+                      href={ticketsHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xl font-black text-[#00a91c] leading-none break-all hover:underline block"
+                    >
+                      {shortUrl}
+                    </a>
+                    <p className="text-[11px] text-teal-700 mt-2">Scan or tap to open</p>
+                  </div>
                 </div>
+
                 <div className="pt-4 border-t border-gray-100">
                   <SponsorBar containerWidth={SPONSOR_WIDTHS.ig} maxTileSize={140} />
                 </div>
@@ -810,33 +876,67 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
                     padding: "12px 16px",
                     border: "1px solid #ccfbf1",
                     marginBottom: 14,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
                   }}
                 >
-                  <p
+                  <a
+                    href={ticketsHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Scan or click to open tickets"
                     style={{
-                      color: "#134e4a",
-                      fontWeight: 900,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.1em",
-                      fontSize: 9,
-                      margin: "0 0 3px 0",
+                      flexShrink: 0,
+                      background: "#fff",
+                      borderRadius: 8,
+                      padding: 4,
+                      border: "1px solid #99f6e4",
+                      lineHeight: 0,
                     }}
                   >
-                    Admissions & Tickets
-                  </p>
-                  <p
-                    style={{
-                      fontSize: 15,
-                      fontWeight: 900,
-                      color: "#00a91c",
-                      lineHeight: 1,
-                      margin: 0,
-                      wordBreak: "break-all",
-                    }}
-                  >
-                    {shortUrl}
-                  </p>
+                    {qrDataUrl ? (
+                      <img src={qrDataUrl} alt="Tickets QR code" width={84} height={84} />
+                    ) : (
+                      <div style={{ width: 84, height: 84 }} />
+                    )}
+                  </a>
+                  <div style={{ minWidth: 0 }}>
+                    <p
+                      style={{
+                        color: "#134e4a",
+                        fontWeight: 900,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.1em",
+                        fontSize: 9,
+                        margin: "0 0 3px 0",
+                      }}
+                    >
+                      Admissions & Tickets
+                    </p>
+                    <a
+                      href={ticketsHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        fontSize: 15,
+                        fontWeight: 900,
+                        color: "#00a91c",
+                        lineHeight: 1,
+                        margin: 0,
+                        wordBreak: "break-all",
+                        textDecoration: "none",
+                        display: "block",
+                      }}
+                    >
+                      {shortUrl}
+                    </a>
+                    <p style={{ fontSize: 10, color: "#0f766e", margin: "4px 0 0 0" }}>
+                      Scan or tap to open
+                    </p>
+                  </div>
                 </div>
+
                 <div style={{ borderTop: "1px solid #f3f4f6", paddingTop: 12 }}>
                   <SponsorBar containerWidth={SPONSOR_WIDTHS.fb} maxTileSize={90} />
                 </div>
