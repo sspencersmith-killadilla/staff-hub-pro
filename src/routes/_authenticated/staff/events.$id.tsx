@@ -196,7 +196,7 @@ function EventDashboard() {
   if (isLoading) return <div className="p-8">Loading…</div>;
   if (!session) return <div className="p-8">Event not found.</div>;
 
-  const navItems = [
+  const navItems: { key: typeof activeView; label: string; badge?: number }[] = [
     { key: "reports", label: "Reports" },
     { key: "door", label: "Door", badge: ticketsRedeemed },
     { key: "tickets", label: "Tickets" },
@@ -206,7 +206,7 @@ function EventDashboard() {
     { key: "sponsors", label: "Sponsors", badge: sponsors.length },
     { key: "volunteers", label: "Volunteers", badge: volunteers.length },
     { key: "talent", label: "Talent", badge: talent.length },
-  ] as const;
+  ];
 
   const inputCls =
     "w-full p-2.5 border border-input bg-background rounded text-sm outline-none focus:border-primary font-medium";
