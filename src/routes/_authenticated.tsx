@@ -1,7 +1,6 @@
 import { createFileRoute, redirect, Outlet, isRedirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRoles } from "@/lib/auth.functions";
-import { SiteHeader } from "@/components/site-header";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ location }) => {
@@ -25,10 +24,5 @@ export const Route = createFileRoute("/_authenticated")({
       throw redirect({ to: "/no-access" });
     }
   },
-  component: () => (
-    <div className="min-h-screen bg-background">
-      <SiteHeader />
-      <Outlet />
-    </div>
-  ),
+  component: () => <Outlet />,
 });
