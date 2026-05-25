@@ -12,21 +12,32 @@ export const Route = createFileRoute("/_authenticated/staff/")({
   component: EventsPage,
 });
 
+function toLocalInput(iso: string | null | undefined) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+const emptyForm = {
+  title: "",
+  event_type: "",
+  featured_guest: "",
+  venue_id: "" as string,
+  start_time: "",
+  end_time: "",
+  image_url: "",
+  open_to_vendors: false,
+};
+
 function EventsPage() {
   const qc = useQueryClient();
   const { data: events = [] } = useQuery({ queryKey: ["events"], queryFn: () => listEvents() });
   const { data: venues = [] } = useQuery({ queryKey: ["venues"], queryFn: () => listVenues() });
 
-  const [form, setForm] = useState({
-    title: "",
-    event_type: "",
-    featured_guest: "",
-    venue_id: "" as string,
-    start_time: "",
-    end_time: "",
-    image_url: "",
-    open_to_vendors: false,
-  });
+  const [form, setForm] = useState(emptyForm);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
@@ -34,25 +45,44 @@ function EventsPage() {
   const [toDate, setToDate] = useState("");
   const [sort, setSort] = useState<"closest" | "farthest">("closest");
 
-  const create = useMutation({
-    mutationFn: () =>
-      createEvent({
-        data: {
-          title: form.title,
-          event_type: form.event_type || null,
-          featured_guest: form.featured_guest || null,
-          venue_id: form.venue_id ? Number(form.venue_id) : null,
-          start_time: form.start_time ? new Date(form.start_time).toISOString() : null,
-          end_time: form.end_time ? new Date(form.end_time).toISOString() : null,
-          image_url: form.image_url || null,
-          open_to_vendors: form.open_to_vendors,
-        },
-      }),
+  const resetForm = () => {
+    setForm(emptyForm);
+    setEditingId(null);
+  };
+
+  const startEdit = (e: any) => {
+    setEditingId(String(e.id));
+    setForm({
+      title: e.title ?? "",
+      event_type: e.event_type ?? "",
+      featured_guest: e.featured_guest ?? "",
+      venue_id: e.venue_id != null ? String(e.venue_id) : "",
+      start_time: toLocalInput(e.start_time),
+      end_time: toLocalInput(e.end_time),
+      image_url: e.image_url ?? "",
+      open_to_vendors: !!e.open_to_vendors,
+    });
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const save = useMutation({
+    mutationFn: () => {
+      const patch = {
+        title: form.title,
+        event_type: form.event_type || null,
+        featured_guest: form.featured_guest || null,
+        venue_id: form.venue_id ? Number(form.venue_id) : null,
+        start_time: form.start_time ? new Date(form.start_time).toISOString() : null,
+        end_time: form.end_time ? new Date(form.end_time).toISOString() : null,
+        image_url: form.image_url || null,
+        open_to_vendors: form.open_to_vendors,
+      };
+      return editingId
+        ? updateEvent({ data: { id: editingId, patch } })
+        : createEvent({ data: patch });
+    },
     onSuccess: () => {
-      setForm({
-        title: "", event_type: "", featured_guest: "", venue_id: "",
-        start_time: "", end_time: "", image_url: "", open_to_vendors: false,
-      });
+      resetForm();
       qc.invalidateQueries({ queryKey: ["events"] });
     },
   });
