@@ -200,13 +200,34 @@ function EventsPage() {
             </label>
             <select
               value={venue}
-              onChange={(e) => setVenue(e.target.value)}
+              onChange={(e) => {
+                setVenue(e.target.value);
+                setSubLocation("all");
+              }}
               className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
             >
               <option value="all">All venues</option>
               {venues.map((v) => (
                 <option key={v} value={v}>
                   {v}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              Stage / Room
+            </label>
+            <select
+              value={subLocation}
+              onChange={(e) => setSubLocation(e.target.value)}
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              disabled={subLocations.length === 0}
+            >
+              <option value="all">All stages &amp; rooms</option>
+              {subLocations.map((s) => (
+                <option key={s.name} value={s.name}>
+                  {s.name} {s.type === "room" ? "(Room)" : "(Stage)"}
                 </option>
               ))}
             </select>
