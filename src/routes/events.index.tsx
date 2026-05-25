@@ -167,7 +167,7 @@ function EventsPage() {
         </div>
 
         {/* Filters */}
-        <div className="mt-8 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-6">
+        <div className="mt-8 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-7">
           <div className="lg:col-span-2">
             <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
               Search
