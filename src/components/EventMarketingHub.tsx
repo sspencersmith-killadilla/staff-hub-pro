@@ -34,13 +34,26 @@ function loadHtml2Canvas(): Promise<any> {
 }
 
 async function toDataURL(url: string): Promise<string> {
-  const res = await fetch(url);
-  const blob = await res.blob();
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.readAsDataURL(blob);
-  });
+  // Try direct fetch first; fall back to a CORS proxy for cross-origin images
+  // whose servers don't send Access-Control-Allow-Origin.
+  const attempts = [url, `https://images.weserv.nl/?url=${encodeURIComponent(url.replace(/^https?:\/\//, ""))}`];
+  let lastErr: unknown;
+  for (const u of attempts) {
+    try {
+      const res = await fetch(u, { mode: "cors" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      return await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr ?? new Error("failed to fetch image");
 }
 
 export default function EventMarketingHub({ event, sponsors, talent }: Props) {
@@ -91,7 +104,9 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
       if (event.image_url) {
         try {
           eventImageDataUrl = await toDataURL(event.image_url);
-        } catch {}
+        } catch (e) {
+          console.warn("Could not inline event image, it will be omitted:", e);
+        }
       }
       const sponsorDataUrls: Record<string, string> = {};
       await Promise.all(
@@ -100,7 +115,9 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
           .map(async (s) => {
             try {
               sponsorDataUrls[s.logo_url] = await toDataURL(s.logo_url);
-            } catch {}
+            } catch (e) {
+              console.warn("Could not inline sponsor logo, it will be omitted:", s.logo_url, e);
+            }
           }),
       );
 
@@ -108,8 +125,8 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
       const useWindowOverride = fmt === "ig";
       const canvas = await html2canvas(element, {
         scale: 2,
-        useCORS: false,
-        allowTaint: true,
+        useCORS: true,
+        allowTaint: false,
         width: Math.round(rect.width),
         height: Math.round(rect.height),
         ...(useWindowOverride ? { windowWidth: w, windowHeight: h } : {}),
@@ -124,18 +141,28 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
             "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;600;800;900&display=swap";
           clonedDoc.head.appendChild(link);
 
-          if (eventImageDataUrl) {
-            clonedEl.querySelectorAll<HTMLElement>('[style*="background-image"]').forEach((el) => {
-              if (el.style.backgroundImage.includes(event.image_url)) {
+          // Replace any background-image referencing the event image with the
+          // inlined data URL (or strip it if we couldn't fetch it, to avoid tainting).
+          clonedEl.querySelectorAll<HTMLElement>('[style*="background-image"]').forEach((el) => {
+            if (event.image_url && el.style.backgroundImage.includes(event.image_url)) {
+              if (eventImageDataUrl) {
                 el.style.backgroundImage = `url(${eventImageDataUrl})`;
+              } else {
+                el.style.backgroundImage = "none";
+                el.style.backgroundColor = "#ccfafa";
               }
-            });
-          }
+            }
+          });
+
           clonedEl.querySelectorAll("img").forEach((img) => {
-            const dataUrl =
-              sponsorDataUrls[(img as HTMLImageElement).src] ||
-              sponsorDataUrls[img.getAttribute("src") || ""];
-            if (dataUrl) (img as HTMLImageElement).src = dataUrl;
+            const original = img.getAttribute("src") || (img as HTMLImageElement).src;
+            const dataUrl = sponsorDataUrls[original];
+            if (dataUrl) {
+              (img as HTMLImageElement).src = dataUrl;
+            } else if (original && !original.startsWith("data:")) {
+              // Drop logos we couldn't inline so the canvas doesn't taint.
+              img.remove();
+            }
           });
 
           if (fmt === "ig") {
@@ -148,14 +175,25 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
         },
       });
 
+      let dataUrl: string;
+      try {
+        dataUrl = canvas.toDataURL("image/png");
+      } catch (e) {
+        console.error("Canvas tainted; cannot export. Source images may be cross-origin.", e);
+        alert(
+          "Could not export image because one of the source images is cross-origin and blocked download. Try re-uploading the event/sponsor images to your own storage.",
+        );
+        setIsDownloading(false);
+        return;
+      }
       const link = document.createElement("a");
       const safeTitle = (event?.title || "event").replace(/[^a-z0-9]/gi, "_").toLowerCase();
       link.download = `${safeTitle}_${suffix}.png`;
-      link.href = canvas.toDataURL("image/png");
+      link.href = dataUrl;
       link.click();
     } catch (err) {
       console.error("Error generating image:", err);
-      alert("There was an error generating the image.");
+      alert(`There was an error generating the image: ${(err as Error)?.message ?? err}`);
     }
     setIsDownloading(false);
   };
