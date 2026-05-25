@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Switch } from "@/components/ui/switch";
 import { getMyRoles } from "@/lib/auth.functions";
 import {
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/_authenticated/staff/settings")({
 
 function SettingsPage() {
   const qc = useQueryClient();
+  const saveModule = useServerFn(setPlatformModule);
   const { data: modules = [], isLoading } = useQuery({
     queryKey: ["platform-modules"],
     queryFn: () => listPlatformModules(),
@@ -25,7 +27,7 @@ function SettingsPage() {
 
   const toggle = useMutation({
     mutationFn: (v: { key: string; enabled: boolean }) =>
-      setPlatformModule({ data: v }),
+      saveModule({ data: v }),
     onMutate: async (v) => {
       await qc.cancelQueries({ queryKey: ["platform-modules"] });
       const prev = qc.getQueryData<PlatformModule[]>(["platform-modules"]);
