@@ -14,6 +14,83 @@ const EXPORT_SIZES: Record<string, { w: number; h: number }> = {
 
 const SPONSOR_WIDTHS = { flyer: 620, ig: 920, fb: 616 };
 
+const COLOR_STYLE_PROPS = new Set([
+  "color",
+  "background-color",
+  "border-top-color",
+  "border-right-color",
+  "border-bottom-color",
+  "border-left-color",
+  "outline-color",
+  "fill",
+  "stroke",
+  "caret-color",
+  "text-decoration-color",
+  "column-rule-color",
+]);
+
+const COMPLEX_STYLE_FALLBACKS: Record<string, string> = {
+  "box-shadow": "none",
+  "text-shadow": "none",
+  filter: "none",
+  "backdrop-filter": "none",
+};
+
+function getNodeTree(root: HTMLElement) {
+  return [root, ...Array.from(root.querySelectorAll<HTMLElement>("*"))];
+}
+
+function inlineSnapshotStyles(sourceRoot: HTMLElement, clonedRoot: HTMLElement, clonedDoc: Document) {
+  const sourceNodes = getNodeTree(sourceRoot);
+  const clonedNodes = getNodeTree(clonedRoot);
+  const cloneWin = clonedDoc.defaultView || window;
+
+  const resolver = clonedDoc.createElement("span");
+  resolver.style.display = "none";
+  clonedDoc.body.appendChild(resolver);
+
+  const resolveColor = (value: string) => {
+    if (!value || !value.includes("oklch")) return value;
+    try {
+      resolver.style.color = value;
+      return cloneWin.getComputedStyle(resolver).color || value;
+    } catch {
+      return value;
+    }
+  };
+
+  sourceNodes.forEach((sourceNode, index) => {
+    const clonedNode = clonedNodes[index];
+    if (!clonedNode) return;
+
+    const sourceStyles = window.getComputedStyle(sourceNode);
+    const targetStyle = clonedNode.style;
+
+    for (const prop of Array.from(sourceStyles)) {
+      let value = sourceStyles.getPropertyValue(prop);
+      if (!value) continue;
+
+      if (value.includes("oklch")) {
+        if (COLOR_STYLE_PROPS.has(prop)) {
+          value = resolveColor(value);
+        } else if (prop === "background-image") {
+          value = targetStyle.backgroundImage || "none";
+        } else if (prop in COMPLEX_STYLE_FALLBACKS) {
+          value = COMPLEX_STYLE_FALLBACKS[prop];
+        }
+      }
+
+      if (!value.includes("oklch")) {
+        targetStyle.setProperty(prop, value, sourceStyles.getPropertyPriority(prop));
+      }
+    }
+
+    clonedNode.removeAttribute("class");
+  });
+
+  resolver.remove();
+}
+
 function loadHtml2Canvas(): Promise<any> {
   return new Promise((resolve, reject) => {
     if ((window as any).html2canvas) return resolve((window as any).html2canvas);
@@ -135,6 +212,12 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
         backgroundColor: null,
         logging: false,
         onclone: (clonedDoc: Document, clonedEl: HTMLElement) => {
+          inlineSnapshotStyles(element as HTMLElement, clonedEl, clonedDoc);
+
+          clonedDoc
+            .querySelectorAll('style, link[rel="stylesheet"]:not([href*="fonts.googleapis.com"])')
+            .forEach((node) => node.remove());
+
           const link = clonedDoc.createElement("link");
           link.rel = "stylesheet";
           link.href =
@@ -172,67 +255,6 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
             clonedEl.style.maxHeight = `${h}px`;
             clonedEl.style.overflow = "hidden";
           }
-
-          // html2canvas 1.x cannot parse oklch(). Convert any computed
-          // oklch color on the cloned subtree to rgb via canvas 2D parser.
-          const cssCtx = document.createElement("canvas").getContext("2d");
-          const toRgb = (val: string): string => {
-            if (!val || !val.includes("oklch")) return val;
-            try {
-              if (!cssCtx) return val;
-              cssCtx.fillStyle = "#000";
-              cssCtx.fillStyle = val;
-              return cssCtx.fillStyle as string;
-            } catch {
-              return val;
-            }
-          };
-          const colorProps = [
-            "color",
-            "backgroundColor",
-            "borderTopColor",
-            "borderRightColor",
-            "borderBottomColor",
-            "borderLeftColor",
-            "outlineColor",
-            "fill",
-            "stroke",
-            "caretColor",
-            "textDecorationColor",
-            "columnRuleColor",
-          ] as const;
-          // Props that may contain oklch inside complex values (shadows,
-          // gradients). Strip them if they reference oklch — too costly to
-          // parse, and non-critical for the export.
-          const stripProps: Array<[string, string]> = [
-            ["boxShadow", "none"],
-            ["textShadow", "none"],
-            ["backgroundImage", "none"],
-            ["filter", "none"],
-            ["backdropFilter", "none"],
-          ];
-          const cloneWin = clonedDoc.defaultView || window;
-          const sanitize = (el: Element) => {
-            const cs = cloneWin.getComputedStyle(el);
-            colorProps.forEach((p) => {
-              const v = cs[p as any] as string;
-              if (v && v.includes("oklch")) {
-                (el as HTMLElement).style[p as any] = toRgb(v);
-              }
-            });
-            stripProps.forEach(([p, fallback]) => {
-              const v = cs[p as any] as string;
-              if (v && v.includes("oklch")) {
-                // Preserve user-set inline backgroundImage (e.g. event image)
-                if (p === "backgroundImage" && (el as HTMLElement).style.backgroundImage) return;
-                (el as HTMLElement).style[p as any] = fallback;
-              }
-            });
-          };
-          sanitize(clonedDoc.documentElement);
-          sanitize(clonedDoc.body);
-          sanitize(clonedEl);
-          clonedEl.querySelectorAll("*").forEach(sanitize);
         },
       });
 
