@@ -876,33 +876,67 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
                     padding: "12px 16px",
                     border: "1px solid #ccfbf1",
                     marginBottom: 14,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
                   }}
                 >
-                  <p
+                  <a
+                    href={ticketsHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Scan or click to open tickets"
                     style={{
-                      color: "#134e4a",
-                      fontWeight: 900,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.1em",
-                      fontSize: 9,
-                      margin: "0 0 3px 0",
+                      flexShrink: 0,
+                      background: "#fff",
+                      borderRadius: 8,
+                      padding: 4,
+                      border: "1px solid #99f6e4",
+                      lineHeight: 0,
                     }}
                   >
-                    Admissions & Tickets
-                  </p>
-                  <p
-                    style={{
-                      fontSize: 15,
-                      fontWeight: 900,
-                      color: "#00a91c",
-                      lineHeight: 1,
-                      margin: 0,
-                      wordBreak: "break-all",
-                    }}
-                  >
-                    {shortUrl}
-                  </p>
+                    {qrDataUrl ? (
+                      <img src={qrDataUrl} alt="Tickets QR code" width={84} height={84} />
+                    ) : (
+                      <div style={{ width: 84, height: 84 }} />
+                    )}
+                  </a>
+                  <div style={{ minWidth: 0 }}>
+                    <p
+                      style={{
+                        color: "#134e4a",
+                        fontWeight: 900,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.1em",
+                        fontSize: 9,
+                        margin: "0 0 3px 0",
+                      }}
+                    >
+                      Admissions & Tickets
+                    </p>
+                    <a
+                      href={ticketsHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        fontSize: 15,
+                        fontWeight: 900,
+                        color: "#00a91c",
+                        lineHeight: 1,
+                        margin: 0,
+                        wordBreak: "break-all",
+                        textDecoration: "none",
+                        display: "block",
+                      }}
+                    >
+                      {shortUrl}
+                    </a>
+                    <p style={{ fontSize: 10, color: "#0f766e", margin: "4px 0 0 0" }}>
+                      Scan or tap to open
+                    </p>
+                  </div>
                 </div>
+
                 <div style={{ borderTop: "1px solid #f3f4f6", paddingTop: 12 }}>
                   <SponsorBar containerWidth={SPONSOR_WIDTHS.fb} maxTileSize={90} />
                 </div>
