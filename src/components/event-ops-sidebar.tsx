@@ -44,6 +44,7 @@ const items: Item[] = [
 export function EventOpsSidebar() {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { isAdmin } = useAuth();
+  const { isEnabled } = useModules();
   const navigate = useNavigate();
 
   const isActive = (url: string, exact?: boolean) =>
@@ -54,14 +55,16 @@ export function EventOpsSidebar() {
     navigate({ to: "/login" });
   };
 
+  const visibleItems = items.filter((it) => !it.module || isEnabled(it.module));
+
   return (
     <aside className="hidden md:flex w-60 shrink-0 flex-col bg-[hsl(210_60%_12%)] text-white">
       <div className="px-5 py-5 border-b border-white/10">
         <div className="text-lg font-black italic tracking-tight">EVENT OPS</div>
       </div>
       <nav className="flex-1 overflow-y-auto py-3">
-        {items.map((it) => {
-          const active = isActive(it.url, "exact" in it ? it.exact : false);
+        {visibleItems.map((it) => {
+          const active = isActive(it.url, it.exact);
           return (
             <Link
               key={it.url}
