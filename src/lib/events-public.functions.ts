@@ -192,6 +192,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         cost_text: null,
         ticketed: false,
         detail_href: "/community",
+        sponsors: [],
       });
     }
 
