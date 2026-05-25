@@ -169,6 +169,11 @@ function EventDashboard() {
     mutationFn: (tid: string) => deleteTalent({ data: { id: tid } }),
     onSuccess: invalidate,
   });
+  const mSaveFloorplan = useMutation({
+    mutationFn: (payload: any) => saveFloorplan({ data: { session_id: id, data: payload } }),
+    onSuccess: () => { invalidate(); showToast("Floorplan saved"); },
+    onError: (e: Error) => showToast(e.message, "error"),
+  });
 
   // Local UI state
   const [editingTicket, setEditingTicket] = useState<any>(null);
