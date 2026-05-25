@@ -157,6 +157,8 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         image_url: (e as any).image_url ?? null,
         venue_name: (e as any).location ?? null,
         venue_city: null,
+        sub_location_name: null,
+        sub_location_type: null,
         org_name: org?.name ?? null,
         cost_text: null,
         ticketed: false,
