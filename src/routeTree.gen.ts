@@ -30,6 +30,7 @@ import { Route as ArtistsIdRouteImport } from './routes/artists.$id'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
 import { Route as AuthenticatedMyTicketsRouteImport } from './routes/_authenticated/my-tickets'
 import { Route as AuthenticatedMyReservationsRouteImport } from './routes/_authenticated/my-reservations'
+import { Route as AuthenticatedHubRouteImport } from './routes/_authenticated/hub'
 import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff/index'
 import { Route as AuthenticatedStreetbeatsMyGigsRouteImport } from './routes/_authenticated/streetbeats/my-gigs'
 import { Route as AuthenticatedStreetbeatsApplyRouteImport } from './routes/_authenticated/streetbeats/apply'
@@ -153,6 +154,11 @@ const AuthenticatedMyReservationsRoute =
     path: '/my-reservations',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedHubRoute = AuthenticatedHubRouteImport.update({
+  id: '/hub',
+  path: '/hub',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedStaffIndexRoute = AuthenticatedStaffIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -263,6 +269,7 @@ export interface FileRoutesByFullPath {
   '/streetbeats': typeof StreetbeatsRoute
   '/vendor': typeof VendorRoute
   '/venues': typeof VenuesRouteWithChildren
+  '/hub': typeof AuthenticatedHubRoute
   '/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/my-tickets': typeof AuthenticatedMyTicketsRoute
   '/staff': typeof AuthenticatedStaffRouteWithChildren
@@ -302,6 +309,7 @@ export interface FileRoutesByTo {
   '/streetbeats': typeof StreetbeatsRoute
   '/vendor': typeof VendorRoute
   '/venues': typeof VenuesRouteWithChildren
+  '/hub': typeof AuthenticatedHubRoute
   '/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/my-tickets': typeof AuthenticatedMyTicketsRoute
   '/artists/$id': typeof ArtistsIdRoute
@@ -342,6 +350,7 @@ export interface FileRoutesById {
   '/streetbeats': typeof StreetbeatsRoute
   '/vendor': typeof VendorRoute
   '/venues': typeof VenuesRouteWithChildren
+  '/_authenticated/hub': typeof AuthenticatedHubRoute
   '/_authenticated/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/_authenticated/my-tickets': typeof AuthenticatedMyTicketsRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRouteWithChildren
@@ -383,6 +392,7 @@ export interface FileRouteTypes {
     | '/streetbeats'
     | '/vendor'
     | '/venues'
+    | '/hub'
     | '/my-reservations'
     | '/my-tickets'
     | '/staff'
@@ -422,6 +432,7 @@ export interface FileRouteTypes {
     | '/streetbeats'
     | '/vendor'
     | '/venues'
+    | '/hub'
     | '/my-reservations'
     | '/my-tickets'
     | '/artists/$id'
@@ -461,6 +472,7 @@ export interface FileRouteTypes {
     | '/streetbeats'
     | '/vendor'
     | '/venues'
+    | '/_authenticated/hub'
     | '/_authenticated/my-reservations'
     | '/_authenticated/my-tickets'
     | '/_authenticated/staff'
@@ -660,6 +672,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMyReservationsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/hub': {
+      id: '/_authenticated/hub'
+      path: '/hub'
+      fullPath: '/hub'
+      preLoaderRoute: typeof AuthenticatedHubRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/staff/': {
       id: '/_authenticated/staff/'
       path: '/'
@@ -821,6 +840,7 @@ const AuthenticatedStaffRouteWithChildren =
   AuthenticatedStaffRoute._addFileChildren(AuthenticatedStaffRouteChildren)
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedHubRoute: typeof AuthenticatedHubRoute
   AuthenticatedMyReservationsRoute: typeof AuthenticatedMyReservationsRoute
   AuthenticatedMyTicketsRoute: typeof AuthenticatedMyTicketsRoute
   AuthenticatedStaffRoute: typeof AuthenticatedStaffRouteWithChildren
@@ -831,6 +851,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedHubRoute: AuthenticatedHubRoute,
   AuthenticatedMyReservationsRoute: AuthenticatedMyReservationsRoute,
   AuthenticatedMyTicketsRoute: AuthenticatedMyTicketsRoute,
   AuthenticatedStaffRoute: AuthenticatedStaffRouteWithChildren,
