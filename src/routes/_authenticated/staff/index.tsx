@@ -139,14 +139,25 @@ function EventsPage() {
         {/* Left: New Event + Batch Import */}
         <div className="space-y-6">
           <div className="bg-white rounded-lg border border-slate-200 p-5">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">
-              New Event
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900">
+                {editingId ? "Edit Event" : "New Event"}
+              </h2>
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="text-xs text-slate-500 hover:text-slate-900 inline-flex items-center gap-1"
+                >
+                  <X className="h-3.5 w-3.5" /> Cancel
+                </button>
+              )}
+            </div>
             <form
               className="space-y-3"
               onSubmit={(e) => {
                 e.preventDefault();
-                create.mutate();
+                save.mutate();
               }}
             >
               <Input placeholder="Event Title" value={form.title}
@@ -178,12 +189,12 @@ function EventsPage() {
                   onCheckedChange={(c) => setForm({ ...form, open_to_vendors: c === true })} />
                 Open to Vendors
               </label>
-              {create.error && (
-                <p className="text-xs text-destructive">{(create.error as Error).message}</p>
+              {save.error && (
+                <p className="text-xs text-destructive">{(save.error as Error).message}</p>
               )}
               <Button type="submit" className="w-full bg-[hsl(220_90%_55%)] hover:bg-[hsl(220_90%_48%)]"
-                disabled={create.isPending}>
-                {create.isPending ? "Saving…" : "Save Event"}
+                disabled={save.isPending}>
+                {save.isPending ? "Saving…" : editingId ? "Update Event" : "Save Event"}
               </Button>
             </form>
           </div>
