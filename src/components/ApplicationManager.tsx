@@ -44,31 +44,23 @@ export function ApplicationManager({ kind, listFn, setStatusFn, title, blurb }: 
     onError: (e: any) => toast.error(e?.message ?? "Failed"),
   });
 
-  const grouped = useMemo(() => {
-    const groups: Record<string, any[]> = {
-      pending: [],
-      approved: [],
-      paid: [],
-      rejected: [],
-      cancelled: [],
-    };
-    for (const r of rows ?? []) {
-      const s = (r as any).status ?? "pending";
-      if (!groups[s]) groups[s] = [];
-      groups[s].push(r);
-    }
-    return groups;
-  }, [rows]);
+  const [filter, setFilter] = useState<
+    "pending" | "approved" | "rejected" | "all"
+  >("pending");
+
+  const filtered = useMemo(() => {
+    const all = rows ?? [];
+    if (filter === "all") return all;
+    if (filter === "approved")
+      return all.filter((r: any) => r.status === "approved" || r.status === "paid");
+    if (filter === "rejected")
+      return all.filter(
+        (r: any) => r.status === "rejected" || r.status === "cancelled",
+      );
+    return all.filter((r: any) => r.status === "pending");
+  }, [rows, filter]);
 
   if (isLoading) return <p className="text-sm text-slate-500">Loading…</p>;
-
-  const order: Array<keyof typeof grouped> = [
-    "pending",
-    "approved",
-    "paid",
-    "rejected",
-    "cancelled",
-  ];
 
   return (
     <div className="p-8">
