@@ -12,6 +12,7 @@ import {
   Settings,
   Shield,
   LogOut,
+  HeartHandshake,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -24,6 +25,7 @@ const items = [
   { title: "Vendors", url: "/staff/vendors", icon: Store },
   { title: "Sponsors", url: "/staff/sponsors", icon: Sparkles },
   { title: "Community Music", url: "/staff/community-music", icon: Music },
+  { title: "Community Orgs", url: "/staff/community-organizations", icon: HeartHandshake },
   { title: "Community Events", url: "/staff/community-events", icon: CalendarDays },
   { title: "Room Reservations", url: "/staff/room-reservations", icon: BedDouble },
   { title: "Platform Settings", url: "/staff/settings", icon: Settings },
