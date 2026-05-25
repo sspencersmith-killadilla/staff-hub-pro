@@ -47,22 +47,25 @@ function fmtWhen(starts: string | null, ends: string | null) {
 
 const SOURCE_META: Record<
   Exclude<SourceFilter, "all">,
-  { label: string; icon: typeof CalendarDays; chip: string }
+  { label: string; icon: typeof CalendarDays; chip: string; outline: string }
 > = {
   city: {
     label: "City Event",
     icon: Ticket,
-    chip: "bg-amber-100 text-amber-900",
+    chip: "bg-yellow-100 text-yellow-900",
+    outline: "border-2 border-yellow-400",
   },
   community: {
     label: "Community",
     icon: Users,
-    chip: "bg-emerald-100 text-emerald-900",
+    chip: "bg-purple-100 text-purple-900",
+    outline: "border-2 border-purple-500",
   },
   music: {
     label: "Live Music",
     icon: Music2,
-    chip: "bg-fuchsia-100 text-fuchsia-900",
+    chip: "bg-pink-100 text-pink-900",
+    outline: "border-2 border-pink-500",
   },
 };
 
