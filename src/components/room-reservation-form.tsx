@@ -84,6 +84,7 @@ export function RoomReservationForm({
   const [picked, setPicked] = useState<{ start: string; end: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const { from, to, days } = useMemo(() => {
     if (!hydrated) return { from: "", to: "", days: [] as Date[] };
@@ -162,7 +163,9 @@ export function RoomReservationForm({
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setSubmitError(null);
     if (!picked) {
+      setSubmitError("Pick a time slot first.");
       toast.error("Pick a time slot first");
       return;
     }
@@ -188,7 +191,10 @@ export function RoomReservationForm({
       qc.invalidateQueries({ queryKey: ["public", "room", roomId] });
       setDone(true);
     } catch (err: any) {
-      toast.error(err?.message ?? "Failed to submit request");
+      const msg = err?.message ?? "Failed to submit request";
+      console.error("Reservation submit failed:", err);
+      setSubmitError(msg);
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
@@ -331,6 +337,11 @@ export function RoomReservationForm({
           <Label htmlFor="notes">Notes (optional)</Label>
           <Textarea id="notes" name="notes" rows={3} maxLength={2000} />
         </div>
+        {submitError && (
+          <div className="rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900">
+            {submitError}
+          </div>
+        )}
         <Button
           type="submit"
           disabled={submitting || !picked || atMaxActive}
