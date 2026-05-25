@@ -2,7 +2,6 @@ import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   Calendar,
   Building2,
-  Map,
   Users,
   Store,
   Sparkles,
