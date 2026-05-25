@@ -5,6 +5,12 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 // Unified public events feed: city sessions + approved community events + booked streetbeats gigs.
 
+export type EventSponsor = {
+  id: string;
+  company_name: string | null;
+  logo_url: string | null;
+};
+
 export type UnifiedEvent = {
   id: string;
   source: "city" | "community" | "music";
@@ -21,6 +27,7 @@ export type UnifiedEvent = {
   cost_text: string | null;
   ticketed: boolean; // city events route to /events/:id ticketing
   detail_href: string | null; // for non-ticketed types
+  sponsors: EventSponsor[];
 };
 
 export const listPublicAllEvents = createServerFn({ method: "GET" })
