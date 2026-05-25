@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { waitForSupabaseSession } from "@/integrations/supabase/auth-ready";
 import { getMyRoles } from "@/lib/auth.functions";
 
 export type Me = {
@@ -13,8 +14,8 @@ export function useAuth() {
   const [me, setMe] = useState<Me>(null);
 
   const refresh = useCallback(async () => {
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) {
+    const session = await waitForSupabaseSession();
+    if (!session) {
       setMe(null);
       setLoading(false);
       return;
