@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -487,9 +487,15 @@ function ArtistsTab() {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-slate-900">
+                <Link
+                  to="/artists/$id"
+                  params={{ id: a.id }}
+                  className="font-semibold text-slate-900 hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   {a.stage_name}
-                </span>
+                </Link>
                 <span
                   className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
                     STATUS_STYLES[a.status] ?? "bg-slate-100"
