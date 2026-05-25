@@ -38,12 +38,20 @@ export function SiteHeader() {
             Streetbeats
           </Link>
           {isAuthenticated && (
-            <Link
-              to="/my-reservations"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              My Reservations
-            </Link>
+            <>
+              <Link
+                to="/my-tickets"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                My Tickets
+              </Link>
+              <Link
+                to="/my-reservations"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                My Reservations
+              </Link>
+            </>
           )}
           {isStaff && (
             <Link to="/staff" className="text-muted-foreground hover:text-foreground">
