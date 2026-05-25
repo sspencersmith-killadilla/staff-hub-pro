@@ -164,7 +164,8 @@ function ArtistProfilePage() {
               {gigs.map((gig) => (
                 <Link
                   key={gig.id}
-                  to="/streetbeats"
+                  to="/gigs/$id"
+                  params={{ id: String(gig.id) }}
                   className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition border border-gray-200 block group"
                 >
                   <div className="flex justify-between items-start mb-4">
@@ -192,7 +193,7 @@ function ArtistProfilePage() {
                     )}
                   </div>
                   <div className="text-sm text-gray-500 font-medium">
-                    View on StreetBeats &rarr;
+                    View digital flyer &rarr;
                   </div>
                 </Link>
               ))}

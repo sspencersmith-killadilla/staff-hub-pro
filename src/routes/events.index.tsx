@@ -47,22 +47,25 @@ function fmtWhen(starts: string | null, ends: string | null) {
 
 const SOURCE_META: Record<
   Exclude<SourceFilter, "all">,
-  { label: string; icon: typeof CalendarDays; chip: string }
+  { label: string; icon: typeof CalendarDays; chip: string; outline: string }
 > = {
   city: {
     label: "City Event",
     icon: Ticket,
-    chip: "bg-amber-100 text-amber-900",
+    chip: "bg-yellow-100 text-yellow-900",
+    outline: "border-2 border-yellow-400",
   },
   community: {
     label: "Community",
     icon: Users,
-    chip: "bg-emerald-100 text-emerald-900",
+    chip: "bg-purple-100 text-purple-900",
+    outline: "border-2 border-purple-500",
   },
   music: {
     label: "Live Music",
     icon: Music2,
-    chip: "bg-fuchsia-100 text-fuchsia-900",
+    chip: "bg-pink-100 text-pink-900",
+    outline: "border-2 border-pink-500",
   },
 };
 
@@ -256,7 +259,7 @@ function EventsPage() {
                 return (
                   <li
                     key={`${e.source}-${e.id}`}
-                    className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white"
+                    className={`flex flex-col overflow-hidden rounded-xl bg-white ${meta.outline}`}
                   >
                     {e.image_url ? (
                       <div className="aspect-[16/9] w-full overflow-hidden bg-slate-100">
@@ -316,6 +319,15 @@ function EventsPage() {
                         >
                           <Ticket className="h-4 w-4" /> Get tickets
                         </Link>
+                      ) : e.source === "community" && e.image_url ? (
+                        <a
+                          href={e.image_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-3 inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-bold uppercase tracking-wider text-slate-900 hover:bg-slate-100"
+                        >
+                          More info
+                        </a>
                       ) : e.detail_href ? (
                         <a
                           href={e.detail_href}
