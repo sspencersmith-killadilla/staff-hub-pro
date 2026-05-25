@@ -192,7 +192,7 @@ function ArtistProfilePage() {
                     )}
                   </div>
                   <div className="text-sm text-gray-500 font-medium">
-                    View on StreetBeats &rarr;
+                    View digital flyer &rarr;
                   </div>
                 </Link>
               ))}
