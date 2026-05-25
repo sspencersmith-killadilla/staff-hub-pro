@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, Outlet } from "@tanstack/react-router";
+import { createFileRoute, redirect, Outlet, isRedirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRoles } from "@/lib/auth.functions";
 import { SiteHeader } from "@/components/site-header";
@@ -19,9 +19,10 @@ export const Route = createFileRoute("/_authenticated")({
         throw redirect({ to: "/no-access" });
       }
       return { me };
-    } catch (e: any) {
-      if (e?.isRedirect) throw e;
-      throw redirect({ to: "/login" });
+    } catch (e) {
+      if (isRedirect(e)) throw e;
+      console.error("auth guard error", e);
+      throw redirect({ to: "/no-access" });
     }
   },
   component: () => (
