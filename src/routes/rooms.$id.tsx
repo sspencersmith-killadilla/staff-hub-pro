@@ -13,7 +13,10 @@ const roomQO = (id: string) =>
     queryFn: () => getRoomPublic({ data: { id } }),
   });
 
+import { requireModule } from "@/lib/require-module";
+
 export const Route = createFileRoute("/rooms/$id")({
+  beforeLoad: () => requireModule("room_reservations"),
   loader: ({ params, context }) =>
     context.queryClient.ensureQueryData(roomQO(params.id)),
   head: ({ loaderData }) => {
