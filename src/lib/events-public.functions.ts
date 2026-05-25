@@ -90,6 +90,18 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
       : { data: [] as any[] };
     const orgsById = new Map((orgsRes.data ?? []).map((o: any) => [o.id, o]));
 
+    // Busker profiles for music gigs
+    const buskerIds = Array.from(
+      new Set((slotRes.data ?? []).map((s: any) => s.busker_id).filter(Boolean)),
+    );
+    const buskersRes = buskerIds.length
+      ? await supabaseAdmin
+          .from("profiles")
+          .select("id, full_name, avatar_url")
+          .in("id", buskerIds as any)
+      : { data: [] as any[] };
+    const buskersById = new Map((buskersRes.data ?? []).map((p: any) => [p.id, p]));
+
     const out: UnifiedEvent[] = [];
 
     for (const s of sessRes.data ?? []) {
