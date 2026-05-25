@@ -28,9 +28,9 @@ export const listAllSponsors = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("sponsors")
       .select(
-        "id, company_name, contact_name, contact_email, logo_url, status, created_at, session_id, sponsorship_tier_id, sessions(id, title, start_time), sponsorship_tiers(id, name, price)",
+        "id, company_name, contact_name, contact_email, logo_url, status, session_id, sponsorship_tier_id, sessions(id, title, start_time), sponsorship_tiers(id, name, price)",
       )
-      .order("created_at", { ascending: false });
+      .order("id", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
   });
