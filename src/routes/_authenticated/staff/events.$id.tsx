@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState, useRef, useEffect, useCallback } from "react";
+import { useMemo, useState, useRef, useEffect, useCallback, lazy, Suspense } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -13,9 +13,12 @@ import {
   addCommercialTier,
   saveTalent,
   deleteTalent,
+  saveFloorplan,
 } from "@/lib/event-dashboard.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
+const RobustMap = lazy(() => import("@/components/RobustMap"));
 
 const CT_TZ = "America/Chicago";
 
@@ -69,7 +72,7 @@ function EventDashboard() {
   const invalidate = () => qc.invalidateQueries({ queryKey: ["event-dashboard", id] });
 
   const [activeView, setActiveView] = useState<
-    "reports" | "door" | "tickets" | "gigs" | "commercial" | "vendors" | "sponsors" | "volunteers" | "talent"
+    "reports" | "door" | "tickets" | "gigs" | "floorplan" | "commercial" | "vendors" | "sponsors" | "volunteers" | "talent"
   >("reports");
   const [toast, setToast] = useState<Toast>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -166,6 +169,11 @@ function EventDashboard() {
     mutationFn: (tid: string) => deleteTalent({ data: { id: tid } }),
     onSuccess: invalidate,
   });
+  const mSaveFloorplan = useMutation({
+    mutationFn: (payload: any) => saveFloorplan({ data: { session_id: id, data: payload } }),
+    onSuccess: () => { invalidate(); showToast("Floorplan saved"); },
+    onError: (e: Error) => showToast(e.message, "error"),
+  });
 
   // Local UI state
   const [editingTicket, setEditingTicket] = useState<any>(null);
@@ -201,6 +209,7 @@ function EventDashboard() {
     { key: "door", label: "Door", badge: ticketsRedeemed },
     { key: "tickets", label: "Tickets" },
     { key: "gigs", label: "Gigs", badge: gigs.length },
+    { key: "floorplan", label: "Floorplan" },
     { key: "commercial", label: "Commercial" },
     { key: "vendors", label: "Vendors", badge: vendors.length },
     { key: "sponsors", label: "Sponsors", badge: sponsors.length },
@@ -465,6 +474,18 @@ function EventDashboard() {
             </div>
           </div>
         )}
+
+        {activeView === "floorplan" && (
+          <Suspense fallback={<div className="p-8 text-sm text-muted-foreground">Loading floorplan editor…</div>}>
+            <RobustMap
+              session={session}
+              availableVendors={(vendors as any[]).filter((v) => v.status === "approved" || v.status === "paid")}
+              onSave={(payload) => mSaveFloorplan.mutate(payload)}
+            />
+          </Suspense>
+        )}
+
+
 
         {activeView === "commercial" && (
           <div className="grid lg:grid-cols-2 gap-6">

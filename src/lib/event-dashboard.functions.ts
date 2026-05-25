@@ -236,3 +236,22 @@ export const deleteTalent = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ─── Floorplan ───────────────────────────────────────────────────────
+export const saveFloorplan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) =>
+    z.object({
+      session_id: z.string().uuid(),
+      data: z.any(),
+    }).parse(i),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    const { error } = await supabaseAdmin
+      .from("sessions")
+      .update({ interactive_map_data: data.data })
+      .eq("id", data.session_id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
