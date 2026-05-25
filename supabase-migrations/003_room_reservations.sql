@@ -2,24 +2,36 @@
 -- Run in Supabase SQL Editor. Safe to re-run.
 
 create table if not exists public.room_reservations (
-  id uuid primary key default gen_random_uuid(),
-  room_id uuid not null references public.rooms(id) on delete cascade,
-  requester_name text not null,
-  requester_email text not null,
-  requester_user_id uuid references auth.users(id) on delete set null,
-  starts_at timestamptz not null,
-  ends_at timestamptz not null,
-  party_size integer,
-  purpose text,
-  notes text,
-  status text not null default 'pending'
-    check (status in ('pending','approved','declined','cancelled')),
-  decided_by uuid references auth.users(id) on delete set null,
-  decided_at timestamptz,
-  decision_note text,
-  created_at timestamptz not null default now(),
-  constraint room_reservations_time_order check (ends_at > starts_at)
+  id uuid primary key default gen_random_uuid()
 );
+
+alter table public.room_reservations
+  add column if not exists room_id uuid references public.rooms(id) on delete cascade,
+  add column if not exists requester_name text,
+  add column if not exists requester_email text,
+  add column if not exists requester_user_id uuid references auth.users(id) on delete set null,
+  add column if not exists starts_at timestamptz,
+  add column if not exists ends_at timestamptz,
+  add column if not exists party_size integer,
+  add column if not exists purpose text,
+  add column if not exists notes text,
+  add column if not exists status text not null default 'pending',
+  add column if not exists decided_by uuid references auth.users(id) on delete set null,
+  add column if not exists decided_at timestamptz,
+  add column if not exists decision_note text,
+  add column if not exists created_at timestamptz not null default now();
+
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname='room_reservations_status_check') then
+    alter table public.room_reservations
+      add constraint room_reservations_status_check
+      check (status in ('pending','approved','declined','cancelled'));
+  end if;
+  if not exists (select 1 from pg_constraint where conname='room_reservations_time_order') then
+    alter table public.room_reservations
+      add constraint room_reservations_time_order check (ends_at > starts_at);
+  end if;
+end $$;
 
 create index if not exists room_reservations_room_idx
   on public.room_reservations (room_id, starts_at);
