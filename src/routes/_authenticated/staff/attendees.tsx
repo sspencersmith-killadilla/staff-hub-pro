@@ -1,13 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
+import { createFileRoute, ClientOnly } from "@tanstack/react-router";
+import { lazy, Suspense, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Scanner, type IDetectedBarcode } from "@yudiel/react-qr-scanner";
+import type { IDetectedBarcode } from "@yudiel/react-qr-scanner";
 import {
   checkInAttendee,
   listAllAttendees,
   type StaffAttendee,
 } from "@/lib/attendees.functions";
+
+const Scanner = lazy(() =>
+  import("@yudiel/react-qr-scanner").then((m) => ({ default: m.Scanner })),
+);
 
 export const Route = createFileRoute("/_authenticated/staff/attendees")({
   component: AttendeesPage,
