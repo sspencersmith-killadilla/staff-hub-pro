@@ -105,6 +105,37 @@ async function hydrateSlots(rows: any[]) {
 
 // ---------- Public reads ----------
 
+async function filterOutSessionConflicts(rows: any[]) {
+  if (!rows.length) return rows;
+  const stageIds = Array.from(new Set(rows.map((r) => r.stage_id).filter(Boolean)));
+  if (!stageIds.length) return rows;
+  const earliest = rows.reduce(
+    (m, r) => (r.start_time && r.start_time < m ? r.start_time : m),
+    rows[0].start_time ?? new Date().toISOString(),
+  );
+  const latest = rows.reduce(
+    (m, r) => (r.end_time && r.end_time > m ? r.end_time : m),
+    rows[0].end_time ?? earliest,
+  );
+  const { data: sessions } = await supabaseAdmin
+    .from("sessions")
+    .select("stage_id, start_time, end_time")
+    .in("stage_id", stageIds as any)
+    .lt("start_time", latest)
+    .gt("end_time", earliest);
+  const byStage = new Map<string, { start: string; end: string }[]>();
+  for (const s of sessions ?? []) {
+    if (!s.stage_id || !s.start_time || !s.end_time) continue;
+    const arr = byStage.get(s.stage_id) ?? [];
+    arr.push({ start: s.start_time, end: s.end_time });
+    byStage.set(s.stage_id, arr);
+  }
+  return rows.filter((r) => {
+    const blocks = byStage.get(r.stage_id) ?? [];
+    return !blocks.some((b) => b.start < r.end_time && b.end > r.start_time);
+  });
+}
+
 export const listOpenGigs = createServerFn({ method: "GET" }).handler(async () => {
   const nowIso = new Date().toISOString();
   const { data, error } = await supabaseAdmin
@@ -114,8 +145,10 @@ export const listOpenGigs = createServerFn({ method: "GET" }).handler(async () =
     .gte("start_time", nowIso)
     .order("start_time");
   if (error) throw new Error(error.message);
-  return hydrateSlots(data ?? []);
+  const available = await filterOutSessionConflicts(data ?? []);
+  return hydrateSlots(available);
 });
+
 
 export const listScheduledGigs = createServerFn({ method: "GET" }).handler(async () => {
   const nowIso = new Date().toISOString();
