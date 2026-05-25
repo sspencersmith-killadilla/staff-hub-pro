@@ -12,6 +12,7 @@ import {
   Shield,
   LogOut,
   HeartHandshake,
+  Home,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
