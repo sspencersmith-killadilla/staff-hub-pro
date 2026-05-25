@@ -267,6 +267,38 @@ function EventDetail() {
               </div>
             )}
           </div>
+          {sponsors.length > 0 && (
+            <div className="mt-8 rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-amber-300">
+                Presented in partnership with
+              </p>
+              <div className="mt-3 flex flex-wrap items-center gap-4">
+                {sponsors.map((s) =>
+                  s.logo_url ? (
+                    <div
+                      key={s.id}
+                      className="flex h-12 items-center justify-center rounded-md bg-white px-3 py-1.5"
+                      title={s.company_name ?? undefined}
+                    >
+                      <img
+                        src={s.logo_url}
+                        alt={s.company_name ?? "sponsor"}
+                        className="h-full w-auto max-w-[120px] object-contain"
+                        crossOrigin="anonymous"
+                      />
+                    </div>
+                  ) : (
+                    <span
+                      key={s.id}
+                      className="rounded-md bg-white px-3 py-1.5 text-sm font-bold text-slate-900"
+                    >
+                      {s.company_name}
+                    </span>
+                  ),
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
