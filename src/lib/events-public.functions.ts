@@ -228,7 +228,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
 export const getPublicCityEvent = createServerFn({ method: "GET" })
   .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data }) => {
-    const [sessRes, tiersRes, talentRes] = await Promise.all([
+    const [sessRes, tiersRes, talentRes, sponsorsRes] = await Promise.all([
       supabaseAdmin
         .from("sessions")
         .select(
@@ -242,6 +242,11 @@ export const getPublicCityEvent = createServerFn({ method: "GET" })
         .select("id, name, role, performance_start, load_in_time, status")
         .eq("session_id", data.id)
         .order("performance_start", { ascending: true, nullsFirst: false }),
+      supabaseAdmin
+        .from("sponsors")
+        .select("id, company_name, logo_url, status")
+        .eq("session_id", data.id)
+        .in("status", ["approved", "paid"]),
     ]);
     if (sessRes.error) throw new Error(sessRes.error.message);
     if (!sessRes.data) throw new Error("Event not found");
@@ -257,6 +262,11 @@ export const getPublicCityEvent = createServerFn({ method: "GET" })
         .maybeSingle();
       venue = v.data ?? null;
     }
+    const sponsors: EventSponsor[] = (sponsorsRes.data ?? []).map((sp: any) => ({
+      id: sp.id,
+      company_name: sp.company_name ?? null,
+      logo_url: sp.logo_url ?? null,
+    }));
     return {
       event: sessRes.data,
       stage,
@@ -264,6 +274,7 @@ export const getPublicCityEvent = createServerFn({ method: "GET" })
       venue,
       tiers: tiersRes.data ?? [],
       talent: talentRes.data ?? [],
+      sponsors,
     };
   });
 
