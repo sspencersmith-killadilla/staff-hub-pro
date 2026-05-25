@@ -100,7 +100,11 @@ function RoomDetail() {
                 Request this room
               </h2>
               {r.is_publicly_bookable ? (
-                <RoomReservationForm roomId={String(r.id)} />
+                <RoomReservationForm
+                  roomId={String(r.id)}
+                  openHours={v?.open_hours}
+                  closures={v?.closures}
+                />
               ) : (
                 <p className="text-sm text-slate-600">
                   This room isn't available for public booking. Contact the venue
