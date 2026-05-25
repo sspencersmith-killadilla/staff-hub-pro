@@ -14,6 +14,7 @@ import { Route as StreetbeatsRouteImport } from './routes/streetbeats'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as NoAccessRouteImport } from './routes/no-access'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as CommunityRouteImport } from './routes/community'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VenuesIdRouteImport } from './routes/venues.$id'
@@ -30,10 +31,13 @@ import { Route as AuthenticatedStaffSponsorsRouteImport } from './routes/_authen
 import { Route as AuthenticatedStaffSettingsRouteImport } from './routes/_authenticated/staff/settings'
 import { Route as AuthenticatedStaffRoomReservationsRouteImport } from './routes/_authenticated/staff/room-reservations'
 import { Route as AuthenticatedStaffMapRouteImport } from './routes/_authenticated/staff/map'
+import { Route as AuthenticatedStaffCommunityOrganizationsRouteImport } from './routes/_authenticated/staff/community-organizations'
 import { Route as AuthenticatedStaffCommunityMusicRouteImport } from './routes/_authenticated/staff/community-music'
 import { Route as AuthenticatedStaffCommunityEventsRouteImport } from './routes/_authenticated/staff/community-events'
 import { Route as AuthenticatedStaffAttendeesRouteImport } from './routes/_authenticated/staff/attendees'
 import { Route as AuthenticatedStaffAdminRouteImport } from './routes/_authenticated/staff/admin'
+import { Route as AuthenticatedCommunityManageRouteImport } from './routes/_authenticated/community/manage'
+import { Route as AuthenticatedCommunityApplyRouteImport } from './routes/_authenticated/community/apply'
 
 const VenuesRoute = VenuesRouteImport.update({
   id: '/venues',
@@ -58,6 +62,11 @@ const NoAccessRoute = NoAccessRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -147,6 +156,12 @@ const AuthenticatedStaffMapRoute = AuthenticatedStaffMapRouteImport.update({
   path: '/map',
   getParentRoute: () => AuthenticatedStaffRoute,
 } as any)
+const AuthenticatedStaffCommunityOrganizationsRoute =
+  AuthenticatedStaffCommunityOrganizationsRouteImport.update({
+    id: '/community-organizations',
+    path: '/community-organizations',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
 const AuthenticatedStaffCommunityMusicRoute =
   AuthenticatedStaffCommunityMusicRouteImport.update({
     id: '/community-music',
@@ -170,9 +185,22 @@ const AuthenticatedStaffAdminRoute = AuthenticatedStaffAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedStaffRoute,
 } as any)
+const AuthenticatedCommunityManageRoute =
+  AuthenticatedCommunityManageRouteImport.update({
+    id: '/community/manage',
+    path: '/community/manage',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedCommunityApplyRoute =
+  AuthenticatedCommunityApplyRouteImport.update({
+    id: '/community/apply',
+    path: '/community/apply',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/community': typeof CommunityRoute
   '/login': typeof LoginRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
@@ -183,10 +211,13 @@ export interface FileRoutesByFullPath {
   '/rooms/$id': typeof RoomsIdRoute
   '/stages/$id': typeof StagesIdRoute
   '/venues/$id': typeof VenuesIdRoute
+  '/community/apply': typeof AuthenticatedCommunityApplyRoute
+  '/community/manage': typeof AuthenticatedCommunityManageRoute
   '/staff/admin': typeof AuthenticatedStaffAdminRoute
   '/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
   '/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
   '/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
+  '/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
   '/staff/map': typeof AuthenticatedStaffMapRoute
   '/staff/room-reservations': typeof AuthenticatedStaffRoomReservationsRoute
   '/staff/settings': typeof AuthenticatedStaffSettingsRoute
@@ -199,6 +230,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/community': typeof CommunityRoute
   '/login': typeof LoginRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
@@ -208,10 +240,13 @@ export interface FileRoutesByTo {
   '/rooms/$id': typeof RoomsIdRoute
   '/stages/$id': typeof StagesIdRoute
   '/venues/$id': typeof VenuesIdRoute
+  '/community/apply': typeof AuthenticatedCommunityApplyRoute
+  '/community/manage': typeof AuthenticatedCommunityManageRoute
   '/staff/admin': typeof AuthenticatedStaffAdminRoute
   '/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
   '/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
   '/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
+  '/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
   '/staff/map': typeof AuthenticatedStaffMapRoute
   '/staff/room-reservations': typeof AuthenticatedStaffRoomReservationsRoute
   '/staff/settings': typeof AuthenticatedStaffSettingsRoute
@@ -226,6 +261,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/community': typeof CommunityRoute
   '/login': typeof LoginRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
@@ -236,10 +272,13 @@ export interface FileRoutesById {
   '/rooms/$id': typeof RoomsIdRoute
   '/stages/$id': typeof StagesIdRoute
   '/venues/$id': typeof VenuesIdRoute
+  '/_authenticated/community/apply': typeof AuthenticatedCommunityApplyRoute
+  '/_authenticated/community/manage': typeof AuthenticatedCommunityManageRoute
   '/_authenticated/staff/admin': typeof AuthenticatedStaffAdminRoute
   '/_authenticated/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
   '/_authenticated/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
   '/_authenticated/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
+  '/_authenticated/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
   '/_authenticated/staff/map': typeof AuthenticatedStaffMapRoute
   '/_authenticated/staff/room-reservations': typeof AuthenticatedStaffRoomReservationsRoute
   '/_authenticated/staff/settings': typeof AuthenticatedStaffSettingsRoute
@@ -254,6 +293,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/community'
     | '/login'
     | '/no-access'
     | '/signup'
@@ -264,10 +304,13 @@ export interface FileRouteTypes {
     | '/rooms/$id'
     | '/stages/$id'
     | '/venues/$id'
+    | '/community/apply'
+    | '/community/manage'
     | '/staff/admin'
     | '/staff/attendees'
     | '/staff/community-events'
     | '/staff/community-music'
+    | '/staff/community-organizations'
     | '/staff/map'
     | '/staff/room-reservations'
     | '/staff/settings'
@@ -280,6 +323,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/community'
     | '/login'
     | '/no-access'
     | '/signup'
@@ -289,10 +333,13 @@ export interface FileRouteTypes {
     | '/rooms/$id'
     | '/stages/$id'
     | '/venues/$id'
+    | '/community/apply'
+    | '/community/manage'
     | '/staff/admin'
     | '/staff/attendees'
     | '/staff/community-events'
     | '/staff/community-music'
+    | '/staff/community-organizations'
     | '/staff/map'
     | '/staff/room-reservations'
     | '/staff/settings'
@@ -306,6 +353,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/community'
     | '/login'
     | '/no-access'
     | '/signup'
@@ -316,10 +364,13 @@ export interface FileRouteTypes {
     | '/rooms/$id'
     | '/stages/$id'
     | '/venues/$id'
+    | '/_authenticated/community/apply'
+    | '/_authenticated/community/manage'
     | '/_authenticated/staff/admin'
     | '/_authenticated/staff/attendees'
     | '/_authenticated/staff/community-events'
     | '/_authenticated/staff/community-music'
+    | '/_authenticated/staff/community-organizations'
     | '/_authenticated/staff/map'
     | '/_authenticated/staff/room-reservations'
     | '/_authenticated/staff/settings'
@@ -334,6 +385,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  CommunityRoute: typeof CommunityRoute
   LoginRoute: typeof LoginRoute
   NoAccessRoute: typeof NoAccessRoute
   SignupRoute: typeof SignupRoute
@@ -378,6 +430,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community': {
+      id: '/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof CommunityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -492,6 +551,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffMapRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
     }
+    '/_authenticated/staff/community-organizations': {
+      id: '/_authenticated/staff/community-organizations'
+      path: '/community-organizations'
+      fullPath: '/staff/community-organizations'
+      preLoaderRoute: typeof AuthenticatedStaffCommunityOrganizationsRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
     '/_authenticated/staff/community-music': {
       id: '/_authenticated/staff/community-music'
       path: '/community-music'
@@ -520,6 +586,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffAdminRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
     }
+    '/_authenticated/community/manage': {
+      id: '/_authenticated/community/manage'
+      path: '/community/manage'
+      fullPath: '/community/manage'
+      preLoaderRoute: typeof AuthenticatedCommunityManageRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/community/apply': {
+      id: '/_authenticated/community/apply'
+      path: '/community/apply'
+      fullPath: '/community/apply'
+      preLoaderRoute: typeof AuthenticatedCommunityApplyRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
@@ -528,6 +608,7 @@ interface AuthenticatedStaffRouteChildren {
   AuthenticatedStaffAttendeesRoute: typeof AuthenticatedStaffAttendeesRoute
   AuthenticatedStaffCommunityEventsRoute: typeof AuthenticatedStaffCommunityEventsRoute
   AuthenticatedStaffCommunityMusicRoute: typeof AuthenticatedStaffCommunityMusicRoute
+  AuthenticatedStaffCommunityOrganizationsRoute: typeof AuthenticatedStaffCommunityOrganizationsRoute
   AuthenticatedStaffMapRoute: typeof AuthenticatedStaffMapRoute
   AuthenticatedStaffRoomReservationsRoute: typeof AuthenticatedStaffRoomReservationsRoute
   AuthenticatedStaffSettingsRoute: typeof AuthenticatedStaffSettingsRoute
@@ -543,6 +624,8 @@ const AuthenticatedStaffRouteChildren: AuthenticatedStaffRouteChildren = {
   AuthenticatedStaffCommunityEventsRoute:
     AuthenticatedStaffCommunityEventsRoute,
   AuthenticatedStaffCommunityMusicRoute: AuthenticatedStaffCommunityMusicRoute,
+  AuthenticatedStaffCommunityOrganizationsRoute:
+    AuthenticatedStaffCommunityOrganizationsRoute,
   AuthenticatedStaffMapRoute: AuthenticatedStaffMapRoute,
   AuthenticatedStaffRoomReservationsRoute:
     AuthenticatedStaffRoomReservationsRoute,
@@ -559,6 +642,8 @@ const AuthenticatedStaffRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedMyReservationsRoute: typeof AuthenticatedMyReservationsRoute
   AuthenticatedStaffRoute: typeof AuthenticatedStaffRouteWithChildren
+  AuthenticatedCommunityApplyRoute: typeof AuthenticatedCommunityApplyRoute
+  AuthenticatedCommunityManageRoute: typeof AuthenticatedCommunityManageRoute
   AuthenticatedStreetbeatsApplyRoute: typeof AuthenticatedStreetbeatsApplyRoute
   AuthenticatedStreetbeatsMyGigsRoute: typeof AuthenticatedStreetbeatsMyGigsRoute
 }
@@ -566,6 +651,8 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMyReservationsRoute: AuthenticatedMyReservationsRoute,
   AuthenticatedStaffRoute: AuthenticatedStaffRouteWithChildren,
+  AuthenticatedCommunityApplyRoute: AuthenticatedCommunityApplyRoute,
+  AuthenticatedCommunityManageRoute: AuthenticatedCommunityManageRoute,
   AuthenticatedStreetbeatsApplyRoute: AuthenticatedStreetbeatsApplyRoute,
   AuthenticatedStreetbeatsMyGigsRoute: AuthenticatedStreetbeatsMyGigsRoute,
 }
@@ -588,6 +675,7 @@ const VenuesRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  CommunityRoute: CommunityRoute,
   LoginRoute: LoginRoute,
   NoAccessRoute: NoAccessRoute,
   SignupRoute: SignupRoute,
@@ -599,13 +687,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

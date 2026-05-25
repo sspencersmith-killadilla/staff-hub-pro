@@ -25,6 +25,12 @@ export function SiteHeader() {
           >
             Streetbeats
           </Link>
+          <Link
+            to="/community"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            Community
+          </Link>
           {isAuthenticated && (
             <Link
               to="/my-reservations"
