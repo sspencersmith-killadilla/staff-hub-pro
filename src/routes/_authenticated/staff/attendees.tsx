@@ -163,17 +163,21 @@ function AttendeesPage() {
           </div>
           {scanOpen ? (
             <div className="overflow-hidden rounded-lg border border-slate-300">
-              <Scanner
-                onScan={handleScan}
-                onError={(err) =>
-                  setScanMsg({
-                    type: "error",
-                    text: err instanceof Error ? err.message : "Camera error",
-                  })
-                }
-                constraints={{ facingMode: "environment" }}
-                styles={{ container: { width: "100%" } }}
-              />
+              <ClientOnly fallback={<div className="p-8 text-center text-xs text-slate-500">Loading camera…</div>}>
+                <Suspense fallback={<div className="p-8 text-center text-xs text-slate-500">Loading camera…</div>}>
+                  <Scanner
+                    onScan={handleScan}
+                    onError={(err) =>
+                      setScanMsg({
+                        type: "error",
+                        text: err instanceof Error ? err.message : "Camera error",
+                      })
+                    }
+                    constraints={{ facingMode: "environment" }}
+                    styles={{ container: { width: "100%" } }}
+                  />
+                </Suspense>
+              </ClientOnly>
             </div>
           ) : (
             <div className="rounded-lg border border-dashed border-slate-300 p-8 text-center text-xs text-slate-500">
