@@ -59,6 +59,15 @@ const requestSchema = z.object({
   notes: z.string().trim().max(2000).optional().nullable(),
 });
 
+// Limits per user (active = pending or approved, in the future)
+export const MAX_ACTIVE_BOOKINGS_PER_USER = 3;
+export const MAX_MINUTES_PER_DAY_PER_USER = 120; // 2 hours
+const ACTIVE_STATUSES = ["pending", "approved"] as const;
+
+function ymdLocal(d: Date) {
+  return d.toISOString().slice(0, 10);
+}
+
 export const submitReservationRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => requestSchema.parse(i))
@@ -73,6 +82,10 @@ export const submitReservationRequest = createServerFn({ method: "POST" })
     if (!(end > start)) throw new Error("End must be after start");
     if (start < new Date(Date.now() - 60_000)) {
       throw new Error("Start time must be in the future");
+    }
+    const requestedMinutes = Math.round((end.getTime() - start.getTime()) / 60000);
+    if (requestedMinutes > MAX_MINUTES_PER_DAY_PER_USER) {
+      throw new Error("Bookings can be at most 2 hours long");
     }
 
     const { data: room } = await supabaseAdmin
@@ -95,15 +108,49 @@ export const submitReservationRequest = createServerFn({ method: "POST" })
       if (reason) throw new Error(reason);
     }
 
+    // No conflicts with any active (pending or approved) booking for this room
     const { data: overlaps } = await supabaseAdmin
       .from("room_reservations")
       .select("id")
       .eq("room_id", data.room_id)
-      .eq("status", "approved")
+      .in("status", ACTIVE_STATUSES as unknown as string[])
       .lt("starts_at", data.ends_at)
       .gt("ends_at", data.starts_at);
     if ((overlaps ?? []).length > 0) {
-      throw new Error("That time conflicts with an existing approved booking");
+      throw new Error("That time is already booked or pending review");
+    }
+
+    // Per-user limits — count this user's active future bookings
+    const nowIso = new Date().toISOString();
+    const { data: mine } = await supabaseAdmin
+      .from("room_reservations")
+      .select("id, starts_at, ends_at, status")
+      .eq("requester_user_id", context.userId)
+      .in("status", ACTIVE_STATUSES as unknown as string[])
+      .gte("ends_at", nowIso);
+    const mineRows = mine ?? [];
+    if (mineRows.length >= MAX_ACTIVE_BOOKINGS_PER_USER) {
+      throw new Error(
+        `You already have ${MAX_ACTIVE_BOOKINGS_PER_USER} active bookings. Cancel one before booking another.`,
+      );
+    }
+    const dayKey = ymdLocal(start);
+    const minutesThatDay = mineRows
+      .filter((r) => ymdLocal(new Date(r.starts_at)) === dayKey)
+      .reduce(
+        (sum, r) =>
+          sum +
+          Math.max(
+            0,
+            Math.round(
+              (new Date(r.ends_at).getTime() - new Date(r.starts_at).getTime()) /
+                60000,
+            ),
+          ),
+        0,
+      );
+    if (minutesThatDay + requestedMinutes > MAX_MINUTES_PER_DAY_PER_USER) {
+      throw new Error("You can only book up to 2 hours per day");
     }
 
     const { error } = await supabaseAdmin.from("room_reservations").insert({
@@ -127,16 +174,37 @@ export const getRoomAvailability = createServerFn({ method: "GET" })
       .parse(i),
   )
   .handler(async ({ data }) => {
+    // Include pending + approved so users can't double-book against either.
     const { data: rows, error } = await supabaseAdmin
       .from("room_reservations")
       .select("id, starts_at, ends_at, status")
       .eq("room_id", data.room_id)
-      .eq("status", "approved")
+      .in("status", ACTIVE_STATUSES as unknown as string[])
       .lt("starts_at", data.to)
       .gt("ends_at", data.from)
       .order("starts_at");
     if (error) throw new Error(error.message);
     return rows ?? [];
+  });
+
+export const getMyReservationStats = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const nowIso = new Date().toISOString();
+    const { data, error } = await supabaseAdmin
+      .from("room_reservations")
+      .select("id, starts_at, ends_at, status, room_id")
+      .eq("requester_user_id", context.userId)
+      .in("status", ACTIVE_STATUSES as unknown as string[])
+      .gte("ends_at", nowIso)
+      .order("starts_at");
+    if (error) throw new Error(error.message);
+    return {
+      activeCount: (data ?? []).length,
+      maxActive: MAX_ACTIVE_BOOKINGS_PER_USER,
+      maxMinutesPerDay: MAX_MINUTES_PER_DAY_PER_USER,
+      bookings: data ?? [],
+    };
   });
 
 export const listMyReservations = createServerFn({ method: "POST" })
