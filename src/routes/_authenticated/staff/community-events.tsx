@@ -11,7 +11,10 @@ import {
 } from "@/lib/community.functions";
 import { Button } from "@/components/ui/button";
 
+import { requireModule } from "@/lib/require-module";
+
 export const Route = createFileRoute("/_authenticated/staff/community-events")({
+  beforeLoad: () => requireModule("community_orgs"),
   component: CommunityEventsPage,
 });
 

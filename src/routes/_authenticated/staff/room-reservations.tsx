@@ -45,9 +45,12 @@ const STATUS_STYLES: Record<string, string> = {
   cancelled: "bg-slate-100 text-slate-600 border-slate-200",
 };
 
+import { requireModule } from "@/lib/require-module";
+
 export const Route = createFileRoute(
   "/_authenticated/staff/room-reservations",
 )({
+  beforeLoad: () => requireModule("room_reservations"),
   component: RoomReservationsPage,
 });
 

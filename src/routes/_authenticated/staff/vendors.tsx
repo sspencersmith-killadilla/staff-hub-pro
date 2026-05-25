@@ -1,3 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { makeStub } from "@/components/stub-page";
-export const Route = createFileRoute("/_authenticated/staff/vendors")({ component: makeStub("Vendors") });
+import { requireModule } from "@/lib/require-module";
+export const Route = createFileRoute("/_authenticated/staff/vendors")({
+  beforeLoad: () => requireModule("vendors_sponsors"),
+  component: makeStub("Vendors"),
+});
