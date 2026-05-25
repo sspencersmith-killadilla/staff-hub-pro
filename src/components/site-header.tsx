@@ -20,16 +20,22 @@ export function SiteHeader() {
         </Link>
         <nav className="flex items-center gap-3 text-sm">
           <Link
+            to="/events"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            Events
+          </Link>
+          <Link
+            to="/rooms"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            Rooms
+          </Link>
+          <Link
             to="/streetbeats"
             className="text-muted-foreground hover:text-foreground"
           >
             Streetbeats
-          </Link>
-          <Link
-            to="/community"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            Community
           </Link>
           {isAuthenticated && (
             <Link
