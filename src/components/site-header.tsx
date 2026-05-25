@@ -44,22 +44,12 @@ export function SiteHeader() {
             </Link>
           )}
           {isAuthenticated && (
-            <>
-              <Link
-                to="/my-tickets"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                My Tickets
-              </Link>
-              {isEnabled("room_reservations") && (
-                <Link
-                  to="/my-reservations"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  My Reservations
-                </Link>
-              )}
-            </>
+            <Link
+              to="/hub"
+              className="font-semibold text-foreground hover:underline"
+            >
+              My Hub
+            </Link>
           )}
           {isStaff && (
             <Link to="/staff" className="text-muted-foreground hover:text-foreground">

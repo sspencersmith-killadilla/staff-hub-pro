@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import { useModules } from "@/hooks/use-modules";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -22,6 +23,7 @@ const NAVY = "#002f49";
 function Home() {
   const year = new Date().getFullYear();
   const { isEnabled } = useModules();
+  const { isAuthenticated, me } = useAuth();
 
   return (
     <div className="min-h-screen bg-[#f8fafc] flex flex-col font-sans text-gray-800">
@@ -47,6 +49,39 @@ function Home() {
             <p className="text-lg text-blue-100 mb-8 max-w-2xl leading-relaxed">
               Discover upcoming events and programs, partner with us to showcase your local business, join the city's live music roster, or reserve a meeting room.
             </p>
+            {isAuthenticated && (
+              <div className="mb-8 rounded-xl border border-white/20 bg-white/10 p-5 backdrop-blur">
+                <p className="text-xs font-black uppercase tracking-widest text-amber-300">
+                  Signed in{me?.email ? ` as ${me.email}` : ""}
+                </p>
+                <p className="mt-1 text-white">
+                  One account, every program — apply as a musician, register a
+                  community org, book a room, and more.
+                </p>
+                <Link
+                  to="/hub"
+                  className="mt-3 inline-block bg-amber-400 hover:bg-amber-300 text-amber-950 font-black py-2.5 px-5 rounded-lg uppercase tracking-wider text-xs shadow"
+                >
+                  Go to My Hub →
+                </Link>
+              </div>
+            )}
+            {!isAuthenticated && (
+              <div className="mb-8 flex flex-wrap items-center gap-3">
+                <Link
+                  to="/signup"
+                  className="bg-amber-400 hover:bg-amber-300 text-amber-950 font-black py-2.5 px-5 rounded-lg uppercase tracking-wider text-xs shadow"
+                >
+                  Create one account for everything
+                </Link>
+                <Link
+                  to="/login"
+                  className="text-white/90 hover:text-white underline text-sm"
+                >
+                  Already have an account? Log in
+                </Link>
+              </div>
+            )}
             <nav
               aria-label="Primary actions"
               className="flex flex-wrap gap-4 justify-center md:justify-start"
