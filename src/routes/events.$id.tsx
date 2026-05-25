@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
-import { ArrowLeft, CalendarDays, MapPin, Ticket } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import QRCode from "qrcode";
+import { ArrowLeft, CalendarDays, Download, MapPin, Ticket } from "lucide-react";
 import {
   getPublicCityEvent,
   registerForCityEvent,
@@ -154,16 +155,7 @@ function EventDetail() {
         </div>
 
         {success ? (
-          <div className="mt-10 rounded-xl border border-emerald-200 bg-emerald-50 p-6">
-            <h2 className="text-lg font-bold text-emerald-900">You're registered!</h2>
-            <p className="mt-2 text-sm text-emerald-800">
-              Confirmation reference: <span className="font-mono">{success}</span>
-            </p>
-            <p className="mt-1 text-sm text-emerald-800">
-              We've reserved your spot. Bring this reference (or the email you used)
-              to check in at the door.
-            </p>
-          </div>
+          <TicketSuccess attendeeId={success} eventTitle={event.title} />
         ) : (
           <form
             onSubmit={handleSubmit}
@@ -262,6 +254,87 @@ function EventDetail() {
           </form>
         )}
       </main>
+    </div>
+  );
+}
+
+function TicketSuccess({
+  attendeeId,
+  eventTitle,
+}: {
+  attendeeId: string;
+  eventTitle: string;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [dataUrl, setDataUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    QRCode.toCanvas(
+      canvasRef.current,
+      attendeeId,
+      { width: 240, margin: 2, errorCorrectionLevel: "M" },
+      (err) => {
+        if (err) {
+          console.error("QR generation failed", err);
+          return;
+        }
+        QRCode.toDataURL(
+          attendeeId,
+          { width: 720, margin: 2, errorCorrectionLevel: "M" },
+          (e2, url) => {
+            if (!e2) setDataUrl(url);
+          },
+        );
+      },
+    );
+  }, [attendeeId]);
+
+  const filename = `ticket-${eventTitle
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .slice(0, 40)}.png`;
+
+  return (
+    <div className="mt-10 rounded-xl border border-emerald-200 bg-white p-6">
+      <h2 className="text-lg font-bold uppercase tracking-wider text-emerald-900">
+        You're registered!
+      </h2>
+      <p className="mt-1 text-sm text-slate-600">
+        Save this ticket. Staff will scan the QR code at the door to check you in.
+      </p>
+
+      <div className="mt-6 flex flex-col items-center gap-4 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 p-6">
+        <div className="text-xs font-bold uppercase tracking-wider text-slate-500">
+          {eventTitle}
+        </div>
+        <canvas ref={canvasRef} className="rounded bg-white p-2" />
+        <div className="text-center">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            Ticket ID
+          </div>
+          <div className="font-mono text-xs text-slate-700">{attendeeId}</div>
+        </div>
+      </div>
+
+      <div className="mt-6 flex flex-wrap gap-3">
+        {dataUrl && (
+          <a
+            href={dataUrl}
+            download={filename}
+            className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white hover:bg-slate-700"
+          >
+            <Download className="h-4 w-4" /> Download ticket
+          </a>
+        )}
+        <button
+          type="button"
+          onClick={() => window.print()}
+          className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-slate-900 hover:bg-slate-100"
+        >
+          Print
+        </button>
+      </div>
     </div>
   );
 }
