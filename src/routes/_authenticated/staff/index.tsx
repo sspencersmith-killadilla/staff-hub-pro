@@ -1,12 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { listEvents, createEvent, deleteEvent } from "@/lib/events.functions";
+import { listEvents, createEvent, updateEvent, deleteEvent } from "@/lib/events.functions";
 import { listVenues } from "@/lib/venues.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Trash2, ExternalLink } from "lucide-react";
+import { Trash2, ExternalLink, Pencil, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/staff/")({
   component: EventsPage,
