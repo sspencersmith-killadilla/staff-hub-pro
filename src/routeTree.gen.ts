@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as VenuesRouteImport } from './routes/venues'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as NoAccessRouteImport } from './routes/no-access'
-import { Route as MyReservationsRouteImport } from './routes/my-reservations'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
@@ -20,6 +19,7 @@ import { Route as VenuesIdRouteImport } from './routes/venues.$id'
 import { Route as StagesIdRouteImport } from './routes/stages.$id'
 import { Route as RoomsIdRouteImport } from './routes/rooms.$id'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
+import { Route as AuthenticatedMyReservationsRouteImport } from './routes/_authenticated/my-reservations'
 import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff/index'
 import { Route as AuthenticatedStaffVenuesRouteImport } from './routes/_authenticated/staff/venues'
 import { Route as AuthenticatedStaffVendorsRouteImport } from './routes/_authenticated/staff/vendors'
@@ -45,11 +45,6 @@ const SignupRoute = SignupRouteImport.update({
 const NoAccessRoute = NoAccessRouteImport.update({
   id: '/no-access',
   path: '/no-access',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MyReservationsRoute = MyReservationsRouteImport.update({
-  id: '/my-reservations',
-  path: '/my-reservations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -86,6 +81,12 @@ const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
   path: '/staff',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedMyReservationsRoute =
+  AuthenticatedMyReservationsRouteImport.update({
+    id: '/my-reservations',
+    path: '/my-reservations',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedStaffIndexRoute = AuthenticatedStaffIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -153,10 +154,10 @@ const AuthenticatedStaffAdminRoute = AuthenticatedStaffAdminRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/my-reservations': typeof MyReservationsRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
   '/venues': typeof VenuesRouteWithChildren
+  '/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/staff': typeof AuthenticatedStaffRouteWithChildren
   '/rooms/$id': typeof RoomsIdRoute
   '/stages/$id': typeof StagesIdRoute
@@ -176,10 +177,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/my-reservations': typeof MyReservationsRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
   '/venues': typeof VenuesRouteWithChildren
+  '/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/rooms/$id': typeof RoomsIdRoute
   '/stages/$id': typeof StagesIdRoute
   '/venues/$id': typeof VenuesIdRoute
@@ -200,10 +201,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
-  '/my-reservations': typeof MyReservationsRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
   '/venues': typeof VenuesRouteWithChildren
+  '/_authenticated/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRouteWithChildren
   '/rooms/$id': typeof RoomsIdRoute
   '/stages/$id': typeof StagesIdRoute
@@ -225,10 +226,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
-    | '/my-reservations'
     | '/no-access'
     | '/signup'
     | '/venues'
+    | '/my-reservations'
     | '/staff'
     | '/rooms/$id'
     | '/stages/$id'
@@ -248,10 +249,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
-    | '/my-reservations'
     | '/no-access'
     | '/signup'
     | '/venues'
+    | '/my-reservations'
     | '/rooms/$id'
     | '/stages/$id'
     | '/venues/$id'
@@ -271,10 +272,10 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/login'
-    | '/my-reservations'
     | '/no-access'
     | '/signup'
     | '/venues'
+    | '/_authenticated/my-reservations'
     | '/_authenticated/staff'
     | '/rooms/$id'
     | '/stages/$id'
@@ -296,7 +297,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
-  MyReservationsRoute: typeof MyReservationsRoute
   NoAccessRoute: typeof NoAccessRoute
   SignupRoute: typeof SignupRoute
   VenuesRoute: typeof VenuesRouteWithChildren
@@ -325,13 +325,6 @@ declare module '@tanstack/react-router' {
       path: '/no-access'
       fullPath: '/no-access'
       preLoaderRoute: typeof NoAccessRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/my-reservations': {
-      id: '/my-reservations'
-      path: '/my-reservations'
-      fullPath: '/my-reservations'
-      preLoaderRoute: typeof MyReservationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -381,6 +374,13 @@ declare module '@tanstack/react-router' {
       path: '/staff'
       fullPath: '/staff'
       preLoaderRoute: typeof AuthenticatedStaffRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/my-reservations': {
+      id: '/_authenticated/my-reservations'
+      path: '/my-reservations'
+      fullPath: '/my-reservations'
+      preLoaderRoute: typeof AuthenticatedMyReservationsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/staff/': {
@@ -497,10 +497,12 @@ const AuthenticatedStaffRouteWithChildren =
   AuthenticatedStaffRoute._addFileChildren(AuthenticatedStaffRouteChildren)
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedMyReservationsRoute: typeof AuthenticatedMyReservationsRoute
   AuthenticatedStaffRoute: typeof AuthenticatedStaffRouteWithChildren
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedMyReservationsRoute: AuthenticatedMyReservationsRoute,
   AuthenticatedStaffRoute: AuthenticatedStaffRouteWithChildren,
 }
 
@@ -523,7 +525,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
-  MyReservationsRoute: MyReservationsRoute,
   NoAccessRoute: NoAccessRoute,
   SignupRoute: SignupRoute,
   VenuesRoute: VenuesRouteWithChildren,

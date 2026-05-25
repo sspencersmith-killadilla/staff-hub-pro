@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from "react";
-import { useHydrated } from "@tanstack/react-router";
+import { Link, useHydrated } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { submitReservationRequest } from "@/lib/room-reservations-public.functions";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +11,7 @@ import { toast } from "sonner";
 
 export function RoomReservationForm({ roomId }: { roomId: string }) {
   const hydrated = useHydrated();
+  const { isAuthenticated, me, loading } = useAuth();
   const submit = useServerFn(submitReservationRequest);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
@@ -34,7 +36,6 @@ export function RoomReservationForm({ roomId }: { roomId: string }) {
         data: {
           room_id: roomId,
           requester_name: String(fd.get("requester_name") ?? "").trim(),
-          requester_email: String(fd.get("requester_email") ?? "").trim(),
           starts_at,
           ends_at,
           party_size: partyRaw ? Number(partyRaw) : null,
@@ -51,11 +52,37 @@ export function RoomReservationForm({ roomId }: { roomId: string }) {
     }
   }
 
+  if (loading) {
+    return <p className="text-sm text-slate-500">Loading…</p>;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="rounded-md border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+        <p className="font-medium">Log in to request this room.</p>
+        <p className="mt-1 text-slate-600">
+          Your request will be linked to your account so you can track its
+          status.
+        </p>
+        <Link
+          to="/login"
+          search={{ redirect: typeof window !== "undefined" ? window.location.pathname : "/" }}
+          className="mt-3 inline-block rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700"
+        >
+          Log in
+        </Link>
+      </div>
+    );
+  }
+
   if (done) {
     return (
       <div className="rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
-        Your request has been submitted. You'll hear back by email once staff
-        review it.
+        Your request has been submitted. You can track its status in{" "}
+        <Link to="/my-reservations" className="font-semibold underline">
+          My reservations
+        </Link>
+        .
       </div>
     );
   }
@@ -64,15 +91,12 @@ export function RoomReservationForm({ roomId }: { roomId: string }) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label htmlFor="requester_name">Your name</Label>
-          <Input id="requester_name" name="requester_name" required maxLength={200} />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="requester_email">Email</Label>
-          <Input id="requester_email" name="requester_email" type="email" required maxLength={255} />
-        </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="requester_name">Your name</Label>
+        <Input id="requester_name" name="requester_name" required maxLength={200} />
+        <p className="text-xs text-slate-500">
+          Sending as {me?.email}
+        </p>
       </div>
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="space-y-1.5">

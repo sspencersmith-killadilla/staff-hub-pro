@@ -19,12 +19,14 @@ export function SiteHeader() {
           <Home className="h-4 w-4" /> Home
         </Link>
         <nav className="flex items-center gap-3 text-sm">
-          <Link
-            to="/my-reservations"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            My Reservations
-          </Link>
+          {isAuthenticated && (
+            <Link
+              to="/my-reservations"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              My Reservations
+            </Link>
+          )}
           {isStaff && (
             <Link to="/staff" className="text-muted-foreground hover:text-foreground">
               Staff Portal

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
 
@@ -51,7 +52,6 @@ function validateAgainstVenue(
 const requestSchema = z.object({
   room_id: z.string().uuid(),
   requester_name: z.string().trim().min(1).max(200),
-  requester_email: z.string().trim().email().max(255),
   starts_at: z.string().min(1),
   ends_at: z.string().min(1),
   party_size: z.number().int().positive().max(10000).optional().nullable(),
@@ -60,8 +60,11 @@ const requestSchema = z.object({
 });
 
 export const submitReservationRequest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((i) => requestSchema.parse(i))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const email = context.claims.email;
+    if (!email) throw new Error("Your account has no email on file");
     const start = new Date(data.starts_at);
     const end = new Date(data.ends_at);
     if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
@@ -105,6 +108,7 @@ export const submitReservationRequest = createServerFn({ method: "POST" })
 
     const { error } = await supabaseAdmin.from("room_reservations").insert({
       ...data,
+      requester_email: email,
       status: "pending",
     });
     if (error) throw new Error(error.message);
@@ -134,19 +138,19 @@ export const getRoomAvailability = createServerFn({ method: "GET" })
     return rows ?? [];
   });
 
-export const lookupReservationsByEmail = createServerFn({ method: "POST" })
-  .inputValidator((i) =>
-    z.object({ email: z.string().trim().email().max(255) }).parse(i),
-  )
-  .handler(async ({ data }) => {
+export const listMyReservations = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const email = context.claims.email;
+    if (!email) return { reservations: [], rooms: [], venues: [], email: null };
     const { data: rows, error } = await supabaseAdmin
       .from("room_reservations")
       .select(
         "id, starts_at, ends_at, status, purpose, party_size, notes, room_id, requester_name, created_at",
       )
-      .ilike("requester_email", data.email)
+      .ilike("requester_email", email)
       .order("starts_at", { ascending: false })
-      .limit(100);
+      .limit(200);
     if (error) throw new Error(error.message);
     const roomIds = Array.from(new Set((rows ?? []).map((r) => r.room_id)));
     let rooms: any[] = [];
@@ -166,5 +170,7 @@ export const lookupReservationsByEmail = createServerFn({ method: "POST" })
         .in("id", venueIds);
       venues = vs ?? [];
     }
-    return { reservations: rows ?? [], rooms, venues };
+    return { reservations: rows ?? [], rooms, venues, email };
   });
+
+
