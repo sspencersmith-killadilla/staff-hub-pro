@@ -319,6 +319,15 @@ function EventsPage() {
                         >
                           <Ticket className="h-4 w-4" /> Get tickets
                         </Link>
+                      ) : e.source === "community" && e.image_url ? (
+                        <a
+                          href={e.image_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-3 inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-bold uppercase tracking-wider text-slate-900 hover:bg-slate-100"
+                        >
+                          More info
+                        </a>
                       ) : e.detail_href ? (
                         <a
                           href={e.detail_href}
