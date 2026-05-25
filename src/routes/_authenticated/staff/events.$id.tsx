@@ -470,6 +470,18 @@ function EventDashboard() {
           </div>
         )}
 
+        {activeView === "floorplan" && (
+          <Suspense fallback={<div className="p-8 text-sm text-muted-foreground">Loading floorplan editor…</div>}>
+            <RobustMap
+              session={session}
+              availableVendors={(vendors as any[]).filter((v) => v.status === "approved" || v.status === "paid")}
+              onSave={(payload) => mSaveFloorplan.mutate(payload)}
+            />
+          </Suspense>
+        )}
+
+
+
         {activeView === "commercial" && (
           <div className="grid lg:grid-cols-2 gap-6">
             <div className="bg-card rounded-xl border p-6">
