@@ -57,30 +57,38 @@ function Home() {
               >
                 Upcoming Events
               </Link>
-              <Link
-                to="/vendor"
-                className="bg-white/10 hover:bg-white/20 text-white border border-white/30 font-bold py-3 px-6 rounded-lg transition-colors text-center uppercase tracking-wider text-sm w-full sm:w-auto"
-              >
-                Businesses Hub
-              </Link>
-              <Link
-                to="/community"
-                className="bg-white/10 hover:bg-white/20 text-white border border-white/30 font-bold py-3 px-6 rounded-lg transition-colors text-center uppercase tracking-wider text-sm w-full sm:w-auto"
-              >
-                Organizations Portal
-              </Link>
-              <Link
-                to="/streetbeats"
-                className="bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg text-center uppercase tracking-wider text-sm w-full sm:w-auto border border-pink-500"
-              >
-                StreetBeats Portal
-              </Link>
-              <Link
-                to="/rooms"
-                className="bg-white/10 hover:bg-white/20 text-white border border-white/30 font-bold py-3 px-6 rounded-lg transition-colors text-center uppercase tracking-wider text-sm w-full sm:w-auto"
-              >
-                Room Reservations
-              </Link>
+              {isEnabled("vendors_sponsors") && (
+                <Link
+                  to="/vendor"
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/30 font-bold py-3 px-6 rounded-lg transition-colors text-center uppercase tracking-wider text-sm w-full sm:w-auto"
+                >
+                  Businesses Hub
+                </Link>
+              )}
+              {isEnabled("community_orgs") && (
+                <Link
+                  to="/community"
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/30 font-bold py-3 px-6 rounded-lg transition-colors text-center uppercase tracking-wider text-sm w-full sm:w-auto"
+                >
+                  Organizations Portal
+                </Link>
+              )}
+              {isEnabled("streetbeats") && (
+                <Link
+                  to="/streetbeats"
+                  className="bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg text-center uppercase tracking-wider text-sm w-full sm:w-auto border border-pink-500"
+                >
+                  StreetBeats Portal
+                </Link>
+              )}
+              {isEnabled("room_reservations") && (
+                <Link
+                  to="/rooms"
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/30 font-bold py-3 px-6 rounded-lg transition-colors text-center uppercase tracking-wider text-sm w-full sm:w-auto"
+                >
+                  Room Reservations
+                </Link>
+              )}
             </nav>
           </div>
         </div>
