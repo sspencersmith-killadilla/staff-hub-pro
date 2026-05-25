@@ -180,6 +180,8 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         image_url: busker?.avatar_url ?? null,
         venue_name: venue?.name ?? stage?.name ?? null,
         venue_city: venue?.city ?? null,
+        sub_location_name: stage?.name ?? null,
+        sub_location_type: stage ? "stage" : null,
         org_name: busker?.full_name ?? null,
         cost_text: "Free",
         ticketed: false,
