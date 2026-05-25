@@ -865,10 +865,10 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
                         margin: "0 0 2px 0",
                       }}
                     >
-                      {event.stages?.name}
+                      {locationPrimary}
                     </p>
                     <p style={{ fontSize: 11, color: "#6b7280", margin: 0 }}>
-                      {event.stages?.address?.split(",")[0]}
+                      {venueAddress.split(",")[0]}
                     </p>
                   </div>
                 </div>
