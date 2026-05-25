@@ -93,13 +93,22 @@ export function EventOpsSidebar() {
           </Link>
         )}
       </nav>
-      <button
-        onClick={logout}
-        className="flex items-center gap-3 px-5 py-3 text-xs font-bold uppercase tracking-wider text-white/70 hover:bg-white/5 hover:text-white border-t border-white/10"
-      >
-        <LogOut className="h-4 w-4" />
-        Log out
-      </button>
+      <div className="border-t border-white/10">
+        <Link
+          to="/"
+          className="flex items-center gap-3 px-5 py-3 text-xs font-bold uppercase tracking-wider text-white/70 hover:bg-white/5 hover:text-white"
+        >
+          <Home className="h-4 w-4" />
+          Back to App
+        </Link>
+        <button
+          onClick={logout}
+          className="flex w-full items-center gap-3 px-5 py-3 text-xs font-bold uppercase tracking-wider text-white/70 hover:bg-white/5 hover:text-white border-t border-white/10"
+        >
+          <LogOut className="h-4 w-4" />
+          Log out
+        </button>
+      </div>
     </aside>
   );
 }
