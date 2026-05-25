@@ -172,6 +172,47 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
             clonedEl.style.maxHeight = `${h}px`;
             clonedEl.style.overflow = "hidden";
           }
+
+          // html2canvas 1.x cannot parse oklch(). Convert any computed
+          // oklch color on the cloned subtree to rgb via canvas 2D parser.
+          const cssCtx = document.createElement("canvas").getContext("2d");
+          const toRgb = (val: string): string => {
+            if (!val || !val.includes("oklch")) return val;
+            try {
+              if (!cssCtx) return val;
+              cssCtx.fillStyle = "#000";
+              cssCtx.fillStyle = val;
+              return cssCtx.fillStyle as string;
+            } catch {
+              return val;
+            }
+          };
+          const colorProps = [
+            "color",
+            "backgroundColor",
+            "borderTopColor",
+            "borderRightColor",
+            "borderBottomColor",
+            "borderLeftColor",
+            "outlineColor",
+            "fill",
+            "stroke",
+            "caretColor",
+            "textDecorationColor",
+            "columnRuleColor",
+          ] as const;
+          const cloneWin = clonedDoc.defaultView || window;
+          const sanitize = (el: Element) => {
+            const cs = cloneWin.getComputedStyle(el);
+            colorProps.forEach((p) => {
+              const v = cs[p as any] as string;
+              if (v && v.includes("oklch")) {
+                (el as HTMLElement).style[p as any] = toRgb(v);
+              }
+            });
+          };
+          sanitize(clonedEl);
+          clonedEl.querySelectorAll("*").forEach(sanitize);
         },
       });
 
