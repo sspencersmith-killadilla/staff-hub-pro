@@ -5,6 +5,12 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 // Unified public events feed: city sessions + approved community events + booked streetbeats gigs.
 
+export type EventSponsor = {
+  id: string;
+  company_name: string | null;
+  logo_url: string | null;
+};
+
 export type UnifiedEvent = {
   id: string;
   source: "city" | "community" | "music";
@@ -21,6 +27,7 @@ export type UnifiedEvent = {
   cost_text: string | null;
   ticketed: boolean; // city events route to /events/:id ticketing
   detail_href: string | null; // for non-ticketed types
+  sponsors: EventSponsor[];
 };
 
 export const listPublicAllEvents = createServerFn({ method: "GET" })
@@ -116,6 +123,27 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
       : { data: [] as any[] };
     const buskersById = new Map((buskersRes.data ?? []).map((p: any) => [p.id, p]));
 
+    // Sponsors for city sessions (approved/paid only)
+    const sessionIds = (sessRes.data ?? []).map((s: any) => s.id);
+    const sponsorsRes = sessionIds.length
+      ? await supabaseAdmin
+          .from("sponsors")
+          .select("id, company_name, logo_url, session_id, status")
+          .in("session_id", sessionIds as any)
+          .in("status", ["approved", "paid"])
+      : { data: [] as any[] };
+    const sponsorsBySession = new Map<string, EventSponsor[]>();
+    for (const sp of sponsorsRes.data ?? []) {
+      const sid = (sp as any).session_id as string;
+      const list = sponsorsBySession.get(sid) ?? [];
+      list.push({
+        id: (sp as any).id,
+        company_name: (sp as any).company_name ?? null,
+        logo_url: (sp as any).logo_url ?? null,
+      });
+      sponsorsBySession.set(sid, list);
+    }
+
     const out: UnifiedEvent[] = [];
 
     for (const s of sessRes.data ?? []) {
@@ -142,6 +170,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         cost_text: null,
         ticketed: true,
         detail_href: `/events/${(s as any).id}`,
+        sponsors: sponsorsBySession.get((s as any).id) ?? [],
       });
     }
 
@@ -163,6 +192,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         cost_text: null,
         ticketed: false,
         detail_href: "/community",
+        sponsors: [],
       });
     }
 
@@ -186,6 +216,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         cost_text: "Free",
         ticketed: false,
         detail_href: (s as any).busker_id ? `/artists/${(s as any).busker_id}` : "/streetbeats",
+        sponsors: [],
       });
     }
 
@@ -197,7 +228,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
 export const getPublicCityEvent = createServerFn({ method: "GET" })
   .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data }) => {
-    const [sessRes, tiersRes, talentRes] = await Promise.all([
+    const [sessRes, tiersRes, talentRes, sponsorsRes] = await Promise.all([
       supabaseAdmin
         .from("sessions")
         .select(
@@ -211,6 +242,11 @@ export const getPublicCityEvent = createServerFn({ method: "GET" })
         .select("id, name, role, performance_start, load_in_time, status")
         .eq("session_id", data.id)
         .order("performance_start", { ascending: true, nullsFirst: false }),
+      supabaseAdmin
+        .from("sponsors")
+        .select("id, company_name, logo_url, status")
+        .eq("session_id", data.id)
+        .in("status", ["approved", "paid"]),
     ]);
     if (sessRes.error) throw new Error(sessRes.error.message);
     if (!sessRes.data) throw new Error("Event not found");
@@ -226,6 +262,11 @@ export const getPublicCityEvent = createServerFn({ method: "GET" })
         .maybeSingle();
       venue = v.data ?? null;
     }
+    const sponsors: EventSponsor[] = (sponsorsRes.data ?? []).map((sp: any) => ({
+      id: sp.id,
+      company_name: sp.company_name ?? null,
+      logo_url: sp.logo_url ?? null,
+    }));
     return {
       event: sessRes.data,
       stage,
@@ -233,6 +274,7 @@ export const getPublicCityEvent = createServerFn({ method: "GET" })
       venue,
       tiers: tiersRes.data ?? [],
       talent: talentRes.data ?? [],
+      sponsors,
     };
   });
 
