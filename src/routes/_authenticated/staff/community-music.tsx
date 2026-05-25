@@ -492,7 +492,7 @@ function ArtistsTab() {
                       mutation.mutate({
                         id: a.id,
                         status: "rejected",
-                        staff_notes: note ?? null,
+                        staff_notes: note ?? undefined,
                       });
                     }}
                   >
