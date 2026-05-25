@@ -482,7 +482,7 @@ function EventDetail() {
                           <CreditCard className="h-4 w-4" /> Payment
                         </div>
                         <div className="text-xs font-semibold text-slate-900">
-                          Total ${(tierPrice * (Number(activeTier?.qty_hint ?? 1) || 1)).toFixed(2)}
+                          ${tierPrice.toFixed(2)} / ticket
                         </div>
                       </div>
 
