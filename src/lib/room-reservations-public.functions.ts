@@ -120,6 +120,18 @@ export const submitReservationRequest = createServerFn({ method: "POST" })
       throw new Error("That time is already booked or pending review");
     }
 
+    // No conflicts with a scheduled city event in this room
+    const { data: sessionOverlaps } = await supabaseAdmin
+      .from("sessions")
+      .select("id")
+      .eq("room_id", data.room_id)
+      .lt("start_time", data.ends_at)
+      .gt("end_time", data.starts_at);
+    if ((sessionOverlaps ?? []).length > 0) {
+      throw new Error("This room is reserved for a city event at that time");
+    }
+
+
     // Per-user limits — count this user's active future bookings
     const nowIso = new Date().toISOString();
     const { data: mine } = await supabaseAdmin
