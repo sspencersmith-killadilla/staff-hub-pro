@@ -41,7 +41,7 @@ function LoginPage() {
       <div className="mx-auto max-w-md px-4 py-12">
         <Card>
           <CardHeader>
-            <CardTitle>Staff log in</CardTitle>
+            <CardTitle>Log in</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={onSubmit} className="space-y-4">
