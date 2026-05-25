@@ -1,31 +1,26 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-
-async function assertAdmin(supabase: any, userId: string) {
-  const { data } = await supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", userId)
-    .eq("role", "admin")
-    .maybeSingle();
-  if (!data) throw new Error("Forbidden: admin role required");
-}
 
 export const listStaff = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: meRole } = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "admin")
+      .maybeSingle();
+    if (!meRole) throw new Error("Forbidden: admin role required");
+
     const { data: roles, error } = await supabaseAdmin
       .from("user_roles")
       .select("user_id, role, created_at");
     if (error) throw new Error(error.message);
 
     const ids = Array.from(new Set((roles ?? []).map((r) => r.user_id)));
-    const { data: users } = await supabaseAdmin.auth.admin.listUsers({
-      perPage: 1000,
-    });
+    const { data: users } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
     const map = new Map(users.users.map((u) => [u.id, u]));
 
     return ids.map((id) => {
@@ -45,15 +40,18 @@ export const listStaff = createServerFn({ method: "GET" })
 export const inviteStaff = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z
-      .object({
-        email: z.string().email(),
-        role: z.enum(["admin", "staff"]),
-      })
-      .parse(input),
+    z.object({
+      email: z.string().email(),
+      role: z.enum(["admin", "staff"]),
+    }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: meRole } = await context.supabase
+      .from("user_roles").select("role")
+      .eq("user_id", context.userId).eq("role", "admin").maybeSingle();
+    if (!meRole) throw new Error("Forbidden: admin role required");
+
     const { data: invited, error } =
       await supabaseAdmin.auth.admin.inviteUserByEmail(data.email);
     if (error) throw new Error(error.message);
@@ -67,16 +65,19 @@ export const inviteStaff = createServerFn({ method: "POST" })
 export const setStaffRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z
-      .object({
-        userId: z.string().uuid(),
-        role: z.enum(["admin", "staff"]),
-        enabled: z.boolean(),
-      })
-      .parse(input),
+    z.object({
+      userId: z.string().uuid(),
+      role: z.enum(["admin", "staff"]),
+      enabled: z.boolean(),
+    }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: meRole } = await context.supabase
+      .from("user_roles").select("role")
+      .eq("user_id", context.userId).eq("role", "admin").maybeSingle();
+    if (!meRole) throw new Error("Forbidden: admin role required");
+
     if (data.enabled) {
       await supabaseAdmin
         .from("user_roles")
@@ -97,7 +98,12 @@ export const deleteStaff = createServerFn({ method: "POST" })
     z.object({ userId: z.string().uuid() }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: meRole } = await context.supabase
+      .from("user_roles").select("role")
+      .eq("user_id", context.userId).eq("role", "admin").maybeSingle();
+    if (!meRole) throw new Error("Forbidden: admin role required");
+
     if (data.userId === context.userId)
       throw new Error("You cannot delete yourself");
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
