@@ -17,6 +17,13 @@ export type PlatformModule = {
   enabled: boolean;
 };
 
+const DEFAULT_MODULES: PlatformModule[] = [
+  { key: "community_orgs", label: "Community Organizations Portal", description: "Allows HOAs, nonprofits, and schools to submit public events.", enabled: true },
+  { key: "room_reservations", label: "Public Room Reservations", description: "Allows residents to book conference rooms and study pods.", enabled: true },
+  { key: "streetbeats", label: "StreetBeats Music Portal", description: "Allows musicians to audition and claim public busking slots.", enabled: true },
+  { key: "vendors_sponsors", label: "Vendors & Sponsors Portal", description: "Allows businesses to apply for booths and sponsorship packages.", enabled: true },
+];
+
 export const listPlatformModules = createServerFn({ method: "GET" }).handler(
   async () => {
     const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
@@ -26,8 +33,12 @@ export const listPlatformModules = createServerFn({ method: "GET" }).handler(
       .from("platform_modules")
       .select("key,label,description,enabled")
       .order("label");
-    if (error) throw new Error(error.message);
-    return (data ?? []) as PlatformModule[];
+    // Fail-open if the table hasn't been migrated yet — all modules enabled by default.
+    if (error) {
+      console.warn("[platform_modules] falling back to defaults:", error.message);
+      return DEFAULT_MODULES;
+    }
+    return (data ?? DEFAULT_MODULES) as PlatformModule[];
   },
 );
 
