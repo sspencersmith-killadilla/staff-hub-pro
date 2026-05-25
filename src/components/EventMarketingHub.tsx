@@ -527,14 +527,6 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
                           <p className="text-teal-800 font-black uppercase tracking-widest text-[10px] mb-1">
                             Admissions & Tickets
                           </p>
-                          <a
-                            href={ticketsHref}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-lg font-black text-[#00a91c] leading-tight break-all hover:underline block"
-                          >
-                            {shortUrl}
-                          </a>
                           <p className="text-[10px] text-teal-700 mt-1">Scan or tap to open</p>
                         </div>
                       </div>
