@@ -109,7 +109,6 @@ export const submitReservationRequest = createServerFn({ method: "POST" })
     const { error } = await supabaseAdmin.from("room_reservations").insert({
       ...data,
       requester_email: email,
-      requester_user_id: context.userId,
       status: "pending",
     });
     if (error) throw new Error(error.message);
@@ -143,19 +142,13 @@ export const listMyReservations = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const email = context.claims.email;
+    if (!email) return { reservations: [], rooms: [], venues: [], email: null };
     const { data: rows, error } = await supabaseAdmin
       .from("room_reservations")
       .select(
         "id, starts_at, ends_at, status, purpose, party_size, notes, room_id, requester_name, created_at",
       )
-      .or(
-        [
-          `requester_user_id.eq.${context.userId}`,
-          email ? `requester_email.ilike.${email}` : null,
-        ]
-          .filter(Boolean)
-          .join(","),
-      )
+      .ilike("requester_email", email)
       .order("starts_at", { ascending: false })
       .limit(200);
     if (error) throw new Error(error.message);
@@ -179,4 +172,5 @@ export const listMyReservations = createServerFn({ method: "POST" })
     }
     return { reservations: rows ?? [], rooms, venues, email };
   });
+
 
