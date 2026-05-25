@@ -188,7 +188,7 @@ function PortalDashboard({ user }: { user: any }) {
               Partner Operations Hub
             </h1>
             <p className="text-[#aebecf] text-xs font-medium uppercase tracking-widest mt-1">
-              {user.email}
+              {user.email} · Manage multiple vendor & sponsor brands
             </p>
           </div>
           <button
