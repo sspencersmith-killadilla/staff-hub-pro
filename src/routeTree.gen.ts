@@ -38,6 +38,7 @@ import { Route as AuthenticatedStaffAttendeesRouteImport } from './routes/_authe
 import { Route as AuthenticatedStaffAdminRouteImport } from './routes/_authenticated/staff/admin'
 import { Route as AuthenticatedCommunityManageRouteImport } from './routes/_authenticated/community/manage'
 import { Route as AuthenticatedCommunityApplyRouteImport } from './routes/_authenticated/community/apply'
+import { Route as AuthenticatedStaffEventsIdRouteImport } from './routes/_authenticated/staff/events.$id'
 
 const VenuesRoute = VenuesRouteImport.update({
   id: '/venues',
@@ -197,6 +198,12 @@ const AuthenticatedCommunityApplyRoute =
     path: '/community/apply',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedStaffEventsIdRoute =
+  AuthenticatedStaffEventsIdRouteImport.update({
+    id: '/events/$id',
+    path: '/events/$id',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -227,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
   '/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
+  '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -256,6 +264,7 @@ export interface FileRoutesByTo {
   '/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
   '/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
+  '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -288,6 +297,7 @@ export interface FileRoutesById {
   '/_authenticated/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
   '/_authenticated/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
+  '/_authenticated/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -320,6 +330,7 @@ export interface FileRouteTypes {
     | '/streetbeats/apply'
     | '/streetbeats/my-gigs'
     | '/staff/'
+    | '/staff/events/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -349,6 +360,7 @@ export interface FileRouteTypes {
     | '/streetbeats/apply'
     | '/streetbeats/my-gigs'
     | '/staff'
+    | '/staff/events/$id'
   id:
     | '__root__'
     | '/'
@@ -380,6 +392,7 @@ export interface FileRouteTypes {
     | '/_authenticated/streetbeats/apply'
     | '/_authenticated/streetbeats/my-gigs'
     | '/_authenticated/staff/'
+    | '/_authenticated/staff/events/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -600,6 +613,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommunityApplyRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/staff/events/$id': {
+      id: '/_authenticated/staff/events/$id'
+      path: '/events/$id'
+      fullPath: '/staff/events/$id'
+      preLoaderRoute: typeof AuthenticatedStaffEventsIdRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
   }
 }
 
@@ -616,6 +636,7 @@ interface AuthenticatedStaffRouteChildren {
   AuthenticatedStaffVendorsRoute: typeof AuthenticatedStaffVendorsRoute
   AuthenticatedStaffVenuesRoute: typeof AuthenticatedStaffVenuesRoute
   AuthenticatedStaffIndexRoute: typeof AuthenticatedStaffIndexRoute
+  AuthenticatedStaffEventsIdRoute: typeof AuthenticatedStaffEventsIdRoute
 }
 
 const AuthenticatedStaffRouteChildren: AuthenticatedStaffRouteChildren = {
@@ -634,6 +655,7 @@ const AuthenticatedStaffRouteChildren: AuthenticatedStaffRouteChildren = {
   AuthenticatedStaffVendorsRoute: AuthenticatedStaffVendorsRoute,
   AuthenticatedStaffVenuesRoute: AuthenticatedStaffVenuesRoute,
   AuthenticatedStaffIndexRoute: AuthenticatedStaffIndexRoute,
+  AuthenticatedStaffEventsIdRoute: AuthenticatedStaffEventsIdRoute,
 }
 
 const AuthenticatedStaffRouteWithChildren =
