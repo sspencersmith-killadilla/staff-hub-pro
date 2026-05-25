@@ -1,0 +1,227 @@
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+// Unified public events feed: city sessions + approved community events + booked streetbeats gigs.
+
+export type UnifiedEvent = {
+  id: string;
+  source: "city" | "community" | "music";
+  title: string;
+  description: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  image_url: string | null;
+  venue_name: string | null;
+  venue_city: string | null;
+  org_name: string | null;
+  cost_text: string | null;
+  ticketed: boolean; // city events route to /events/:id ticketing
+  detail_href: string | null; // for non-ticketed types
+};
+
+export const listPublicAllEvents = createServerFn({ method: "GET" })
+  .inputValidator((i) =>
+    z
+      .object({ includeArchived: z.boolean().optional() })
+      .parse(i ?? {}),
+  )
+  .handler(async ({ data }) => {
+    const includeArchived = !!data.includeArchived;
+    const nowIso = new Date().toISOString();
+
+    // 1. City sessions
+    const sessionsQ = supabaseAdmin
+      .from("sessions")
+      .select("id, title, start_time, end_time, image_url, event_type, speaker_name, stage_id, stages(id,name,venue_id)")
+      .order("start_time", { ascending: true });
+    if (!includeArchived) sessionsQ.gte("end_time", nowIso);
+
+    // 2. Community events (approved)
+    const commQ = supabaseAdmin
+      .from("events")
+      .select("id, organization_id, title, description, start_time, end_time, location, image_url, is_community, approval_status")
+      .eq("is_community", true)
+      .eq("approval_status", "approved")
+      .order("start_time", { ascending: true });
+    if (!includeArchived) commQ.gte("end_time", nowIso);
+
+    // 3. Music gigs (booked slots)
+    const slotsQ = supabaseAdmin
+      .from("slots")
+      .select("id, title, description, start_time, end_time, is_booked, stage_id")
+      .eq("is_booked", true)
+      .order("start_time", { ascending: true });
+    if (!includeArchived) slotsQ.gte("end_time", nowIso);
+
+    const [sessRes, commRes, slotRes] = await Promise.all([sessionsQ, commQ, slotsQ]);
+    if (sessRes.error) throw new Error(sessRes.error.message);
+    if (commRes.error) throw new Error(commRes.error.message);
+    if (slotRes.error) throw new Error(slotRes.error.message);
+
+    // Resolve venues for sessions + slots via their stages.
+    const stageIds = new Set<string>();
+    for (const s of sessRes.data ?? []) if ((s as any).stage_id) stageIds.add((s as any).stage_id);
+    for (const s of slotRes.data ?? []) if ((s as any).stage_id) stageIds.add((s as any).stage_id);
+    const stagesRes = stageIds.size
+      ? await supabaseAdmin
+          .from("stages")
+          .select("id, name, venue_id")
+          .in("id", Array.from(stageIds))
+      : { data: [] as any[] };
+    const stagesById = new Map((stagesRes.data ?? []).map((s: any) => [s.id, s]));
+    const venueIds = Array.from(
+      new Set((stagesRes.data ?? []).map((s: any) => s.venue_id).filter(Boolean)),
+    );
+    const venuesRes = venueIds.length
+      ? await supabaseAdmin.from("venues").select("id, name, city").in("id", venueIds as any)
+      : { data: [] as any[] };
+    const venuesById = new Map((venuesRes.data ?? []).map((v: any) => [v.id, v]));
+
+    // Orgs for community events
+    const orgIds = Array.from(
+      new Set((commRes.data ?? []).map((e: any) => e.organization_id).filter(Boolean)),
+    );
+    const orgsRes = orgIds.length
+      ? await supabaseAdmin
+          .from("community_organizations")
+          .select("id, name")
+          .in("id", orgIds as any)
+      : { data: [] as any[] };
+    const orgsById = new Map((orgsRes.data ?? []).map((o: any) => [o.id, o]));
+
+    const out: UnifiedEvent[] = [];
+
+    for (const s of sessRes.data ?? []) {
+      const stage = (s as any).stage_id ? stagesById.get((s as any).stage_id) : null;
+      const venue = stage?.venue_id ? venuesById.get(stage.venue_id) : null;
+      out.push({
+        id: String((s as any).id),
+        source: "city",
+        title: (s as any).title,
+        description: (s as any).event_type ?? null,
+        starts_at: (s as any).start_time ?? null,
+        ends_at: (s as any).end_time ?? null,
+        image_url: (s as any).image_url ?? null,
+        venue_name: venue?.name ?? stage?.name ?? null,
+        venue_city: venue?.city ?? null,
+        org_name: (s as any).speaker_name ?? null,
+        cost_text: null,
+        ticketed: true,
+        detail_href: `/events/${(s as any).id}`,
+      });
+    }
+
+    for (const e of commRes.data ?? []) {
+      const org = (e as any).organization_id ? orgsById.get((e as any).organization_id) : null;
+      out.push({
+        id: String((e as any).id),
+        source: "community",
+        title: (e as any).title,
+        description: (e as any).description ?? null,
+        starts_at: (e as any).start_time ?? null,
+        ends_at: (e as any).end_time ?? null,
+        image_url: (e as any).image_url ?? null,
+        venue_name: (e as any).location ?? null,
+        venue_city: null,
+        org_name: org?.name ?? null,
+        cost_text: null,
+        ticketed: false,
+        detail_href: "/community",
+      });
+    }
+
+    for (const s of slotRes.data ?? []) {
+      const stage = (s as any).stage_id ? stagesById.get((s as any).stage_id) : null;
+      const venue = stage?.venue_id ? venuesById.get(stage.venue_id) : null;
+      out.push({
+        id: `slot-${(s as any).id}`,
+        source: "music",
+        title: (s as any).title ?? "Live music",
+        description: (s as any).description ?? null,
+        starts_at: (s as any).start_time ?? null,
+        ends_at: (s as any).end_time ?? null,
+        image_url: null,
+        venue_name: venue?.name ?? stage?.name ?? null,
+        venue_city: venue?.city ?? null,
+        org_name: null,
+        cost_text: "Free",
+        ticketed: false,
+        detail_href: "/streetbeats",
+      });
+    }
+
+    return out;
+  });
+
+// ---------- City event ticketing (public) ----------
+
+export const getPublicCityEvent = createServerFn({ method: "GET" })
+  .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ data }) => {
+    const [sessRes, tiersRes] = await Promise.all([
+      supabaseAdmin
+        .from("sessions")
+        .select("id, title, event_type, speaker_name, start_time, end_time, image_url, stage_id, stages(id,name,venue_id)")
+        .eq("id", data.id)
+        .maybeSingle(),
+      supabaseAdmin.from("ticket_tiers").select("*").eq("session_id", data.id),
+    ]);
+    if (sessRes.error) throw new Error(sessRes.error.message);
+    if (!sessRes.data) throw new Error("Event not found");
+    const stage = (sessRes.data as any).stages ?? null;
+    let venue: any = null;
+    if (stage?.venue_id) {
+      const v = await supabaseAdmin
+        .from("venues")
+        .select("id, name, city, address")
+        .eq("id", stage.venue_id)
+        .maybeSingle();
+      venue = v.data ?? null;
+    }
+    return {
+      event: sessRes.data,
+      stage,
+      venue,
+      tiers: tiersRes.data ?? [],
+    };
+  });
+
+export const registerForCityEvent = createServerFn({ method: "POST" })
+  .inputValidator((i) =>
+    z
+      .object({
+        session_id: z.string().uuid(),
+        ticket_tier_id: z.string().uuid().nullable().optional(),
+        full_name: z.string().trim().min(1).max(200),
+        email: z.string().trim().email().max(255),
+        quantity: z.number().int().min(1).max(20).optional(),
+      })
+      .parse(i),
+  )
+  .handler(async ({ data }) => {
+    // Validate the tier (if provided) actually belongs to this session.
+    if (data.ticket_tier_id) {
+      const { data: tier } = await supabaseAdmin
+        .from("ticket_tiers")
+        .select("id, session_id")
+        .eq("id", data.ticket_tier_id)
+        .maybeSingle();
+      if (!tier || tier.session_id !== data.session_id) {
+        throw new Error("Invalid ticket tier for this event");
+      }
+    }
+    const { data: row, error } = await supabaseAdmin
+      .from("attendees")
+      .insert({
+        full_name: data.full_name,
+        email: data.email,
+        ticket_tier_id: data.ticket_tier_id ?? null,
+        quantity: data.quantity ?? 1,
+        checked_in: false,
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return { id: row.id };
+  });
