@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
 
@@ -51,7 +52,6 @@ function validateAgainstVenue(
 const requestSchema = z.object({
   room_id: z.string().uuid(),
   requester_name: z.string().trim().min(1).max(200),
-  requester_email: z.string().trim().email().max(255),
   starts_at: z.string().min(1),
   ends_at: z.string().min(1),
   party_size: z.number().int().positive().max(10000).optional().nullable(),
@@ -60,8 +60,11 @@ const requestSchema = z.object({
 });
 
 export const submitReservationRequest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((i) => requestSchema.parse(i))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const email = context.claims.email;
+    if (!email) throw new Error("Your account has no email on file");
     const start = new Date(data.starts_at);
     const end = new Date(data.ends_at);
     if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
