@@ -14,7 +14,17 @@ import { Route as NoAccessRouteImport } from './routes/no-access'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
 import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff/index'
+import { Route as AuthenticatedStaffVenuesRouteImport } from './routes/_authenticated/staff/venues'
+import { Route as AuthenticatedStaffVendorsRouteImport } from './routes/_authenticated/staff/vendors'
+import { Route as AuthenticatedStaffSponsorsRouteImport } from './routes/_authenticated/staff/sponsors'
+import { Route as AuthenticatedStaffSettingsRouteImport } from './routes/_authenticated/staff/settings'
+import { Route as AuthenticatedStaffRoomReservationsRouteImport } from './routes/_authenticated/staff/room-reservations'
+import { Route as AuthenticatedStaffMapRouteImport } from './routes/_authenticated/staff/map'
+import { Route as AuthenticatedStaffCommunityMusicRouteImport } from './routes/_authenticated/staff/community-music'
+import { Route as AuthenticatedStaffCommunityEventsRouteImport } from './routes/_authenticated/staff/community-events'
+import { Route as AuthenticatedStaffAttendeesRouteImport } from './routes/_authenticated/staff/attendees'
 import { Route as AuthenticatedStaffAdminRouteImport } from './routes/_authenticated/staff/admin'
 
 const SignupRoute = SignupRouteImport.update({
@@ -41,15 +51,73 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedStaffIndexRoute = AuthenticatedStaffIndexRouteImport.update({
-  id: '/staff/',
-  path: '/staff/',
+const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
+  id: '/staff',
+  path: '/staff',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedStaffIndexRoute = AuthenticatedStaffIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedStaffRoute,
+} as any)
+const AuthenticatedStaffVenuesRoute =
+  AuthenticatedStaffVenuesRouteImport.update({
+    id: '/venues',
+    path: '/venues',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
+const AuthenticatedStaffVendorsRoute =
+  AuthenticatedStaffVendorsRouteImport.update({
+    id: '/vendors',
+    path: '/vendors',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
+const AuthenticatedStaffSponsorsRoute =
+  AuthenticatedStaffSponsorsRouteImport.update({
+    id: '/sponsors',
+    path: '/sponsors',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
+const AuthenticatedStaffSettingsRoute =
+  AuthenticatedStaffSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
+const AuthenticatedStaffRoomReservationsRoute =
+  AuthenticatedStaffRoomReservationsRouteImport.update({
+    id: '/room-reservations',
+    path: '/room-reservations',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
+const AuthenticatedStaffMapRoute = AuthenticatedStaffMapRouteImport.update({
+  id: '/map',
+  path: '/map',
+  getParentRoute: () => AuthenticatedStaffRoute,
+} as any)
+const AuthenticatedStaffCommunityMusicRoute =
+  AuthenticatedStaffCommunityMusicRouteImport.update({
+    id: '/community-music',
+    path: '/community-music',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
+const AuthenticatedStaffCommunityEventsRoute =
+  AuthenticatedStaffCommunityEventsRouteImport.update({
+    id: '/community-events',
+    path: '/community-events',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
+const AuthenticatedStaffAttendeesRoute =
+  AuthenticatedStaffAttendeesRouteImport.update({
+    id: '/attendees',
+    path: '/attendees',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
 const AuthenticatedStaffAdminRoute = AuthenticatedStaffAdminRouteImport.update({
-  id: '/staff/admin',
-  path: '/staff/admin',
-  getParentRoute: () => AuthenticatedRoute,
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedStaffRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -57,7 +125,17 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
+  '/staff': typeof AuthenticatedStaffRouteWithChildren
   '/staff/admin': typeof AuthenticatedStaffAdminRoute
+  '/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
+  '/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
+  '/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
+  '/staff/map': typeof AuthenticatedStaffMapRoute
+  '/staff/room-reservations': typeof AuthenticatedStaffRoomReservationsRoute
+  '/staff/settings': typeof AuthenticatedStaffSettingsRoute
+  '/staff/sponsors': typeof AuthenticatedStaffSponsorsRoute
+  '/staff/vendors': typeof AuthenticatedStaffVendorsRoute
+  '/staff/venues': typeof AuthenticatedStaffVenuesRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
 }
 export interface FileRoutesByTo {
@@ -66,6 +144,15 @@ export interface FileRoutesByTo {
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
   '/staff/admin': typeof AuthenticatedStaffAdminRoute
+  '/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
+  '/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
+  '/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
+  '/staff/map': typeof AuthenticatedStaffMapRoute
+  '/staff/room-reservations': typeof AuthenticatedStaffRoomReservationsRoute
+  '/staff/settings': typeof AuthenticatedStaffSettingsRoute
+  '/staff/sponsors': typeof AuthenticatedStaffSponsorsRoute
+  '/staff/vendors': typeof AuthenticatedStaffVendorsRoute
+  '/staff/venues': typeof AuthenticatedStaffVenuesRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
 }
 export interface FileRoutesById {
@@ -75,7 +162,17 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
+  '/_authenticated/staff': typeof AuthenticatedStaffRouteWithChildren
   '/_authenticated/staff/admin': typeof AuthenticatedStaffAdminRoute
+  '/_authenticated/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
+  '/_authenticated/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
+  '/_authenticated/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
+  '/_authenticated/staff/map': typeof AuthenticatedStaffMapRoute
+  '/_authenticated/staff/room-reservations': typeof AuthenticatedStaffRoomReservationsRoute
+  '/_authenticated/staff/settings': typeof AuthenticatedStaffSettingsRoute
+  '/_authenticated/staff/sponsors': typeof AuthenticatedStaffSponsorsRoute
+  '/_authenticated/staff/vendors': typeof AuthenticatedStaffVendorsRoute
+  '/_authenticated/staff/venues': typeof AuthenticatedStaffVenuesRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
 }
 export interface FileRouteTypes {
@@ -85,10 +182,35 @@ export interface FileRouteTypes {
     | '/login'
     | '/no-access'
     | '/signup'
+    | '/staff'
     | '/staff/admin'
+    | '/staff/attendees'
+    | '/staff/community-events'
+    | '/staff/community-music'
+    | '/staff/map'
+    | '/staff/room-reservations'
+    | '/staff/settings'
+    | '/staff/sponsors'
+    | '/staff/vendors'
+    | '/staff/venues'
     | '/staff/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/no-access' | '/signup' | '/staff/admin' | '/staff'
+  to:
+    | '/'
+    | '/login'
+    | '/no-access'
+    | '/signup'
+    | '/staff/admin'
+    | '/staff/attendees'
+    | '/staff/community-events'
+    | '/staff/community-music'
+    | '/staff/map'
+    | '/staff/room-reservations'
+    | '/staff/settings'
+    | '/staff/sponsors'
+    | '/staff/vendors'
+    | '/staff/venues'
+    | '/staff'
   id:
     | '__root__'
     | '/'
@@ -96,7 +218,17 @@ export interface FileRouteTypes {
     | '/login'
     | '/no-access'
     | '/signup'
+    | '/_authenticated/staff'
     | '/_authenticated/staff/admin'
+    | '/_authenticated/staff/attendees'
+    | '/_authenticated/staff/community-events'
+    | '/_authenticated/staff/community-music'
+    | '/_authenticated/staff/map'
+    | '/_authenticated/staff/room-reservations'
+    | '/_authenticated/staff/settings'
+    | '/_authenticated/staff/sponsors'
+    | '/_authenticated/staff/vendors'
+    | '/_authenticated/staff/venues'
     | '/_authenticated/staff/'
   fileRoutesById: FileRoutesById
 }
@@ -145,31 +277,132 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/staff': {
+      id: '/_authenticated/staff'
+      path: '/staff'
+      fullPath: '/staff'
+      preLoaderRoute: typeof AuthenticatedStaffRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/staff/': {
       id: '/_authenticated/staff/'
-      path: '/staff'
+      path: '/'
       fullPath: '/staff/'
       preLoaderRoute: typeof AuthenticatedStaffIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/venues': {
+      id: '/_authenticated/staff/venues'
+      path: '/venues'
+      fullPath: '/staff/venues'
+      preLoaderRoute: typeof AuthenticatedStaffVenuesRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/vendors': {
+      id: '/_authenticated/staff/vendors'
+      path: '/vendors'
+      fullPath: '/staff/vendors'
+      preLoaderRoute: typeof AuthenticatedStaffVendorsRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/sponsors': {
+      id: '/_authenticated/staff/sponsors'
+      path: '/sponsors'
+      fullPath: '/staff/sponsors'
+      preLoaderRoute: typeof AuthenticatedStaffSponsorsRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/settings': {
+      id: '/_authenticated/staff/settings'
+      path: '/settings'
+      fullPath: '/staff/settings'
+      preLoaderRoute: typeof AuthenticatedStaffSettingsRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/room-reservations': {
+      id: '/_authenticated/staff/room-reservations'
+      path: '/room-reservations'
+      fullPath: '/staff/room-reservations'
+      preLoaderRoute: typeof AuthenticatedStaffRoomReservationsRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/map': {
+      id: '/_authenticated/staff/map'
+      path: '/map'
+      fullPath: '/staff/map'
+      preLoaderRoute: typeof AuthenticatedStaffMapRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/community-music': {
+      id: '/_authenticated/staff/community-music'
+      path: '/community-music'
+      fullPath: '/staff/community-music'
+      preLoaderRoute: typeof AuthenticatedStaffCommunityMusicRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/community-events': {
+      id: '/_authenticated/staff/community-events'
+      path: '/community-events'
+      fullPath: '/staff/community-events'
+      preLoaderRoute: typeof AuthenticatedStaffCommunityEventsRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/attendees': {
+      id: '/_authenticated/staff/attendees'
+      path: '/attendees'
+      fullPath: '/staff/attendees'
+      preLoaderRoute: typeof AuthenticatedStaffAttendeesRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
     }
     '/_authenticated/staff/admin': {
       id: '/_authenticated/staff/admin'
-      path: '/staff/admin'
+      path: '/admin'
       fullPath: '/staff/admin'
       preLoaderRoute: typeof AuthenticatedStaffAdminRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedStaffRoute
     }
   }
 }
 
-interface AuthenticatedRouteChildren {
+interface AuthenticatedStaffRouteChildren {
   AuthenticatedStaffAdminRoute: typeof AuthenticatedStaffAdminRoute
+  AuthenticatedStaffAttendeesRoute: typeof AuthenticatedStaffAttendeesRoute
+  AuthenticatedStaffCommunityEventsRoute: typeof AuthenticatedStaffCommunityEventsRoute
+  AuthenticatedStaffCommunityMusicRoute: typeof AuthenticatedStaffCommunityMusicRoute
+  AuthenticatedStaffMapRoute: typeof AuthenticatedStaffMapRoute
+  AuthenticatedStaffRoomReservationsRoute: typeof AuthenticatedStaffRoomReservationsRoute
+  AuthenticatedStaffSettingsRoute: typeof AuthenticatedStaffSettingsRoute
+  AuthenticatedStaffSponsorsRoute: typeof AuthenticatedStaffSponsorsRoute
+  AuthenticatedStaffVendorsRoute: typeof AuthenticatedStaffVendorsRoute
+  AuthenticatedStaffVenuesRoute: typeof AuthenticatedStaffVenuesRoute
   AuthenticatedStaffIndexRoute: typeof AuthenticatedStaffIndexRoute
 }
 
-const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+const AuthenticatedStaffRouteChildren: AuthenticatedStaffRouteChildren = {
   AuthenticatedStaffAdminRoute: AuthenticatedStaffAdminRoute,
+  AuthenticatedStaffAttendeesRoute: AuthenticatedStaffAttendeesRoute,
+  AuthenticatedStaffCommunityEventsRoute:
+    AuthenticatedStaffCommunityEventsRoute,
+  AuthenticatedStaffCommunityMusicRoute: AuthenticatedStaffCommunityMusicRoute,
+  AuthenticatedStaffMapRoute: AuthenticatedStaffMapRoute,
+  AuthenticatedStaffRoomReservationsRoute:
+    AuthenticatedStaffRoomReservationsRoute,
+  AuthenticatedStaffSettingsRoute: AuthenticatedStaffSettingsRoute,
+  AuthenticatedStaffSponsorsRoute: AuthenticatedStaffSponsorsRoute,
+  AuthenticatedStaffVendorsRoute: AuthenticatedStaffVendorsRoute,
+  AuthenticatedStaffVenuesRoute: AuthenticatedStaffVenuesRoute,
   AuthenticatedStaffIndexRoute: AuthenticatedStaffIndexRoute,
+}
+
+const AuthenticatedStaffRouteWithChildren =
+  AuthenticatedStaffRoute._addFileChildren(AuthenticatedStaffRouteChildren)
+
+interface AuthenticatedRouteChildren {
+  AuthenticatedStaffRoute: typeof AuthenticatedStaffRouteWithChildren
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedStaffRoute: AuthenticatedStaffRouteWithChildren,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
