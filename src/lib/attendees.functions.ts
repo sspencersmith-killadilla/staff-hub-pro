@@ -125,6 +125,7 @@ export const checkInAttendee = createServerFn({ method: "POST" })
       .object({
         id: z.string().min(1).max(120),
         checked_in: z.boolean().optional(),
+        expected_session_id: z.string().uuid().optional().nullable(),
       })
       .parse(i),
   )
@@ -142,13 +143,29 @@ export const checkInAttendee = createServerFn({ method: "POST" })
     if (!existing) return { ok: false as const, reason: "not_found" as const };
 
     const e = existing as any;
+    const sessionId = e.ticket_tiers?.sessions?.id ?? null;
+    const sessionTitle = e.ticket_tiers?.sessions?.title ?? null;
+
+    if (
+      data.expected_session_id &&
+      sessionId &&
+      sessionId !== data.expected_session_id
+    ) {
+      return {
+        ok: false as const,
+        reason: "wrong_event" as const,
+        full_name: e.full_name,
+        session_title: sessionTitle,
+      };
+    }
+
     const target = data.checked_in ?? !e.checked_in;
     if (target === true && e.checked_in) {
       return {
         ok: false as const,
         reason: "already_checked_in" as const,
         full_name: e.full_name,
-        session_title: e.ticket_tiers?.sessions?.title ?? null,
+        session_title: sessionTitle,
       };
     }
     const { error } = await supabaseAdmin
@@ -160,6 +177,7 @@ export const checkInAttendee = createServerFn({ method: "POST" })
       ok: true as const,
       checked_in: target,
       full_name: e.full_name,
-      session_title: e.ticket_tiers?.sessions?.title ?? null,
+      session_title: sessionTitle,
     };
   });
+

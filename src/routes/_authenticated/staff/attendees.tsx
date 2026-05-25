@@ -34,23 +34,32 @@ function AttendeesPage() {
   const fetchAll = useServerFn(listAllAttendees);
   const doCheckIn = useServerFn(checkInAttendee);
 
-  const [sessionFilter, setSessionFilter] = useState<string>("all");
+  const [sessionFilter, setSessionFilter] = useState<string>("");
   const [search, setSearch] = useState("");
   const [scanOpen, setScanOpen] = useState(false);
   const [manualId, setManualId] = useState("");
   const [scanMsg, setScanMsg] = useState<ScanMsg>(null);
+  const [showInstructions, setShowInstructions] = useState(false);
   const cooldown = useRef<Map<string, number>>(new Map());
 
+  const eventSelected = sessionFilter !== "" && sessionFilter !== "all";
+
   const { data, isLoading } = useQuery({
-    queryKey: ["staff", "attendees", sessionFilter],
+    queryKey: ["staff", "attendees", sessionFilter || "none"],
     queryFn: () =>
       fetchAll({
-        data: { session_id: sessionFilter === "all" ? null : sessionFilter },
+        data: {
+          session_id:
+            sessionFilter && sessionFilter !== "all" ? sessionFilter : null,
+        },
       }),
   });
 
   const attendees: StaffAttendee[] = data?.attendees ?? [];
   const sessions = data?.sessions ?? [];
+  const selectedEvent = sessions.find((s: any) => s.id === sessionFilter) as
+    | { id: string; title: string }
+    | undefined;
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -70,11 +79,23 @@ function AttendeesPage() {
   }, [attendees]);
 
   const mCheck = useMutation({
-    mutationFn: (id: string) => doCheckIn({ data: { id, checked_in: true } }),
+    mutationFn: (id: string) =>
+      doCheckIn({
+        data: {
+          id,
+          checked_in: true,
+          expected_session_id: eventSelected ? sessionFilter : null,
+        },
+      }),
     onSuccess: (res, id) => {
       qc.invalidateQueries({ queryKey: ["staff", "attendees"] });
       if (!res.ok && res.reason === "not_found") {
         setScanMsg({ type: "error", text: `No ticket matches "${id.slice(0, 12)}…"` });
+      } else if (!res.ok && res.reason === "wrong_event") {
+        setScanMsg({
+          type: "error",
+          text: `✗ ${res.full_name}'s ticket is for ${res.session_title ?? "a different event"}, not ${selectedEvent?.title ?? "the selected event"}.`,
+        });
       } else if (!res.ok && res.reason === "already_checked_in") {
         setScanMsg({
           type: "warning",
@@ -97,6 +118,7 @@ function AttendeesPage() {
   });
 
   const handleScan = (codes: IDetectedBarcode[]) => {
+    if (!eventSelected) return;
     for (const c of codes) {
       const raw = c.rawValue?.trim();
       if (!raw) continue;
@@ -111,6 +133,10 @@ function AttendeesPage() {
 
   const handleManual = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!eventSelected) {
+      setScanMsg({ type: "error", text: "Select an event before checking tickets in." });
+      return;
+    }
     const id = manualId.trim();
     if (!id) return;
     mCheck.mutate(id);
@@ -122,10 +148,10 @@ function AttendeesPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black uppercase tracking-tight text-slate-900">
-            Attendees
+            Box Office
           </h1>
           <p className="mt-1 text-sm text-slate-600">
-            All ticketed registrations across city events. Scan or look up to check in.
+            Select an event, then scan or look up tickets to check guests in.
           </p>
         </div>
         <div className="flex gap-2 text-xs">
@@ -144,24 +170,116 @@ function AttendeesPage() {
         </div>
       </div>
 
+      {/* Instructions */}
+      <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50">
+        <button
+          type="button"
+          onClick={() => setShowInstructions((v) => !v)}
+          className="flex w-full items-center justify-between px-4 py-3 text-left"
+        >
+          <span className="text-sm font-bold uppercase tracking-wider text-blue-900">
+            How to use the Box Office
+          </span>
+          <span className="text-xs font-bold text-blue-700">
+            {showInstructions ? "Hide" : "Show"}
+          </span>
+        </button>
+        {showInstructions && (
+          <div className="border-t border-blue-200 px-4 py-4 text-sm text-blue-950">
+            <ol className="list-decimal space-y-2 pl-5">
+              <li>
+                <strong>Pick the event you're working.</strong> Use the “Working
+                event” dropdown below. The scanner and manual entry stay disabled
+                until an event is selected so tickets for other events can't be
+                checked in by mistake.
+              </li>
+              <li>
+                <strong>Start the camera.</strong> Click <em>Start camera</em>{" "}
+                and hold the guest's phone or printed QR code roughly 6–10 inches
+                from the lens. A successful scan shows a green banner with the
+                guest's name.
+              </li>
+              <li>
+                <strong>Use manual entry as a backup.</strong> If the camera
+                can't read the code, ask the guest to read the ticket ID from
+                their <em>My Tickets</em> page, paste it into the Manual /
+                Hardware Scanner box, and press <em>Check in</em>. USB hardware
+                scanners type into this field too.
+              </li>
+              <li>
+                <strong>Watch for warnings.</strong> Amber = already checked in
+                (let them through, no action needed). Red = wrong event or
+                unknown ticket — direct the guest to the correct event desk or
+                to support.
+              </li>
+              <li>
+                <strong>Manual overrides.</strong> Use the list below to search
+                a guest by name or email, then click <em>Check in</em> or{" "}
+                <em>Undo</em> for corrections.
+              </li>
+            </ol>
+          </div>
+        )}
+      </div>
+
+      {/* Event selector (required) */}
+      <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4">
+        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+          Working event <span className="text-rose-600">*</span>
+        </label>
+        <select
+          value={sessionFilter}
+          onChange={(e) => {
+            setSessionFilter(e.target.value);
+            setScanMsg(null);
+            if (e.target.value === "" || e.target.value === "all") {
+              setScanOpen(false);
+            }
+          }}
+          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+        >
+          <option value="">— Select an event to begin —</option>
+          <option value="all">All events (view only, scanning disabled)</option>
+          {sessions.map((s: any) => (
+            <option key={s.id} value={s.id}>
+              {s.title}
+            </option>
+          ))}
+        </select>
+        {!eventSelected && (
+          <p className="mt-2 text-xs text-rose-700">
+            Pick a specific event above to enable QR scanning and manual check-in.
+          </p>
+        )}
+      </div>
+
       {/* Scanner */}
-      <div className="mt-6 grid gap-4 rounded-xl border border-slate-200 bg-white p-4 lg:grid-cols-2">
+      <div
+        className={`mt-6 grid gap-4 rounded-xl border bg-white p-4 lg:grid-cols-2 ${
+          eventSelected ? "border-slate-200" : "border-slate-200 opacity-60"
+        }`}
+      >
         <div>
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">
               QR Scanner
             </h2>
             <button
+              disabled={!eventSelected}
               onClick={() => {
                 setScanOpen((v) => !v);
                 setScanMsg(null);
               }}
-              className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-slate-700"
+              className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-300"
             >
               {scanOpen ? "Stop camera" : "Start camera"}
             </button>
           </div>
-          {scanOpen ? (
+          {!eventSelected ? (
+            <div className="rounded-lg border border-dashed border-slate-300 p-8 text-center text-xs text-slate-500">
+              Select an event above to enable the camera.
+            </div>
+          ) : scanOpen ? (
             <div className="overflow-hidden rounded-lg border border-slate-300">
               <ClientOnly fallback={<div className="p-8 text-center text-xs text-slate-500">Loading camera…</div>}>
                 <Suspense fallback={<div className="p-8 text-center text-xs text-slate-500">Loading camera…</div>}>
@@ -181,7 +299,8 @@ function AttendeesPage() {
             </div>
           ) : (
             <div className="rounded-lg border border-dashed border-slate-300 p-8 text-center text-xs text-slate-500">
-              Click "Start camera" to scan attendee QR codes.
+              Checking in for <strong>{selectedEvent?.title}</strong>. Click
+              "Start camera" to scan attendee QR codes.
             </div>
           )}
         </div>
@@ -193,13 +312,15 @@ function AttendeesPage() {
             <input
               value={manualId}
               onChange={(e) => setManualId(e.target.value)}
-              placeholder="Paste or scan ticket ID…"
-              className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm font-mono"
+              placeholder={eventSelected ? "Paste or scan ticket ID…" : "Select an event first"}
+              disabled={!eventSelected}
+              className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm font-mono disabled:bg-slate-100"
               autoComplete="off"
             />
             <button
               type="submit"
-              className="rounded-md bg-slate-900 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white hover:bg-slate-700"
+              disabled={!eventSelected}
+              className="rounded-md bg-slate-900 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-300"
             >
               Check in
             </button>
@@ -220,37 +341,19 @@ function AttendeesPage() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="mt-6 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-3">
-        <div className="sm:col-span-2">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-            Search
-          </label>
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Name, email, event, ticket ID…"
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-          />
-        </div>
-        <div>
-          <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-            Event
-          </label>
-          <select
-            value={sessionFilter}
-            onChange={(e) => setSessionFilter(e.target.value)}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-          >
-            <option value="all">All events</option>
-            {sessions.map((s: any) => (
-              <option key={s.id} value={s.id}>
-                {s.title}
-              </option>
-            ))}
-          </select>
-        </div>
+      {/* Search */}
+      <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4">
+        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+          Search attendees
+        </label>
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Name, email, event, ticket ID…"
+          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+        />
       </div>
+
 
       {/* List */}
       <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white">

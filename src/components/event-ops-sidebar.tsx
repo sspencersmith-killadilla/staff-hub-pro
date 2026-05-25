@@ -29,7 +29,7 @@ type Item = {
 const items: Item[] = [
   { title: "Events", url: "/staff", icon: Calendar, exact: true },
   { title: "Venues & Stages", url: "/staff/venues", icon: Building2 },
-  { title: "Attendees", url: "/staff/attendees", icon: Users },
+  { title: "Box Office", url: "/staff/attendees", icon: Users },
   { title: "Vendors", url: "/staff/vendors", icon: Store, module: "vendors_sponsors" },
   { title: "Sponsors", url: "/staff/sponsors", icon: Sparkles, module: "vendors_sponsors" },
   { title: "Community Music", url: "/staff/community-music", icon: Music, module: "streetbeats" },
