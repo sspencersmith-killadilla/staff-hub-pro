@@ -508,14 +508,37 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
                   <div className="flex flex-col">
                     <RunOfShow />
                     <div className="mt-auto pt-6">
-                      <div className="bg-teal-50 rounded-xl p-5 border border-teal-100 w-full">
-                        <p className="text-teal-800 font-black uppercase tracking-widest text-[10px] mb-1">
-                          Admissions & Tickets
-                        </p>
-                        <p className="text-lg font-black text-[#00a91c] leading-tight break-all">
-                          {shortUrl}
-                        </p>
+                      <div className="bg-teal-50 rounded-xl p-5 border border-teal-100 w-full flex items-center gap-4">
+                        <a
+                          href={ticketsHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="shrink-0 bg-white rounded-lg p-1.5 border border-teal-200 hover:border-teal-400 transition"
+                          aria-label="Open admissions & tickets page"
+                          title="Scan or click to open tickets"
+                        >
+                          {qrDataUrl ? (
+                            <img src={qrDataUrl} alt="Tickets QR code" width={96} height={96} />
+                          ) : (
+                            <div style={{ width: 96, height: 96 }} />
+                          )}
+                        </a>
+                        <div className="min-w-0">
+                          <p className="text-teal-800 font-black uppercase tracking-widest text-[10px] mb-1">
+                            Admissions & Tickets
+                          </p>
+                          <a
+                            href={ticketsHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-lg font-black text-[#00a91c] leading-tight break-all hover:underline block"
+                          >
+                            {shortUrl}
+                          </a>
+                          <p className="text-[10px] text-teal-700 mt-1">Scan or tap to open</p>
+                        </div>
                       </div>
+
                     </div>
                   </div>
                 </div>
