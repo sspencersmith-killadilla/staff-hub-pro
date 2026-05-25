@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const RobustMap = lazy(() => import("@/components/RobustMap"));
+const EventMarketingHub = lazy(() => import("@/components/EventMarketingHub"));
 
 const CT_TZ = "America/Chicago";
 
@@ -72,7 +73,7 @@ function EventDashboard() {
   const invalidate = () => qc.invalidateQueries({ queryKey: ["event-dashboard", id] });
 
   const [activeView, setActiveView] = useState<
-    "reports" | "door" | "tickets" | "gigs" | "floorplan" | "commercial" | "vendors" | "sponsors" | "volunteers" | "talent"
+    "reports" | "door" | "tickets" | "gigs" | "floorplan" | "marketing" | "commercial" | "vendors" | "sponsors" | "volunteers" | "talent"
   >("reports");
   const [toast, setToast] = useState<Toast>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -210,6 +211,7 @@ function EventDashboard() {
     { key: "tickets", label: "Tickets" },
     { key: "gigs", label: "Gigs", badge: gigs.length },
     { key: "floorplan", label: "Floorplan" },
+    { key: "marketing", label: "Marketing" },
     { key: "commercial", label: "Commercial" },
     { key: "vendors", label: "Vendors", badge: vendors.length },
     { key: "sponsors", label: "Sponsors", badge: sponsors.length },
@@ -484,6 +486,18 @@ function EventDashboard() {
             />
           </Suspense>
         )}
+
+        {activeView === "marketing" && (
+          <Suspense fallback={<div className="p-8 text-sm text-muted-foreground">Loading marketing hub…</div>}>
+            <EventMarketingHub
+              event={session}
+              sponsors={(sponsors as any[]).filter((s) => s.status === "approved" || s.status === "paid")}
+              talent={talent as any[]}
+            />
+          </Suspense>
+        )}
+
+
 
 
 
