@@ -108,9 +108,9 @@ const StagesIdRoute = StagesIdRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const RoomsIdRoute = RoomsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => RoomsRoute,
+  id: '/rooms/$id',
+  path: '/rooms/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
   id: '/staff',
@@ -442,6 +442,7 @@ export interface RootRouteChildren {
   StreetbeatsRoute: typeof StreetbeatsRoute
   VendorRoute: typeof VendorRoute
   VenuesRoute: typeof VenuesRouteWithChildren
+  RoomsIdRoute: typeof RoomsIdRoute
   StagesIdRoute: typeof StagesIdRoute
   RoomsIndexRoute: typeof RoomsIndexRoute
 }
@@ -541,10 +542,10 @@ declare module '@tanstack/react-router' {
     }
     '/rooms/$id': {
       id: '/rooms/$id'
-      path: '/$id'
+      path: '/rooms/$id'
       fullPath: '/rooms/$id'
       preLoaderRoute: typeof RoomsIdRouteImport
-      parentRoute: typeof RoomsRoute
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/staff': {
       id: '/_authenticated/staff'
@@ -764,6 +765,7 @@ const rootRouteChildren: RootRouteChildren = {
   StreetbeatsRoute: StreetbeatsRoute,
   VendorRoute: VendorRoute,
   VenuesRoute: VenuesRouteWithChildren,
+  RoomsIdRoute: RoomsIdRoute,
   StagesIdRoute: StagesIdRoute,
   RoomsIndexRoute: RoomsIndexRoute,
 }
