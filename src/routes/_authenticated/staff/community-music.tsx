@@ -198,88 +198,136 @@ function GigsTab() {
           No gigs yet. Create the first open slot.
         </div>
       ) : (
-        <ul className="space-y-2">
-          {gigs.map((g: any) => (
+        (() => {
+          const byDate = (a: any, b: any) =>
+            new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime();
+          const open = gigs.filter((g: any) => g.status === "open").sort(byDate);
+          const claimed = gigs
+            .filter((g: any) => g.status === "claimed")
+            .sort(byDate);
+          const other = gigs
+            .filter((g: any) => g.status !== "open" && g.status !== "claimed")
+            .sort(byDate);
+
+          const renderCard = (g: any) => (
             <li
               key={g.id}
-              className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4"
+              className="overflow-hidden rounded-lg border border-slate-200 bg-white"
             >
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-slate-900">
+              <div
+                className={`flex items-center gap-3 px-3 py-2 ${
+                  g.status === "claimed"
+                    ? "bg-gradient-to-r from-emerald-700 to-emerald-500"
+                    : g.status === "open"
+                      ? "bg-gradient-to-r from-sky-700 to-sky-500"
+                      : "bg-gradient-to-r from-slate-700 to-slate-500"
+                }`}
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-bold text-white">
                     {g.title}
-                  </span>
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-                      STATUS_STYLES[g.status] ?? "bg-slate-100"
-                    }`}
-                  >
-                    {g.status}
-                  </span>
-                </div>
-                <div className="mt-1 text-sm text-slate-600">
-                  {fmt(g.starts_at)} – {fmt(g.ends_at)}
-                </div>
-                <div className="mt-1 flex items-center gap-1 text-xs text-slate-500">
-                  <MapPin className="h-3 w-3" />
-                  {g.venue?.name ?? g.location_label ?? "—"}
-                </div>
-                {g.artist && (
-                  <div className="mt-2 text-xs text-emerald-800">
-                    Claimed by{" "}
-                    <span className="font-semibold">
-                      {g.artist.stage_name}
-                    </span>{" "}
-                    ({g.artist.contact_email})
                   </div>
-                )}
+                  <div className="text-[11px] uppercase tracking-wider text-white/80">
+                    {fmt(g.starts_at)} – {fmt(g.ends_at)}
+                  </div>
+                </div>
+                <span
+                  className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                    STATUS_STYLES[g.status] ?? "bg-slate-100"
+                  }`}
+                >
+                  {g.status}
+                </span>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {g.status === "claimed" && (
+              <div className="flex flex-wrap items-start justify-between gap-3 p-3">
+                <div className="min-w-0 flex-1 text-xs">
+                  <div className="flex items-center gap-1 text-slate-600">
+                    <MapPin className="h-3 w-3" />
+                    {g.venue?.name ?? g.location_label ?? "—"}
+                  </div>
+                  {g.artist && (
+                    <div className="mt-1 text-emerald-800">
+                      Claimed by{" "}
+                      <span className="font-semibold">
+                        {g.artist.stage_name}
+                      </span>{" "}
+                      ({g.artist.contact_email})
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {g.status === "claimed" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        statusMut.mutate({ id: g.id, status: "open" })
+                      }
+                    >
+                      Unclaim
+                    </Button>
+                  )}
+                  {g.status !== "cancelled" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        statusMut.mutate({ id: g.id, status: "cancelled" })
+                      }
+                    >
+                      Cancel
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() =>
-                      statusMut.mutate({ id: g.id, status: "open" })
-                    }
+                    onClick={() => {
+                      setEditing(g);
+                      setOpen(true);
+                    }}
                   >
-                    Unclaim
+                    Edit
                   </Button>
-                )}
-                {g.status !== "cancelled" && (
                   <Button
                     size="sm"
-                    variant="outline"
-                    onClick={() =>
-                      statusMut.mutate({ id: g.id, status: "cancelled" })
-                    }
+                    variant="ghost"
+                    onClick={() => {
+                      if (confirm("Delete this gig?")) deleteMut.mutate(g.id);
+                    }}
                   >
-                    Cancel
+                    <Trash2 className="h-4 w-4" />
                   </Button>
-                )}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    setEditing(g);
-                    setOpen(true);
-                  }}
-                >
-                  Edit
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    if (confirm("Delete this gig?")) deleteMut.mutate(g.id);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                </div>
               </div>
             </li>
-          ))}
-        </ul>
+          );
+
+          const Section = ({
+            label,
+            items,
+          }: {
+            label: string;
+            items: any[];
+          }) =>
+            items.length === 0 ? null : (
+              <section>
+                <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-500">
+                  {label} · {items.length}
+                </h3>
+                <ul className="grid gap-3 sm:grid-cols-2">
+                  {items.map(renderCard)}
+                </ul>
+              </section>
+            );
+
+          return (
+            <div className="space-y-6">
+              <Section label="Open" items={open} />
+              <Section label="Claimed" items={claimed} />
+              <Section label="Cancelled / completed" items={other} />
+            </div>
+          );
+        })()
       )}
     </div>
   );
