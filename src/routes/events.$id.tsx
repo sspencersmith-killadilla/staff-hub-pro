@@ -4,11 +4,14 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import {
+  AlertCircle,
   ArrowLeft,
   CalendarDays,
   Clock,
+  CreditCard,
   Download,
   Info,
+  Lock,
   MapPin,
   Mic2,
   Ticket,
@@ -18,6 +21,10 @@ import {
   getPublicCityEvent,
   registerForCityEvent,
 } from "@/lib/events-public.functions";
+import {
+  getPaymentsStatus,
+  payAndRegisterForCityEvent,
+} from "@/lib/payments.functions";
 import { SiteHeader } from "@/components/site-header";
 
 export const Route = createFileRoute("/events/$id")({
@@ -49,10 +56,18 @@ function EventDetail() {
   const router = useRouter();
   const fetchEvent = useServerFn(getPublicCityEvent);
   const register = useServerFn(registerForCityEvent);
+  const fetchPaymentsStatus = useServerFn(getPaymentsStatus);
+  const payAndRegister = useServerFn(payAndRegisterForCityEvent);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["city-event", id],
     queryFn: () => fetchEvent({ data: { id } }),
+  });
+
+  const { data: paymentsStatus } = useQuery({
+    queryKey: ["payments-status"],
+    queryFn: () => fetchPaymentsStatus(),
+    staleTime: 60_000,
   });
 
   const [selectedTier, setSelectedTier] = useState<string>("");
@@ -65,23 +80,57 @@ function EventDetail() {
     if (selectedTier) return selectedTier;
     return tiers[0]?.id ?? "";
   }, [selectedTier, tiers]);
+  const activeTier = useMemo(
+    () => tiers.find((t: any) => t.id === tierId) ?? null,
+    [tiers, tierId],
+  );
+  const tierPrice = Number(activeTier?.price ?? 0);
+  const isPaid = tierPrice > 0;
+  const paymentsReady = !!paymentsStatus?.configured;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
     setFormError(null);
     const fd = new FormData(e.currentTarget);
+    const full_name = String(fd.get("full_name") ?? "");
+    const email = String(fd.get("email") ?? "");
+    const quantity = Number(fd.get("quantity") ?? 1);
     try {
-      const res = await register({
-        data: {
-          session_id: id,
-          ticket_tier_id: tierId || null,
-          full_name: String(fd.get("full_name") ?? ""),
-          email: String(fd.get("email") ?? ""),
-          quantity: Number(fd.get("quantity") ?? 1),
-        },
-      });
-      setSuccess(res.id);
+      if (isPaid) {
+        if (!paymentsReady) {
+          throw new Error(
+            "Payments are not yet configured for this site. Please contact the organizer.",
+          );
+        }
+        const res = await payAndRegister({
+          data: {
+            session_id: id,
+            ticket_tier_id: tierId,
+            full_name,
+            email,
+            quantity,
+            card: {
+              number: String(fd.get("card_number") ?? ""),
+              expiration: String(fd.get("card_exp") ?? ""),
+              cvc: String(fd.get("card_cvc") ?? ""),
+              avs_zip: String(fd.get("card_zip") ?? "") || undefined,
+            },
+          },
+        });
+        setSuccess(res.id);
+      } else {
+        const res = await register({
+          data: {
+            session_id: id,
+            ticket_tier_id: tierId || null,
+            full_name,
+            email,
+            quantity,
+          },
+        });
+        setSuccess(res.id);
+      }
     } catch (err: any) {
       setFormError(err?.message ?? "Registration failed");
     } finally {
@@ -426,17 +475,115 @@ function EventDetail() {
                     </div>
                   </div>
 
+                  {isPaid && (
+                    <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700">
+                          <CreditCard className="h-4 w-4" /> Payment
+                        </div>
+                        <div className="text-xs font-semibold text-slate-900">
+                          ${tierPrice.toFixed(2)} / ticket
+                        </div>
+                      </div>
+
+                      {!paymentsReady ? (
+                        <div className="mt-3 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                          <div>
+                            <div className="font-bold uppercase tracking-wider">
+                              Payments not yet configured
+                            </div>
+                            <div className="mt-1">
+                              USAePay credentials haven't been set on this site.
+                              Card processing is wired up and ready — the operator
+                              just needs to add the API key &amp; PIN.
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="mt-3">
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                              Card number
+                            </label>
+                            <input
+                              name="card_number"
+                              required
+                              inputMode="numeric"
+                              autoComplete="cc-number"
+                              placeholder="4111 1111 1111 1111"
+                              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-mono"
+                            />
+                          </div>
+                          <div className="mt-3 grid grid-cols-3 gap-3">
+                            <div className="col-span-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                                MM/YY
+                              </label>
+                              <input
+                                name="card_exp"
+                                required
+                                autoComplete="cc-exp"
+                                placeholder="12/27"
+                                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-mono"
+                              />
+                            </div>
+                            <div className="col-span-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                                CVC
+                              </label>
+                              <input
+                                name="card_cvc"
+                                required
+                                inputMode="numeric"
+                                autoComplete="cc-csc"
+                                placeholder="123"
+                                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-mono"
+                              />
+                            </div>
+                            <div className="col-span-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                                ZIP
+                              </label>
+                              <input
+                                name="card_zip"
+                                inputMode="numeric"
+                                autoComplete="postal-code"
+                                placeholder="12345"
+                                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-mono"
+                              />
+                            </div>
+                          </div>
+                          <div className="mt-3 flex items-center gap-1 text-[10px] text-slate-500">
+                            <Lock className="h-3 w-3" />
+                            Processed securely by USAePay
+                            {paymentsStatus?.mode === "sandbox" &&
+                              " · sandbox mode"}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+
                   {formError && (
                     <p className="mt-4 text-sm text-red-600">{formError}</p>
                   )}
 
                   <button
                     type="submit"
-                    disabled={submitting}
+                    disabled={submitting || (isPaid && !paymentsReady)}
                     className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-md bg-slate-900 px-5 py-3 text-sm font-bold uppercase tracking-wider text-white hover:bg-slate-700 disabled:opacity-50"
                   >
-                    <Ticket className="h-4 w-4" />
-                    {submitting ? "Submitting…" : "Confirm registration"}
+                    {isPaid ? (
+                      <CreditCard className="h-4 w-4" />
+                    ) : (
+                      <Ticket className="h-4 w-4" />
+                    )}
+                    {submitting
+                      ? "Submitting…"
+                      : isPaid
+                        ? `Pay $${tierPrice.toFixed(2)} & register`
+                        : "Confirm registration"}
                   </button>
                 </form>
               )}
