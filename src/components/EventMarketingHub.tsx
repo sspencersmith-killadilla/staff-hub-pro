@@ -151,7 +151,6 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setShortUrl(`${window.location.host}/tickets`);
       setTicketsHref(`${window.location.origin}/tickets`);
     }
     // Preload font + html2canvas
