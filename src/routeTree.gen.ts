@@ -14,6 +14,7 @@ import { Route as VendorRouteImport } from './routes/vendor'
 import { Route as StreetbeatsRouteImport } from './routes/streetbeats'
 import { Route as SponsorsRouteImport } from './routes/sponsors'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as RoomsRouteImport } from './routes/rooms'
 import { Route as NoAccessRouteImport } from './routes/no-access'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CommunityRouteImport } from './routes/community'
@@ -67,6 +68,11 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RoomsRoute = RoomsRouteImport.update({
+  id: '/rooms',
+  path: '/rooms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NoAccessRoute = NoAccessRouteImport.update({
   id: '/no-access',
   path: '/no-access',
@@ -102,9 +108,9 @@ const StagesIdRoute = StagesIdRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const RoomsIdRoute = RoomsIdRouteImport.update({
-  id: '/rooms/$id',
-  path: '/rooms/$id',
-  getParentRoute: () => rootRouteImport,
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => RoomsRoute,
 } as any)
 const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
   id: '/staff',
@@ -222,6 +228,7 @@ export interface FileRoutesByFullPath {
   '/community': typeof CommunityRoute
   '/login': typeof LoginRoute
   '/no-access': typeof NoAccessRoute
+  '/rooms': typeof RoomsRouteWithChildren
   '/signup': typeof SignupRoute
   '/sponsors': typeof SponsorsRoute
   '/streetbeats': typeof StreetbeatsRoute
@@ -255,6 +262,7 @@ export interface FileRoutesByTo {
   '/community': typeof CommunityRoute
   '/login': typeof LoginRoute
   '/no-access': typeof NoAccessRoute
+  '/rooms': typeof RoomsRouteWithChildren
   '/signup': typeof SignupRoute
   '/sponsors': typeof SponsorsRoute
   '/streetbeats': typeof StreetbeatsRoute
@@ -289,6 +297,7 @@ export interface FileRoutesById {
   '/community': typeof CommunityRoute
   '/login': typeof LoginRoute
   '/no-access': typeof NoAccessRoute
+  '/rooms': typeof RoomsRouteWithChildren
   '/signup': typeof SignupRoute
   '/sponsors': typeof SponsorsRoute
   '/streetbeats': typeof StreetbeatsRoute
@@ -324,6 +333,7 @@ export interface FileRouteTypes {
     | '/community'
     | '/login'
     | '/no-access'
+    | '/rooms'
     | '/signup'
     | '/sponsors'
     | '/streetbeats'
@@ -357,6 +367,7 @@ export interface FileRouteTypes {
     | '/community'
     | '/login'
     | '/no-access'
+    | '/rooms'
     | '/signup'
     | '/sponsors'
     | '/streetbeats'
@@ -390,6 +401,7 @@ export interface FileRouteTypes {
     | '/community'
     | '/login'
     | '/no-access'
+    | '/rooms'
     | '/signup'
     | '/sponsors'
     | '/streetbeats'
@@ -425,12 +437,12 @@ export interface RootRouteChildren {
   CommunityRoute: typeof CommunityRoute
   LoginRoute: typeof LoginRoute
   NoAccessRoute: typeof NoAccessRoute
+  RoomsRoute: typeof RoomsRouteWithChildren
   SignupRoute: typeof SignupRoute
   SponsorsRoute: typeof SponsorsRoute
   StreetbeatsRoute: typeof StreetbeatsRoute
   VendorRoute: typeof VendorRoute
   VenuesRoute: typeof VenuesRouteWithChildren
-  RoomsIdRoute: typeof RoomsIdRoute
   StagesIdRoute: typeof StagesIdRoute
 }
 
@@ -469,6 +481,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rooms': {
+      id: '/rooms'
+      path: '/rooms'
+      fullPath: '/rooms'
+      preLoaderRoute: typeof RoomsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/no-access': {
@@ -522,10 +541,10 @@ declare module '@tanstack/react-router' {
     }
     '/rooms/$id': {
       id: '/rooms/$id'
-      path: '/rooms/$id'
+      path: '/$id'
       fullPath: '/rooms/$id'
       preLoaderRoute: typeof RoomsIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof RoomsRoute
     }
     '/_authenticated/staff': {
       id: '/_authenticated/staff'
@@ -723,6 +742,16 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface RoomsRouteChildren {
+  RoomsIdRoute: typeof RoomsIdRoute
+}
+
+const RoomsRouteChildren: RoomsRouteChildren = {
+  RoomsIdRoute: RoomsIdRoute,
+}
+
+const RoomsRouteWithChildren = RoomsRoute._addFileChildren(RoomsRouteChildren)
+
 interface VenuesRouteChildren {
   VenuesIdRoute: typeof VenuesIdRoute
 }
@@ -740,12 +769,12 @@ const rootRouteChildren: RootRouteChildren = {
   CommunityRoute: CommunityRoute,
   LoginRoute: LoginRoute,
   NoAccessRoute: NoAccessRoute,
+  RoomsRoute: RoomsRouteWithChildren,
   SignupRoute: SignupRoute,
   SponsorsRoute: SponsorsRoute,
   StreetbeatsRoute: StreetbeatsRoute,
   VendorRoute: VendorRoute,
   VenuesRoute: VenuesRouteWithChildren,
-  RoomsIdRoute: RoomsIdRoute,
   StagesIdRoute: StagesIdRoute,
 }
 export const routeTree = rootRouteImport
