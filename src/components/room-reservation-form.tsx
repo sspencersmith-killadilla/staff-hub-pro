@@ -337,6 +337,11 @@ export function RoomReservationForm({
           <Label htmlFor="notes">Notes (optional)</Label>
           <Textarea id="notes" name="notes" rows={3} maxLength={2000} />
         </div>
+        {submitError && (
+          <div className="rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900">
+            {submitError}
+          </div>
+        )}
         <Button
           type="submit"
           disabled={submitting || !picked || atMaxActive}
@@ -344,6 +349,13 @@ export function RoomReservationForm({
         >
           {submitting ? "Submitting…" : "Submit request"}
         </Button>
+        <p className="text-xs text-slate-500">
+          Limits: up to 3 active bookings, and up to 2 hours per day.
+        </p>
+      </form>
+    </div>
+  );
+}
         <p className="text-xs text-slate-500">
           Limits: up to 3 active bookings, and up to 2 hours per day.
         </p>
