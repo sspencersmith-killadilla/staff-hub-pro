@@ -61,7 +61,13 @@ function SettingsPage() {
             No modules configured. Run the platform_modules migration.
           </div>
         ) : (
-          <ul className="divide-y divide-slate-200">
+          <>
+            {modules.some((m) => m.unavailable) && (
+              <div className="border-b border-amber-200 bg-amber-50 px-8 py-4 text-sm text-amber-900">
+                Module settings can’t be saved yet because the platform_modules table hasn’t been created in the database for this environment.
+              </div>
+            )}
+            <ul className="divide-y divide-slate-200">
             {modules.map((m) => (
               <li
                 key={m.key}
@@ -75,7 +81,7 @@ function SettingsPage() {
                 </div>
                 <Switch
                   checked={m.enabled}
-                  disabled={toggle.isPending}
+                  disabled={toggle.isPending || m.unavailable}
                   onCheckedChange={(checked) =>
                     toggle.mutate({ key: m.key, enabled: checked })
                   }
@@ -83,7 +89,8 @@ function SettingsPage() {
                 />
               </li>
             ))}
-          </ul>
+            </ul>
+          </>
         )}
       </div>
       {toggle.error && (
