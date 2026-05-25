@@ -31,8 +31,22 @@ export const Route = createFileRoute("/rooms/$id")({
     };
   },
   component: RoomDetail,
-  errorComponent: ({ error }) => (
-    <div className="p-12 text-center text-slate-500">{error.message}</div>
+  errorComponent: () => (
+    <div className="min-h-screen bg-slate-50">
+      <SiteHeader />
+      <main className="mx-auto max-w-2xl px-6 py-24 text-center">
+        <h1 className="text-3xl font-black uppercase text-slate-900">Room not found</h1>
+        <p className="mt-3 text-slate-600">
+          This room link is invalid or the room is no longer available.
+        </p>
+        <Link
+          to="/venues"
+          className="mt-6 inline-block rounded-md bg-slate-900 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-700"
+        >
+          Browse venues
+        </Link>
+      </main>
+    </div>
   ),
 });
 
