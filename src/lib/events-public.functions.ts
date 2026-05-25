@@ -49,7 +49,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
     // 3. Music gigs (booked slots)
     const slotsQ = supabaseAdmin
       .from("slots")
-      .select("id, title, description, start_time, end_time, is_booked, stage_id")
+      .select("id, title, description, start_time, end_time, is_booked, stage_id, busker_id")
       .eq("is_booked", true)
       .order("start_time", { ascending: true });
     if (!includeArchived) slotsQ.gte("end_time", nowIso);
