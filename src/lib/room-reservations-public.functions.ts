@@ -139,19 +139,25 @@ export const getRoomAvailability = createServerFn({ method: "GET" })
     return rows ?? [];
   });
 
-export const lookupReservationsByEmail = createServerFn({ method: "POST" })
-  .inputValidator((i) =>
-    z.object({ email: z.string().trim().email().max(255) }).parse(i),
-  )
-  .handler(async ({ data }) => {
+export const listMyReservations = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const email = context.claims.email;
     const { data: rows, error } = await supabaseAdmin
       .from("room_reservations")
       .select(
         "id, starts_at, ends_at, status, purpose, party_size, notes, room_id, requester_name, created_at",
       )
-      .ilike("requester_email", data.email)
+      .or(
+        [
+          `requester_user_id.eq.${context.userId}`,
+          email ? `requester_email.ilike.${email}` : null,
+        ]
+          .filter(Boolean)
+          .join(","),
+      )
       .order("starts_at", { ascending: false })
-      .limit(100);
+      .limit(200);
     if (error) throw new Error(error.message);
     const roomIds = Array.from(new Set((rows ?? []).map((r) => r.room_id)));
     let rooms: any[] = [];
@@ -171,5 +177,6 @@ export const lookupReservationsByEmail = createServerFn({ method: "POST" })
         .in("id", venueIds);
       venues = vs ?? [];
     }
-    return { reservations: rows ?? [], rooms, venues };
+    return { reservations: rows ?? [], rooms, venues, email };
   });
+
