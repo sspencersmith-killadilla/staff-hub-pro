@@ -4,11 +4,14 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import {
+  AlertCircle,
   ArrowLeft,
   CalendarDays,
   Clock,
+  CreditCard,
   Download,
   Info,
+  Lock,
   MapPin,
   Mic2,
   Ticket,
@@ -18,6 +21,10 @@ import {
   getPublicCityEvent,
   registerForCityEvent,
 } from "@/lib/events-public.functions";
+import {
+  getPaymentsStatus,
+  payAndRegisterForCityEvent,
+} from "@/lib/payments.functions";
 import { SiteHeader } from "@/components/site-header";
 
 export const Route = createFileRoute("/events/$id")({
