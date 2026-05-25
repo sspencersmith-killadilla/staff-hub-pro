@@ -327,12 +327,26 @@ export const claimGig = createServerFn({ method: "POST" })
 
     const { data: slot, error: slotErr } = await supabaseAdmin
       .from("slots")
-      .select("id, is_booked, start_time, end_time")
+      .select("id, is_booked, start_time, end_time, stage_id")
       .eq("id", slotId)
       .maybeSingle();
     if (slotErr) throw new Error(slotErr.message);
     if (!slot) throw new Error("Gig not found");
     if (slot.is_booked) throw new Error("This gig is no longer open");
+
+    if (slot.stage_id && slot.start_time && slot.end_time) {
+      const { data: sessionBlocks } = await supabaseAdmin
+        .from("sessions")
+        .select("id")
+        .eq("stage_id", slot.stage_id)
+        .lt("start_time", slot.end_time)
+        .gt("end_time", slot.start_time);
+      if ((sessionBlocks ?? []).length > 0) {
+        throw new Error("This stage is reserved for a city event at that time");
+      }
+    }
+
+
 
     if (slot.start_time && slot.end_time) {
       const { data: conflicts } = await supabaseAdmin
