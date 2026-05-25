@@ -92,10 +92,38 @@ export const setPlatformModule = createServerFn({ method: "POST" })
     if (rolesErr) throw new Error(rolesErr.message);
     if (!roles || roles.length === 0) throw new Error("Forbidden: admin required");
 
-    const { error } = await supabase
+    const { data: existing, error: readError } = await supabase
       .from("platform_modules")
-      .update({ enabled: data.enabled, updated_at: new Date().toISOString() })
-      .eq("key", data.key);
+      .select("key")
+      .eq("key", data.key)
+      .maybeSingle();
+
+    if (readError) {
+      if (shouldUseDefaultModules(readError)) {
+        throw new Error("Platform module settings are not ready yet. Run the platform_modules migration first.");
+      }
+
+      throw new Error(readError.message);
+    }
+
+    const mutation = existing
+      ? supabase
+          .from("platform_modules")
+          .update({ enabled: data.enabled, updated_at: new Date().toISOString() })
+          .eq("key", data.key)
+      : supabase.from("platform_modules").insert({
+          key: data.key,
+          label: DEFAULT_MODULES.find((module) => module.key === data.key)?.label ?? data.key,
+          description:
+            DEFAULT_MODULES.find((module) => module.key === data.key)?.description ?? "",
+          enabled: data.enabled,
+        });
+
+    const { error } = await mutation;
+    if (error && shouldUseDefaultModules(error)) {
+      throw new Error("Platform module settings are not ready yet. Run the platform_modules migration first.");
+    }
+
     if (error) throw new Error(error.message);
     return { ok: true };
   });
