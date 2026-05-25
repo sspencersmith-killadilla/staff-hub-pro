@@ -24,21 +24,55 @@ const DEFAULT_MODULES: PlatformModule[] = [
   { key: "vendors_sponsors", label: "Vendors & Sponsors Portal", description: "Allows businesses to apply for booths and sponsorship packages.", enabled: true },
 ];
 
+function mergeWithDefaults(modules?: PlatformModule[] | null) {
+  const map = new Map(DEFAULT_MODULES.map((module) => [module.key, module]));
+
+  for (const module of modules ?? []) {
+    map.set(module.key, module);
+  }
+
+  return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
+}
+
+function shouldUseDefaultModules(error: unknown) {
+  if (!error) return false;
+  const message = error instanceof Error ? error.message : String(error);
+  return (
+    message.includes("public.platform_modules") ||
+    message.includes("relation \"platform_modules\" does not exist") ||
+    message.includes("schema cache")
+  );
+}
+
 export const listPlatformModules = createServerFn({ method: "GET" }).handler(
   async () => {
-    const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-    const { data, error } = await supabase
-      .from("platform_modules")
-      .select("key,label,description,enabled")
-      .order("label");
-    // Fail-open if the table hasn't been migrated yet — all modules enabled by default.
-    if (error) {
-      console.warn("[platform_modules] falling back to defaults:", error.message);
-      return DEFAULT_MODULES;
+    try {
+      const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const { data, error } = await supabase
+        .from("platform_modules")
+        .select("key,label,description,enabled")
+        .order("label");
+
+      if (error) {
+        if (shouldUseDefaultModules(error)) {
+          console.warn("[platform_modules] falling back to defaults:", error.message);
+          return DEFAULT_MODULES;
+        }
+
+        throw new Error(error.message);
+      }
+
+      return mergeWithDefaults(data as PlatformModule[] | null | undefined);
+    } catch (error) {
+      if (shouldUseDefaultModules(error)) {
+        console.warn("[platform_modules] falling back to defaults:", error);
+        return DEFAULT_MODULES;
+      }
+
+      throw error;
     }
-    return (data ?? DEFAULT_MODULES) as PlatformModule[];
   },
 );
 
