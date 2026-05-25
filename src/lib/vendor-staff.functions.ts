@@ -14,9 +14,9 @@ export const listAllVendors = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("vendors")
       .select(
-        "id, business_name, contact_name, contact_email, logo_url, application_notes, status, created_at, session_id, vendor_tier_id, sessions(id, title, start_time), vendor_tiers(id, name, price)",
+        "id, business_name, contact_name, contact_email, logo_url, application_notes, status, session_id, vendor_tier_id, sessions(id, title, start_time), vendor_tiers(id, name, price)",
       )
-      .order("created_at", { ascending: false });
+      .order("id", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
   });
