@@ -568,9 +568,9 @@ function ApplicationCard({
                     <div className="flex flex-wrap gap-2 mt-2">
                       {form.photo_urls
                         .split(",")
-                        .map((u) => u.trim())
+                        .map((u: string) => u.trim())
                         .filter(Boolean)
-                        .map((url, i) => (
+                        .map((url: string, i: number) => (
                           <img
                             key={i}
                             src={url}
