@@ -72,7 +72,7 @@ function EventDashboard() {
   const invalidate = () => qc.invalidateQueries({ queryKey: ["event-dashboard", id] });
 
   const [activeView, setActiveView] = useState<
-    "reports" | "door" | "tickets" | "gigs" | "commercial" | "vendors" | "sponsors" | "volunteers" | "talent"
+    "reports" | "door" | "tickets" | "gigs" | "floorplan" | "commercial" | "vendors" | "sponsors" | "volunteers" | "talent"
   >("reports");
   const [toast, setToast] = useState<Toast>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
