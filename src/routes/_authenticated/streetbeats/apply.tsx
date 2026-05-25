@@ -148,6 +148,21 @@ function ApplyPage() {
           <p className="text-sm text-slate-500">Loading…</p>
         ) : (
           <>
+            {/* Multi-act guidance */}
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+              <p className="font-semibold">
+                Performing under more than one act?
+              </p>
+              <p className="mt-1 leading-relaxed">
+                This account holds <strong>one StreetBeats performer profile</strong>.
+                If you front several different acts (solo project, duo, full
+                band, etc.), use this profile for your primary act and list the
+                others in the <em>Bio</em> below — staff can tag your gigs to
+                whichever name you&apos;re playing under that night. For a
+                completely separate public profile, create a second account
+                using a different email.
+              </p>
+            </div>
             {/* Status banner */}
             {artist && (
               <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4">

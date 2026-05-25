@@ -75,6 +75,20 @@ const orgInput = z.object({
   description: z.string().trim().max(2000).optional().nullable(),
 });
 
+// List all orgs the user has registered.
+export const listMyOrgs = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await supabaseAdmin
+      .from("community_organizations")
+      .select("*")
+      .eq("user_id", context.userId)
+      .order("created_at", { ascending: true });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+// Back-compat: return the user's most recent org (first registered), or null.
 export const getMyOrg = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -82,36 +96,17 @@ export const getMyOrg = createServerFn({ method: "GET" })
       .from("community_organizations")
       .select("*")
       .eq("user_id", context.userId)
-      .maybeSingle();
+      .order("created_at", { ascending: true })
+      .limit(1);
     if (error) throw new Error(error.message);
-    return data ?? null;
+    return data?.[0] ?? null;
   });
 
-export const upsertMyOrg = createServerFn({ method: "POST" })
+export const createMyOrg = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => orgInput.parse(i))
   .handler(async ({ data, context }) => {
     const payload = { ...data, website: data.website || null, user_id: context.userId };
-    const { data: existing } = await supabaseAdmin
-      .from("community_organizations")
-      .select("id, status")
-      .eq("user_id", context.userId)
-      .maybeSingle();
-    if (existing) {
-      const { error } = await supabaseAdmin
-        .from("community_organizations")
-        .update({
-          name: payload.name,
-          org_type: payload.org_type,
-          contact_email: payload.contact_email,
-          contact_phone: payload.contact_phone,
-          website: payload.website,
-          description: payload.description,
-        })
-        .eq("id", existing.id);
-      if (error) throw new Error(error.message);
-      return { id: existing.id, status: existing.status };
-    }
     const { data: inserted, error } = await supabaseAdmin
       .from("community_organizations")
       .insert({ ...payload, status: "pending" })
@@ -121,22 +116,62 @@ export const upsertMyOrg = createServerFn({ method: "POST" })
     return inserted;
   });
 
-async function getApprovedOrg(userId: string) {
+export const updateMyOrg = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => orgInput.extend({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    const { id, ...rest } = data;
+    const { error } = await supabaseAdmin
+      .from("community_organizations")
+      .update({
+        name: rest.name,
+        org_type: rest.org_type,
+        contact_email: rest.contact_email,
+        contact_phone: rest.contact_phone,
+        website: rest.website || null,
+        description: rest.description,
+      })
+      .eq("id", id)
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { id, ok: true };
+  });
+
+// Legacy upsert: now creates a NEW org per call (multi-org). Kept so older
+// callers don't break, but new UI should call createMyOrg / updateMyOrg.
+export const upsertMyOrg = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => orgInput.parse(i))
+  .handler(async ({ data, context }) => {
+    const payload = { ...data, website: data.website || null, user_id: context.userId };
+    const { data: inserted, error } = await supabaseAdmin
+      .from("community_organizations")
+      .insert({ ...payload, status: "pending" })
+      .select("id, status")
+      .single();
+    if (error) throw new Error(error.message);
+    return inserted;
+  });
+
+async function getApprovedOrgById(userId: string, orgId: string) {
   const { data, error } = await supabaseAdmin
     .from("community_organizations")
-    .select("id, status, name")
-    .eq("user_id", userId)
+    .select("id, status, name, user_id")
+    .eq("id", orgId)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  if (!data) throw new Error("Apply as a community organization first");
+  if (!data || data.user_id !== userId) throw new Error("Organization not found");
   if (data.status !== "approved")
     throw new Error("Your organization must be approved before submitting");
   return data;
 }
 
-// ---------- Locations (kept on the community_event_locations table) ----------
+const orgIdInput = z.object({ org_id: z.string().uuid() });
+
+// ---------- Locations (per-org) ----------
 
 const locationInput = z.object({
+  org_id: z.string().uuid(),
   name: z.string().trim().min(1).max(200),
   address: z.string().trim().max(300).optional().nullable(),
   city: z.string().trim().max(120).optional().nullable(),
@@ -147,25 +182,27 @@ const locationInput = z.object({
 
 export const listMyLocations = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const org = await getApprovedOrg(context.userId);
-    const { data, error } = await supabaseAdmin
+  .inputValidator((i) => orgIdInput.parse(i))
+  .handler(async ({ data, context }) => {
+    const org = await getApprovedOrgById(context.userId, data.org_id);
+    const { data: rows, error } = await supabaseAdmin
       .from("community_event_locations")
       .select("*")
       .eq("org_id", org.id)
       .order("name");
     if (error) throw new Error(error.message);
-    return data ?? [];
+    return rows ?? [];
   });
 
 export const createMyLocation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => locationInput.parse(i))
   .handler(async ({ data, context }) => {
-    const org = await getApprovedOrg(context.userId);
+    const org = await getApprovedOrgById(context.userId, data.org_id);
+    const { org_id: _ignore, ...rest } = data;
     const { error } = await supabaseAdmin
       .from("community_event_locations")
-      .insert({ ...data, org_id: org.id });
+      .insert({ ...rest, org_id: org.id });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -174,8 +211,8 @@ export const updateMyLocation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => locationInput.extend({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
-    const org = await getApprovedOrg(context.userId);
-    const { id, ...rest } = data;
+    const org = await getApprovedOrgById(context.userId, data.org_id);
+    const { id, org_id: _ignore, ...rest } = data;
     const { error } = await supabaseAdmin
       .from("community_event_locations")
       .update(rest)
@@ -187,9 +224,11 @@ export const updateMyLocation = createServerFn({ method: "POST" })
 
 export const deleteMyLocation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
+  .inputValidator((i) =>
+    z.object({ id: z.string().uuid(), org_id: z.string().uuid() }).parse(i),
+  )
   .handler(async ({ data, context }) => {
-    const org = await getApprovedOrg(context.userId);
+    const org = await getApprovedOrgById(context.userId, data.org_id);
     const { error } = await supabaseAdmin
       .from("community_event_locations")
       .delete()
@@ -199,9 +238,10 @@ export const deleteMyLocation = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-// ---------- Events (stored on the legacy events table) ----------
+// ---------- Events (per-org) ----------
 
 const eventInput = z.object({
+  org_id: z.string().uuid(),
   title: z.string().trim().min(1).max(200),
   description: z.string().trim().max(2000).optional().nullable(),
   location_id: z.string().uuid().nullable().optional(),
@@ -225,28 +265,29 @@ async function resolveLocationLabel(orgId: string, locId: string | null | undefi
 
 export const listMyCommunityEvents = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((i) => orgIdInput.parse(i))
+  .handler(async ({ data, context }) => {
     const { data: org } = await supabaseAdmin
       .from("community_organizations")
-      .select("id, status")
-      .eq("user_id", context.userId)
+      .select("id, status, user_id")
+      .eq("id", data.org_id)
       .maybeSingle();
-    if (!org) return { org: null, events: [] };
-    const { data, error } = await supabaseAdmin
+    if (!org || org.user_id !== context.userId) return { org: null, events: [] };
+    const { data: rows, error } = await supabaseAdmin
       .from("events")
       .select(EVENT_COLS)
       .eq("is_community", true)
       .eq("organization_id", org.id)
       .order("start_time", { ascending: false });
     if (error) throw new Error(error.message);
-    return { org, events: await hydrate(data ?? []) };
+    return { org, events: await hydrate(rows ?? []) };
   });
 
 export const createMyCommunityEvent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => eventInput.parse(i))
   .handler(async ({ data, context }) => {
-    const org = await getApprovedOrg(context.userId);
+    const org = await getApprovedOrgById(context.userId, data.org_id);
     if (new Date(data.ends_at) <= new Date(data.starts_at)) {
       throw new Error("End must be after start");
     }
@@ -275,14 +316,13 @@ export const updateMyCommunityEvent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => eventInput.extend({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
-    const org = await getApprovedOrg(context.userId);
+    const org = await getApprovedOrgById(context.userId, data.org_id);
     if (new Date(data.ends_at) <= new Date(data.starts_at)) {
       throw new Error("End must be after start");
     }
     const locationLabel = await resolveLocationLabel(org.id, data.location_id ?? null);
     const startIso = new Date(data.starts_at).toISOString();
     const endIso = new Date(data.ends_at).toISOString();
-    // Editing resets to pending so staff re-reviews.
     const { error } = await supabaseAdmin
       .from("events")
       .update({
@@ -304,9 +344,11 @@ export const updateMyCommunityEvent = createServerFn({ method: "POST" })
 
 export const cancelMyCommunityEvent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
+  .inputValidator((i) =>
+    z.object({ id: z.string().uuid(), org_id: z.string().uuid() }).parse(i),
+  )
   .handler(async ({ data, context }) => {
-    const org = await getApprovedOrg(context.userId);
+    const org = await getApprovedOrgById(context.userId, data.org_id);
     const { error } = await supabaseAdmin
       .from("events")
       .update({ approval_status: "rejected", reviewer_notes: "Cancelled by organization" })
