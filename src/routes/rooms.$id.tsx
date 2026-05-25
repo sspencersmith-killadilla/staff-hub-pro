@@ -5,6 +5,7 @@ import { getRoomPublic } from "@/lib/venues-public.functions";
 import { SiteHeader } from "@/components/site-header";
 import { VenueHoursDisplay } from "@/components/venue-hours-display";
 import { RoomReservationForm } from "@/components/room-reservation-form";
+import { RoomAvailabilityCalendar } from "@/components/room-availability-calendar";
 
 const roomQO = (id: string) =>
   queryOptions({
@@ -87,18 +88,23 @@ function RoomDetail() {
         </div>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
-          <div className="rounded-lg border border-slate-200 bg-white p-6">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">
-              Request this room
-            </h2>
-            {r.is_publicly_bookable ? (
-              <RoomReservationForm roomId={String(r.id)} />
-            ) : (
-              <p className="text-sm text-slate-600">
-                This room isn't available for public booking. Contact the venue
-                directly to inquire.
-              </p>
+          <div className="space-y-6">
+            {r.is_publicly_bookable && (
+              <RoomAvailabilityCalendar roomId={String(r.id)} />
             )}
+            <div className="rounded-lg border border-slate-200 bg-white p-6">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">
+                Request this room
+              </h2>
+              {r.is_publicly_bookable ? (
+                <RoomReservationForm roomId={String(r.id)} />
+              ) : (
+                <p className="text-sm text-slate-600">
+                  This room isn't available for public booking. Contact the venue
+                  directly to inquire.
+                </p>
+              )}
+            </div>
           </div>
           <aside>
             <VenueHoursDisplay
