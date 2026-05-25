@@ -1,4 +1,4 @@
-import { redirect, isRedirect } from "@tanstack/react-router";
+import { redirect } from "@tanstack/react-router";
 import {
   listPlatformModules,
   type ModuleKey,
@@ -9,7 +9,7 @@ export async function requireModule(key: ModuleKey) {
   try {
     modules = await listPlatformModules();
   } catch {
-    // Fail-open: modules table not yet provisioned or fetch failed
+    // Fail-open: modules table not yet provisioned or fetch failed.
     return;
   }
   const m = modules.find((x) => x.key === key);
@@ -17,6 +17,3 @@ export async function requireModule(key: ModuleKey) {
     throw redirect({ to: "/" });
   }
 }
-
-// re-export so the bundler keeps it referenced; isRedirect helper not needed
-void isRedirect;
