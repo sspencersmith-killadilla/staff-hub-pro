@@ -5,7 +5,10 @@ import { CalendarDays, MapPin, Building2 } from "lucide-react";
 import { listPublicCommunityEvents } from "@/lib/community-public.functions";
 import { SiteHeader } from "@/components/site-header";
 
+import { requireModule } from "@/lib/require-module";
+
 export const Route = createFileRoute("/community")({
+  beforeLoad: () => requireModule("community_orgs"),
   head: () => ({
     meta: [
       { title: "Community Events" },
