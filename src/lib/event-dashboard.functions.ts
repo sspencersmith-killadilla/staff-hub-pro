@@ -15,7 +15,13 @@ export const getEventDashboard = createServerFn({ method: "GET" })
     const [
       sess, att, tal, vol, tt, vt, st, v, sp, gigs, stages,
     ] = await Promise.all([
-      supabaseAdmin.from("sessions").select("*, stages(*)").eq("id", id).maybeSingle(),
+      supabaseAdmin
+        .from("sessions")
+        .select(
+          "*, stages(id, name, venue_id, description, address, venues(id, name, address, city, state, zip)), rooms(id, name, venue_id, building, capacity, venues(id, name, address, city, state, zip))",
+        )
+        .eq("id", id)
+        .maybeSingle(),
       supabaseAdmin
         .from("attendees")
         .select("*, ticket_tiers!inner(name, price, session_id)")
