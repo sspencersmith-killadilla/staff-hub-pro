@@ -28,6 +28,7 @@ import { Route as GigsIdRouteImport } from './routes/gigs.$id'
 import { Route as EventsIdRouteImport } from './routes/events.$id'
 import { Route as ArtistsIdRouteImport } from './routes/artists.$id'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
+import { Route as AuthenticatedMyTicketsRouteImport } from './routes/_authenticated/my-tickets'
 import { Route as AuthenticatedMyReservationsRouteImport } from './routes/_authenticated/my-reservations'
 import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff/index'
 import { Route as AuthenticatedStreetbeatsMyGigsRouteImport } from './routes/_authenticated/streetbeats/my-gigs'
@@ -139,6 +140,11 @@ const ArtistsIdRoute = ArtistsIdRouteImport.update({
 const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
   id: '/staff',
   path: '/staff',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedMyTicketsRoute = AuthenticatedMyTicketsRouteImport.update({
+  id: '/my-tickets',
+  path: '/my-tickets',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedMyReservationsRoute =
@@ -258,6 +264,7 @@ export interface FileRoutesByFullPath {
   '/vendor': typeof VendorRoute
   '/venues': typeof VenuesRouteWithChildren
   '/my-reservations': typeof AuthenticatedMyReservationsRoute
+  '/my-tickets': typeof AuthenticatedMyTicketsRoute
   '/staff': typeof AuthenticatedStaffRouteWithChildren
   '/artists/$id': typeof ArtistsIdRoute
   '/events/$id': typeof EventsIdRoute
@@ -296,6 +303,7 @@ export interface FileRoutesByTo {
   '/vendor': typeof VendorRoute
   '/venues': typeof VenuesRouteWithChildren
   '/my-reservations': typeof AuthenticatedMyReservationsRoute
+  '/my-tickets': typeof AuthenticatedMyTicketsRoute
   '/artists/$id': typeof ArtistsIdRoute
   '/events/$id': typeof EventsIdRoute
   '/gigs/$id': typeof GigsIdRoute
@@ -335,6 +343,7 @@ export interface FileRoutesById {
   '/vendor': typeof VendorRoute
   '/venues': typeof VenuesRouteWithChildren
   '/_authenticated/my-reservations': typeof AuthenticatedMyReservationsRoute
+  '/_authenticated/my-tickets': typeof AuthenticatedMyTicketsRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRouteWithChildren
   '/artists/$id': typeof ArtistsIdRoute
   '/events/$id': typeof EventsIdRoute
@@ -375,6 +384,7 @@ export interface FileRouteTypes {
     | '/vendor'
     | '/venues'
     | '/my-reservations'
+    | '/my-tickets'
     | '/staff'
     | '/artists/$id'
     | '/events/$id'
@@ -413,6 +423,7 @@ export interface FileRouteTypes {
     | '/vendor'
     | '/venues'
     | '/my-reservations'
+    | '/my-tickets'
     | '/artists/$id'
     | '/events/$id'
     | '/gigs/$id'
@@ -451,6 +462,7 @@ export interface FileRouteTypes {
     | '/vendor'
     | '/venues'
     | '/_authenticated/my-reservations'
+    | '/_authenticated/my-tickets'
     | '/_authenticated/staff'
     | '/artists/$id'
     | '/events/$id'
@@ -634,6 +646,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/my-tickets': {
+      id: '/_authenticated/my-tickets'
+      path: '/my-tickets'
+      fullPath: '/my-tickets'
+      preLoaderRoute: typeof AuthenticatedMyTicketsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/my-reservations': {
       id: '/_authenticated/my-reservations'
       path: '/my-reservations'
@@ -803,6 +822,7 @@ const AuthenticatedStaffRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedMyReservationsRoute: typeof AuthenticatedMyReservationsRoute
+  AuthenticatedMyTicketsRoute: typeof AuthenticatedMyTicketsRoute
   AuthenticatedStaffRoute: typeof AuthenticatedStaffRouteWithChildren
   AuthenticatedCommunityApplyRoute: typeof AuthenticatedCommunityApplyRoute
   AuthenticatedCommunityManageRoute: typeof AuthenticatedCommunityManageRoute
@@ -812,6 +832,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMyReservationsRoute: AuthenticatedMyReservationsRoute,
+  AuthenticatedMyTicketsRoute: AuthenticatedMyTicketsRoute,
   AuthenticatedStaffRoute: AuthenticatedStaffRouteWithChildren,
   AuthenticatedCommunityApplyRoute: AuthenticatedCommunityApplyRoute,
   AuthenticatedCommunityManageRoute: AuthenticatedCommunityManageRoute,
@@ -856,3 +877,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
