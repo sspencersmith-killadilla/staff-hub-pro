@@ -632,9 +632,11 @@ function EventDetail() {
 function TicketSuccess({
   attendeeId,
   eventTitle,
+  sponsors,
 }: {
   attendeeId: string;
   eventTitle: string;
+  sponsors: { id: string; company_name: string | null; logo_url: string | null }[];
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [dataUrl, setDataUrl] = useState<string | null>(null);
@@ -650,16 +652,21 @@ function TicketSuccess({
           console.error("QR generation failed", err);
           return;
         }
-        QRCode.toDataURL(
-          attendeeId,
-          { width: 720, margin: 2, errorCorrectionLevel: "M" },
-          (e2, url) => {
-            if (!e2) setDataUrl(url);
-          },
-        );
+        // Compose a downloadable ticket image: title + QR + ticket ID + sponsors.
+        composeTicketImage({ attendeeId, eventTitle, sponsors })
+          .then(setDataUrl)
+          .catch(() => {
+            QRCode.toDataURL(
+              attendeeId,
+              { width: 720, margin: 2, errorCorrectionLevel: "M" },
+              (e2, url) => {
+                if (!e2) setDataUrl(url);
+              },
+            );
+          });
       },
     );
-  }, [attendeeId]);
+  }, [attendeeId, eventTitle, sponsors]);
 
   const filename = `ticket-${eventTitle
     .toLowerCase()
@@ -686,6 +693,33 @@ function TicketSuccess({
           </div>
           <div className="font-mono text-xs text-slate-700">{attendeeId}</div>
         </div>
+        {sponsors.length > 0 && (
+          <div className="w-full border-t border-slate-200 pt-3 text-center">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              Presented in partnership with
+            </p>
+            <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
+              {sponsors.map((s) =>
+                s.logo_url ? (
+                  <img
+                    key={s.id}
+                    src={s.logo_url}
+                    alt={s.company_name ?? "sponsor"}
+                    className="h-8 w-auto max-w-[80px] object-contain"
+                    crossOrigin="anonymous"
+                  />
+                ) : (
+                  <span
+                    key={s.id}
+                    className="text-xs font-semibold text-slate-700"
+                  >
+                    {s.company_name}
+                  </span>
+                ),
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="mt-6 flex flex-wrap gap-3">
@@ -708,4 +742,146 @@ function TicketSuccess({
       </div>
     </div>
   );
+}
+
+async function composeTicketImage({
+  attendeeId,
+  eventTitle,
+  sponsors,
+}: {
+  attendeeId: string;
+  eventTitle: string;
+  sponsors: { id: string; company_name: string | null; logo_url: string | null }[];
+}): Promise<string> {
+  const W = 800;
+  const PAD = 40;
+  const qrSize = 480;
+  const sponsorBlockHeight = sponsors.length > 0 ? 140 : 0;
+  const H = PAD + 60 + 24 + qrSize + 24 + 60 + sponsorBlockHeight + PAD;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas not supported");
+
+  // Background
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, W, H);
+
+  // Title
+  ctx.fillStyle = "#0f172a";
+  ctx.font = "bold 32px system-ui, -apple-system, sans-serif";
+  ctx.textAlign = "center";
+  wrapText(ctx, eventTitle, W / 2, PAD + 30, W - PAD * 2, 36);
+
+  // QR (re-render at high res into this canvas)
+  const qrDataUrl = await QRCode.toDataURL(attendeeId, {
+    width: qrSize,
+    margin: 1,
+    errorCorrectionLevel: "M",
+  });
+  const qrImg = await loadImg(qrDataUrl);
+  const qrY = PAD + 60 + 24;
+  ctx.drawImage(qrImg, (W - qrSize) / 2, qrY, qrSize, qrSize);
+
+  // Ticket ID
+  ctx.fillStyle = "#64748b";
+  ctx.font = "bold 11px system-ui, -apple-system, sans-serif";
+  ctx.fillText("TICKET ID", W / 2, qrY + qrSize + 24);
+  ctx.fillStyle = "#334155";
+  ctx.font = "12px ui-monospace, SFMono-Regular, Menlo, monospace";
+  ctx.fillText(attendeeId, W / 2, qrY + qrSize + 42);
+
+  // Sponsors
+  if (sponsors.length > 0) {
+    const sBlockY = qrY + qrSize + 60;
+    ctx.strokeStyle = "#e2e8f0";
+    ctx.beginPath();
+    ctx.moveTo(PAD, sBlockY);
+    ctx.lineTo(W - PAD, sBlockY);
+    ctx.stroke();
+
+    ctx.fillStyle = "#64748b";
+    ctx.font = "bold 11px system-ui, -apple-system, sans-serif";
+    ctx.fillText("PRESENTED IN PARTNERSHIP WITH", W / 2, sBlockY + 22);
+
+    const logoMaxH = 56;
+    const gap = 24;
+    const loaded = await Promise.all(
+      sponsors.map(async (s) => {
+        if (!s.logo_url) return { sponsor: s, img: null as HTMLImageElement | null };
+        try {
+          const img = await loadImg(s.logo_url, true);
+          return { sponsor: s, img };
+        } catch {
+          return { sponsor: s, img: null };
+        }
+      }),
+    );
+    // Compute widths
+    const items = loaded.map(({ sponsor, img }) => {
+      if (img) {
+        const ratio = img.width / img.height;
+        const w = Math.min(140, logoMaxH * ratio);
+        const h = w / ratio;
+        return { type: "img" as const, img, w, h, label: sponsor.company_name };
+      }
+      const label = sponsor.company_name ?? "Sponsor";
+      ctx.font = "bold 14px system-ui, -apple-system, sans-serif";
+      const w = Math.min(160, ctx.measureText(label).width + 16);
+      return { type: "text" as const, w, h: logoMaxH, label };
+    });
+    const totalW = items.reduce((a, it) => a + it.w, 0) + gap * (items.length - 1);
+    let x = (W - totalW) / 2;
+    const y = sBlockY + 40;
+    for (const it of items) {
+      if (it.type === "img" && it.img) {
+        ctx.drawImage(it.img, x, y + (logoMaxH - it.h) / 2, it.w, it.h);
+      } else {
+        ctx.fillStyle = "#0f172a";
+        ctx.font = "bold 14px system-ui, -apple-system, sans-serif";
+        ctx.textBaseline = "middle";
+        ctx.fillText(it.label ?? "", x + it.w / 2, y + logoMaxH / 2);
+        ctx.textBaseline = "alphabetic";
+      }
+      x += it.w + gap;
+    }
+  }
+
+  return canvas.toDataURL("image/png");
+}
+
+function loadImg(src: string, cors = false): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    if (cors) img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = (e) => reject(e);
+    img.src = src;
+  });
+}
+
+function wrapText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number,
+) {
+  const words = text.split(" ");
+  let line = "";
+  let curY = y;
+  for (const w of words) {
+    const test = line ? `${line} ${w}` : w;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      ctx.fillText(line, x, curY);
+      line = w;
+      curY += lineHeight;
+    } else {
+      line = test;
+    }
+  }
+  if (line) ctx.fillText(line, x, curY);
 }
