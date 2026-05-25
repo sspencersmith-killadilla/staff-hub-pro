@@ -123,6 +123,27 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
       : { data: [] as any[] };
     const buskersById = new Map((buskersRes.data ?? []).map((p: any) => [p.id, p]));
 
+    // Sponsors for city sessions (approved/paid only)
+    const sessionIds = (sessRes.data ?? []).map((s: any) => s.id);
+    const sponsorsRes = sessionIds.length
+      ? await supabaseAdmin
+          .from("sponsors")
+          .select("id, company_name, logo_url, session_id, status")
+          .in("session_id", sessionIds as any)
+          .in("status", ["approved", "paid"])
+      : { data: [] as any[] };
+    const sponsorsBySession = new Map<string, EventSponsor[]>();
+    for (const sp of sponsorsRes.data ?? []) {
+      const sid = (sp as any).session_id as string;
+      const list = sponsorsBySession.get(sid) ?? [];
+      list.push({
+        id: (sp as any).id,
+        company_name: (sp as any).company_name ?? null,
+        logo_url: (sp as any).logo_url ?? null,
+      });
+      sponsorsBySession.set(sid, list);
+    }
+
     const out: UnifiedEvent[] = [];
 
     for (const s of sessRes.data ?? []) {
