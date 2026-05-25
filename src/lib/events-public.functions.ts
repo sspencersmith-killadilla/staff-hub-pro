@@ -197,31 +197,42 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
 export const getPublicCityEvent = createServerFn({ method: "GET" })
   .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data }) => {
-    const [sessRes, tiersRes] = await Promise.all([
+    const [sessRes, tiersRes, talentRes] = await Promise.all([
       supabaseAdmin
         .from("sessions")
-        .select("id, title, event_type, speaker_name, start_time, end_time, image_url, stage_id, stages(id,name,venue_id)")
+        .select(
+          "*, stages(id,name,venue_id,description,address), rooms(id,name,venue_id,building,capacity)",
+        )
         .eq("id", data.id)
         .maybeSingle(),
       supabaseAdmin.from("ticket_tiers").select("*").eq("session_id", data.id),
+      supabaseAdmin
+        .from("talent")
+        .select("id, name, role, performance_start, load_in_time, status")
+        .eq("session_id", data.id)
+        .order("performance_start", { ascending: true, nullsFirst: false }),
     ]);
     if (sessRes.error) throw new Error(sessRes.error.message);
     if (!sessRes.data) throw new Error("Event not found");
     const stage = (sessRes.data as any).stages ?? null;
+    const room = (sessRes.data as any).rooms ?? null;
+    const venueId = stage?.venue_id ?? room?.venue_id ?? null;
     let venue: any = null;
-    if (stage?.venue_id) {
+    if (venueId) {
       const v = await supabaseAdmin
         .from("venues")
-        .select("id, name, city, address")
-        .eq("id", stage.venue_id)
+        .select("id, name, city, state, address")
+        .eq("id", venueId)
         .maybeSingle();
       venue = v.data ?? null;
     }
     return {
       event: sessRes.data,
       stage,
+      room,
       venue,
       tiers: tiersRes.data ?? [],
+      talent: talentRes.data ?? [],
     };
   });
 
