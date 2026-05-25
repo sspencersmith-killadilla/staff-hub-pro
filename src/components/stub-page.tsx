@@ -1,6 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
-
-function makeStub(title: string) {
+export function makeStub(title: string) {
   return function StubPage() {
     return (
       <div className="p-8">
@@ -13,5 +11,3 @@ function makeStub(title: string) {
     );
   };
 }
-
-export { makeStub };
