@@ -201,6 +201,16 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
             "textDecorationColor",
             "columnRuleColor",
           ] as const;
+          // Props that may contain oklch inside complex values (shadows,
+          // gradients). Strip them if they reference oklch — too costly to
+          // parse, and non-critical for the export.
+          const stripProps: Array<[string, string]> = [
+            ["boxShadow", "none"],
+            ["textShadow", "none"],
+            ["backgroundImage", "none"],
+            ["filter", "none"],
+            ["backdropFilter", "none"],
+          ];
           const cloneWin = clonedDoc.defaultView || window;
           const sanitize = (el: Element) => {
             const cs = cloneWin.getComputedStyle(el);
@@ -210,7 +220,17 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
                 (el as HTMLElement).style[p as any] = toRgb(v);
               }
             });
+            stripProps.forEach(([p, fallback]) => {
+              const v = cs[p as any] as string;
+              if (v && v.includes("oklch")) {
+                // Preserve user-set inline backgroundImage (e.g. event image)
+                if (p === "backgroundImage" && (el as HTMLElement).style.backgroundImage) return;
+                (el as HTMLElement).style[p as any] = fallback;
+              }
+            });
           };
+          sanitize(clonedDoc.documentElement);
+          sanitize(clonedDoc.body);
           sanitize(clonedEl);
           clonedEl.querySelectorAll("*").forEach(sanitize);
         },
