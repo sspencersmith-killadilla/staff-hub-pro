@@ -165,13 +165,26 @@ export const submitReservationRequest = createServerFn({ method: "POST" })
       throw new Error("You can only book up to 2 hours per day");
     }
 
-    const { error } = await supabaseAdmin.from("room_reservations").insert({
+    const reservationPayload = {
       ...data,
+      start_time: data.starts_at,
+      end_time: data.ends_at,
       requester_email: email,
       requester_user_id: context.userId,
       status: "pending",
-    });
-    if (error) throw new Error(error.message);
+    };
+    const { error } = await supabaseAdmin.from("room_reservations").insert(reservationPayload);
+    if (error) {
+      if (error.message.includes("'start_time'") || error.message.includes("'end_time'")) {
+        const { start_time, end_time, ...canonicalPayload } = reservationPayload;
+        const { error: retryError } = await supabaseAdmin
+          .from("room_reservations")
+          .insert(canonicalPayload);
+        if (retryError) throw new Error(retryError.message);
+      } else {
+        throw new Error(error.message);
+      }
+    }
     return { ok: true };
   });
 

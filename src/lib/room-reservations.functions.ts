@@ -161,13 +161,31 @@ export const createReservation = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
     await validateBooking(data);
+    const reservationPayload = {
+      ...data,
+      start_time: data.starts_at,
+      end_time: data.ends_at,
+      status: "approved",
+      decided_by: context.userId,
+      decided_at: new Date().toISOString(),
+    };
     const { data: row, error } = await supabaseAdmin
       .from("room_reservations")
-      .insert({ ...data, status: "approved", decided_by: context.userId, decided_at: new Date().toISOString() })
+      .insert(reservationPayload)
       .select()
       .single();
-    if (error) throw new Error(error.message);
-    return row;
+    if (!error) return row;
+    if (error.message.includes("'start_time'") || error.message.includes("'end_time'")) {
+      const { start_time, end_time, ...canonicalPayload } = reservationPayload;
+      const { data: retryRow, error: retryError } = await supabaseAdmin
+        .from("room_reservations")
+        .insert(canonicalPayload)
+        .select()
+        .single();
+      if (retryError) throw new Error(retryError.message);
+      return retryRow;
+    }
+    throw new Error(error.message);
   });
 
 export const setReservationStatus = createServerFn({ method: "POST" })
