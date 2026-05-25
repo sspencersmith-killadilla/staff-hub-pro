@@ -155,16 +155,7 @@ function EventDetail() {
         </div>
 
         {success ? (
-          <div className="mt-10 rounded-xl border border-emerald-200 bg-emerald-50 p-6">
-            <h2 className="text-lg font-bold text-emerald-900">You're registered!</h2>
-            <p className="mt-2 text-sm text-emerald-800">
-              Confirmation reference: <span className="font-mono">{success}</span>
-            </p>
-            <p className="mt-1 text-sm text-emerald-800">
-              We've reserved your spot. Bring this reference (or the email you used)
-              to check in at the door.
-            </p>
-          </div>
+          <TicketSuccess attendeeId={success} eventTitle={event.title} />
         ) : (
           <form
             onSubmit={handleSubmit}
