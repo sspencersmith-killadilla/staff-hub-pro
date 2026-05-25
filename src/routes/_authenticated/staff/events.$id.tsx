@@ -204,6 +204,7 @@ function EventDashboard() {
     { key: "door", label: "Door", badge: ticketsRedeemed },
     { key: "tickets", label: "Tickets" },
     { key: "gigs", label: "Gigs", badge: gigs.length },
+    { key: "floorplan", label: "Floorplan" },
     { key: "commercial", label: "Commercial" },
     { key: "vendors", label: "Vendors", badge: vendors.length },
     { key: "sponsors", label: "Sponsors", badge: sponsors.length },
