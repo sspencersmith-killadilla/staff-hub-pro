@@ -15,6 +15,8 @@ export type UnifiedEvent = {
   image_url: string | null;
   venue_name: string | null;
   venue_city: string | null;
+  sub_location_name: string | null; // stage or room name
+  sub_location_type: "stage" | "room" | null;
   org_name: string | null;
   cost_text: string | null;
   ticketed: boolean; // city events route to /events/:id ticketing
