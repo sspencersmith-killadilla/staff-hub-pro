@@ -28,6 +28,8 @@ export type UnifiedEvent = {
   ticketed: boolean; // city events route to /events/:id ticketing
   detail_href: string | null; // for non-ticketed types
   sponsors: EventSponsor[];
+  focal_x: number; // 0-100, CSS object-position x
+  focal_y: number; // 0-100, CSS object-position y
 };
 
 export const listPublicAllEvents = createServerFn({ method: "GET" })
