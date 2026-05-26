@@ -213,9 +213,35 @@ export default function RobustMap({
   };
 
   const handleSave = () => {
-    onSave({ lines, vendors, shapes, backgroundImage: mapData.backgroundImage });
+    onSave({ lines, vendors, shapes, backgroundImage });
     setIsDirty(false);
   };
+
+  const applyBgUrl = () => {
+    const next = bgUrlInput.trim() || null;
+    setBackgroundImage(next);
+    setIsDirty(true);
+  };
+  const clearBg = () => {
+    setBgUrlInput("");
+    setBackgroundImage(null);
+    setIsDirty(true);
+  };
+  const handleBgFile = (file: File) => {
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Image is larger than 2 MB. Please host it externally and paste a URL instead.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const url = String(reader.result || "");
+      setBgUrlInput(url);
+      setBackgroundImage(url);
+      setIsDirty(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
 
   const getPointerPos = (e: any) => {
     const stage = e.target.getStage();
