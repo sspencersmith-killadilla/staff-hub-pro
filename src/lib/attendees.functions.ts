@@ -23,6 +23,25 @@ export type MyTicket = {
   seat_total: number;
 };
 
+
+function annotateSeats(rows: MyTicket[]) {
+  // Group siblings by group_id, then assign seat_index by created_at ascending.
+  const byGroup = new Map<string, MyTicket[]>();
+  for (const r of rows) {
+    if (!r.group_id) continue;
+    const list = byGroup.get(r.group_id) ?? [];
+    list.push(r);
+    byGroup.set(r.group_id, list);
+  }
+  for (const list of byGroup.values()) {
+    list.sort((a, b) => (a.created_at ?? "").localeCompare(b.created_at ?? "") || a.id.localeCompare(b.id));
+    list.forEach((r, i) => {
+      r.seat_index = i + 1;
+      r.seat_total = list.length;
+    });
+  }
+}
+
 // ─── User-facing: my tickets ────────────────────────────────────────
 export const listMyTickets = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
