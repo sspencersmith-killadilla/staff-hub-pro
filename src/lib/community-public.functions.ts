@@ -4,7 +4,8 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const EVENT_COLS =
-  "id, organization_id, title, description, start_time, end_time, location, image_url, image_focal_x, image_focal_y, is_community, approval_status, reviewer_notes, submitted_by, cost_text, contact_info";
+  "id, organization_id, title, description, start_time, end_time, location, image_url, image_focal_x, image_focal_y, is_community, approval_status, reviewer_notes, submitted_by";
+
 
 function eventRow(e: any, org: any | null, loc: any | null) {
   return {
