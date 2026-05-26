@@ -181,6 +181,60 @@ export default function RobustMap({
     trRef.current?.nodes([]);
   }, [readOnly, selectedId, vendors, shapes, lines, pushHistory]);
 
+  // Attach the Transformer to whichever item is selected so resize handles appear.
+  useEffect(() => {
+    const tr = trRef.current;
+    const stage = stageRef.current;
+    if (!tr || !stage) return;
+    if (!selectedId || mode !== "select" || readOnly) {
+      tr.nodes([]);
+      tr.getLayer()?.batchDraw();
+      return;
+    }
+    const node = stage.findOne(`#${selectedId}`);
+    if (node) {
+      tr.nodes([node]);
+      tr.getLayer()?.batchDraw();
+    } else {
+      tr.nodes([]);
+    }
+  }, [selectedId, mode, readOnly, shapes, vendors, bgImage]);
+
+  const selectedKind: "shape" | "vendor" | null = selectedId
+    ? shapes.some((s) => s.id === selectedId)
+      ? "shape"
+      : vendors.some((v) => v.id === selectedId)
+        ? "vendor"
+        : null
+    : null;
+  const selectedScale = selectedId
+    ? (selectedKind === "shape"
+        ? shapes.find((s) => s.id === selectedId)?.scaleX
+        : vendors.find((v) => v.id === selectedId)?.scaleX) ?? 1
+    : 1;
+
+  const setSelectedScale = useCallback(
+    (next: number) => {
+      if (readOnly || !selectedId || !selectedKind) return;
+      const clamped = Math.max(0.2, Math.min(5, next));
+      if (selectedKind === "shape") {
+        const nextS = shapes.map((s) =>
+          s.id === selectedId ? { ...s, scaleX: clamped, scaleY: clamped } : s,
+        );
+        setShapes(nextS);
+        pushHistory(lines, vendors, nextS);
+      } else {
+        const nextV = vendors.map((v) =>
+          v.id === selectedId ? { ...v, scaleX: clamped, scaleY: clamped } : v,
+        );
+        setVendors(nextV);
+        pushHistory(lines, nextV, shapes);
+      }
+    },
+    [readOnly, selectedId, selectedKind, shapes, vendors, lines, pushHistory],
+  );
+
+
   const undo = useCallback(() => {
     if (historyIdx < 0) return;
     const entry = history[historyIdx];
@@ -380,9 +434,53 @@ export default function RobustMap({
           </div>
           <div className="p-4 flex-1 overflow-y-auto space-y-6">
             {mode === "select" && selectedId && (
-              <div className="bg-blue-50 p-3 rounded border border-blue-200 flex justify-between items-center">
-                <span className="text-xs font-bold text-[#112e51]">Item selected</span>
-                <button onClick={removeSelected} className="text-[10px] bg-red-600 text-white px-3 py-1.5 rounded font-black hover:bg-red-700 uppercase tracking-widest">Delete</button>
+              <div className="bg-blue-50 p-3 rounded border border-blue-200 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-[#112e51]">Item selected</span>
+                  <button onClick={removeSelected} className="text-[10px] bg-red-600 text-white px-3 py-1.5 rounded font-black hover:bg-red-700 uppercase tracking-widest">Delete</button>
+                </div>
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#112e51]">Size</span>
+                    <span className="text-[10px] font-bold text-gray-500">{Math.round(selectedScale * 100)}%</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedScale(selectedScale / 1.15)}
+                      className="px-2 py-1 bg-white border border-gray-300 rounded text-sm font-black text-gray-700 hover:bg-gray-50"
+                      title="Shrink"
+                    >
+                      −
+                    </button>
+                    <input
+                      type="range"
+                      min={20}
+                      max={500}
+                      step={5}
+                      value={Math.round(selectedScale * 100)}
+                      onChange={(e) => setSelectedScale(Number(e.target.value) / 100)}
+                      className="flex-1 accent-[#112e51]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setSelectedScale(selectedScale * 1.15)}
+                      className="px-2 py-1 bg-white border border-gray-300 rounded text-sm font-black text-gray-700 hover:bg-gray-50"
+                      title="Grow"
+                    >
+                      +
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedScale(1)}
+                      className="px-2 py-1 bg-white border border-gray-300 rounded text-[10px] font-black text-gray-500 hover:bg-gray-50 uppercase"
+                      title="Reset to 100%"
+                    >
+                      1×
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-gray-500 mt-1">Drag the corner handles on the canvas to free-resize.</p>
+                </div>
               </div>
             )}
             {mode === "select" ? (
@@ -559,7 +657,21 @@ export default function RobustMap({
                   />
                 ))}
                 {!readOnly && mode === "select" && (
-                  <Transformer ref={trRef} boundBoxFunc={(oldBox, newBox) => (newBox.width < 20 || newBox.height < 20 ? oldBox : newBox)} />
+                  <Transformer
+                    ref={trRef}
+                    rotateEnabled
+                    keepRatio={false}
+                    anchorSize={10}
+                    anchorStroke="#112e51"
+                    anchorFill="#ffffff"
+                    borderStroke="#112e51"
+                    borderDash={[4, 4]}
+                    enabledAnchors={[
+                      "top-left", "top-right", "bottom-left", "bottom-right",
+                      "middle-left", "middle-right", "top-center", "bottom-center",
+                    ]}
+                    boundBoxFunc={(oldBox, newBox) => (newBox.width < 20 || newBox.height < 20 ? oldBox : newBox)}
+                  />
                 )}
               </Layer>
             </Stage>
