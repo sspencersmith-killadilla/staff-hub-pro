@@ -121,6 +121,8 @@ type Toast = { type: "success" | "error" | "warning"; text: string } | null;
 function EventDashboard() {
   const { id } = Route.useParams();
   const qc = useQueryClient();
+  const { can } = usePermissions();
+
   const { data, isLoading } = useQuery({
     queryKey: ["event-dashboard", id],
     queryFn: () => getEventDashboard({ data: { id } }),
