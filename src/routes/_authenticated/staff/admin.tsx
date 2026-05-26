@@ -37,7 +37,7 @@ function AdminPage() {
 
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"staff" | "admin">("staff");
-  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [bulkEmails, setBulkEmails] = useState("");
   const [bulkResult, setBulkResult] = useState<
     | { total: number; invited: number; existed: number; errors: { email: string; message?: string }[] }
     | null
@@ -63,33 +63,20 @@ function AdminPage() {
     mutationFn: async (emails: string[]) => bulkInviteStaff({ data: { emails } }),
     onSuccess: (r) => {
       setBulkResult(r);
-      setCsvFile(null);
+      setBulkEmails("");
       qc.invalidateQueries({ queryKey: ["staff"] });
     },
   });
 
-  function downloadTemplate() {
-    const csv = "email\nstaff1@example.com\nstaff2@example.com\n";
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "staff-template.csv";
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  async function handleUpload(e: React.FormEvent) {
+  function handleBulkSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!csvFile) return;
-    const text = await csvFile.text();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const emails = text
-      .split(/\r?\n/)
-      .map((l) => l.split(",")[0]?.trim() ?? "")
-      .filter((v) => v && v.toLowerCase() !== "email" && emailRegex.test(v));
+    const emails = bulkEmails
+      .split(/[\n,;]+/)
+      .map((l: string) => l.trim())
+      .filter((v: string) => v && emailRegex.test(v));
     if (emails.length === 0) {
-      setBulkResult({ total: 0, invited: 0, existed: 0, errors: [{ email: "(none)", message: "No valid emails found in CSV" }] });
+      setBulkResult({ total: 0, invited: 0, existed: 0, errors: [{ email: "(none)", message: "No valid emails found" }] });
       return;
     }
     bulk.mutate(emails);
@@ -142,29 +129,21 @@ function AdminPage() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Bulk invite from CSV</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Bulk invite</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Download the template, add one email per row, then upload. Everyone is
+            Paste or type emails separated by commas or newlines. Everyone is
             invited as <strong>staff</strong>. Promote individuals to admin using
             the toggles below.
           </p>
-          <div>
-            <Button type="button" variant="outline" onClick={downloadTemplate}>
-              Download CSV template
-            </Button>
-          </div>
-          <form className="flex flex-wrap items-end gap-3" onSubmit={handleUpload}>
-            <div className="flex-1 min-w-[220px]">
-              <Label htmlFor="csv-file">Upload CSV</Label>
-              <Input
-                id="csv-file"
-                type="file"
-                accept=".csv,text/csv"
-                onChange={(e) => setCsvFile(e.target.files?.[0] ?? null)}
-              />
-            </div>
-            <Button type="submit" disabled={!csvFile || bulk.isPending}>
+          <form className="space-y-3" onSubmit={handleBulkSubmit}>
+            <textarea
+              className="min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="staff1@example.com, staff2@example.com"
+              value={bulkEmails}
+              onChange={(e) => setBulkEmails(e.target.value)}
+            />
+            <Button type="submit" disabled={!bulkEmails.trim() || bulk.isPending}>
               {bulk.isPending ? "Inviting…" : "Invite all as staff"}
             </Button>
           </form>
