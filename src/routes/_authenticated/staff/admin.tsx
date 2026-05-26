@@ -63,33 +63,20 @@ function AdminPage() {
     mutationFn: async (emails: string[]) => bulkInviteStaff({ data: { emails } }),
     onSuccess: (r) => {
       setBulkResult(r);
-      setCsvFile(null);
+      setBulkEmails("");
       qc.invalidateQueries({ queryKey: ["staff"] });
     },
   });
 
-  function downloadTemplate() {
-    const csv = "email\nstaff1@example.com\nstaff2@example.com\n";
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "staff-template.csv";
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  async function handleUpload(e: React.FormEvent) {
+  function handleBulkSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!csvFile) return;
-    const text = await csvFile.text();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const emails = text
-      .split(/\r?\n/)
-      .map((l) => l.split(",")[0]?.trim() ?? "")
-      .filter((v) => v && v.toLowerCase() !== "email" && emailRegex.test(v));
+    const emails = bulkEmails
+      .split(/[\n,;]+/)
+      .map((l: string) => l.trim())
+      .filter((v: string) => v && emailRegex.test(v));
     if (emails.length === 0) {
-      setBulkResult({ total: 0, invited: 0, existed: 0, errors: [{ email: "(none)", message: "No valid emails found in CSV" }] });
+      setBulkResult({ total: 0, invited: 0, existed: 0, errors: [{ email: "(none)", message: "No valid emails found" }] });
       return;
     }
     bulk.mutate(emails);
