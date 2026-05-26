@@ -327,3 +327,32 @@ export const saveFloorplan = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ─── Volunteers ──────────────────────────────────────────────────────
+const volunteerIn = z.object({
+  session_id: z.string().uuid(),
+  name: z.string().min(1),
+  shift_role: z.string().optional().nullable(),
+});
+
+export const bulkUpsertVolunteers = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) =>
+    z.object({
+      session_id: z.string().uuid(),
+      rows: z.array(volunteerIn.omit({ session_id: true })).min(1).max(500),
+    }).parse(i),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    const rows = data.rows.map((r) => ({
+      session_id: data.session_id,
+      name: r.name,
+      shift_role: r.shift_role ?? null,
+      checked_in: false,
+    }));
+    const { error } = await supabaseAdmin.from("volunteers").insert(rows);
+    if (error) throw new Error(error.message);
+    return { ok: true, count: rows.length };
+  });
+

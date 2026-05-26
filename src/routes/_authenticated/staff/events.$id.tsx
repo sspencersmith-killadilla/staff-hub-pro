@@ -16,9 +16,11 @@ import {
   saveFloorplan,
   removeFromWaitlist,
   promoteWaitlistEntry,
+  bulkUpsertVolunteers,
 } from "@/lib/event-dashboard.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Download, Upload } from "lucide-react";
 
 const RobustMap = lazy(() => import("@/components/RobustMap"));
 const EventMarketingHub = lazy(() => import("@/components/EventMarketingHub"));
@@ -56,6 +58,55 @@ function ctLocalToUtc(local: string | null | undefined): string | null {
   const [chh, cmm] = ct.split(":").map(Number);
   const ctAsUtc = new Date(Date.UTC(cy, cmo - 1, cda, chh === 24 ? 0 : chh, cmm));
   return new Date(guess.getTime() - (ctAsUtc.getTime() - guess.getTime())).toISOString();
+}
+
+// ─── CSV helpers ───────────────────────────────────────────────────────
+const VOL_CSV_COLS = ["name", "shift_role"] as const;
+
+function csvEscape(v: unknown): string {
+  if (v == null) return "";
+  const s = String(v);
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+function rowsToCsv(rows: Record<string, unknown>[]): string {
+  const header = VOL_CSV_COLS.join(",");
+  const body = rows
+    .map((r) => VOL_CSV_COLS.map((c) => csvEscape(r[c])).join(","))
+    .join("\n");
+  return `${header}\n${body}\n`;
+}
+
+function parseCsv(text: string): Record<string, string>[] {
+  const rows: string[][] = [];
+  let cur: string[] = [];
+  let field = "";
+  let inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQ) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; }
+        else { inQ = false; }
+      } else { field += ch; }
+    } else {
+      if (ch === '"') inQ = true;
+      else if (ch === ",") { cur.push(field); field = ""; }
+      else if (ch === "\n" || ch === "\r") {
+        if (field.length || cur.length) { cur.push(field); rows.push(cur); cur = []; field = ""; }
+        if (ch === "\r" && text[i + 1] === "\n") i++;
+      } else { field += ch; }
+    }
+  }
+  if (field.length || cur.length) { cur.push(field); rows.push(cur); }
+  if (rows.length === 0) return [];
+  const header = rows[0].map((h) => h.trim());
+  return rows.slice(1).map((r) => {
+    const obj: Record<string, string> = {};
+    header.forEach((h, idx) => { obj[h] = (r[idx] ?? "").trim(); });
+    return obj;
+  });
 }
 
 export const Route = createFileRoute("/_authenticated/staff/events/$id")({
@@ -219,12 +270,22 @@ function EventDashboard() {
     onSuccess: () => { invalidate(); showToast("Floorplan saved"); },
     onError: (e: Error) => showToast(e.message, "error"),
   });
+  const mBulkVolunteers = useMutation({
+    mutationFn: (rows: { name: string; shift_role?: string | null }[]) =>
+      bulkUpsertVolunteers({ data: { session_id: id, rows } }),
+    onSuccess: (res: any) => {
+      invalidate();
+      showToast(`Imported ${res?.count ?? 0} volunteer(s)`);
+    },
+    onError: (e: Error) => showToast(e.message, "error"),
+  });
 
   // Local UI state
   const [editingTicket, setEditingTicket] = useState<any>(null);
   const [editingTalent, setEditingTalent] = useState<any>(null);
   const [inheritTime, setInheritTime] = useState(true);
   const [inheritLocation, setInheritLocation] = useState(true);
+  const volunteerFileRef = useRef<HTMLInputElement>(null);
 
   // Door scanner
   const [scanInput, setScanInput] = useState("");
@@ -245,6 +306,51 @@ function EventDashboard() {
     setScanInput("");
     scanInputRef.current?.focus();
   };
+
+  // ─── Volunteer CSV handlers ──────────────────────────────────────────
+  function downloadVolunteerTemplate() {
+    const csv = rowsToCsv([{ name: "Jane Doe", shift_role: "Door" }]);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `volunteer-template-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportVolunteersCsv() {
+    const rows = (volunteers as any[]).map((v) => ({ name: v.name, shift_role: v.shift_role }));
+    if (!rows.length) {
+      showToast("No volunteers to export", "warning");
+      return;
+    }
+    const csv = rowsToCsv(rows);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `volunteers-${session.title?.replace(/\s+/g, "-") ?? "event"}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleVolunteerFile(file: File) {
+    const text = await file.text();
+    const parsed = parseCsv(text);
+    if (!parsed.length) {
+      showToast("CSV is empty", "error");
+      return;
+    }
+    const rows = parsed
+      .map((r) => ({ name: r.name || "", shift_role: r.shift_role || null }))
+      .filter((r) => r.name);
+    if (!rows.length) {
+      showToast("No rows with a name", "error");
+      return;
+    }
+    mBulkVolunteers.mutate(rows);
+  }
 
   if (isLoading) return <div className="p-8">Loading…</div>;
   if (!session) return <div className="p-8">Event not found.</div>;
@@ -771,22 +877,57 @@ function EventDashboard() {
         )}
 
         {activeView === "volunteers" && (
-          <div className="bg-card rounded-xl border">
-            <div className="p-4 border-b font-bold">Volunteers ({volunteers.length})</div>
-            {(volunteers as any[]).map((v) => (
-              <div key={v.id} className="p-3 border-b flex justify-between">
-                <div>
-                  {v.name}{" "}
-                  <span className="text-xs text-muted-foreground">{v.shift_role}</span>
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={downloadVolunteerTemplate}>
+                <Download className="h-4 w-4 mr-1.5" />
+                Template
+              </Button>
+              <Button variant="outline" size="sm" onClick={exportVolunteersCsv} disabled={!volunteers.length}>
+                <Download className="h-4 w-4 mr-1.5" />
+                Export
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => volunteerFileRef.current?.click()}
+                disabled={mBulkVolunteers.isPending}
+              >
+                <Upload className="h-4 w-4 mr-1.5" />
+                {mBulkVolunteers.isPending ? "Importing…" : "Import"}
+              </Button>
+              <input
+                ref={volunteerFileRef}
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleVolunteerFile(f);
+                  if (volunteerFileRef.current) volunteerFileRef.current.value = "";
+                }}
+              />
+            </div>
+            <div className="bg-card rounded-xl border">
+              <div className="p-4 border-b font-bold">Volunteers ({volunteers.length})</div>
+              {(volunteers as any[]).map((v) => (
+                <div key={v.id} className="p-3 border-b flex justify-between">
+                  <div>
+                    {v.name}{" "}
+                    <span className="text-xs text-muted-foreground">{v.shift_role}</span>
+                  </div>
+                  <button
+                    onClick={() => mCheckIn.mutate({ id: v.id, table: "volunteers", checked_in: !v.checked_in })}
+                    className={`px-3 py-1 rounded text-xs ${v.checked_in ? "bg-muted" : "bg-primary text-primary-foreground"}`}
+                  >
+                    {v.checked_in ? "Out" : "In"}
+                  </button>
                 </div>
-                <button
-                  onClick={() => mCheckIn.mutate({ id: v.id, table: "volunteers", checked_in: !v.checked_in })}
-                  className={`px-3 py-1 rounded text-xs ${v.checked_in ? "bg-muted" : "bg-primary text-primary-foreground"}`}
-                >
-                  {v.checked_in ? "Out" : "In"}
-                </button>
-              </div>
-            ))}
+              ))}
+              {volunteers.length === 0 && (
+                <div className="p-6 text-center text-sm text-muted-foreground">No volunteers yet.</div>
+              )}
+            </div>
           </div>
         )}
 
