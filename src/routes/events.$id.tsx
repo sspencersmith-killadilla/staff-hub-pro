@@ -476,10 +476,17 @@ function EventDetail() {
                                   {t.description}
                                 </div>
                               )}
-                              <div className="mt-1 text-sm font-bold text-slate-900">
-                                {Number(t.price) > 0
-                                  ? `$${Number(t.price).toFixed(2)}`
-                                  : "Free"}
+                              <div className="mt-1 flex items-center gap-2">
+                                <div className="text-sm font-bold text-slate-900">
+                                  {Number(t.price) > 0
+                                    ? `$${Number(t.price).toFixed(2)}`
+                                    : "Free"}
+                                </div>
+                                {t.sold_out && (
+                                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800">
+                                    Sold out · waitlist
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </label>
