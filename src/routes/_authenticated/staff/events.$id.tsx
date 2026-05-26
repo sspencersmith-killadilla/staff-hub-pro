@@ -175,6 +175,10 @@ function EventDashboard() {
     mutationFn: (tid: string) => deleteTicketTier({ data: { id: tid } }),
     onSuccess: invalidate,
   });
+  const mRemoveWaitlist = useMutation({
+    mutationFn: (wid: string) => removeFromWaitlist({ data: { id: wid } }),
+    onSuccess: () => { invalidate(); showToast("Removed from waitlist"); },
+  });
   const mCreateGig = useMutation({
     mutationFn: (v: any) => createGig({ data: v }),
     onSuccess: () => { invalidate(); showToast("Gig created"); },
