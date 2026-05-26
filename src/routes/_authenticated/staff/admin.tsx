@@ -142,6 +142,58 @@ function AdminPage() {
       </Card>
 
       <Card>
+        <CardHeader><CardTitle>Bulk invite from CSV</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Download the template, add one email per row, then upload. Everyone is
+            invited as <strong>staff</strong>. Promote individuals to admin using
+            the toggles below.
+          </p>
+          <div>
+            <Button type="button" variant="outline" onClick={downloadTemplate}>
+              Download CSV template
+            </Button>
+          </div>
+          <form className="flex flex-wrap items-end gap-3" onSubmit={handleUpload}>
+            <div className="flex-1 min-w-[220px]">
+              <Label htmlFor="csv-file">Upload CSV</Label>
+              <Input
+                id="csv-file"
+                type="file"
+                accept=".csv,text/csv"
+                onChange={(e) => setCsvFile(e.target.files?.[0] ?? null)}
+              />
+            </div>
+            <Button type="submit" disabled={!csvFile || bulk.isPending}>
+              {bulk.isPending ? "Inviting…" : "Invite all as staff"}
+            </Button>
+          </form>
+          {bulk.error && (
+            <p className="text-sm text-destructive">{(bulk.error as Error).message}</p>
+          )}
+          {bulkResult && (
+            <div className="rounded-md border p-3 text-sm space-y-1">
+              <div>Processed <strong>{bulkResult.total}</strong> emails</div>
+              <div>Invited: <strong>{bulkResult.invited}</strong></div>
+              <div>Already existed (granted staff role): <strong>{bulkResult.existed}</strong></div>
+              {bulkResult.errors.length > 0 && (
+                <div>
+                  <div className="text-destructive">Errors: {bulkResult.errors.length}</div>
+                  <ul className="ml-4 list-disc text-muted-foreground">
+                    {bulkResult.errors.slice(0, 10).map((e, i) => (
+                      <li key={i}>{e.email}: {e.message ?? "unknown error"}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+
+
+      <Card>
         <CardHeader><CardTitle>Current staff</CardTitle></CardHeader>
         <CardContent>
           {isLoading ? (
