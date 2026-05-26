@@ -26,7 +26,7 @@ export function SiteHeader() {
           <Link to="/manual" className="flex items-center gap-2 font-semibold text-muted-foreground hover:text-foreground">
           |  Help Manual
           </Link>
-          <Link to="/ReproductionInstruction.pdf" className="flex items-center gap-2 font-semibold text-muted-foreground hover:text-foreground">
+          <Link to="https://totaleventsystemsolutions.lovable.app/ReproductionInstruction.pdf" className="flex items-center gap-2 font-semibold text-muted-foreground hover:text-foreground">
           |  Reproduction Instruction
           </Link>
         </div>
