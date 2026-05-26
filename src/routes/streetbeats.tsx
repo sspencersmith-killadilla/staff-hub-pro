@@ -1,12 +1,16 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Music, MapPin, Calendar, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import {
   listOpenGigs,
   listScheduledGigs,
+  claimGig,
+  getMyArtistProfile,
 } from "@/lib/streetbeats-public.functions";
 import { SiteHeader } from "@/components/site-header";
+import { useAuth } from "@/hooks/use-auth";
 
 import { requireModule } from "@/lib/require-module";
 
@@ -44,8 +48,13 @@ function fmtWhen(starts: string, ends: string) {
 }
 
 function StreetbeatsPage() {
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const fetchOpen = useServerFn(listOpenGigs);
   const fetchScheduled = useServerFn(listScheduledGigs);
+  const fetchProfile = useServerFn(getMyArtistProfile);
+  const doClaim = useServerFn(claimGig);
 
   const open = useQuery({
     queryKey: ["streetbeats", "open"],
@@ -55,6 +64,42 @@ function StreetbeatsPage() {
     queryKey: ["streetbeats", "scheduled"],
     queryFn: () => fetchScheduled(),
   });
+  const profile = useQuery({
+    queryKey: ["streetbeats", "me", "artist"],
+    queryFn: () => fetchProfile(),
+    enabled: isAuthenticated,
+  });
+
+  const isApproved = profile.data?.artist?.status === "approved";
+
+  const claim = useMutation({
+    mutationFn: (gig_id: string) => doClaim({ data: { gig_id } }),
+    onSuccess: () => {
+      toast.success("Gig claimed! See it under My Gigs.");
+      qc.invalidateQueries({ queryKey: ["streetbeats"] });
+    },
+    onError: (err: any) => toast.error(err?.message ?? "Failed to claim"),
+  });
+
+  const handleClaim = (gigId: string) => {
+    if (!isAuthenticated) {
+      navigate({ to: "/login", search: { redirect: "/streetbeats" } });
+      return;
+    }
+    if (!isApproved) {
+      navigate({ to: "/streetbeats/apply" });
+      return;
+    }
+    claim.mutate(gigId);
+  };
+
+  const ctaLabel = !isAuthenticated
+    ? "Log in to claim"
+    : !isApproved
+      ? profile.isLoading
+        ? "Loading…"
+        : "Apply to claim"
+      : "Claim this slot";
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -92,7 +137,9 @@ function StreetbeatsPage() {
             isLoading={open.isLoading}
             gigs={open.data ?? []}
             emptyMessage="No open slots right now. Check back soon."
-            ctaLabel="Log in to claim"
+            ctaLabel={authLoading ? "Loading…" : ctaLabel}
+            onClaim={handleClaim}
+            claimingId={claim.isPending ? (claim.variables as string) : null}
           />
         </section>
 
@@ -118,12 +165,16 @@ function GigList({
   emptyMessage,
   showArtist,
   ctaLabel,
+  onClaim,
+  claimingId,
 }: {
   isLoading: boolean;
   gigs: any[];
   emptyMessage: string;
   showArtist?: boolean;
   ctaLabel?: string;
+  onClaim?: (id: string) => void;
+  claimingId?: string | null;
 }) {
   if (isLoading) {
     return <p className="mt-4 text-sm text-slate-500">Loading…</p>;
@@ -160,13 +211,15 @@ function GigList({
               )}
             </div>
           )}
-          {ctaLabel && (
-            <Link
-              to="/streetbeats/apply"
-              className="mt-3 inline-block text-xs font-bold uppercase tracking-wider text-slate-900 underline-offset-4 hover:underline"
+          {ctaLabel && onClaim && (
+            <button
+              type="button"
+              onClick={() => onClaim(String(g.id))}
+              disabled={claimingId === String(g.id)}
+              className="mt-3 inline-block text-xs font-bold uppercase tracking-wider text-slate-900 underline-offset-4 hover:underline disabled:opacity-50"
             >
-              {ctaLabel} →
-            </Link>
+              {claimingId === String(g.id) ? "Claiming…" : `${ctaLabel} →`}
+            </button>
           )}
         </li>
       ))}
