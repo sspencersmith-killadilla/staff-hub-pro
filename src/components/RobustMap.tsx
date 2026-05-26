@@ -434,9 +434,53 @@ export default function RobustMap({
           </div>
           <div className="p-4 flex-1 overflow-y-auto space-y-6">
             {mode === "select" && selectedId && (
-              <div className="bg-blue-50 p-3 rounded border border-blue-200 flex justify-between items-center">
-                <span className="text-xs font-bold text-[#112e51]">Item selected</span>
-                <button onClick={removeSelected} className="text-[10px] bg-red-600 text-white px-3 py-1.5 rounded font-black hover:bg-red-700 uppercase tracking-widest">Delete</button>
+              <div className="bg-blue-50 p-3 rounded border border-blue-200 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-[#112e51]">Item selected</span>
+                  <button onClick={removeSelected} className="text-[10px] bg-red-600 text-white px-3 py-1.5 rounded font-black hover:bg-red-700 uppercase tracking-widest">Delete</button>
+                </div>
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#112e51]">Size</span>
+                    <span className="text-[10px] font-bold text-gray-500">{Math.round(selectedScale * 100)}%</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedScale(selectedScale / 1.15)}
+                      className="px-2 py-1 bg-white border border-gray-300 rounded text-sm font-black text-gray-700 hover:bg-gray-50"
+                      title="Shrink"
+                    >
+                      −
+                    </button>
+                    <input
+                      type="range"
+                      min={20}
+                      max={500}
+                      step={5}
+                      value={Math.round(selectedScale * 100)}
+                      onChange={(e) => setSelectedScale(Number(e.target.value) / 100)}
+                      className="flex-1 accent-[#112e51]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setSelectedScale(selectedScale * 1.15)}
+                      className="px-2 py-1 bg-white border border-gray-300 rounded text-sm font-black text-gray-700 hover:bg-gray-50"
+                      title="Grow"
+                    >
+                      +
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedScale(1)}
+                      className="px-2 py-1 bg-white border border-gray-300 rounded text-[10px] font-black text-gray-500 hover:bg-gray-50 uppercase"
+                      title="Reset to 100%"
+                    >
+                      1×
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-gray-500 mt-1">Drag the corner handles on the canvas to free-resize.</p>
+                </div>
               </div>
             )}
             {mode === "select" ? (
