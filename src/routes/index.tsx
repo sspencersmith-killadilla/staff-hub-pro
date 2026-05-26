@@ -222,18 +222,19 @@ function Home() {
 
       {/* EXPLAINER */}
       <section className="py-24 bg-white">
+        <Link
+                  to="/manual"
+                  className="bg-white/10 hover:bg-white/20 text-black border border-white/30 font-bold py-3 px-6 rounded-lg transition-colors text-center uppercase tracking-wider text-sm w-full sm:w-auto"
+                >
+                  User Manual
+                </Link>
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2
               className="text-4xl font-black mb-4 tracking-tight"
               style={{ color: NAVY }}
             >
-              How the System Works <Link
-                  to="/manual"
-                  className="bg-white/10 hover:bg-white/20 text-white border border-white/30 font-bold py-3 px-6 rounded-lg transition-colors text-center uppercase tracking-wider text-sm w-full sm:w-auto"
-                >
-                  User Manual
-                </Link>
+              How the System Works 
             </h2>
             <p className="text-gray-500 max-w-2xl mx-auto text-lg">
               Choose your portal below to understand your unique workflow and capabilities within the platform.
