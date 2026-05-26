@@ -131,6 +131,35 @@ function EventDashboard() {
   const netProfit = totalRev - talentCost;
   const ticketsRedeemed = (attendees as any[]).filter((a) => a.checked_in).length;
 
+  // ─── Reports metrics ───────────────────────────────────────────────
+  const ticketsSold = (attendees as any[]).reduce((a, x) => a + (x.quantity || 1), 0);
+  const ticketCapacity = (ticketTiers as any[]).reduce((a, t) => a + (t.capacity || 0), 0);
+  const ticketFillRate = ticketCapacity > 0 ? (ticketsSold / ticketCapacity) * 100 : null;
+  const showRate = ticketsSold > 0 ? (ticketsRedeemed / ticketsSold) * 100 : null;
+
+  const ticketTierBreakdown = useMemo(() => {
+    return (ticketTiers as any[]).map((t) => {
+      const tierAttendees = (attendees as any[]).filter((a) => a.ticket_tier_id === t.id);
+      const sold = tierAttendees.reduce((a, x) => a + (x.quantity || 1), 0);
+      const revenue = tierAttendees.reduce((a, x) => a + (x.ticket_tiers?.price || t.price || 0) * (x.quantity || 1), 0);
+      const fill = t.capacity > 0 ? (sold / t.capacity) * 100 : null;
+      const checkedIn = tierAttendees.filter((a) => a.checked_in).length;
+      return { id: t.id, name: t.name, sold, capacity: t.capacity || 0, fill, revenue, checkedIn };
+    });
+  }, [ticketTiers, attendees]);
+
+  const vendorApproved = (vendors as any[]).filter((v) => v.status === "approved" || v.status === "paid").length;
+  const vendorPending = (vendors as any[]).filter((v) => v.status === "pending" || v.status === "submitted").length;
+  const vendorCapacity = (vendorTiers as any[]).reduce((a, t) => a + (t.capacity || 0), 0);
+  const vendorFillRate = vendorCapacity > 0 ? (vendorApproved / vendorCapacity) * 100 : null;
+
+  const sponsorApproved = (sponsors as any[]).filter((s) => s.status === "approved" || s.status === "paid").length;
+  const sponsorPending = (sponsors as any[]).filter((s) => s.status === "pending" || s.status === "submitted").length;
+  const sponsorCapacity = (sponsorTiers as any[]).reduce((a, t) => a + (t.capacity || 0), 0);
+  const sponsorFillRate = sponsorCapacity > 0 ? (sponsorApproved / sponsorCapacity) * 100 : null;
+
+  const pct = (v: number | null) => (v == null ? "—" : `${v.toFixed(1)}%`);
+
   // Mutations
   const mCheckIn = useMutation({
     mutationFn: (v: { id: string; table: "attendees" | "volunteers"; checked_in: boolean }) =>
