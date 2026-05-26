@@ -877,22 +877,57 @@ function EventDashboard() {
         )}
 
         {activeView === "volunteers" && (
-          <div className="bg-card rounded-xl border">
-            <div className="p-4 border-b font-bold">Volunteers ({volunteers.length})</div>
-            {(volunteers as any[]).map((v) => (
-              <div key={v.id} className="p-3 border-b flex justify-between">
-                <div>
-                  {v.name}{" "}
-                  <span className="text-xs text-muted-foreground">{v.shift_role}</span>
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={downloadVolunteerTemplate}>
+                <Download className="h-4 w-4 mr-1.5" />
+                Template
+              </Button>
+              <Button variant="outline" size="sm" onClick={exportVolunteersCsv} disabled={!volunteers.length}>
+                <Download className="h-4 w-4 mr-1.5" />
+                Export
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => volunteerFileRef.current?.click()}
+                disabled={mBulkVolunteers.isPending}
+              >
+                <Upload className="h-4 w-4 mr-1.5" />
+                {mBulkVolunteers.isPending ? "Importing…" : "Import"}
+              </Button>
+              <input
+                ref={volunteerFileRef}
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleVolunteerFile(f);
+                  if (volunteerFileRef.current) volunteerFileRef.current.value = "";
+                }}
+              />
+            </div>
+            <div className="bg-card rounded-xl border">
+              <div className="p-4 border-b font-bold">Volunteers ({volunteers.length})</div>
+              {(volunteers as any[]).map((v) => (
+                <div key={v.id} className="p-3 border-b flex justify-between">
+                  <div>
+                    {v.name}{" "}
+                    <span className="text-xs text-muted-foreground">{v.shift_role}</span>
+                  </div>
+                  <button
+                    onClick={() => mCheckIn.mutate({ id: v.id, table: "volunteers", checked_in: !v.checked_in })}
+                    className={`px-3 py-1 rounded text-xs ${v.checked_in ? "bg-muted" : "bg-primary text-primary-foreground"}`}
+                  >
+                    {v.checked_in ? "Out" : "In"}
+                  </button>
                 </div>
-                <button
-                  onClick={() => mCheckIn.mutate({ id: v.id, table: "volunteers", checked_in: !v.checked_in })}
-                  className={`px-3 py-1 rounded text-xs ${v.checked_in ? "bg-muted" : "bg-primary text-primary-foreground"}`}
-                >
-                  {v.checked_in ? "Out" : "In"}
-                </button>
-              </div>
-            ))}
+              ))}
+              {volunteers.length === 0 && (
+                <div className="p-6 text-center text-sm text-muted-foreground">No volunteers yet.</div>
+              )}
+            </div>
           </div>
         )}
 
