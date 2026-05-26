@@ -307,6 +307,51 @@ function EventDashboard() {
     scanInputRef.current?.focus();
   };
 
+  // ─── Volunteer CSV handlers ──────────────────────────────────────────
+  function downloadVolunteerTemplate() {
+    const csv = rowsToCsv([{ name: "Jane Doe", shift_role: "Door" }]);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `volunteer-template-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportVolunteersCsv() {
+    const rows = (volunteers as any[]).map((v) => ({ name: v.name, shift_role: v.shift_role }));
+    if (!rows.length) {
+      showToast("No volunteers to export", "warning");
+      return;
+    }
+    const csv = rowsToCsv(rows);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `volunteers-${session.title?.replace(/\s+/g, "-") ?? "event"}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleVolunteerFile(file: File) {
+    const text = await file.text();
+    const parsed = parseCsv(text);
+    if (!parsed.length) {
+      showToast("CSV is empty", "error");
+      return;
+    }
+    const rows = parsed
+      .map((r) => ({ name: r.name || "", shift_role: r.shift_role || null }))
+      .filter((r) => r.name);
+    if (!rows.length) {
+      showToast("No rows with a name", "error");
+      return;
+    }
+    mBulkVolunteers.mutate(rows);
+  }
+
   if (isLoading) return <div className="p-8">Loading…</div>;
   if (!session) return <div className="p-8">Event not found.</div>;
 
