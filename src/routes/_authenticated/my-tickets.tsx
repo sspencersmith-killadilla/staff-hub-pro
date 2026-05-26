@@ -107,7 +107,7 @@ function TicketCard({ ticket }: { ticket: MyTicket }) {
           {dataUrl && (
             <a
               href={dataUrl}
-              download={`ticket-${ticket.id.slice(0, 8)}.png`}
+              download={`ticket-${ticket.id.slice(0, 8)}${ticket.seat_total > 1 ? `-seat${ticket.seat_index}of${ticket.seat_total}` : ""}.png`}
               className="text-[10px] font-bold uppercase tracking-wider text-slate-600 hover:text-slate-900"
             >
               Download
