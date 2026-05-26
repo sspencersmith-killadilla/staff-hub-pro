@@ -429,7 +429,18 @@ function EventDashboard() {
       </header>
 
       <main className="p-8 max-w-[1400px]">
-        {activeView === "reports" && (
+        {!canShowActive && navItems.length === 0 && (
+          <div className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">
+            You don't have permission to view any sections of this event. Contact an admin to request access.
+          </div>
+        )}
+        {!canShowActive && navItems.length > 0 && (
+          <div className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">
+            Select a section above.
+          </div>
+        )}
+        {canShowActive && activeView === "reports" && (
+
           <div className="space-y-6">
             <Section title="Financial">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
