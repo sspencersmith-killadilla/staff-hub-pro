@@ -91,6 +91,8 @@ function ApplyPage() {
         genre: artist.genre ?? "",
         bio: artist.bio ?? "",
         avatar_url: artist.avatar_url ?? "",
+        avatar_focal_x: (artist as any).avatar_focal_x ?? 50,
+        avatar_focal_y: (artist as any).avatar_focal_y ?? 50,
         spotify_link: artist.spotify_link ?? "",
         youtube_link: artist.youtube_link ?? "",
         soundcloud_link: artist.soundcloud_link ?? "",
