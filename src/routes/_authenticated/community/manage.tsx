@@ -273,7 +273,8 @@ function LocationsTab({ orgId }: { orgId: string }) {
               <Plus className="mr-2 h-4 w-4" /> Add location
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+
             <DialogHeader>
               <DialogTitle>
                 {editing ? "Edit location" : "Add a venue"}
@@ -495,7 +496,7 @@ function EventsTab({ orgId }: { orgId: string }) {
               <Plus className="mr-2 h-4 w-4" /> Submit event
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editing ? "Edit event" : "Submit an event"}
