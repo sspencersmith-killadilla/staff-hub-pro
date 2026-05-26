@@ -195,11 +195,12 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         org_name: org?.name ?? null,
         cost_text: null,
         ticketed: false,
-        detail_href: "/community",
+        detail_href: `/community-events/${(e as any).id}`,
         sponsors: [],
-        focal_x: 50,
-        focal_y: 50,
+        focal_x: (e as any).image_focal_x ?? 50,
+        focal_y: (e as any).image_focal_y ?? 50,
       });
+
     }
 
     for (const s of slotRes.data ?? []) {
