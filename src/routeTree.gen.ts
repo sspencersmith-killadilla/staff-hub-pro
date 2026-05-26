@@ -15,6 +15,7 @@ import { Route as StreetbeatsRouteImport } from './routes/streetbeats'
 import { Route as SponsorsRouteImport } from './routes/sponsors'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as NoAccessRouteImport } from './routes/no-access'
+import { Route as ManualRouteImport } from './routes/manual'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CommunityRouteImport } from './routes/community'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
@@ -79,6 +80,11 @@ const SignupRoute = SignupRouteImport.update({
 const NoAccessRoute = NoAccessRouteImport.update({
   id: '/no-access',
   path: '/no-access',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManualRoute = ManualRouteImport.update({
+  id: '/manual',
+  path: '/manual',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -276,6 +282,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/community': typeof CommunityRoute
   '/login': typeof LoginRoute
+  '/manual': typeof ManualRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
   '/sponsors': typeof SponsorsRoute
@@ -318,6 +325,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/community': typeof CommunityRoute
   '/login': typeof LoginRoute
+  '/manual': typeof ManualRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
   '/sponsors': typeof SponsorsRoute
@@ -361,6 +369,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/community': typeof CommunityRoute
   '/login': typeof LoginRoute
+  '/manual': typeof ManualRoute
   '/no-access': typeof NoAccessRoute
   '/signup': typeof SignupRoute
   '/sponsors': typeof SponsorsRoute
@@ -405,6 +414,7 @@ export interface FileRouteTypes {
     | '/'
     | '/community'
     | '/login'
+    | '/manual'
     | '/no-access'
     | '/signup'
     | '/sponsors'
@@ -447,6 +457,7 @@ export interface FileRouteTypes {
     | '/'
     | '/community'
     | '/login'
+    | '/manual'
     | '/no-access'
     | '/signup'
     | '/sponsors'
@@ -489,6 +500,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/community'
     | '/login'
+    | '/manual'
     | '/no-access'
     | '/signup'
     | '/sponsors'
@@ -533,6 +545,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   CommunityRoute: typeof CommunityRoute
   LoginRoute: typeof LoginRoute
+  ManualRoute: typeof ManualRoute
   NoAccessRoute: typeof NoAccessRoute
   SignupRoute: typeof SignupRoute
   SponsorsRoute: typeof SponsorsRoute
@@ -591,6 +604,13 @@ declare module '@tanstack/react-router' {
       path: '/no-access'
       fullPath: '/no-access'
       preLoaderRoute: typeof NoAccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manual': {
+      id: '/manual'
+      path: '/manual'
+      fullPath: '/manual'
+      preLoaderRoute: typeof ManualRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -936,6 +956,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   CommunityRoute: CommunityRoute,
   LoginRoute: LoginRoute,
+  ManualRoute: ManualRoute,
   NoAccessRoute: NoAccessRoute,
   SignupRoute: SignupRoute,
   SponsorsRoute: SponsorsRoute,
