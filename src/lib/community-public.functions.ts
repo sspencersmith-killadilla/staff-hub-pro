@@ -4,7 +4,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const EVENT_COLS =
-  "id, organization_id, title, description, start_time, end_time, location, image_url, is_community, approval_status, reviewer_notes, submitted_by";
+  "id, organization_id, title, description, start_time, end_time, location, image_url, image_focal_x, image_focal_y, is_community, approval_status, reviewer_notes, submitted_by, cost_text, contact_info";
 
 function eventRow(e: any, org: any | null, loc: any | null) {
   return {
@@ -15,16 +15,19 @@ function eventRow(e: any, org: any | null, loc: any | null) {
     description: e.description ?? null,
     starts_at: e.start_time,
     ends_at: e.end_time,
-    cost_text: null as string | null,
-    contact_info: null as string | null,
+    cost_text: e.cost_text ?? null,
+    contact_info: e.contact_info ?? null,
     status: e.approval_status ?? "pending",
     staff_notes: e.reviewer_notes ?? null,
     image_url: e.image_url ?? null,
+    image_focal_x: typeof e.image_focal_x === "number" ? e.image_focal_x : 50,
+    image_focal_y: typeof e.image_focal_y === "number" ? e.image_focal_y : 50,
     location: loc ?? (e.location ? { name: e.location, address: null, city: null } : null),
     org: org,
     created_at: null as string | null,
   };
 }
+
 
 async function hydrate(rows: any[]) {
   const orgIds = Array.from(new Set(rows.map((r) => r.organization_id).filter(Boolean)));
