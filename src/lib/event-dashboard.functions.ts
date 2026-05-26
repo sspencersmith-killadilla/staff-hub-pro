@@ -13,7 +13,7 @@ export const getEventDashboard = createServerFn({ method: "GET" })
     await assertStaff(context.userId);
     const id = data.id;
     const [
-      sess, att, tal, vol, tt, vt, st, v, sp, gigs, stages,
+      sess, att, tal, vol, tt, vt, st, v, sp, gigs, stages, wait,
     ] = await Promise.all([
       supabaseAdmin
         .from("sessions")
@@ -40,6 +40,11 @@ export const getEventDashboard = createServerFn({ method: "GET" })
         .eq("session_id", id)
         .order("start_time", { ascending: true }),
       supabaseAdmin.from("stages").select("*").order("name"),
+      supabaseAdmin
+        .from("ticket_waitlist")
+        .select("*, ticket_tiers(name)")
+        .eq("session_id", id)
+        .order("created_at", { ascending: true }),
     ]);
 
     return {
@@ -54,8 +59,23 @@ export const getEventDashboard = createServerFn({ method: "GET" })
       sponsors: sp.data ?? [],
       gigs: gigs.data ?? [],
       stages: stages.data ?? [],
+      waitlist: wait.data ?? [],
     };
   });
+
+export const removeFromWaitlist = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => idIn.parse(i))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    const { error } = await supabaseAdmin
+      .from("ticket_waitlist")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 
 // ─── Check-in ────────────────────────────────────────────────────────
 export const toggleCheckIn = createServerFn({ method: "POST" })
