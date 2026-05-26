@@ -14,6 +14,7 @@ import {
   saveTalent,
   deleteTalent,
   saveFloorplan,
+  removeFromWaitlist,
 } from "@/lib/event-dashboard.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
