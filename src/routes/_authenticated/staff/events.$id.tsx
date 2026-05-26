@@ -301,14 +301,77 @@ function EventDashboard() {
 
       <main className="p-8 max-w-[1400px]">
         {activeView === "reports" && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Stat label="Gross Revenue" value={`$${totalRev.toLocaleString()}`} />
-            <Stat label="Talent Costs" value={`$${talentCost.toLocaleString()}`} />
-            <Stat
-              label="Net"
-              value={`$${netProfit.toLocaleString()}`}
-              valueClass={netProfit >= 0 ? "text-emerald-600" : "text-red-600"}
-            />
+          <div className="space-y-6">
+            <Section title="Financial">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <Stat label="Gross Revenue" value={`$${totalRev.toLocaleString()}`} />
+                <Stat label="Talent Costs" value={`$${talentCost.toLocaleString()}`} />
+                <Stat
+                  label="Net"
+                  value={`$${netProfit.toLocaleString()}`}
+                  valueClass={netProfit >= 0 ? "text-emerald-600" : "text-red-600"}
+                />
+                <Stat label="Ticket Revenue" value={`$${ticketRev.toLocaleString()}`} />
+                <Stat label="Vendor Revenue" value={`$${vendorRev.toLocaleString()}`} />
+                <Stat label="Sponsor Revenue" value={`$${sponsorRev.toLocaleString()}`} />
+              </div>
+            </Section>
+
+            <Section title="Tickets">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <Stat label="Tickets Sold" value={ticketsSold.toLocaleString()} />
+                <Stat label="Capacity" value={ticketCapacity.toLocaleString()} />
+                <Stat label="Fill Rate" value={pct(ticketFillRate)} />
+                <Stat label="Checked In" value={ticketsRedeemed.toLocaleString()} />
+                <Stat label="Show Rate" value={pct(showRate)} />
+              </div>
+              {ticketTierBreakdown.length > 0 && (
+                <div className="mt-4 bg-card rounded-xl border overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/50 text-xs uppercase">
+                      <tr>
+                        <th className="text-left px-4 py-2">Tier</th>
+                        <th className="text-right px-4 py-2">Sold</th>
+                        <th className="text-right px-4 py-2">Capacity</th>
+                        <th className="text-right px-4 py-2">Fill</th>
+                        <th className="text-right px-4 py-2">Checked In</th>
+                        <th className="text-right px-4 py-2">Revenue</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {ticketTierBreakdown.map((t) => (
+                        <tr key={t.id}>
+                          <td className="px-4 py-2 font-medium">{t.name}</td>
+                          <td className="px-4 py-2 text-right">{t.sold}</td>
+                          <td className="px-4 py-2 text-right">{t.capacity || "—"}</td>
+                          <td className="px-4 py-2 text-right">{pct(t.fill)}</td>
+                          <td className="px-4 py-2 text-right">{t.checkedIn}</td>
+                          <td className="px-4 py-2 text-right">${t.revenue.toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Section>
+
+            <Section title="Vendors">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Stat label="Approved" value={vendorApproved.toLocaleString()} />
+                <Stat label="Capacity" value={vendorCapacity.toLocaleString()} />
+                <Stat label="Fill Rate" value={pct(vendorFillRate)} />
+                <Stat label="Pending" value={vendorPending.toLocaleString()} />
+              </div>
+            </Section>
+
+            <Section title="Sponsors">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Stat label="Approved" value={sponsorApproved.toLocaleString()} />
+                <Stat label="Slot Capacity" value={sponsorCapacity.toLocaleString()} />
+                <Stat label="Fill Rate" value={pct(sponsorFillRate)} />
+                <Stat label="Pending" value={sponsorPending.toLocaleString()} />
+              </div>
+            </Section>
           </div>
         )}
 
