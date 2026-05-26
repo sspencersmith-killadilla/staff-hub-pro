@@ -628,20 +628,30 @@ function EventDetail() {
 
                   <button
                     type="submit"
-                    disabled={submitting || (isPaid && !paymentsReady)}
+                    disabled={submitting || (isPaid && !paymentsReady && !isSoldOut)}
                     className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-md bg-slate-900 px-5 py-3 text-sm font-bold uppercase tracking-wider text-white hover:bg-slate-700 disabled:opacity-50"
                   >
-                    {isPaid ? (
+                    {isSoldOut ? (
+                      <Users className="h-4 w-4" />
+                    ) : isPaid ? (
                       <CreditCard className="h-4 w-4" />
                     ) : (
                       <Ticket className="h-4 w-4" />
                     )}
                     {submitting
                       ? "Submitting…"
-                      : isPaid
-                        ? `Pay $${tierPrice.toFixed(2)} & register`
-                        : "Confirm registration"}
+                      : isSoldOut
+                        ? "Join waitlist"
+                        : isPaid
+                          ? `Pay $${tierPrice.toFixed(2)} & register`
+                          : "Confirm registration"}
                   </button>
+                  {waitlistSuccess && (
+                    <div className="mt-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+                      You're on the waitlist for <b>{waitlistSuccess}</b>. We'll
+                      reach out if a spot opens up.
+                    </div>
+                  )}
                 </form>
               )}
             </div>
