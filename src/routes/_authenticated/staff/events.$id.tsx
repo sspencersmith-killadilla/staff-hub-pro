@@ -275,7 +275,7 @@ function EventDashboard() {
       bulkUpsertVolunteers({ data: { session_id: id, rows } }),
     onSuccess: (res: any) => {
       invalidate();
-      showToast(`Imported ${res?.count ?? rows.length} volunteer(s)`);
+      showToast(`Imported ${res?.count ?? 0} volunteer(s)`);
     },
     onError: (e: Error) => showToast(e.message, "error"),
   });
