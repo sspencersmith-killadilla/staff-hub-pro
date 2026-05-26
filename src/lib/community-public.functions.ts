@@ -375,3 +375,27 @@ export const cancelMyCommunityEvent = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ---------- Public flyer ----------
+
+export const getPublicCommunityEvent = createServerFn({ method: "GET" })
+  .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ data }) => {
+    const { data: row, error } = await supabaseAdmin
+      .from("events")
+      .select(EVENT_COLS)
+      .eq("id", data.id)
+      .eq("is_community", true)
+      .eq("approval_status", "approved")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row) return { event: null as any };
+    const orgRes = row.organization_id
+      ? await supabaseAdmin
+          .from("community_organizations")
+          .select("id, name, org_type, website, contact_email, description")
+          .eq("id", row.organization_id)
+          .maybeSingle()
+      : { data: null };
+    return { event: eventRow(row, orgRes.data ?? null, null) };
+  });
