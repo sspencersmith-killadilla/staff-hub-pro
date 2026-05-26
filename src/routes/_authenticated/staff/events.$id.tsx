@@ -131,6 +131,35 @@ function EventDashboard() {
   const netProfit = totalRev - talentCost;
   const ticketsRedeemed = (attendees as any[]).filter((a) => a.checked_in).length;
 
+  // ─── Reports metrics ───────────────────────────────────────────────
+  const ticketsSold = (attendees as any[]).reduce((a, x) => a + (x.quantity || 1), 0);
+  const ticketCapacity = (ticketTiers as any[]).reduce((a, t) => a + (t.capacity || 0), 0);
+  const ticketFillRate = ticketCapacity > 0 ? (ticketsSold / ticketCapacity) * 100 : null;
+  const showRate = ticketsSold > 0 ? (ticketsRedeemed / ticketsSold) * 100 : null;
+
+  const ticketTierBreakdown = useMemo(() => {
+    return (ticketTiers as any[]).map((t) => {
+      const tierAttendees = (attendees as any[]).filter((a) => a.ticket_tier_id === t.id);
+      const sold = tierAttendees.reduce((a, x) => a + (x.quantity || 1), 0);
+      const revenue = tierAttendees.reduce((a, x) => a + (x.ticket_tiers?.price || t.price || 0) * (x.quantity || 1), 0);
+      const fill = t.capacity > 0 ? (sold / t.capacity) * 100 : null;
+      const checkedIn = tierAttendees.filter((a) => a.checked_in).length;
+      return { id: t.id, name: t.name, sold, capacity: t.capacity || 0, fill, revenue, checkedIn };
+    });
+  }, [ticketTiers, attendees]);
+
+  const vendorApproved = (vendors as any[]).filter((v) => v.status === "approved" || v.status === "paid").length;
+  const vendorPending = (vendors as any[]).filter((v) => v.status === "pending" || v.status === "submitted").length;
+  const vendorCapacity = (vendorTiers as any[]).reduce((a, t) => a + (t.capacity || 0), 0);
+  const vendorFillRate = vendorCapacity > 0 ? (vendorApproved / vendorCapacity) * 100 : null;
+
+  const sponsorApproved = (sponsors as any[]).filter((s) => s.status === "approved" || s.status === "paid").length;
+  const sponsorPending = (sponsors as any[]).filter((s) => s.status === "pending" || s.status === "submitted").length;
+  const sponsorCapacity = (sponsorTiers as any[]).reduce((a, t) => a + (t.capacity || 0), 0);
+  const sponsorFillRate = sponsorCapacity > 0 ? (sponsorApproved / sponsorCapacity) * 100 : null;
+
+  const pct = (v: number | null) => (v == null ? "—" : `${v.toFixed(1)}%`);
+
   // Mutations
   const mCheckIn = useMutation({
     mutationFn: (v: { id: string; table: "attendees" | "volunteers"; checked_in: boolean }) =>
@@ -272,14 +301,77 @@ function EventDashboard() {
 
       <main className="p-8 max-w-[1400px]">
         {activeView === "reports" && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Stat label="Gross Revenue" value={`$${totalRev.toLocaleString()}`} />
-            <Stat label="Talent Costs" value={`$${talentCost.toLocaleString()}`} />
-            <Stat
-              label="Net"
-              value={`$${netProfit.toLocaleString()}`}
-              valueClass={netProfit >= 0 ? "text-emerald-600" : "text-red-600"}
-            />
+          <div className="space-y-6">
+            <Section title="Financial">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <Stat label="Gross Revenue" value={`$${totalRev.toLocaleString()}`} />
+                <Stat label="Talent Costs" value={`$${talentCost.toLocaleString()}`} />
+                <Stat
+                  label="Net"
+                  value={`$${netProfit.toLocaleString()}`}
+                  valueClass={netProfit >= 0 ? "text-emerald-600" : "text-red-600"}
+                />
+                <Stat label="Ticket Revenue" value={`$${ticketRev.toLocaleString()}`} />
+                <Stat label="Vendor Revenue" value={`$${vendorRev.toLocaleString()}`} />
+                <Stat label="Sponsor Revenue" value={`$${sponsorRev.toLocaleString()}`} />
+              </div>
+            </Section>
+
+            <Section title="Tickets">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <Stat label="Tickets Sold" value={ticketsSold.toLocaleString()} />
+                <Stat label="Capacity" value={ticketCapacity.toLocaleString()} />
+                <Stat label="Fill Rate" value={pct(ticketFillRate)} />
+                <Stat label="Checked In" value={ticketsRedeemed.toLocaleString()} />
+                <Stat label="Show Rate" value={pct(showRate)} />
+              </div>
+              {ticketTierBreakdown.length > 0 && (
+                <div className="mt-4 bg-card rounded-xl border overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/50 text-xs uppercase">
+                      <tr>
+                        <th className="text-left px-4 py-2">Tier</th>
+                        <th className="text-right px-4 py-2">Sold</th>
+                        <th className="text-right px-4 py-2">Capacity</th>
+                        <th className="text-right px-4 py-2">Fill</th>
+                        <th className="text-right px-4 py-2">Checked In</th>
+                        <th className="text-right px-4 py-2">Revenue</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {ticketTierBreakdown.map((t) => (
+                        <tr key={t.id}>
+                          <td className="px-4 py-2 font-medium">{t.name}</td>
+                          <td className="px-4 py-2 text-right">{t.sold}</td>
+                          <td className="px-4 py-2 text-right">{t.capacity || "—"}</td>
+                          <td className="px-4 py-2 text-right">{pct(t.fill)}</td>
+                          <td className="px-4 py-2 text-right">{t.checkedIn}</td>
+                          <td className="px-4 py-2 text-right">${t.revenue.toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Section>
+
+            <Section title="Vendors">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Stat label="Approved" value={vendorApproved.toLocaleString()} />
+                <Stat label="Capacity" value={vendorCapacity.toLocaleString()} />
+                <Stat label="Fill Rate" value={pct(vendorFillRate)} />
+                <Stat label="Pending" value={vendorPending.toLocaleString()} />
+              </div>
+            </Section>
+
+            <Section title="Sponsors">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Stat label="Approved" value={sponsorApproved.toLocaleString()} />
+                <Stat label="Slot Capacity" value={sponsorCapacity.toLocaleString()} />
+                <Stat label="Fill Rate" value={pct(sponsorFillRate)} />
+                <Stat label="Pending" value={sponsorPending.toLocaleString()} />
+              </div>
+            </Section>
           </div>
         )}
 
@@ -701,5 +793,14 @@ function Stat({ label, value, valueClass }: { label: string; value: string; valu
       <div className="text-xs uppercase tracking-widest text-muted-foreground">{label}</div>
       <div className={`text-3xl font-black mt-2 ${valueClass ?? ""}`}>{value}</div>
     </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section>
+      <h2 className="font-black uppercase text-sm tracking-widest text-muted-foreground mb-3">{title}</h2>
+      {children}
+    </section>
   );
 }
