@@ -8,6 +8,10 @@ import {
   listAllAttendees,
   type StaffAttendee,
 } from "@/lib/attendees.functions";
+import {
+  promoteWaitlistEntry,
+  removeFromWaitlist,
+} from "@/lib/event-dashboard.functions";
 
 const Scanner = lazy(() =>
   import("@yudiel/react-qr-scanner").then((m) => ({ default: m.Scanner })),
@@ -57,6 +61,7 @@ function AttendeesPage() {
 
   const attendees: StaffAttendee[] = data?.attendees ?? [];
   const sessions = data?.sessions ?? [];
+  const waitlist: any[] = (data as any)?.waitlist ?? [];
   const selectedEvent = sessions.find((s: any) => s.id === sessionFilter) as
     | { id: string; title: string }
     | undefined;
@@ -114,6 +119,24 @@ function AttendeesPage() {
   const mToggle = useMutation({
     mutationFn: (v: { id: string; checked_in: boolean }) =>
       doCheckIn({ data: v }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["staff", "attendees"] }),
+  });
+
+  const doPromote = useServerFn(promoteWaitlistEntry);
+  const doRemoveWait = useServerFn(removeFromWaitlist);
+  const mPromote = useMutation({
+    mutationFn: (id: string) => doPromote({ data: { id } }),
+    onSuccess: (res: any) => {
+      qc.invalidateQueries({ queryKey: ["staff", "attendees"] });
+      setScanMsg({
+        type: "success",
+        text: `✓ Issued ${res?.count ?? 1} ticket${(res?.count ?? 1) > 1 ? "s" : ""} from waitlist`,
+      });
+    },
+    onError: (e: Error) => setScanMsg({ type: "error", text: e.message }),
+  });
+  const mRemoveWait = useMutation({
+    mutationFn: (id: string) => doRemoveWait({ data: { id } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["staff", "attendees"] }),
   });
 
@@ -353,7 +376,75 @@ function AttendeesPage() {
           className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
         />
       </div>
-
+      {/* Waitlist (per event) */}
+      {eventSelected && (
+        <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+            <div>
+              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">
+                Waitlist
+              </h2>
+              <p className="text-xs text-slate-500">
+                Promote to issue tickets when a no-show seat opens up.
+              </p>
+            </div>
+            <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-700">
+              {waitlist.length} waiting
+            </span>
+          </div>
+          {waitlist.length === 0 ? (
+            <p className="p-4 text-sm text-slate-500">No one on the waitlist for this event.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                <tr>
+                  <th className="px-4 py-2">Name</th>
+                  <th className="px-4 py-2">Email</th>
+                  <th className="px-4 py-2">Tier</th>
+                  <th className="px-4 py-2 text-right">Qty</th>
+                  <th className="px-4 py-2">Joined</th>
+                  <th className="px-4 py-2 text-right"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {waitlist.map((w) => (
+                  <tr key={w.id} className="border-t border-slate-100">
+                    <td className="px-4 py-3 font-semibold text-slate-900">{w.full_name}</td>
+                    <td className="px-4 py-3 text-slate-600">{w.email}</td>
+                    <td className="px-4 py-3 text-slate-600">{w.ticket_tiers?.name ?? "—"}</td>
+                    <td className="px-4 py-3 text-right text-slate-600">{w.quantity ?? 1}</td>
+                    <td className="px-4 py-3 text-xs text-slate-500">
+                      {w.created_at ? new Date(w.created_at).toLocaleDateString() : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() =>
+                            confirm(
+                              `Issue ${w.quantity ?? 1} ticket${(w.quantity ?? 1) > 1 ? "s" : ""} to ${w.full_name} and remove from waitlist?`,
+                            ) && mPromote.mutate(w.id)
+                          }
+                          className="rounded-md border border-emerald-300 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-700 hover:bg-emerald-50"
+                        >
+                          Promote
+                        </button>
+                        <button
+                          onClick={() =>
+                            confirm("Remove from waitlist?") && mRemoveWait.mutate(w.id)
+                          }
+                          className="rounded-md border border-slate-300 px-3 py-1 text-xs font-bold uppercase tracking-wider text-rose-600 hover:bg-rose-50"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
 
       {/* List */}
       <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white">

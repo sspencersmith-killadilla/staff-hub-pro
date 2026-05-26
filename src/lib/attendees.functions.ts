@@ -144,7 +144,17 @@ export const listAllAttendees = createServerFn({ method: "GET" })
       .order("start_time", { ascending: false })
       .limit(500);
 
-    return { attendees, sessions: sessions ?? [] };
+    let waitlist: any[] = [];
+    if (data.session_id) {
+      const { data: w } = await supabaseAdmin
+        .from("ticket_waitlist")
+        .select("id, full_name, email, quantity, created_at, ticket_tier_id, ticket_tiers(name)")
+        .eq("session_id", data.session_id)
+        .order("created_at", { ascending: true });
+      waitlist = w ?? [];
+    }
+
+    return { attendees, sessions: sessions ?? [], waitlist };
   });
 
 // ─── Staff: check-in by attendee id (scanner) ────────────────────────
