@@ -254,7 +254,11 @@ const eventInput = z.object({
   ends_at: z.string().min(1),
   cost_text: z.string().trim().max(120).optional().nullable(),
   contact_info: z.string().trim().max(300).optional().nullable(),
+  image_url: z.string().trim().url().max(500).optional().nullable().or(z.literal("")),
+  image_focal_x: z.number().int().min(0).max(100).optional(),
+  image_focal_y: z.number().int().min(0).max(100).optional(),
 });
+
 
 async function resolveLocationLabel(orgId: string, locId: string | null | undefined) {
   if (!locId) return null;
