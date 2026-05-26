@@ -285,6 +285,7 @@ function EventDashboard() {
   const [editingTalent, setEditingTalent] = useState<any>(null);
   const [inheritTime, setInheritTime] = useState(true);
   const [inheritLocation, setInheritLocation] = useState(true);
+  const volunteerFileRef = useRef<HTMLInputElement>(null);
 
   // Door scanner
   const [scanInput, setScanInput] = useState("");
