@@ -399,6 +399,14 @@ function EventsPage() {
               </div>
               <Input placeholder="Image URL (Poster)" value={form.image_url}
                 onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
+              {form.image_url && (
+                <ImageFocalPicker
+                  src={form.image_url}
+                  x={form.focal_x}
+                  y={form.focal_y}
+                  onChange={({ x, y }) => setForm({ ...form, focal_x: x, focal_y: y })}
+                />
+              )}
               <label className="flex items-center gap-2 text-sm text-slate-700">
                 <Checkbox checked={form.open_to_vendors}
                   onCheckedChange={(c) => setForm({ ...form, open_to_vendors: c === true })} />
