@@ -37,6 +37,11 @@ function AdminPage() {
 
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"staff" | "admin">("staff");
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [bulkResult, setBulkResult] = useState<
+    | { total: number; invited: number; existed: number; errors: { email: string; message?: string }[] }
+    | null
+  >(null);
 
   const invite = useMutation({
     mutationFn: () => inviteStaff({ data: { email, role } }),
@@ -54,6 +59,41 @@ function AdminPage() {
     mutationFn: (userId: string) => deleteStaff({ data: { userId } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["staff"] }),
   });
+  const bulk = useMutation({
+    mutationFn: async (emails: string[]) => bulkInviteStaff({ data: { emails } }),
+    onSuccess: (r) => {
+      setBulkResult(r);
+      setCsvFile(null);
+      qc.invalidateQueries({ queryKey: ["staff"] });
+    },
+  });
+
+  function downloadTemplate() {
+    const csv = "email\nstaff1@example.com\nstaff2@example.com\n";
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "staff-template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleUpload(e: React.FormEvent) {
+    e.preventDefault();
+    if (!csvFile) return;
+    const text = await csvFile.text();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emails = text
+      .split(/\r?\n/)
+      .map((l) => l.split(",")[0]?.trim() ?? "")
+      .filter((v) => v && v.toLowerCase() !== "email" && emailRegex.test(v));
+    if (emails.length === 0) {
+      setBulkResult({ total: 0, invited: 0, existed: 0, errors: [{ email: "(none)", message: "No valid emails found in CSV" }] });
+      return;
+    }
+    bulk.mutate(emails);
+  }
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 space-y-8">
