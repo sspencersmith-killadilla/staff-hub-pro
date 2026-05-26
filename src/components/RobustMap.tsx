@@ -154,10 +154,13 @@ export default function RobustMap({
       setLines(mapData.lines || []);
       setVendors(mapData.vendors || []);
       setShapes(mapData.shapes || []);
+      setBackgroundImage(mapData.backgroundImage ?? null);
+      setBgUrlInput(mapData.backgroundImage ?? "");
     }
     setHistory([]); setHistoryIdx(-1); setIsDirty(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.id]);
+
 
   const pushHistory = useCallback((l: DrawLine[], v: MapVendor[], s: MapShape[]) => {
     setHistory((prev) => {
