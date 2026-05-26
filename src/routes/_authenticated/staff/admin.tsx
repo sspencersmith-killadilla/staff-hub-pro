@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMyRoles } from "@/lib/auth.functions";
 import {
@@ -68,7 +68,7 @@ function AdminPage() {
     },
   });
 
-  function handleBulkSubmit(e: React.FormEvent) {
+  function handleBulkSubmit(e: FormEvent) {
     e.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const emails = bulkEmails
