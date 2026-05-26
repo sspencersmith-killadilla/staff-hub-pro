@@ -200,7 +200,6 @@ export const payAndRegisterForCityEvent = createServerFn({ method: "POST" })
         .from("attendees")
         .insert({
           user_id: userId,
-          session_id: data.session_id,
           full_name: data.full_name,
           email: data.email,
           ticket_tier_id: data.ticket_tier_id,
