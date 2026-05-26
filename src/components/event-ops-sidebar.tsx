@@ -48,6 +48,7 @@ export function EventOpsSidebar() {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { isAdmin } = useAuth();
   const { isEnabled } = useModules();
+  const { can } = usePermissions();
   const navigate = useNavigate();
 
   const isActive = (url: string, exact?: boolean) =>
@@ -58,7 +59,12 @@ export function EventOpsSidebar() {
     navigate({ to: "/login" });
   };
 
-  const visibleItems = items.filter((it) => !it.module || isEnabled(it.module));
+  const visibleItems = items.filter(
+    (it) =>
+      (!it.module || isEnabled(it.module)) &&
+      (!it.permission || can(it.permission)),
+  );
+
 
   return (
     <aside className="hidden md:flex w-60 shrink-0 flex-col bg-[hsl(210_60%_12%)] text-white">
