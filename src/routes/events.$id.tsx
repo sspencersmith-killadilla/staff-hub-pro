@@ -101,7 +101,19 @@ function EventDetail() {
     const email = String(fd.get("email") ?? "");
     const quantity = Number(fd.get("quantity") ?? 1);
     try {
-      if (isPaid) {
+      if (isSoldOut) {
+        if (!tierId) throw new Error("Pick a ticket tier first.");
+        await joinWaitlist({
+          data: {
+            session_id: id,
+            ticket_tier_id: tierId,
+            full_name,
+            email,
+            quantity,
+          },
+        });
+        setWaitlistSuccess(activeTier?.name ?? "this tier");
+      } else if (isPaid) {
         if (!paymentsReady) {
           throw new Error(
             "Payments are not yet configured for this site. Please contact the organizer.",
