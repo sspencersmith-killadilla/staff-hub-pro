@@ -123,6 +123,8 @@ export const deleteStaff = createServerFn({ method: "POST" })
 
     if (data.userId === context.userId)
       throw new Error("You cannot delete yourself");
+    if (await isSuperAdmin(data.userId))
+      throw new Error("This account is protected and cannot be deleted.");
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
     if (error) throw new Error(error.message);
     return { ok: true };
