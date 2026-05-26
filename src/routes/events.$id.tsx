@@ -75,6 +75,7 @@ function EventDetail() {
   const [selectedTier, setSelectedTier] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [waitlistSuccess, setWaitlistSuccess] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
   const tiers = data?.tiers ?? [];
