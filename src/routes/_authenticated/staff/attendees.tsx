@@ -8,6 +8,10 @@ import {
   listAllAttendees,
   type StaffAttendee,
 } from "@/lib/attendees.functions";
+import {
+  promoteWaitlistEntry,
+  removeFromWaitlist,
+} from "@/lib/event-dashboard.functions";
 
 const Scanner = lazy(() =>
   import("@yudiel/react-qr-scanner").then((m) => ({ default: m.Scanner })),
@@ -57,6 +61,7 @@ function AttendeesPage() {
 
   const attendees: StaffAttendee[] = data?.attendees ?? [];
   const sessions = data?.sessions ?? [];
+  const waitlist: any[] = (data as any)?.waitlist ?? [];
   const selectedEvent = sessions.find((s: any) => s.id === sessionFilter) as
     | { id: string; title: string }
     | undefined;
@@ -114,6 +119,24 @@ function AttendeesPage() {
   const mToggle = useMutation({
     mutationFn: (v: { id: string; checked_in: boolean }) =>
       doCheckIn({ data: v }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["staff", "attendees"] }),
+  });
+
+  const doPromote = useServerFn(promoteWaitlistEntry);
+  const doRemoveWait = useServerFn(removeFromWaitlist);
+  const mPromote = useMutation({
+    mutationFn: (id: string) => doPromote({ data: { id } }),
+    onSuccess: (res: any) => {
+      qc.invalidateQueries({ queryKey: ["staff", "attendees"] });
+      setScanMsg({
+        type: "success",
+        text: `✓ Issued ${res?.count ?? 1} ticket${(res?.count ?? 1) > 1 ? "s" : ""} from waitlist`,
+      });
+    },
+    onError: (e: Error) => setScanMsg({ type: "error", text: e.message }),
+  });
+  const mRemoveWait = useMutation({
+    mutationFn: (id: string) => doRemoveWait({ data: { id } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["staff", "attendees"] }),
   });
 
