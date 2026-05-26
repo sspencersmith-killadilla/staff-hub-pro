@@ -46,7 +46,7 @@ function Home() {
             <h1 className="text-5xl md:text-6xl text-white mb-6 leading-tight tracking-tight font-black">
               Community Event <br className="hidden md:block" /> &amp; Partnership Portal
             </h1>
-            <p className="text-lg text-blue-100 mb-8 max-w-2xl leading-relaxed">
+            <p className="text-lg text-blue-100 mb-8 max-w-full leading-relaxed">
               Your central hub to discover local events, book municipal spaces, and partner with the city.
             </p>
             {isAuthenticated && (
