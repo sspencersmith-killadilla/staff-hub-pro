@@ -30,6 +30,8 @@ export type UnifiedEvent = {
   sponsors: EventSponsor[];
   focal_x: number; // 0-100, CSS object-position x
   focal_y: number; // 0-100, CSS object-position y
+  sold_out: boolean;
+  waitlist_available: boolean;
 };
 
 export const listPublicAllEvents = createServerFn({ method: "GET" })
@@ -146,9 +148,49 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
       sponsorsBySession.set(sid, list);
     }
 
+    // Sold-out check for city sessions (sessionIds already defined above)
+    const [tiersRes, attRes] = await Promise.all([
+      sessionIds.length
+        ? supabaseAdmin.from("ticket_tiers").select("id, session_id, capacity").in("session_id", sessionIds as any)
+        : Promise.resolve({ data: [] as any[] }),
+      sessionIds.length
+        ? supabaseAdmin
+            .from("attendees")
+            .select("ticket_tier_id, quantity, ticket_tiers!inner(session_id)")
+            .in("ticket_tiers.session_id", sessionIds as any)
+        : Promise.resolve({ data: [] as any[] }),
+    ]);
+
+    const soldByTier = new Map<string, number>();
+    for (const a of (attRes.data ?? []) as any[]) {
+      if (!a.ticket_tier_id) continue;
+      soldByTier.set(
+        a.ticket_tier_id,
+        (soldByTier.get(a.ticket_tier_id) ?? 0) + (a.quantity ?? 1),
+      );
+    }
+
+    const tiersBySession = new Map<string, { capacity: number; sold: number }[]>();
+    for (const t of (tiersRes.data ?? []) as any[]) {
+      const sid = t.session_id as string;
+      const sold = soldByTier.get(t.id) ?? 0;
+      const capacity = Number(t.capacity ?? 0);
+      const list = tiersBySession.get(sid) ?? [];
+      list.push({ capacity, sold });
+      tiersBySession.set(sid, list);
+    }
+
+    function isSoldOut(sessionId: string): boolean {
+      const tiers = tiersBySession.get(sessionId);
+      if (!tiers || tiers.length === 0) return false;
+      // Sold out if every tier with a positive capacity is at/over capacity
+      return tiers.every((t) => t.capacity > 0 && t.sold >= t.capacity);
+    }
+
     const out: UnifiedEvent[] = [];
 
     for (const s of sessRes.data ?? []) {
+      const sid = String((s as any).id);
       const stage = (s as any).stage_id ? stagesById.get((s as any).stage_id) : null;
       const room = (s as any).room_id ? roomsById.get((s as any).room_id) : null;
       const venue =
@@ -156,8 +198,9 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         (room?.venue_id && venuesById.get(room.venue_id)) ||
         null;
       const sub = stage ?? room;
+      const soldOut = isSoldOut(sid);
       out.push({
-        id: String((s as any).id),
+        id: sid,
         source: "city",
         title: (s as any).title,
         description: (s as any).event_type ?? null,
@@ -171,10 +214,12 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         org_name: (s as any).speaker_name ?? null,
         cost_text: null,
         ticketed: true,
-        detail_href: `/events/${(s as any).id}`,
-        sponsors: sponsorsBySession.get((s as any).id) ?? [],
+        detail_href: `/events/${sid}`,
+        sponsors: sponsorsBySession.get(sid) ?? [],
         focal_x: (s as any).focal_x ?? 50,
         focal_y: (s as any).focal_y ?? 50,
+        sold_out: soldOut,
+        waitlist_available: soldOut,
       });
     }
 
@@ -199,6 +244,8 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         sponsors: [],
         focal_x: (e as any).image_focal_x ?? 50,
         focal_y: (e as any).image_focal_y ?? 50,
+        sold_out: false,
+        waitlist_available: false,
       });
 
     }
@@ -226,6 +273,8 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         sponsors: [],
         focal_x: busker?.avatar_focal_x ?? 50,
         focal_y: busker?.avatar_focal_y ?? 50,
+        sold_out: false,
+        waitlist_available: false,
       });
     }
 
