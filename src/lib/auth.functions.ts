@@ -1,10 +1,29 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+const SUPER_ADMIN_EMAIL = "ssmith3@mckinneytexas.org";
+
 export const getMyRoles = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId, claims } = context;
+
+    // Self-heal: super admin always has the admin role.
+    if (
+      typeof claims.email === "string" &&
+      claims.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()
+    ) {
+      const { supabaseAdmin } = await import(
+        "@/integrations/supabase/client.server"
+      );
+      await supabaseAdmin
+        .from("user_roles")
+        .upsert(
+          { user_id: userId, role: "admin" },
+          { onConflict: "user_id,role" },
+        );
+    }
+
     const { data, error } = await supabase
       .from("user_roles")
       .select("role")

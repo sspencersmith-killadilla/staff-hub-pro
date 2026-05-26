@@ -2,6 +2,15 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+// Hard-coded super admin — cannot be demoted or deleted by other admins.
+const SUPER_ADMIN_EMAIL = "ssmith3@mckinneytexas.org";
+
+async function isSuperAdmin(userId: string): Promise<boolean> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin.auth.admin.getUserById(userId);
+  return data.user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
+}
+
 export const listStaff = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -78,6 +87,14 @@ export const setStaffRole = createServerFn({ method: "POST" })
       .eq("user_id", context.userId).eq("role", "admin").maybeSingle();
     if (!meRole) throw new Error("Forbidden: admin role required");
 
+    // Protect the super admin: nobody else can change their roles.
+    if (
+      data.userId !== context.userId &&
+      (await isSuperAdmin(data.userId))
+    ) {
+      throw new Error("This account is protected and cannot be modified.");
+    }
+
     if (data.enabled) {
       await supabaseAdmin
         .from("user_roles")
@@ -106,6 +123,8 @@ export const deleteStaff = createServerFn({ method: "POST" })
 
     if (data.userId === context.userId)
       throw new Error("You cannot delete yourself");
+    if (await isSuperAdmin(data.userId))
+      throw new Error("This account is protected and cannot be deleted.");
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
     if (error) throw new Error(error.message);
     return { ok: true };
