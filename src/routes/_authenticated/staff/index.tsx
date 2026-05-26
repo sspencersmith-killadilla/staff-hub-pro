@@ -36,6 +36,8 @@ const emptyForm = {
   start_time: "",
   end_time: "",
   image_url: "",
+  focal_x: 50,
+  focal_y: 50,
   open_to_vendors: false,
 };
 
