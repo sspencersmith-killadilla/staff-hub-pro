@@ -617,6 +617,11 @@ function EventForm({
   const [locId, setLocId] = useState<string>(
     initial?.location_id ?? (locations[0]?.id ?? ""),
   );
+  const [imageUrl, setImageUrl] = useState<string>(initial?.image_url ?? "");
+  const [focal, setFocal] = useState<{ x: number; y: number }>({
+    x: typeof initial?.image_focal_x === "number" ? initial.image_focal_x : 50,
+    y: typeof initial?.image_focal_y === "number" ? initial.image_focal_y : 50,
+  });
 
   async function handle(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -631,6 +636,9 @@ function EventForm({
       ends_at: ends ? new Date(ends).toISOString() : "",
       cost_text: String(fd.get("cost_text") ?? "").trim() || null,
       contact_info: String(fd.get("contact_info") ?? "").trim() || null,
+      image_url: imageUrl.trim() || null,
+      image_focal_x: focal.x,
+      image_focal_y: focal.y,
     };
     setSubmitting(true);
     try {
@@ -639,6 +647,7 @@ function EventForm({
       setSubmitting(false);
     }
   }
+
 
   return (
     <form onSubmit={handle} className="space-y-3">
