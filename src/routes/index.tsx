@@ -47,7 +47,7 @@ function Home() {
               Community Event <br className="hidden md:block" /> &amp; Partnership Portal
             </h1>
             <p className="text-lg text-blue-100 mb-8 max-w-2xl leading-relaxed">
-              Discover upcoming events and programs, partner with us to showcase your local business, join the city's live music roster, or reserve a meeting room.
+              Your central hub to discover local events, book municipal spaces, and partner with the city.
             </p>
             {isAuthenticated && (
               <div className="mb-8 rounded-xl border border-white/20 bg-white/10 p-5 backdrop-blur">
@@ -111,7 +111,7 @@ function Home() {
               {isEnabled("streetbeats") && (
                 <Link
                   to="/streetbeats"
-                  className="bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg text-center uppercase tracking-wider text-sm w-full sm:w-auto border border-pink-500"
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/30 font-bold py-3 px-6 rounded-lg transition-colors text-center uppercase tracking-wider text-sm w-full sm:w-auto"
                 >
                   StreetBeats Portal
                 </Link>
@@ -138,7 +138,7 @@ function Home() {
           <PortalCard
             iconBg="bg-emerald-50 border-emerald-200"
             iconColor="text-emerald-600"
-            title="Citizens"
+            title="Community Members"
             description="Browse the public directory to find upcoming literary series, workshops, and symposiums. Select an event, complete registration, and your digital ticket is delivered instantly."
             linkColor="text-emerald-600"
             linkTo="/events"
