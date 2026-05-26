@@ -89,6 +89,7 @@ function EventDetail() {
   );
   const tierPrice = Number(activeTier?.price ?? 0);
   const isPaid = tierPrice > 0;
+  const isSoldOut = !!activeTier?.sold_out;
   const paymentsReady = !!paymentsStatus?.configured;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
