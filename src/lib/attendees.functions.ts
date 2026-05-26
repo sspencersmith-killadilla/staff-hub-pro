@@ -18,6 +18,9 @@ export type MyTicket = {
   session_start: string | null;
   session_end: string | null;
   venue_name: string | null;
+  group_id: string | null;
+  seat_index: number;
+  seat_total: number;
 };
 
 // ─── User-facing: my tickets ────────────────────────────────────────

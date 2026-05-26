@@ -371,8 +371,6 @@ export const registerForCityEvent = createServerFn({ method: "POST" })
         throw new Error("Invalid ticket tier for this event");
       }
     } else {
-      // Fall back to any tier for this session so we can link the attendee
-      // back to the event (attendees has no direct session_id column).
       const { data: anyTier } = await supabaseAdmin
         .from("ticket_tiers")
         .select("id")
@@ -382,29 +380,23 @@ export const registerForCityEvent = createServerFn({ method: "POST" })
       tierId = anyTier?.id ?? null;
     }
 
-    // Prevent the same email from double-registering for the same event.
-    if (tierId) {
-      const { data: existing } = await supabaseAdmin
-        .from("attendees")
-        .select("id")
-        .eq("email", data.email)
-        .eq("ticket_tier_id", tierId)
-        .maybeSingle();
-      if (existing) return { id: existing.id };
-    }
+    // Insert one attendee row per requested seat so each gets its own QR code.
+    const qty = Math.max(1, Math.min(20, data.quantity ?? 1));
+    const groupId = crypto.randomUUID();
+    const rows = Array.from({ length: qty }, () => ({
+      full_name: data.full_name,
+      email: data.email,
+      ticket_tier_id: tierId,
+      quantity: 1,
+      checked_in: false,
+      group_id: groupId,
+    }));
 
-    const { data: row, error } = await supabaseAdmin
+    const { data: inserted, error } = await supabaseAdmin
       .from("attendees")
-      .insert({
-        full_name: data.full_name,
-        email: data.email,
-        ticket_tier_id: tierId,
-        quantity: data.quantity ?? 1,
-        checked_in: false,
-      })
-      .select("id")
-      .single();
+      .insert(rows)
+      .select("id");
     if (error) throw new Error(error.message);
-    return { id: row.id };
+    return { id: inserted?.[0]?.id, group_id: groupId, count: qty };
   });
 
