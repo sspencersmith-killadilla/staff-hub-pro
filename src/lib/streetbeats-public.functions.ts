@@ -195,6 +195,8 @@ function profileToEditable(p: any) {
     genre: p.genre ?? "",
     bio: p.bio ?? "",
     avatar_url: p.avatar_url ?? "",
+    avatar_focal_x: p.avatar_focal_x ?? 50,
+    avatar_focal_y: p.avatar_focal_y ?? 50,
     spotify_link: p.spotify_link ?? "",
     youtube_link: p.youtube_link ?? "",
     soundcloud_link: p.soundcloud_link ?? "",
