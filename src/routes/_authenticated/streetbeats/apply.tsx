@@ -41,6 +41,8 @@ type ProfileForm = {
   genre: string;
   bio: string;
   avatar_url: string;
+  avatar_focal_x: number;
+  avatar_focal_y: number;
   spotify_link: string;
   youtube_link: string;
   soundcloud_link: string;
@@ -55,6 +57,8 @@ const EMPTY: ProfileForm = {
   genre: "",
   bio: "",
   avatar_url: "",
+  avatar_focal_x: 50,
+  avatar_focal_y: 50,
   spotify_link: "",
   youtube_link: "",
   soundcloud_link: "",
