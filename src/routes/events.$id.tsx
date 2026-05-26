@@ -532,7 +532,7 @@ function EventDetail() {
                     </div>
                   </div>
 
-                  {isPaid && (
+                  {isPaid && !isSoldOut && (
                     <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700">
