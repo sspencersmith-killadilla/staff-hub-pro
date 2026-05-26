@@ -1,7 +1,7 @@
-import { createFileRoute, redirect, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getMyRoles } from "@/lib/auth.functions";
+import { useAuth } from "@/hooks/use-auth";
 import {
   listStaffWithPermissions,
   setGlobalPermissions,
@@ -20,18 +20,6 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/staff/admin/permissions")({
-  beforeLoad: async () => {
-    // Skip during SSR / prefetch — no auth header yet. The component
-    // gates rendering on the client once the session is hydrated.
-    if (typeof window === "undefined") return;
-    try {
-      const me = await getMyRoles();
-      if (!me.roles.includes("admin")) throw redirect({ to: "/staff" });
-    } catch (e) {
-      // Auth not ready yet — let the component handle it after hydration.
-      if ((e as any)?.isRedirect) throw e;
-    }
-  },
   component: PermissionsPage,
   errorComponent: ({ error }) => (
     <div className="mx-auto max-w-3xl px-4 py-10 space-y-3">
@@ -52,12 +40,57 @@ type StaffRow = Awaited<ReturnType<typeof listStaffWithPermissions>>[number];
 
 function PermissionsPage() {
   const qc = useQueryClient();
-  const { data: staff = [], isLoading } = useQuery({
+  const auth = useAuth();
+  const { data: staff = [], isLoading, error } = useQuery({
     queryKey: ["staff-permissions"],
     queryFn: () => listStaffWithPermissions(),
+    enabled: auth.isAdmin,
+    retry: false,
   });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = staff.find((s) => s.userId === selectedId) ?? null;
+
+  if (auth.loading) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-10">
+        <Card>
+          <CardContent className="p-8 text-sm text-muted-foreground">
+            Checking permissions…
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!auth.isAdmin) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-10 space-y-4">
+        <h1 className="text-xl font-semibold">Admin access required</h1>
+        <p className="text-sm text-muted-foreground">
+          You need an admin staff role to manage granular permissions.
+        </p>
+        <Link to="/staff" className="text-sm text-primary hover:underline">
+          ← Back to staff dashboard
+        </Link>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-10 space-y-3">
+        <h1 className="text-xl font-semibold">Permissions page failed to load</h1>
+        <p className="text-sm text-muted-foreground">
+          The staff permissions tables may not be available yet. Apply
+          <code className="mx-1">supabase-migrations/015_staff_permissions.sql</code>
+          and reload.
+        </p>
+        <pre className="text-xs bg-muted p-3 rounded overflow-auto">
+          {(error as Error)?.message ?? String(error)}
+        </pre>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 space-y-6">

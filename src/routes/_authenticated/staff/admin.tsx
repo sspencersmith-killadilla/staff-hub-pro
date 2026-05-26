@@ -1,7 +1,8 @@
-import { createFileRoute, redirect, Link } from "@tanstack/react-router";
+import { createFileRoute, redirect, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMyRoles } from "@/lib/auth.functions";
+import { waitForSupabaseSession } from "@/integrations/supabase/auth-ready";
 import {
   listStaff,
   inviteStaff,
@@ -23,11 +24,22 @@ import { Switch } from "@/components/ui/switch";
 
 export const Route = createFileRoute("/_authenticated/staff/admin")({
   beforeLoad: async () => {
+    if (typeof window === "undefined") return;
+    const session = await waitForSupabaseSession();
+    if (!session?.user) throw redirect({ to: "/login" });
     const me = await getMyRoles();
     if (!me.roles.includes("admin")) throw redirect({ to: "/staff" });
   },
-  component: AdminPage,
+  component: AdminRouteComponent,
 });
+
+function AdminRouteComponent() {
+  const isPermissionsRoute = useRouterState({
+    select: (state) => state.location.pathname === "/staff/admin/permissions",
+  });
+
+  return isPermissionsRoute ? <Outlet /> : <AdminPage />;
+}
 
 function AdminPage() {
   const qc = useQueryClient();
