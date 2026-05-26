@@ -262,13 +262,22 @@ function EventsPage() {
     if (filter !== "all") rows = rows.filter((e) => e.event_type === filter);
     if (fromDate) rows = rows.filter((e) => !e.start_time || e.start_time >= fromDate);
     if (toDate) rows = rows.filter((e) => !e.start_time || e.start_time <= toDate + "T23:59:59");
+    if (!showPast) {
+      const now = Date.now();
+      rows = rows.filter((e) => {
+        const ref = e.end_time ?? e.start_time;
+        if (!ref) return true;
+        const t = new Date(ref).getTime();
+        return isNaN(t) || t >= now;
+      });
+    }
     rows = [...rows].sort((a, b) => {
       const ta = a.start_time ? new Date(a.start_time).getTime() : Infinity;
       const tb = b.start_time ? new Date(b.start_time).getTime() : Infinity;
       return sort === "closest" ? ta - tb : tb - ta;
     });
     return rows;
-  }, [events, search, filter, fromDate, toDate, sort]);
+  }, [events, search, filter, fromDate, toDate, sort, showPast]);
 
   const eventTypes = useMemo(
     () => Array.from(new Set((events as any[]).map((e) => e.event_type).filter(Boolean))),
