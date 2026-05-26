@@ -1,7 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL ?? "ssmith3@mckinneytexas.org";
+function getSuperAdminEmail(): string | null {
+  const v = process.env.SUPER_ADMIN_EMAIL;
+  return v && v.trim() ? v.trim().toLowerCase() : null;
+}
 
 export const getMyRoles = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -9,9 +12,11 @@ export const getMyRoles = createServerFn({ method: "GET" })
     const { supabase, userId, claims } = context;
 
     // Self-heal: super admin always has the admin role.
+    const superAdminEmail = getSuperAdminEmail();
     if (
+      superAdminEmail &&
       typeof claims.email === "string" &&
-      claims.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()
+      claims.email.toLowerCase() === superAdminEmail
     ) {
       const { supabaseAdmin } = await import(
         "@/integrations/supabase/client.server"

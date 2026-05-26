@@ -3,12 +3,12 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 // Hard-coded super admin — cannot be demoted or deleted by other admins.
-const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL ?? "ssmith3@mckinneytexas.org";
-
 async function isSuperAdmin(userId: string): Promise<boolean> {
+  const configured = process.env.SUPER_ADMIN_EMAIL?.trim().toLowerCase();
+  if (!configured) return false;
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin.auth.admin.getUserById(userId);
-  return data.user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
+  return data.user?.email?.toLowerCase() === configured;
 }
 
 export const listStaff = createServerFn({ method: "GET" })
