@@ -52,7 +52,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
     // 2. Community events (approved)
     const commQ = supabaseAdmin
       .from("events")
-      .select("id, organization_id, title, description, start_time, end_time, location, image_url, is_community, approval_status")
+      .select("id, organization_id, title, description, start_time, end_time, location, image_url, image_focal_x, image_focal_y, is_community, approval_status")
       .eq("is_community", true)
       .eq("approval_status", "approved")
       .order("start_time", { ascending: true });
