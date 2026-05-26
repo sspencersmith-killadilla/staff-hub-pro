@@ -141,6 +141,8 @@ export const updateEvent = createServerFn({ method: "POST" })
     if (!("title" in data.patch)) delete (patch as any).title;
     if (!("room_id" in data.patch)) delete (patch as any).room_id;
     if (!("stage_id" in data.patch)) delete (patch as any).stage_id;
+    if (!("focal_x" in data.patch)) delete (patch as any).focal_x;
+    if (!("focal_y" in data.patch)) delete (patch as any).focal_y;
     const { data: row, error } = await supabaseAdmin
       .from("sessions")
       .update(patch)
