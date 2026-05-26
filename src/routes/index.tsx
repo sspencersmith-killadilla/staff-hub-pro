@@ -224,9 +224,9 @@ function Home() {
       <section className="py-24 bg-white">
         <Link
                   to="/manual"
-                  className="bg-white/10 hover:bg-white/20 text-black border border-white/30 font-bold py-3 px-6 rounded-lg transition-colors text-center uppercase tracking-wider text-sm w-full sm:w-auto"
+                  className="bg-white/10 hover:bg-white/20 text-black border border-black/30 font-bold py-3 px-6 rounded-lg transition-colors text-center uppercase tracking-wider text-sm w-full sm:w-auto"
                 >
-                  User Manual
+                  Click Here for User Manual
                 </Link>
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
