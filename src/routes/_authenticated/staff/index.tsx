@@ -174,6 +174,7 @@ function EventsPage() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [sort, setSort] = useState<"closest" | "farthest">("closest");
+  const [showPast, setShowPast] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const resetForm = () => {
@@ -261,13 +262,22 @@ function EventsPage() {
     if (filter !== "all") rows = rows.filter((e) => e.event_type === filter);
     if (fromDate) rows = rows.filter((e) => !e.start_time || e.start_time >= fromDate);
     if (toDate) rows = rows.filter((e) => !e.start_time || e.start_time <= toDate + "T23:59:59");
+    if (!showPast) {
+      const now = Date.now();
+      rows = rows.filter((e) => {
+        const ref = e.end_time ?? e.start_time;
+        if (!ref) return true;
+        const t = new Date(ref).getTime();
+        return isNaN(t) || t >= now;
+      });
+    }
     rows = [...rows].sort((a, b) => {
       const ta = a.start_time ? new Date(a.start_time).getTime() : Infinity;
       const tb = b.start_time ? new Date(b.start_time).getTime() : Infinity;
       return sort === "closest" ? ta - tb : tb - ta;
     });
     return rows;
-  }, [events, search, filter, fromDate, toDate, sort]);
+  }, [events, search, filter, fromDate, toDate, sort, showPast]);
 
   const eventTypes = useMemo(
     () => Array.from(new Set((events as any[]).map((e) => e.event_type).filter(Boolean))),
@@ -493,13 +503,19 @@ function EventsPage() {
             </div>
           </div>
 
-          <div className="px-4 py-3 flex items-center justify-between border-b border-slate-200">
+          <div className="px-4 py-3 flex items-center justify-between border-b border-slate-200 gap-3 flex-wrap">
             <span className="text-sm text-slate-600">Showing {filtered.length} of {events.length} events</span>
-            <select className="h-8 rounded-md border border-input bg-transparent px-2 text-sm"
-              value={sort} onChange={(e) => setSort(e.target.value as any)}>
-              <option value="closest">Date: Closest First</option>
-              <option value="farthest">Date: Farthest First</option>
-            </select>
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-600">
+                <Checkbox checked={showPast} onCheckedChange={(c) => setShowPast(c === true)} />
+                Show Past (Archived)
+              </label>
+              <select className="h-8 rounded-md border border-input bg-transparent px-2 text-sm"
+                value={sort} onChange={(e) => setSort(e.target.value as any)}>
+                <option value="closest">Date: Closest First</option>
+                <option value="farthest">Date: Farthest First</option>
+              </select>
+            </div>
           </div>
 
           <div className="px-4 py-2 grid grid-cols-[1fr_220px_120px] gap-3 text-xs font-bold uppercase tracking-wider text-slate-500">
