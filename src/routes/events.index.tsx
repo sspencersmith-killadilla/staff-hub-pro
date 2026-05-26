@@ -298,7 +298,7 @@ function EventsPage() {
                     className={`flex flex-col overflow-hidden rounded-xl bg-white ${meta.outline}`}
                   >
                     {e.image_url ? (
-                      <div className="aspect-[16/9] w-full overflow-hidden bg-slate-100">
+                      <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
                         <img
                           src={e.image_url}
                           alt=""
@@ -307,9 +307,24 @@ function EventsPage() {
                             objectPosition: `${e.focal_x ?? 50}% ${e.focal_y ?? 50}%`,
                           }}
                         />
+                        {e.sold_out && e.waitlist_available && (
+                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-3 pt-8">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+                              Sold out — join the waitlist
+                            </span>
+                          </div>
+                        )}
                       </div>
                     ) : (
-                      <div className="aspect-[16/9] w-full bg-gradient-to-br from-slate-900 to-slate-700" />
+                      <div className="relative aspect-[16/9] w-full bg-gradient-to-br from-slate-900 to-slate-700">
+                        {e.sold_out && e.waitlist_available && (
+                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-3 pt-8">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+                              Sold out — join the waitlist
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     )}
                     <div className="flex flex-1 flex-col p-5">
                       <div className="flex items-center gap-2">
