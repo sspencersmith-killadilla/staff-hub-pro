@@ -87,6 +87,14 @@ export const setStaffRole = createServerFn({ method: "POST" })
       .eq("user_id", context.userId).eq("role", "admin").maybeSingle();
     if (!meRole) throw new Error("Forbidden: admin role required");
 
+    // Protect the super admin: nobody else can change their roles.
+    if (
+      data.userId !== context.userId &&
+      (await isSuperAdmin(data.userId))
+    ) {
+      throw new Error("This account is protected and cannot be modified.");
+    }
+
     if (data.enabled) {
       await supabaseAdmin
         .from("user_roles")
