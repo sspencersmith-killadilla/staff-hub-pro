@@ -49,6 +49,7 @@ import { Route as AuthenticatedStaffAdminRouteImport } from './routes/_authentic
 import { Route as AuthenticatedCommunityManageRouteImport } from './routes/_authenticated/community/manage'
 import { Route as AuthenticatedCommunityApplyRouteImport } from './routes/_authenticated/community/apply'
 import { Route as AuthenticatedStaffEventsIdRouteImport } from './routes/_authenticated/staff/events.$id'
+import { Route as AuthenticatedStaffAdminPermissionsRouteImport } from './routes/_authenticated/staff/admin.permissions'
 
 const VenuesRoute = VenuesRouteImport.update({
   id: '/venues',
@@ -264,6 +265,12 @@ const AuthenticatedStaffEventsIdRoute =
     path: '/events/$id',
     getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
+const AuthenticatedStaffAdminPermissionsRoute =
+  AuthenticatedStaffAdminPermissionsRouteImport.update({
+    id: '/permissions',
+    path: '/permissions',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -290,7 +297,7 @@ export interface FileRoutesByFullPath {
   '/rooms/': typeof RoomsIndexRoute
   '/community/apply': typeof AuthenticatedCommunityApplyRoute
   '/community/manage': typeof AuthenticatedCommunityManageRoute
-  '/staff/admin': typeof AuthenticatedStaffAdminRoute
+  '/staff/admin': typeof AuthenticatedStaffAdminRouteWithChildren
   '/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
   '/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
   '/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
@@ -304,6 +311,7 @@ export interface FileRoutesByFullPath {
   '/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
   '/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
+  '/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
 }
 export interface FileRoutesByTo {
@@ -330,7 +338,7 @@ export interface FileRoutesByTo {
   '/rooms': typeof RoomsIndexRoute
   '/community/apply': typeof AuthenticatedCommunityApplyRoute
   '/community/manage': typeof AuthenticatedCommunityManageRoute
-  '/staff/admin': typeof AuthenticatedStaffAdminRoute
+  '/staff/admin': typeof AuthenticatedStaffAdminRouteWithChildren
   '/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
   '/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
   '/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
@@ -344,6 +352,7 @@ export interface FileRoutesByTo {
   '/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
   '/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
+  '/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
 }
 export interface FileRoutesById {
@@ -373,7 +382,7 @@ export interface FileRoutesById {
   '/rooms/': typeof RoomsIndexRoute
   '/_authenticated/community/apply': typeof AuthenticatedCommunityApplyRoute
   '/_authenticated/community/manage': typeof AuthenticatedCommunityManageRoute
-  '/_authenticated/staff/admin': typeof AuthenticatedStaffAdminRoute
+  '/_authenticated/staff/admin': typeof AuthenticatedStaffAdminRouteWithChildren
   '/_authenticated/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
   '/_authenticated/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
   '/_authenticated/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
@@ -387,6 +396,7 @@ export interface FileRoutesById {
   '/_authenticated/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
   '/_authenticated/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
+  '/_authenticated/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
   '/_authenticated/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
 }
 export interface FileRouteTypes {
@@ -430,6 +440,7 @@ export interface FileRouteTypes {
     | '/streetbeats/apply'
     | '/streetbeats/my-gigs'
     | '/staff/'
+    | '/staff/admin/permissions'
     | '/staff/events/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -470,6 +481,7 @@ export interface FileRouteTypes {
     | '/streetbeats/apply'
     | '/streetbeats/my-gigs'
     | '/staff'
+    | '/staff/admin/permissions'
     | '/staff/events/$id'
   id:
     | '__root__'
@@ -512,6 +524,7 @@ export interface FileRouteTypes {
     | '/_authenticated/streetbeats/apply'
     | '/_authenticated/streetbeats/my-gigs'
     | '/_authenticated/staff/'
+    | '/_authenticated/staff/admin/permissions'
     | '/_authenticated/staff/events/$id'
   fileRoutesById: FileRoutesById
 }
@@ -818,11 +831,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffEventsIdRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
     }
+    '/_authenticated/staff/admin/permissions': {
+      id: '/_authenticated/staff/admin/permissions'
+      path: '/permissions'
+      fullPath: '/staff/admin/permissions'
+      preLoaderRoute: typeof AuthenticatedStaffAdminPermissionsRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
   }
 }
 
+interface AuthenticatedStaffAdminRouteChildren {
+  AuthenticatedStaffAdminPermissionsRoute: typeof AuthenticatedStaffAdminPermissionsRoute
+}
+
+const AuthenticatedStaffAdminRouteChildren: AuthenticatedStaffAdminRouteChildren =
+  {
+    AuthenticatedStaffAdminPermissionsRoute:
+      AuthenticatedStaffAdminPermissionsRoute,
+  }
+
+const AuthenticatedStaffAdminRouteWithChildren =
+  AuthenticatedStaffAdminRoute._addFileChildren(
+    AuthenticatedStaffAdminRouteChildren,
+  )
+
 interface AuthenticatedStaffRouteChildren {
-  AuthenticatedStaffAdminRoute: typeof AuthenticatedStaffAdminRoute
+  AuthenticatedStaffAdminRoute: typeof AuthenticatedStaffAdminRouteWithChildren
   AuthenticatedStaffAttendeesRoute: typeof AuthenticatedStaffAttendeesRoute
   AuthenticatedStaffCommunityEventsRoute: typeof AuthenticatedStaffCommunityEventsRoute
   AuthenticatedStaffCommunityMusicRoute: typeof AuthenticatedStaffCommunityMusicRoute
@@ -838,7 +873,7 @@ interface AuthenticatedStaffRouteChildren {
 }
 
 const AuthenticatedStaffRouteChildren: AuthenticatedStaffRouteChildren = {
-  AuthenticatedStaffAdminRoute: AuthenticatedStaffAdminRoute,
+  AuthenticatedStaffAdminRoute: AuthenticatedStaffAdminRouteWithChildren,
   AuthenticatedStaffAttendeesRoute: AuthenticatedStaffAttendeesRoute,
   AuthenticatedStaffCommunityEventsRoute:
     AuthenticatedStaffCommunityEventsRoute,
