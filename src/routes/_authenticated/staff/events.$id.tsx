@@ -21,6 +21,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Download, Upload } from "lucide-react";
+import { usePermissions } from "@/hooks/use-permissions";
+import type { PermissionKey } from "@/lib/staff-permissions";
+
 
 const RobustMap = lazy(() => import("@/components/RobustMap"));
 const EventMarketingHub = lazy(() => import("@/components/EventMarketingHub"));
