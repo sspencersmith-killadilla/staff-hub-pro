@@ -59,6 +59,55 @@ function ctLocalToUtc(local: string | null | undefined): string | null {
   return new Date(guess.getTime() - (ctAsUtc.getTime() - guess.getTime())).toISOString();
 }
 
+// ─── CSV helpers ───────────────────────────────────────────────────────
+const VOL_CSV_COLS = ["name", "shift_role"] as const;
+
+function csvEscape(v: unknown): string {
+  if (v == null) return "";
+  const s = String(v);
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+function rowsToCsv(rows: Record<string, unknown>[]): string {
+  const header = VOL_CSV_COLS.join(",");
+  const body = rows
+    .map((r) => VOL_CSV_COLS.map((c) => csvEscape(r[c])).join(","))
+    .join("\n");
+  return `${header}\n${body}\n`;
+}
+
+function parseCsv(text: string): Record<string, string>[] {
+  const rows: string[][] = [];
+  let cur: string[] = [];
+  let field = "";
+  let inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQ) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; }
+        else { inQ = false; }
+      } else { field += ch; }
+    } else {
+      if (ch === '"') inQ = true;
+      else if (ch === ",") { cur.push(field); field = ""; }
+      else if (ch === "\n" || ch === "\r") {
+        if (field.length || cur.length) { cur.push(field); rows.push(cur); cur = []; field = ""; }
+        if (ch === "\r" && text[i + 1] === "\n") i++;
+      } else { field += ch; }
+    }
+  }
+  if (field.length || cur.length) { cur.push(field); rows.push(cur); }
+  if (rows.length === 0) return [];
+  const header = rows[0].map((h) => h.trim());
+  return rows.slice(1).map((r) => {
+    const obj: Record<string, string> = {};
+    header.forEach((h, idx) => { obj[h] = (r[idx] ?? "").trim(); });
+    return obj;
+  });
+}
+
 export const Route = createFileRoute("/_authenticated/staff/events/$id")({
   component: EventDashboard,
 });
