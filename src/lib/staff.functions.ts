@@ -71,6 +71,72 @@ export const inviteStaff = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const bulkInviteStaff = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      emails: z.array(z.string().email()).min(1).max(500),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: meRole } = await context.supabase
+      .from("user_roles").select("role")
+      .eq("user_id", context.userId).eq("role", "admin").maybeSingle();
+    if (!meRole) throw new Error("Forbidden: admin role required");
+
+    const seen = new Set<string>();
+    const emails = data.emails
+      .map((e) => e.trim().toLowerCase())
+      .filter((e) => e && !seen.has(e) && (seen.add(e), true));
+
+    const results: { email: string; status: "invited" | "exists" | "error"; message?: string }[] = [];
+
+    for (const email of emails) {
+      try {
+        let userId: string | undefined;
+        const { data: invited, error } =
+          await supabaseAdmin.auth.admin.inviteUserByEmail(email);
+        if (error) {
+          // If already registered, look up the existing user and still grant the role.
+          const msg = error.message.toLowerCase();
+          if (msg.includes("already") || msg.includes("registered") || msg.includes("exist")) {
+            const { data: list } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+            const existing = list.users.find((u) => u.email?.toLowerCase() === email);
+            if (!existing) {
+              results.push({ email, status: "error", message: error.message });
+              continue;
+            }
+            userId = existing.id;
+            results.push({ email, status: "exists" });
+          } else {
+            results.push({ email, status: "error", message: error.message });
+            continue;
+          }
+        } else {
+          userId = invited.user!.id;
+          results.push({ email, status: "invited" });
+        }
+
+        if (userId) {
+          await supabaseAdmin
+            .from("user_roles")
+            .upsert({ user_id: userId, role: "staff" }, { onConflict: "user_id,role" });
+        }
+      } catch (e) {
+        results.push({ email, status: "error", message: (e as Error).message });
+      }
+    }
+
+    return {
+      ok: true,
+      total: emails.length,
+      invited: results.filter((r) => r.status === "invited").length,
+      existed: results.filter((r) => r.status === "exists").length,
+      errors: results.filter((r) => r.status === "error"),
+    };
+  });
+
 export const setStaffRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
