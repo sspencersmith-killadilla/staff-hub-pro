@@ -26,6 +26,7 @@ import { Route as StagesIdRouteImport } from './routes/stages.$id'
 import { Route as RoomsIdRouteImport } from './routes/rooms.$id'
 import { Route as GigsIdRouteImport } from './routes/gigs.$id'
 import { Route as EventsIdRouteImport } from './routes/events.$id'
+import { Route as CommunityEventsIdRouteImport } from './routes/community-events.$id'
 import { Route as ArtistsIdRouteImport } from './routes/artists.$id'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
 import { Route as AuthenticatedMyTicketsRouteImport } from './routes/_authenticated/my-tickets'
@@ -131,6 +132,11 @@ const GigsIdRoute = GigsIdRouteImport.update({
 const EventsIdRoute = EventsIdRouteImport.update({
   id: '/events/$id',
   path: '/events/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityEventsIdRoute = CommunityEventsIdRouteImport.update({
+  id: '/community-events/$id',
+  path: '/community-events/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ArtistsIdRoute = ArtistsIdRouteImport.update({
@@ -274,6 +280,7 @@ export interface FileRoutesByFullPath {
   '/my-tickets': typeof AuthenticatedMyTicketsRoute
   '/staff': typeof AuthenticatedStaffRouteWithChildren
   '/artists/$id': typeof ArtistsIdRoute
+  '/community-events/$id': typeof CommunityEventsIdRoute
   '/events/$id': typeof EventsIdRoute
   '/gigs/$id': typeof GigsIdRoute
   '/rooms/$id': typeof RoomsIdRoute
@@ -313,6 +320,7 @@ export interface FileRoutesByTo {
   '/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/my-tickets': typeof AuthenticatedMyTicketsRoute
   '/artists/$id': typeof ArtistsIdRoute
+  '/community-events/$id': typeof CommunityEventsIdRoute
   '/events/$id': typeof EventsIdRoute
   '/gigs/$id': typeof GigsIdRoute
   '/rooms/$id': typeof RoomsIdRoute
@@ -355,6 +363,7 @@ export interface FileRoutesById {
   '/_authenticated/my-tickets': typeof AuthenticatedMyTicketsRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRouteWithChildren
   '/artists/$id': typeof ArtistsIdRoute
+  '/community-events/$id': typeof CommunityEventsIdRoute
   '/events/$id': typeof EventsIdRoute
   '/gigs/$id': typeof GigsIdRoute
   '/rooms/$id': typeof RoomsIdRoute
@@ -397,6 +406,7 @@ export interface FileRouteTypes {
     | '/my-tickets'
     | '/staff'
     | '/artists/$id'
+    | '/community-events/$id'
     | '/events/$id'
     | '/gigs/$id'
     | '/rooms/$id'
@@ -436,6 +446,7 @@ export interface FileRouteTypes {
     | '/my-reservations'
     | '/my-tickets'
     | '/artists/$id'
+    | '/community-events/$id'
     | '/events/$id'
     | '/gigs/$id'
     | '/rooms/$id'
@@ -477,6 +488,7 @@ export interface FileRouteTypes {
     | '/_authenticated/my-tickets'
     | '/_authenticated/staff'
     | '/artists/$id'
+    | '/community-events/$id'
     | '/events/$id'
     | '/gigs/$id'
     | '/rooms/$id'
@@ -515,6 +527,7 @@ export interface RootRouteChildren {
   VendorRoute: typeof VendorRoute
   VenuesRoute: typeof VenuesRouteWithChildren
   ArtistsIdRoute: typeof ArtistsIdRoute
+  CommunityEventsIdRoute: typeof CommunityEventsIdRoute
   EventsIdRoute: typeof EventsIdRoute
   GigsIdRoute: typeof GigsIdRoute
   RoomsIdRoute: typeof RoomsIdRoute
@@ -642,6 +655,13 @@ declare module '@tanstack/react-router' {
       path: '/events/$id'
       fullPath: '/events/$id'
       preLoaderRoute: typeof EventsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community-events/$id': {
+      id: '/community-events/$id'
+      path: '/community-events/$id'
+      fullPath: '/community-events/$id'
+      preLoaderRoute: typeof CommunityEventsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/artists/$id': {
@@ -888,6 +908,7 @@ const rootRouteChildren: RootRouteChildren = {
   VendorRoute: VendorRoute,
   VenuesRoute: VenuesRouteWithChildren,
   ArtistsIdRoute: ArtistsIdRoute,
+  CommunityEventsIdRoute: CommunityEventsIdRoute,
   EventsIdRoute: EventsIdRoute,
   GigsIdRoute: GigsIdRoute,
   RoomsIdRoute: RoomsIdRoute,
