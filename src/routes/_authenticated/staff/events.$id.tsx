@@ -21,6 +21,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Download, Upload } from "lucide-react";
+import { usePermissions } from "@/hooks/use-permissions";
+import type { PermissionKey } from "@/lib/staff-permissions";
+
 
 const RobustMap = lazy(() => import("@/components/RobustMap"));
 const EventMarketingHub = lazy(() => import("@/components/EventMarketingHub"));
@@ -118,6 +121,8 @@ type Toast = { type: "success" | "error" | "warning"; text: string } | null;
 function EventDashboard() {
   const { id } = Route.useParams();
   const qc = useQueryClient();
+  const { can } = usePermissions();
+
   const { data, isLoading } = useQuery({
     queryKey: ["event-dashboard", id],
     queryFn: () => getEventDashboard({ data: { id } }),
@@ -355,19 +360,22 @@ function EventDashboard() {
   if (isLoading) return <div className="p-8">Loading…</div>;
   if (!session) return <div className="p-8">Event not found.</div>;
 
-  const navItems: { key: typeof activeView; label: string; badge?: number }[] = [
-    { key: "reports", label: "Reports" },
-    { key: "door", label: "Door", badge: ticketsRedeemed },
-    { key: "tickets", label: "Tickets" },
-    { key: "gigs", label: "Gigs", badge: gigs.length },
-    { key: "floorplan", label: "Floorplan" },
-    { key: "marketing", label: "Marketing" },
-    { key: "commercial", label: "Commercial" },
-    { key: "vendors", label: "Vendors", badge: vendors.length },
-    { key: "sponsors", label: "Sponsors", badge: sponsors.length },
-    { key: "volunteers", label: "Volunteers", badge: volunteers.length },
-    { key: "talent", label: "Talent", badge: talent.length },
+  const allNavItems: { key: typeof activeView; label: string; badge?: number; permission: PermissionKey }[] = [
+    { key: "reports", label: "Reports", permission: "event.reports" },
+    { key: "door", label: "Door", badge: ticketsRedeemed, permission: "event.door" },
+    { key: "tickets", label: "Tickets", permission: "event.tickets" },
+    { key: "gigs", label: "Gigs", badge: gigs.length, permission: "event.gigs" },
+    { key: "floorplan", label: "Floorplan", permission: "event.floorplan" },
+    { key: "marketing", label: "Marketing", permission: "event.marketing" },
+    { key: "commercial", label: "Commercial", permission: "event.commercial" },
+    { key: "vendors", label: "Vendors", badge: vendors.length, permission: "event.vendors" },
+    { key: "sponsors", label: "Sponsors", badge: sponsors.length, permission: "event.sponsors" },
+    { key: "volunteers", label: "Volunteers", badge: volunteers.length, permission: "event.volunteers" },
+    { key: "talent", label: "Talent", badge: talent.length, permission: "event.talent" },
   ];
+  const navItems = allNavItems.filter((it) => can(it.permission, id));
+  const canShowActive = navItems.some((it) => it.key === activeView);
+
 
   const inputCls =
     "w-full p-2.5 border border-input bg-background rounded text-sm outline-none focus:border-primary font-medium";
@@ -421,7 +429,18 @@ function EventDashboard() {
       </header>
 
       <main className="p-8 max-w-[1400px]">
-        {activeView === "reports" && (
+        {!canShowActive && navItems.length === 0 && (
+          <div className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">
+            You don't have permission to view any sections of this event. Contact an admin to request access.
+          </div>
+        )}
+        {!canShowActive && navItems.length > 0 && (
+          <div className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">
+            Select a section above.
+          </div>
+        )}
+        {canShowActive && activeView === "reports" && (
+
           <div className="space-y-6">
             <Section title="Financial">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -496,7 +515,7 @@ function EventDashboard() {
           </div>
         )}
 
-        {activeView === "tickets" && (
+        {canShowActive && activeView === "tickets" && (
           <div className="grid lg:grid-cols-2 gap-6">
             <div className="bg-card rounded-xl border p-6">
               <h3 className="font-black mb-4 uppercase text-sm">
@@ -605,7 +624,7 @@ function EventDashboard() {
         )}
 
 
-        {activeView === "door" && (
+        {canShowActive && activeView === "door" && (
           <div className="space-y-4 max-w-xl">
             <form onSubmit={handleScan} className="flex gap-2">
               <Input
@@ -651,7 +670,7 @@ function EventDashboard() {
           </div>
         )}
 
-        {activeView === "gigs" && (
+        {canShowActive && activeView === "gigs" && (
           <div className="space-y-6">
             <div className="bg-card rounded-xl border p-6">
               <h3 className="font-black mb-4 uppercase text-sm">Add Gig to Event</h3>
@@ -749,7 +768,7 @@ function EventDashboard() {
           </div>
         )}
 
-        {activeView === "floorplan" && (
+        {canShowActive && activeView === "floorplan" && (
           <Suspense fallback={<div className="p-8 text-sm text-muted-foreground">Loading floorplan editor…</div>}>
             <RobustMap
               session={session}
@@ -759,7 +778,7 @@ function EventDashboard() {
           </Suspense>
         )}
 
-        {activeView === "marketing" && (
+        {canShowActive && activeView === "marketing" && (
           <Suspense fallback={<div className="p-8 text-sm text-muted-foreground">Loading marketing hub…</div>}>
             <EventMarketingHub
               event={session}
@@ -773,7 +792,7 @@ function EventDashboard() {
 
 
 
-        {activeView === "commercial" && (
+        {canShowActive && activeView === "commercial" && (
           <div className="grid lg:grid-cols-2 gap-6">
             <div className="bg-card rounded-xl border p-6">
               <h3 className="font-black mb-4 uppercase text-sm">Vendor Tiers</h3>
@@ -842,7 +861,7 @@ function EventDashboard() {
           </div>
         )}
 
-        {activeView === "vendors" && (
+        {canShowActive && activeView === "vendors" && (
           <div className="bg-card rounded-xl border">
             <div className="p-4 border-b font-bold">Vendors ({vendors.length})</div>
             {(vendors as any[]).map((v) => (
@@ -859,7 +878,7 @@ function EventDashboard() {
           </div>
         )}
 
-        {activeView === "sponsors" && (
+        {canShowActive && activeView === "sponsors" && (
           <div className="bg-card rounded-xl border">
             <div className="p-4 border-b font-bold">Sponsors ({sponsors.length})</div>
             {(sponsors as any[]).map((s) => (
@@ -876,7 +895,7 @@ function EventDashboard() {
           </div>
         )}
 
-        {activeView === "volunteers" && (
+        {canShowActive && activeView === "volunteers" && (
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" size="sm" onClick={downloadVolunteerTemplate}>
@@ -931,7 +950,7 @@ function EventDashboard() {
           </div>
         )}
 
-        {activeView === "talent" && (
+        {canShowActive && activeView === "talent" && (
           <div className="grid lg:grid-cols-[2fr_1fr] gap-6">
             <div className="bg-card rounded-xl border">
               <div className="p-4 border-b font-bold">Run of Show ({talent.length})</div>

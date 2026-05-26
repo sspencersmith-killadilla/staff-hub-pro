@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMyRoles } from "@/lib/auth.functions";
@@ -84,12 +84,21 @@ function AdminPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold">Manage staff</h1>
-        <p className="text-sm text-muted-foreground">
-          Invite staff and admins, change roles, or remove accounts.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">Manage staff</h1>
+          <p className="text-sm text-muted-foreground">
+            Invite staff and admins, change roles, or remove accounts.
+          </p>
+        </div>
+        <Link
+          to="/staff/admin/permissions"
+          className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
+        >
+          Manage permissions →
+        </Link>
       </div>
+
 
       <Card>
         <CardHeader><CardTitle>Invite a new user</CardTitle></CardHeader>

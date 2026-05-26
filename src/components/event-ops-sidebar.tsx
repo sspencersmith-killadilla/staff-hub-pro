@@ -17,7 +17,9 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useModules } from "@/hooks/use-modules";
+import { usePermissions } from "@/hooks/use-permissions";
 import type { ModuleKey } from "@/lib/platform-modules.functions";
+import type { PermissionKey } from "@/lib/staff-permissions";
 
 type Item = {
   title: string;
@@ -25,25 +27,28 @@ type Item = {
   icon: typeof Calendar;
   exact?: boolean;
   module?: ModuleKey;
+  permission?: PermissionKey;
 };
 
 const items: Item[] = [
-  { title: "Events", url: "/staff", icon: Calendar, exact: true },
-  { title: "Venues & Stages", url: "/staff/venues", icon: Building2 },
-  { title: "Box Office", url: "/staff/attendees", icon: Users },
-  { title: "Vendors", url: "/staff/vendors", icon: Store, module: "vendors_sponsors" },
-  { title: "Sponsors", url: "/staff/sponsors", icon: Sparkles, module: "vendors_sponsors" },
-  { title: "Community Music", url: "/staff/community-music", icon: Music, module: "streetbeats" },
-  { title: "Community Orgs", url: "/staff/community-organizations", icon: HeartHandshake, module: "community_orgs" },
-  { title: "Community Events", url: "/staff/community-events", icon: CalendarDays, module: "community_orgs" },
-  { title: "Room Reservations", url: "/staff/room-reservations", icon: BedDouble, module: "room_reservations" },
-  { title: "Platform Settings", url: "/staff/settings", icon: Settings },
+  { title: "Events", url: "/staff", icon: Calendar, exact: true, permission: "page.events" },
+  { title: "Venues & Stages", url: "/staff/venues", icon: Building2, permission: "page.venues" },
+  { title: "Box Office", url: "/staff/attendees", icon: Users, permission: "page.box_office" },
+  { title: "Vendors", url: "/staff/vendors", icon: Store, module: "vendors_sponsors", permission: "page.vendors" },
+  { title: "Sponsors", url: "/staff/sponsors", icon: Sparkles, module: "vendors_sponsors", permission: "page.sponsors" },
+  { title: "Community Music", url: "/staff/community-music", icon: Music, module: "streetbeats", permission: "page.community_music" },
+  { title: "Community Orgs", url: "/staff/community-organizations", icon: HeartHandshake, module: "community_orgs", permission: "page.community_orgs" },
+  { title: "Community Events", url: "/staff/community-events", icon: CalendarDays, module: "community_orgs", permission: "page.community_events" },
+  { title: "Room Reservations", url: "/staff/room-reservations", icon: BedDouble, module: "room_reservations", permission: "page.room_reservations" },
+  { title: "Platform Settings", url: "/staff/settings", icon: Settings, permission: "page.settings" },
 ];
+
 
 export function EventOpsSidebar() {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { isAdmin } = useAuth();
   const { isEnabled } = useModules();
+  const { can } = usePermissions();
   const navigate = useNavigate();
 
   const isActive = (url: string, exact?: boolean) =>
@@ -54,7 +59,12 @@ export function EventOpsSidebar() {
     navigate({ to: "/login" });
   };
 
-  const visibleItems = items.filter((it) => !it.module || isEnabled(it.module));
+  const visibleItems = items.filter(
+    (it) =>
+      (!it.module || isEnabled(it.module)) &&
+      (!it.permission || can(it.permission)),
+  );
+
 
   return (
     <aside className="hidden md:flex w-60 shrink-0 flex-col bg-[hsl(210_60%_12%)] text-white">
