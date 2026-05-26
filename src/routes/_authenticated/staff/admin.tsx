@@ -153,6 +153,57 @@ function AdminPage() {
       </Card>
 
       <Card>
+        <CardHeader><CardTitle>Promote existing user</CardTitle></CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-3">
+            Grant a role to someone who already has an account — no invite email
+            is sent.
+          </p>
+          <form
+            className="flex flex-wrap items-end gap-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              setPromoteMsg(null);
+              promote.mutate();
+            }}
+          >
+            <div className="flex-1 min-w-[220px]">
+              <Label htmlFor="promote-email">Email</Label>
+              <Input
+                id="promote-email"
+                type="email"
+                required
+                value={promoteEmail}
+                onChange={(e) => setPromoteEmail(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Role</Label>
+              <Select value={promoteRole} onValueChange={(v) => setPromoteRole(v as any)}>
+                <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="staff">Staff</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button type="submit" disabled={promote.isPending}>
+              {promote.isPending ? "Granting…" : "Grant role"}
+            </Button>
+          </form>
+          {promoteMsg && (
+            <p
+              className={`mt-2 text-sm ${
+                promote.isError ? "text-destructive" : "text-muted-foreground"
+              }`}
+            >
+              {promoteMsg}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader><CardTitle>Bulk invite</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
