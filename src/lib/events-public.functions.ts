@@ -30,6 +30,8 @@ export type UnifiedEvent = {
   sponsors: EventSponsor[];
   focal_x: number; // 0-100, CSS object-position x
   focal_y: number; // 0-100, CSS object-position y
+  sold_out: boolean;
+  waitlist_available: boolean;
 };
 
 export const listPublicAllEvents = createServerFn({ method: "GET" })
