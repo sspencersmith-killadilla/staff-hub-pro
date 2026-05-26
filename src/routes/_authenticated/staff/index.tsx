@@ -210,6 +210,8 @@ function EventsPage() {
         start_time: form.start_time ? new Date(form.start_time).toISOString() : null,
         end_time: form.end_time ? new Date(form.end_time).toISOString() : null,
         image_url: form.image_url || null,
+        focal_x: form.focal_x,
+        focal_y: form.focal_y,
         open_to_vendors: form.open_to_vendors,
       };
       return editingId
