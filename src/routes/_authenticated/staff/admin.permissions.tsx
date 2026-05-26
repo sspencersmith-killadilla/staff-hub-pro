@@ -25,6 +25,19 @@ export const Route = createFileRoute("/_authenticated/staff/admin/permissions")(
     if (!me.roles.includes("admin")) throw redirect({ to: "/staff" });
   },
   component: PermissionsPage,
+  errorComponent: ({ error }) => (
+    <div className="mx-auto max-w-3xl px-4 py-10 space-y-3">
+      <h1 className="text-xl font-semibold">Permissions page failed to load</h1>
+      <p className="text-sm text-muted-foreground">
+        This usually means the staff permissions database migration
+        (<code>015_staff_permissions.sql</code>) has not been applied yet.
+        Run it in the Supabase SQL editor, then reload this page.
+      </p>
+      <pre className="text-xs bg-muted p-3 rounded overflow-auto">
+        {(error as Error)?.message ?? String(error)}
+      </pre>
+    </div>
+  ),
 });
 
 type StaffRow = Awaited<ReturnType<typeof listStaffWithPermissions>>[number];
