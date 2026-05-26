@@ -181,6 +181,14 @@ function EventDashboard() {
     mutationFn: (wid: string) => removeFromWaitlist({ data: { id: wid } }),
     onSuccess: () => { invalidate(); showToast("Removed from waitlist"); },
   });
+  const mPromoteWaitlist = useMutation({
+    mutationFn: (wid: string) => promoteWaitlistEntry({ data: { id: wid } }),
+    onSuccess: (res: any) => {
+      invalidate();
+      showToast(`Promoted to ${res?.count ?? 1} ticket${(res?.count ?? 1) > 1 ? "s" : ""}`);
+    },
+    onError: (e: Error) => showToast(e.message, "error"),
+  });
   const mCreateGig = useMutation({
     mutationFn: (v: any) => createGig({ data: v }),
     onSuccess: () => { invalidate(); showToast("Gig created"); },
@@ -460,12 +468,25 @@ function EventDashboard() {
                             {w.created_at ? new Date(w.created_at).toLocaleDateString() : "—"}
                           </td>
                           <td className="px-4 py-2 text-right">
-                            <button
-                              onClick={() => confirm("Remove from waitlist?") && mRemoveWaitlist.mutate(w.id)}
-                              className="text-xs px-2 py-1 border rounded text-red-600"
-                            >
-                              Remove
-                            </button>
+                            <div className="flex justify-end gap-2">
+                              <button
+                                onClick={() =>
+                                  confirm(
+                                    `Issue ${w.quantity ?? 1} ticket${(w.quantity ?? 1) > 1 ? "s" : ""} to ${w.full_name} and remove from waitlist?`,
+                                  ) && mPromoteWaitlist.mutate(w.id)
+                                }
+                                className="text-xs px-2 py-1 border rounded text-emerald-700 border-emerald-300 hover:bg-emerald-50"
+                                title="Convert this waitlist entry into real tickets (e.g. to fill a no-show seat)"
+                              >
+                                Promote
+                              </button>
+                              <button
+                                onClick={() => confirm("Remove from waitlist?") && mRemoveWaitlist.mutate(w.id)}
+                                className="text-xs px-2 py-1 border rounded text-red-600"
+                              >
+                                Remove
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
