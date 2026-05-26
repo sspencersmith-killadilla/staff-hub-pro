@@ -277,6 +277,17 @@ function ApplyPage() {
                     onChange={(e) => set("avatar_url", e.target.value)}
                   />
                 </Field>
+                {form.avatar_url && (
+                  <ImageFocalPicker
+                    src={form.avatar_url}
+                    x={form.avatar_focal_x}
+                    y={form.avatar_focal_y}
+                    onChange={({ x, y }) => {
+                      set("avatar_focal_x", x);
+                      set("avatar_focal_y", y);
+                    }}
+                  />
+                )}
                 <Field label="Bio / about your act">
                   <Textarea
                     rows={5}
