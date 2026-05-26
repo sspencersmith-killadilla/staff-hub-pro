@@ -120,7 +120,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
     const buskersRes = buskerIds.length
       ? await supabaseAdmin
           .from("profiles")
-          .select("id, full_name, avatar_url")
+          .select("id, full_name, avatar_url, avatar_focal_x, avatar_focal_y")
           .in("id", buskerIds as any)
       : { data: [] as any[] };
     const buskersById = new Map((buskersRes.data ?? []).map((p: any) => [p.id, p]));
