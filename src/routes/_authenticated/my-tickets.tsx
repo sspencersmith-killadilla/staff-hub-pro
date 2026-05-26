@@ -107,7 +107,7 @@ function TicketCard({ ticket }: { ticket: MyTicket }) {
           {dataUrl && (
             <a
               href={dataUrl}
-              download={`ticket-${ticket.id.slice(0, 8)}.png`}
+              download={`ticket-${ticket.id.slice(0, 8)}${ticket.seat_total > 1 ? `-seat${ticket.seat_index}of${ticket.seat_total}` : ""}.png`}
               className="text-[10px] font-bold uppercase tracking-wider text-slate-600 hover:text-slate-900"
             >
               Download
@@ -119,15 +119,22 @@ function TicketCard({ ticket }: { ticket: MyTicket }) {
             <h2 className="text-lg font-bold text-slate-900">
               {ticket.session_title ?? "Event"}
             </h2>
-            {ticket.checked_in ? (
-              <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-900">
-                Checked in
-              </span>
-            ) : (
-              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-900">
-                Active
-              </span>
-            )}
+            <div className="flex flex-col items-end gap-1">
+              {ticket.seat_total > 1 && (
+                <span className="rounded-full bg-slate-900 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                  Ticket {ticket.seat_index} of {ticket.seat_total}
+                </span>
+              )}
+              {ticket.checked_in ? (
+                <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-900">
+                  Checked in
+                </span>
+              ) : (
+                <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-900">
+                  Active
+                </span>
+              )}
+            </div>
           </div>
           <div className="mt-1 text-sm text-slate-600">
             {fmtWhen(ticket.session_start, ticket.session_end)}
