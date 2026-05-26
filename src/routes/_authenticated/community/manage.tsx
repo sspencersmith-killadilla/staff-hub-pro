@@ -35,6 +35,8 @@ import {
 } from "@/components/ui/dialog";
 
 import { requireModule } from "@/lib/require-module";
+import { ImageFocalPicker } from "@/components/image-focal-picker";
+
 
 export const Route = createFileRoute("/_authenticated/community/manage")({
   beforeLoad: () => requireModule("community_orgs"),
