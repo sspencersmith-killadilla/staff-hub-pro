@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { requireModule } from "@/lib/require-module";
+import { ImageFocalPicker } from "@/components/image-focal-picker";
 
 export const Route = createFileRoute("/_authenticated/streetbeats/apply")({
   beforeLoad: () => requireModule("streetbeats"),
@@ -40,6 +41,8 @@ type ProfileForm = {
   genre: string;
   bio: string;
   avatar_url: string;
+  avatar_focal_x: number;
+  avatar_focal_y: number;
   spotify_link: string;
   youtube_link: string;
   soundcloud_link: string;
@@ -54,6 +57,8 @@ const EMPTY: ProfileForm = {
   genre: "",
   bio: "",
   avatar_url: "",
+  avatar_focal_x: 50,
+  avatar_focal_y: 50,
   spotify_link: "",
   youtube_link: "",
   soundcloud_link: "",
@@ -86,6 +91,8 @@ function ApplyPage() {
         genre: artist.genre ?? "",
         bio: artist.bio ?? "",
         avatar_url: artist.avatar_url ?? "",
+        avatar_focal_x: (artist as any).avatar_focal_x ?? 50,
+        avatar_focal_y: (artist as any).avatar_focal_y ?? 50,
         spotify_link: artist.spotify_link ?? "",
         youtube_link: artist.youtube_link ?? "",
         soundcloud_link: artist.soundcloud_link ?? "",
@@ -270,6 +277,17 @@ function ApplyPage() {
                     onChange={(e) => set("avatar_url", e.target.value)}
                   />
                 </Field>
+                {form.avatar_url && (
+                  <ImageFocalPicker
+                    src={form.avatar_url}
+                    x={form.avatar_focal_x}
+                    y={form.avatar_focal_y}
+                    onChange={({ x, y }) => {
+                      set("avatar_focal_x", x);
+                      set("avatar_focal_y", y);
+                    }}
+                  />
+                )}
                 <Field label="Bio / about your act">
                   <Textarea
                     rows={5}

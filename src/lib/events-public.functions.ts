@@ -120,7 +120,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
     const buskersRes = buskerIds.length
       ? await supabaseAdmin
           .from("profiles")
-          .select("id, full_name, avatar_url")
+          .select("id, full_name, avatar_url, avatar_focal_x, avatar_focal_y")
           .in("id", buskerIds as any)
       : { data: [] as any[] };
     const buskersById = new Map((buskersRes.data ?? []).map((p: any) => [p.id, p]));
@@ -223,8 +223,8 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         ticketed: false,
         detail_href: (s as any).busker_id ? `/artists/${(s as any).busker_id}` : "/streetbeats",
         sponsors: [],
-        focal_x: 50,
-        focal_y: 50,
+        focal_x: busker?.avatar_focal_x ?? 50,
+        focal_y: busker?.avatar_focal_y ?? 50,
       });
     }
 
