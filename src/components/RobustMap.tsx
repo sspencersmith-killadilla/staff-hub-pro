@@ -104,18 +104,23 @@ export default function RobustMap({
       ? JSON.parse(session.interactive_map_data || "{}")
       : session?.interactive_map_data || {};
 
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(
+    mapData.backgroundImage ?? null,
+  );
+  const [bgUrlInput, setBgUrlInput] = useState<string>(mapData.backgroundImage ?? "");
   const [bgImage, setBgImage] = useState<HTMLImageElement | null>(null);
   useEffect(() => {
-    if (mapData.backgroundImage) {
+    if (backgroundImage) {
       const img = new window.Image();
-      img.src = mapData.backgroundImage;
+      img.src = backgroundImage;
       img.crossOrigin = "Anonymous";
       img.onload = () => setBgImage(img);
       img.onerror = () => console.error("Failed to load map background");
     } else {
       setBgImage(null);
     }
-  }, [mapData.backgroundImage]);
+  }, [backgroundImage]);
+
 
   const [lines, setLines] = useState<DrawLine[]>([]);
   const [shapes, setShapes] = useState<MapShape[]>([]);
