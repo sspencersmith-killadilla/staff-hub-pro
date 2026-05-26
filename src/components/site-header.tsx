@@ -17,15 +17,19 @@ export function SiteHeader() {
   return (
     <header className="border-b bg-background">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-2 font-semibold">
-          <Home className="h-4 w-4" /> Home
-        </Link>
-        <header className="border-b bg-background">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-        <Link to="/manual" className="flex items-center gap-2 font-semibold">
-          <Home className="h-4 w-4" /> Help Manual
-        </Link>
-          <nav className="flex items-center gap-3 text-sm">
+        
+        {/* Left Side: Brand & Quick Links */}
+        <div className="flex items-center gap-6">
+          <Link to="/" className="flex items-center gap-2 font-semibold">
+            <Home className="h-4 w-4" /> Home
+          </Link>
+          <Link to="/manual" className="flex items-center gap-2 font-semibold text-muted-foreground hover:text-foreground">
+            Help Manual
+          </Link>
+        </div>
+
+        {/* Right Side: Navigation */}
+        <nav className="flex items-center gap-3 text-sm">
           <Link
             to="/events"
             className="text-muted-foreground hover:text-foreground"
