@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const SUPER_ADMIN_EMAIL = "ssmith3@mckinneytexas.org";
+const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL ?? "ssmith3@mckinneytexas.org";
 
 export const getMyRoles = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
