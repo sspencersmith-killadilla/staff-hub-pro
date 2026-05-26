@@ -316,10 +316,14 @@ export const createMyCommunityEvent = createServerFn({ method: "POST" })
       approval_status: "pending",
       submitted_by: context.userId,
       event_type: "Community",
+      image_url: data.image_url || null,
+      image_focal_x: data.image_focal_x ?? 50,
+      image_focal_y: data.image_focal_y ?? 50,
     });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 export const updateMyCommunityEvent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
