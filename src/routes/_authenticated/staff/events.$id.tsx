@@ -270,6 +270,15 @@ function EventDashboard() {
     onSuccess: () => { invalidate(); showToast("Floorplan saved"); },
     onError: (e: Error) => showToast(e.message, "error"),
   });
+  const mBulkVolunteers = useMutation({
+    mutationFn: (rows: { name: string; shift_role?: string | null }[]) =>
+      bulkUpsertVolunteers({ data: { session_id: id, rows } }),
+    onSuccess: (res: any) => {
+      invalidate();
+      showToast(`Imported ${res?.count ?? rows.length} volunteer(s)`);
+    },
+    onError: (e: Error) => showToast(e.message, "error"),
+  });
 
   // Local UI state
   const [editingTicket, setEditingTicket] = useState<any>(null);
