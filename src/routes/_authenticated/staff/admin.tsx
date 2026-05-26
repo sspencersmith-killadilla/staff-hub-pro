@@ -37,7 +37,7 @@ function AdminPage() {
 
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"staff" | "admin">("staff");
-  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [bulkEmails, setBulkEmails] = useState("");
   const [bulkResult, setBulkResult] = useState<
     | { total: number; invited: number; existed: number; errors: { email: string; message?: string }[] }
     | null
