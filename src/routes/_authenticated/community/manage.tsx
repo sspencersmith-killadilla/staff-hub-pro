@@ -719,6 +719,27 @@ function EventForm({
           />
         </div>
       </div>
+      <div className="space-y-1.5">
+        <Label>Event flyer image URL (optional)</Label>
+        <Input
+          value={imageUrl}
+          onChange={(ev) => setImageUrl(ev.target.value)}
+          placeholder="https://…/flyer.jpg"
+          maxLength={500}
+        />
+        <p className="text-[11px] text-slate-500">
+          Used as the hero on your event flyer page and the cover image in the
+          public events feed.
+        </p>
+      </div>
+      {imageUrl.trim() && (
+        <ImageFocalPicker
+          src={imageUrl.trim()}
+          x={focal.x}
+          y={focal.y}
+          onChange={setFocal}
+        />
+      )}
       <p className="text-xs text-slate-500">
         Submissions and edits go back to <em>pending</em> for staff review.
       </p>
@@ -727,6 +748,7 @@ function EventForm({
           {submitting ? "Saving…" : initial ? "Save changes" : "Submit for review"}
         </Button>
       </div>
+
     </form>
   );
 }
