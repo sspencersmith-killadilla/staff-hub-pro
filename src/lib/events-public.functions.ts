@@ -148,8 +148,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
       sponsorsBySession.set(sid, list);
     }
 
-    // Sold-out check for city sessions
-    const sessionIds = (sessRes.data ?? []).map((s: any) => s.id);
+    // Sold-out check for city sessions (sessionIds already defined above)
     const [tiersRes, attRes] = await Promise.all([
       sessionIds.length
         ? supabaseAdmin.from("ticket_tiers").select("id, session_id, capacity").in("session_id", sessionIds as any)
