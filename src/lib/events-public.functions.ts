@@ -223,8 +223,8 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         ticketed: false,
         detail_href: (s as any).busker_id ? `/artists/${(s as any).busker_id}` : "/streetbeats",
         sponsors: [],
-        focal_x: 50,
-        focal_y: 50,
+        focal_x: busker?.avatar_focal_x ?? 50,
+        focal_y: busker?.avatar_focal_y ?? 50,
       });
     }
 
