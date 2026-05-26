@@ -360,19 +360,22 @@ function EventDashboard() {
   if (isLoading) return <div className="p-8">Loading…</div>;
   if (!session) return <div className="p-8">Event not found.</div>;
 
-  const navItems: { key: typeof activeView; label: string; badge?: number }[] = [
-    { key: "reports", label: "Reports" },
-    { key: "door", label: "Door", badge: ticketsRedeemed },
-    { key: "tickets", label: "Tickets" },
-    { key: "gigs", label: "Gigs", badge: gigs.length },
-    { key: "floorplan", label: "Floorplan" },
-    { key: "marketing", label: "Marketing" },
-    { key: "commercial", label: "Commercial" },
-    { key: "vendors", label: "Vendors", badge: vendors.length },
-    { key: "sponsors", label: "Sponsors", badge: sponsors.length },
-    { key: "volunteers", label: "Volunteers", badge: volunteers.length },
-    { key: "talent", label: "Talent", badge: talent.length },
+  const allNavItems: { key: typeof activeView; label: string; badge?: number; permission: PermissionKey }[] = [
+    { key: "reports", label: "Reports", permission: "event.reports" },
+    { key: "door", label: "Door", badge: ticketsRedeemed, permission: "event.door" },
+    { key: "tickets", label: "Tickets", permission: "event.tickets" },
+    { key: "gigs", label: "Gigs", badge: gigs.length, permission: "event.gigs" },
+    { key: "floorplan", label: "Floorplan", permission: "event.floorplan" },
+    { key: "marketing", label: "Marketing", permission: "event.marketing" },
+    { key: "commercial", label: "Commercial", permission: "event.commercial" },
+    { key: "vendors", label: "Vendors", badge: vendors.length, permission: "event.vendors" },
+    { key: "sponsors", label: "Sponsors", badge: sponsors.length, permission: "event.sponsors" },
+    { key: "volunteers", label: "Volunteers", badge: volunteers.length, permission: "event.volunteers" },
+    { key: "talent", label: "Talent", badge: talent.length, permission: "event.talent" },
   ];
+  const navItems = allNavItems.filter((it) => can(it.permission, id));
+  const canShowActive = navItems.some((it) => it.key === activeView);
+
 
   const inputCls =
     "w-full p-2.5 border border-input bg-background rounded text-sm outline-none focus:border-primary font-medium";
