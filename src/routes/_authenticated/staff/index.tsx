@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2, ExternalLink, Pencil, X, Upload, Download } from "lucide-react";
 import { toast } from "sonner";
+import { ImageFocalPicker } from "@/components/image-focal-picker";
 
 export const Route = createFileRoute("/_authenticated/staff/")({
   component: EventsPage,
