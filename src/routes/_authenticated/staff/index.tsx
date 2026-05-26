@@ -174,6 +174,7 @@ function EventsPage() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [sort, setSort] = useState<"closest" | "farthest">("closest");
+  const [showPast, setShowPast] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const resetForm = () => {
