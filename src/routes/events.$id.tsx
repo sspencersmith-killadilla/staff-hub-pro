@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import {
   getPublicCityEvent,
+  joinTicketWaitlist,
   registerForCityEvent,
 } from "@/lib/events-public.functions";
 import {
