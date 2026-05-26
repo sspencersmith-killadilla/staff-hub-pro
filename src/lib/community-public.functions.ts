@@ -16,8 +16,9 @@ function eventRow(e: any, org: any | null, loc: any | null) {
     description: e.description ?? null,
     starts_at: e.start_time,
     ends_at: e.end_time,
-    cost_text: e.cost_text ?? null,
-    contact_info: e.contact_info ?? null,
+    cost_text: null as string | null,
+    contact_info: null as string | null,
+
     status: e.approval_status ?? "pending",
     staff_notes: e.reviewer_notes ?? null,
     image_url: e.image_url ?? null,
