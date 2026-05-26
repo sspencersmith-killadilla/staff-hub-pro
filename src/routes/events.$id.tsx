@@ -57,6 +57,7 @@ function EventDetail() {
   const router = useRouter();
   const fetchEvent = useServerFn(getPublicCityEvent);
   const register = useServerFn(registerForCityEvent);
+  const joinWaitlist = useServerFn(joinTicketWaitlist);
   const fetchPaymentsStatus = useServerFn(getPaymentsStatus);
   const payAndRegister = useServerFn(payAndRegisterForCityEvent);
 
