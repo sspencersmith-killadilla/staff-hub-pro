@@ -795,3 +795,12 @@ function Stat({ label, value, valueClass }: { label: string; value: string; valu
     </div>
   );
 }
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section>
+      <h2 className="font-black uppercase text-sm tracking-widest text-muted-foreground mb-3">{title}</h2>
+      {children}
+    </section>
+  );
+}
