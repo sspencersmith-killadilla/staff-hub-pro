@@ -35,6 +35,8 @@ import {
 } from "@/components/ui/dialog";
 
 import { requireModule } from "@/lib/require-module";
+import { ImageFocalPicker } from "@/components/image-focal-picker";
+
 
 export const Route = createFileRoute("/_authenticated/community/manage")({
   beforeLoad: () => requireModule("community_orgs"),
@@ -615,6 +617,11 @@ function EventForm({
   const [locId, setLocId] = useState<string>(
     initial?.location_id ?? (locations[0]?.id ?? ""),
   );
+  const [imageUrl, setImageUrl] = useState<string>(initial?.image_url ?? "");
+  const [focal, setFocal] = useState<{ x: number; y: number }>({
+    x: typeof initial?.image_focal_x === "number" ? initial.image_focal_x : 50,
+    y: typeof initial?.image_focal_y === "number" ? initial.image_focal_y : 50,
+  });
 
   async function handle(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -629,6 +636,9 @@ function EventForm({
       ends_at: ends ? new Date(ends).toISOString() : "",
       cost_text: String(fd.get("cost_text") ?? "").trim() || null,
       contact_info: String(fd.get("contact_info") ?? "").trim() || null,
+      image_url: imageUrl.trim() || null,
+      image_focal_x: focal.x,
+      image_focal_y: focal.y,
     };
     setSubmitting(true);
     try {
@@ -637,6 +647,7 @@ function EventForm({
       setSubmitting(false);
     }
   }
+
 
   return (
     <form onSubmit={handle} className="space-y-3">
@@ -708,6 +719,27 @@ function EventForm({
           />
         </div>
       </div>
+      <div className="space-y-1.5">
+        <Label>Event flyer image URL (optional)</Label>
+        <Input
+          value={imageUrl}
+          onChange={(ev) => setImageUrl(ev.target.value)}
+          placeholder="https://…/flyer.jpg"
+          maxLength={500}
+        />
+        <p className="text-[11px] text-slate-500">
+          Used as the hero on your event flyer page and the cover image in the
+          public events feed.
+        </p>
+      </div>
+      {imageUrl.trim() && (
+        <ImageFocalPicker
+          src={imageUrl.trim()}
+          x={focal.x}
+          y={focal.y}
+          onChange={setFocal}
+        />
+      )}
       <p className="text-xs text-slate-500">
         Submissions and edits go back to <em>pending</em> for staff review.
       </p>
@@ -716,6 +748,7 @@ function EventForm({
           {submitting ? "Saving…" : initial ? "Save changes" : "Submit for review"}
         </Button>
       </div>
+
     </form>
   );
 }

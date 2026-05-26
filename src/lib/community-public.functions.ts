@@ -4,7 +4,8 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const EVENT_COLS =
-  "id, organization_id, title, description, start_time, end_time, location, image_url, is_community, approval_status, reviewer_notes, submitted_by";
+  "id, organization_id, title, description, start_time, end_time, location, image_url, image_focal_x, image_focal_y, is_community, approval_status, reviewer_notes, submitted_by";
+
 
 function eventRow(e: any, org: any | null, loc: any | null) {
   return {
@@ -17,14 +18,18 @@ function eventRow(e: any, org: any | null, loc: any | null) {
     ends_at: e.end_time,
     cost_text: null as string | null,
     contact_info: null as string | null,
+
     status: e.approval_status ?? "pending",
     staff_notes: e.reviewer_notes ?? null,
     image_url: e.image_url ?? null,
+    image_focal_x: typeof e.image_focal_x === "number" ? e.image_focal_x : 50,
+    image_focal_y: typeof e.image_focal_y === "number" ? e.image_focal_y : 50,
     location: loc ?? (e.location ? { name: e.location, address: null, city: null } : null),
     org: org,
     created_at: null as string | null,
   };
 }
+
 
 async function hydrate(rows: any[]) {
   const orgIds = Array.from(new Set(rows.map((r) => r.organization_id).filter(Boolean)));
@@ -249,7 +254,11 @@ const eventInput = z.object({
   ends_at: z.string().min(1),
   cost_text: z.string().trim().max(120).optional().nullable(),
   contact_info: z.string().trim().max(300).optional().nullable(),
+  image_url: z.string().trim().url().max(500).optional().nullable().or(z.literal("")),
+  image_focal_x: z.number().int().min(0).max(100).optional(),
+  image_focal_y: z.number().int().min(0).max(100).optional(),
 });
+
 
 async function resolveLocationLabel(orgId: string, locId: string | null | undefined) {
   if (!locId) return null;
@@ -307,10 +316,14 @@ export const createMyCommunityEvent = createServerFn({ method: "POST" })
       approval_status: "pending",
       submitted_by: context.userId,
       event_type: "Community",
+      image_url: data.image_url || null,
+      image_focal_x: data.image_focal_x ?? 50,
+      image_focal_y: data.image_focal_y ?? 50,
     });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 export const updateMyCommunityEvent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -334,7 +347,11 @@ export const updateMyCommunityEvent = createServerFn({ method: "POST" })
         end_date: endIso.slice(0, 10),
         location: locationLabel,
         approval_status: "pending",
+        image_url: data.image_url || null,
+        image_focal_x: data.image_focal_x ?? 50,
+        image_focal_y: data.image_focal_y ?? 50,
       })
+
       .eq("id", data.id)
       .eq("organization_id", org.id)
       .eq("is_community", true);
@@ -357,4 +374,28 @@ export const cancelMyCommunityEvent = createServerFn({ method: "POST" })
       .eq("is_community", true);
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+// ---------- Public flyer ----------
+
+export const getPublicCommunityEvent = createServerFn({ method: "GET" })
+  .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ data }) => {
+    const { data: row, error } = await supabaseAdmin
+      .from("events")
+      .select(EVENT_COLS)
+      .eq("id", data.id)
+      .eq("is_community", true)
+      .eq("approval_status", "approved")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row) return { event: null as any };
+    const orgRes = row.organization_id
+      ? await supabaseAdmin
+          .from("community_organizations")
+          .select("id, name, org_type, website, contact_email, description")
+          .eq("id", row.organization_id)
+          .maybeSingle()
+      : { data: null };
+    return { event: eventRow(row, orgRes.data ?? null, null) };
   });

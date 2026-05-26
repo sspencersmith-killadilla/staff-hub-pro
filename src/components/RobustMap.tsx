@@ -104,18 +104,23 @@ export default function RobustMap({
       ? JSON.parse(session.interactive_map_data || "{}")
       : session?.interactive_map_data || {};
 
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(
+    mapData.backgroundImage ?? null,
+  );
+  const [bgUrlInput, setBgUrlInput] = useState<string>(mapData.backgroundImage ?? "");
   const [bgImage, setBgImage] = useState<HTMLImageElement | null>(null);
   useEffect(() => {
-    if (mapData.backgroundImage) {
+    if (backgroundImage) {
       const img = new window.Image();
-      img.src = mapData.backgroundImage;
+      img.src = backgroundImage;
       img.crossOrigin = "Anonymous";
       img.onload = () => setBgImage(img);
       img.onerror = () => console.error("Failed to load map background");
     } else {
       setBgImage(null);
     }
-  }, [mapData.backgroundImage]);
+  }, [backgroundImage]);
+
 
   const [lines, setLines] = useState<DrawLine[]>([]);
   const [shapes, setShapes] = useState<MapShape[]>([]);
@@ -149,10 +154,13 @@ export default function RobustMap({
       setLines(mapData.lines || []);
       setVendors(mapData.vendors || []);
       setShapes(mapData.shapes || []);
+      setBackgroundImage(mapData.backgroundImage ?? null);
+      setBgUrlInput(mapData.backgroundImage ?? "");
     }
     setHistory([]); setHistoryIdx(-1); setIsDirty(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.id]);
+
 
   const pushHistory = useCallback((l: DrawLine[], v: MapVendor[], s: MapShape[]) => {
     setHistory((prev) => {
@@ -205,9 +213,35 @@ export default function RobustMap({
   };
 
   const handleSave = () => {
-    onSave({ lines, vendors, shapes, backgroundImage: mapData.backgroundImage });
+    onSave({ lines, vendors, shapes, backgroundImage });
     setIsDirty(false);
   };
+
+  const applyBgUrl = () => {
+    const next = bgUrlInput.trim() || null;
+    setBackgroundImage(next);
+    setIsDirty(true);
+  };
+  const clearBg = () => {
+    setBgUrlInput("");
+    setBackgroundImage(null);
+    setIsDirty(true);
+  };
+  const handleBgFile = (file: File) => {
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Image is larger than 2 MB. Please host it externally and paste a URL instead.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const url = String(reader.result || "");
+      setBgUrlInput(url);
+      setBackgroundImage(url);
+      setIsDirty(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
 
   const getPointerPos = (e: any) => {
     const stage = e.target.getStage();
@@ -354,7 +388,54 @@ export default function RobustMap({
             {mode === "select" ? (
               <>
                 <div>
+                  <p className="text-[10px] text-gray-500 mb-2 font-black uppercase tracking-wider border-b pb-1.5">0. Background Image</p>
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={bgUrlInput}
+                      onChange={(e) => setBgUrlInput(e.target.value)}
+                      placeholder="Paste image URL (PNG/JPG)…"
+                      className="w-full text-xs px-2 py-1.5 border border-gray-300 rounded"
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={applyBgUrl}
+                        className="p-2 border border-[#005ea2] rounded text-[10px] font-black text-[#005ea2] hover:bg-blue-50 bg-white shadow-sm uppercase tracking-wider"
+                      >
+                        Use URL
+                      </button>
+                      <label className="p-2 border border-gray-300 rounded text-[10px] font-black text-gray-700 hover:bg-gray-50 bg-white shadow-sm uppercase tracking-wider cursor-pointer text-center">
+                        Upload
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) handleBgFile(f);
+                            e.target.value = "";
+                          }}
+                        />
+                      </label>
+                    </div>
+                    {backgroundImage && (
+                      <button
+                        type="button"
+                        onClick={clearBg}
+                        className="w-full p-2 border border-red-200 rounded text-[10px] font-black text-red-700 hover:bg-red-50 bg-white uppercase tracking-wider"
+                      >
+                        Remove background
+                      </button>
+                    )}
+                    <p className="text-[10px] text-gray-500 leading-snug">
+                      Place a venue map, blueprint, or aerial photo behind the floorplan. Files {`>`}2 MB should be hosted externally — paste the URL above.
+                    </p>
+                  </div>
+                </div>
+                <div>
                   <p className="text-[10px] text-gray-500 mb-2 font-black uppercase tracking-wider border-b pb-1.5">1. Architecture</p>
+
                   <div className="grid grid-cols-2 gap-2">
                     <button onClick={() => addShape("wall-h")} className="p-2 border border-gray-300 rounded text-xs font-bold text-gray-700 hover:bg-gray-50 bg-white shadow-sm">Horiz. Wall</button>
                     <button onClick={() => addShape("wall-v")} className="p-2 border border-gray-300 rounded text-xs font-bold text-gray-700 hover:bg-gray-50 bg-white shadow-sm">Vert. Wall</button>
