@@ -20,7 +20,12 @@ export function SiteHeader() {
         <Link to="/" className="flex items-center gap-2 font-semibold">
           <Home className="h-4 w-4" /> Home
         </Link>
-        <nav className="flex items-center gap-3 text-sm">
+        <header className="border-b bg-background">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+        <Link to="/manual" className="flex items-center gap-2 font-semibold">
+          <Home className="h-4 w-4" /> Help Manual
+        </Link>
+          <nav className="flex items-center gap-3 text-sm">
           <Link
             to="/events"
             className="text-muted-foreground hover:text-foreground"
