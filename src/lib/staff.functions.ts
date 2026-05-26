@@ -2,6 +2,15 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+// Hard-coded super admin — cannot be demoted or deleted by other admins.
+const SUPER_ADMIN_EMAIL = "ssmith3@mckinneytexas.org";
+
+async function isSuperAdmin(userId: string): Promise<boolean> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin.auth.admin.getUserById(userId);
+  return data.user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
+}
+
 export const listStaff = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
