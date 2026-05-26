@@ -181,6 +181,60 @@ export default function RobustMap({
     trRef.current?.nodes([]);
   }, [readOnly, selectedId, vendors, shapes, lines, pushHistory]);
 
+  // Attach the Transformer to whichever item is selected so resize handles appear.
+  useEffect(() => {
+    const tr = trRef.current;
+    const stage = stageRef.current;
+    if (!tr || !stage) return;
+    if (!selectedId || mode !== "select" || readOnly) {
+      tr.nodes([]);
+      tr.getLayer()?.batchDraw();
+      return;
+    }
+    const node = stage.findOne(`#${selectedId}`);
+    if (node) {
+      tr.nodes([node]);
+      tr.getLayer()?.batchDraw();
+    } else {
+      tr.nodes([]);
+    }
+  }, [selectedId, mode, readOnly, shapes, vendors, bgImage]);
+
+  const selectedKind: "shape" | "vendor" | null = selectedId
+    ? shapes.some((s) => s.id === selectedId)
+      ? "shape"
+      : vendors.some((v) => v.id === selectedId)
+        ? "vendor"
+        : null
+    : null;
+  const selectedScale = selectedId
+    ? (selectedKind === "shape"
+        ? shapes.find((s) => s.id === selectedId)?.scaleX
+        : vendors.find((v) => v.id === selectedId)?.scaleX) ?? 1
+    : 1;
+
+  const setSelectedScale = useCallback(
+    (next: number) => {
+      if (readOnly || !selectedId || !selectedKind) return;
+      const clamped = Math.max(0.2, Math.min(5, next));
+      if (selectedKind === "shape") {
+        const nextS = shapes.map((s) =>
+          s.id === selectedId ? { ...s, scaleX: clamped, scaleY: clamped } : s,
+        );
+        setShapes(nextS);
+        pushHistory(lines, vendors, nextS);
+      } else {
+        const nextV = vendors.map((v) =>
+          v.id === selectedId ? { ...v, scaleX: clamped, scaleY: clamped } : v,
+        );
+        setVendors(nextV);
+        pushHistory(lines, nextV, shapes);
+      }
+    },
+    [readOnly, selectedId, selectedKind, shapes, vendors, lines, pushHistory],
+  );
+
+
   const undo = useCallback(() => {
     if (historyIdx < 0) return;
     const entry = history[historyIdx];
