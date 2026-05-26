@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 
 // Unified public events feed: city sessions + approved community events + booked streetbeats gigs.
 
@@ -279,7 +279,6 @@ export const getPublicCityEvent = createServerFn({ method: "GET" })
   });
 
 export const registerForCityEvent = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((i) =>
     z
       .object({
@@ -291,35 +290,46 @@ export const registerForCityEvent = createServerFn({ method: "POST" })
       })
       .parse(i),
   )
-  .handler(async ({ data, context }) => {
-    const { userId } = context;
-    if (data.ticket_tier_id) {
+  .handler(async ({ data }) => {
+    let tierId = data.ticket_tier_id ?? null;
+    if (tierId) {
       const { data: tier } = await supabaseAdmin
         .from("ticket_tiers")
         .select("id, session_id")
-        .eq("id", data.ticket_tier_id)
+        .eq("id", tierId)
         .maybeSingle();
       if (!tier || tier.session_id !== data.session_id) {
         throw new Error("Invalid ticket tier for this event");
       }
+    } else {
+      // Fall back to any tier for this session so we can link the attendee
+      // back to the event (attendees has no direct session_id column).
+      const { data: anyTier } = await supabaseAdmin
+        .from("ticket_tiers")
+        .select("id")
+        .eq("session_id", data.session_id)
+        .limit(1)
+        .maybeSingle();
+      tierId = anyTier?.id ?? null;
     }
-    // Prevent the same user from double-registering for the same event.
-    const { data: existing } = await supabaseAdmin
-      .from("attendees")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("session_id", data.session_id)
-      .maybeSingle();
-    if (existing) return { id: existing.id };
+
+    // Prevent the same email from double-registering for the same event.
+    if (tierId) {
+      const { data: existing } = await supabaseAdmin
+        .from("attendees")
+        .select("id")
+        .eq("email", data.email)
+        .eq("ticket_tier_id", tierId)
+        .maybeSingle();
+      if (existing) return { id: existing.id };
+    }
 
     const { data: row, error } = await supabaseAdmin
       .from("attendees")
       .insert({
-        user_id: userId,
-        session_id: data.session_id,
         full_name: data.full_name,
         email: data.email,
-        ticket_tier_id: data.ticket_tier_id ?? null,
+        ticket_tier_id: tierId,
         quantity: data.quantity ?? 1,
         checked_in: false,
       })
@@ -328,3 +338,4 @@ export const registerForCityEvent = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { id: row.id };
   });
+
