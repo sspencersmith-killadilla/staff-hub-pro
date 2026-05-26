@@ -76,6 +76,52 @@ export const removeFromWaitlist = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// Convert a waitlist entry into real attendee ticket(s) — used to fill no-show
+// seats. Inserts one attendee row per requested quantity (each gets its own QR),
+// then removes the waitlist entry.
+export const promoteWaitlistEntry = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => idIn.parse(i))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    const { data: w, error: getErr } = await supabaseAdmin
+      .from("ticket_waitlist")
+      .select("id, ticket_tier_id, full_name, email, quantity")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (getErr) throw new Error(getErr.message);
+    if (!w) throw new Error("Waitlist entry not found");
+
+    const qty = Math.max(1, Math.min(20, w.quantity ?? 1));
+    const groupId = crypto.randomUUID();
+    const rows = Array.from({ length: qty }, () => ({
+      full_name: w.full_name,
+      email: w.email,
+      ticket_tier_id: w.ticket_tier_id,
+      quantity: 1,
+      checked_in: false,
+      group_id: groupId,
+    }));
+    const { data: inserted, error: insErr } = await supabaseAdmin
+      .from("attendees")
+      .insert(rows)
+      .select("id")
+      .limit(1);
+    if (insErr) throw new Error(insErr.message);
+
+    await supabaseAdmin
+      .from("ticket_waitlist")
+      .update({
+        notified_at: new Date().toISOString(),
+        converted_attendee_id: inserted?.[0]?.id ?? null,
+      })
+      .eq("id", w.id);
+    // Remove the waitlist row so the seat-count math stays clean.
+    await supabaseAdmin.from("ticket_waitlist").delete().eq("id", w.id);
+
+    return { ok: true, count: qty };
+  });
+
 
 // ─── Check-in ────────────────────────────────────────────────────────
 export const toggleCheckIn = createServerFn({ method: "POST" })
