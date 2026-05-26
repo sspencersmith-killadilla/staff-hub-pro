@@ -176,6 +176,8 @@ const artistInput = z.object({
   genre: z.string().trim().max(120).optional().nullable().or(z.literal("")),
   bio: z.string().trim().max(4000).optional().nullable().or(z.literal("")),
   avatar_url: z.string().trim().max(1000).optional().nullable().or(z.literal("")),
+  avatar_focal_x: z.number().int().min(0).max(100).optional(),
+  avatar_focal_y: z.number().int().min(0).max(100).optional(),
   spotify_link: z.string().trim().max(500).optional().nullable().or(z.literal("")),
   youtube_link: z.string().trim().max(500).optional().nullable().or(z.literal("")),
   soundcloud_link: z.string().trim().max(500).optional().nullable().or(z.literal("")),
