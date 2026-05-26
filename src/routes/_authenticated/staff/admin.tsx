@@ -129,29 +129,21 @@ function AdminPage() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Bulk invite from CSV</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Bulk invite</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Download the template, add one email per row, then upload. Everyone is
+            Paste or type emails separated by commas or newlines. Everyone is
             invited as <strong>staff</strong>. Promote individuals to admin using
             the toggles below.
           </p>
-          <div>
-            <Button type="button" variant="outline" onClick={downloadTemplate}>
-              Download CSV template
-            </Button>
-          </div>
-          <form className="flex flex-wrap items-end gap-3" onSubmit={handleUpload}>
-            <div className="flex-1 min-w-[220px]">
-              <Label htmlFor="csv-file">Upload CSV</Label>
-              <Input
-                id="csv-file"
-                type="file"
-                accept=".csv,text/csv"
-                onChange={(e) => setCsvFile(e.target.files?.[0] ?? null)}
-              />
-            </div>
-            <Button type="submit" disabled={!csvFile || bulk.isPending}>
+          <form className="space-y-3" onSubmit={handleBulkSubmit}>
+            <textarea
+              className="min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="staff1@example.com, staff2@example.com"
+              value={bulkEmails}
+              onChange={(e) => setBulkEmails(e.target.value)}
+            />
+            <Button type="submit" disabled={!bulkEmails.trim() || bulk.isPending}>
               {bulk.isPending ? "Inviting…" : "Invite all as staff"}
             </Button>
           </form>
