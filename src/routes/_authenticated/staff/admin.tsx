@@ -7,6 +7,7 @@ import {
   inviteStaff,
   setStaffRole,
   deleteStaff,
+  bulkInviteStaff,
 } from "@/lib/staff.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
