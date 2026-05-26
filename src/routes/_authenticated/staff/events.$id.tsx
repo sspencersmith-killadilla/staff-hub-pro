@@ -515,7 +515,7 @@ function EventDashboard() {
           </div>
         )}
 
-        {activeView === "tickets" && (
+        {canShowActive && activeView === "tickets" && (
           <div className="grid lg:grid-cols-2 gap-6">
             <div className="bg-card rounded-xl border p-6">
               <h3 className="font-black mb-4 uppercase text-sm">
@@ -624,7 +624,7 @@ function EventDashboard() {
         )}
 
 
-        {activeView === "door" && (
+        {canShowActive && activeView === "door" && (
           <div className="space-y-4 max-w-xl">
             <form onSubmit={handleScan} className="flex gap-2">
               <Input
@@ -670,7 +670,7 @@ function EventDashboard() {
           </div>
         )}
 
-        {activeView === "gigs" && (
+        {canShowActive && activeView === "gigs" && (
           <div className="space-y-6">
             <div className="bg-card rounded-xl border p-6">
               <h3 className="font-black mb-4 uppercase text-sm">Add Gig to Event</h3>
@@ -768,7 +768,7 @@ function EventDashboard() {
           </div>
         )}
 
-        {activeView === "floorplan" && (
+        {canShowActive && activeView === "floorplan" && (
           <Suspense fallback={<div className="p-8 text-sm text-muted-foreground">Loading floorplan editor…</div>}>
             <RobustMap
               session={session}
@@ -778,7 +778,7 @@ function EventDashboard() {
           </Suspense>
         )}
 
-        {activeView === "marketing" && (
+        {canShowActive && activeView === "marketing" && (
           <Suspense fallback={<div className="p-8 text-sm text-muted-foreground">Loading marketing hub…</div>}>
             <EventMarketingHub
               event={session}
@@ -792,7 +792,7 @@ function EventDashboard() {
 
 
 
-        {activeView === "commercial" && (
+        {canShowActive && activeView === "commercial" && (
           <div className="grid lg:grid-cols-2 gap-6">
             <div className="bg-card rounded-xl border p-6">
               <h3 className="font-black mb-4 uppercase text-sm">Vendor Tiers</h3>
@@ -861,7 +861,7 @@ function EventDashboard() {
           </div>
         )}
 
-        {activeView === "vendors" && (
+        {canShowActive && activeView === "vendors" && (
           <div className="bg-card rounded-xl border">
             <div className="p-4 border-b font-bold">Vendors ({vendors.length})</div>
             {(vendors as any[]).map((v) => (
@@ -878,7 +878,7 @@ function EventDashboard() {
           </div>
         )}
 
-        {activeView === "sponsors" && (
+        {canShowActive && activeView === "sponsors" && (
           <div className="bg-card rounded-xl border">
             <div className="p-4 border-b font-bold">Sponsors ({sponsors.length})</div>
             {(sponsors as any[]).map((s) => (
@@ -895,7 +895,7 @@ function EventDashboard() {
           </div>
         )}
 
-        {activeView === "volunteers" && (
+        {canShowActive && activeView === "volunteers" && (
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" size="sm" onClick={downloadVolunteerTemplate}>
@@ -950,7 +950,7 @@ function EventDashboard() {
           </div>
         )}
 
-        {activeView === "talent" && (
+        {canShowActive && activeView === "talent" && (
           <div className="grid lg:grid-cols-[2fr_1fr] gap-6">
             <div className="bg-card rounded-xl border">
               <div className="p-4 border-b font-bold">Run of Show ({talent.length})</div>
