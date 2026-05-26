@@ -35,7 +35,7 @@ export const listMyTickets = createServerFn({ method: "GET" })
     const { data: rows, error } = await supabaseAdmin
       .from("attendees")
       .select(
-        "id, full_name, email, quantity, checked_in, created_at, ticket_tier_id, ticket_tiers(name, price, session_id, sessions(id, title, start_time, end_time, stages(name, venues(name))))",
+        "id, full_name, email, quantity, checked_in, created_at, group_id, ticket_tier_id, ticket_tiers(name, price, session_id, sessions(id, title, start_time, end_time, stages(name, venues(name))))",
       )
       .eq("email", email)
       .order("created_at", { ascending: false });
@@ -60,8 +60,12 @@ export const listMyTickets = createServerFn({ method: "GET" })
         session_start: session?.start_time ?? null,
         session_end: session?.end_time ?? null,
         venue_name: venue?.name ?? stage?.name ?? null,
+        group_id: r.group_id ?? null,
+        seat_index: 1,
+        seat_total: 1,
       };
     });
+    annotateSeats(tickets);
     void userId;
     return { email, tickets };
   });
@@ -82,7 +86,7 @@ export const listAllAttendees = createServerFn({ method: "GET" })
     let q = supabaseAdmin
       .from("attendees")
       .select(
-        "id, full_name, email, quantity, checked_in, created_at, ticket_tier_id, ticket_tiers!inner(name, price, session_id, sessions(id, title, start_time, end_time, stages(name, venues(name))))",
+        "id, full_name, email, quantity, checked_in, created_at, group_id, ticket_tier_id, ticket_tiers!inner(name, price, session_id, sessions(id, title, start_time, end_time, stages(name, venues(name))))",
       )
       .order("created_at", { ascending: false });
     if (data.session_id) q = q.eq("ticket_tiers.session_id", data.session_id);
@@ -108,8 +112,12 @@ export const listAllAttendees = createServerFn({ method: "GET" })
         session_start: session?.start_time ?? null,
         session_end: session?.end_time ?? null,
         venue_name: venue?.name ?? stage?.name ?? null,
+        group_id: r.group_id ?? null,
+        seat_index: 1,
+        seat_total: 1,
       };
     });
+    annotateSeats(attendees);
 
     const { data: sessions } = await supabaseAdmin
       .from("sessions")
