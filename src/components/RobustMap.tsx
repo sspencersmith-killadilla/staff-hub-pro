@@ -657,7 +657,21 @@ export default function RobustMap({
                   />
                 ))}
                 {!readOnly && mode === "select" && (
-                  <Transformer ref={trRef} boundBoxFunc={(oldBox, newBox) => (newBox.width < 20 || newBox.height < 20 ? oldBox : newBox)} />
+                  <Transformer
+                    ref={trRef}
+                    rotateEnabled
+                    keepRatio={false}
+                    anchorSize={10}
+                    anchorStroke="#112e51"
+                    anchorFill="#ffffff"
+                    borderStroke="#112e51"
+                    borderDash={[4, 4]}
+                    enabledAnchors={[
+                      "top-left", "top-right", "bottom-left", "bottom-right",
+                      "middle-left", "middle-right", "top-center", "bottom-center",
+                    ]}
+                    boundBoxFunc={(oldBox, newBox) => (newBox.width < 20 || newBox.height < 20 ? oldBox : newBox)}
+                  />
                 )}
               </Layer>
             </Stage>
