@@ -68,7 +68,7 @@ function AdminPage() {
     },
   });
 
-  function handleBulkSubmit(e: React.FormEvent) {
+  function handleBulkSubmit(e: FormEvent) {
     e.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const emails = bulkEmails
