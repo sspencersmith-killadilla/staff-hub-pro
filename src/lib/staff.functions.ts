@@ -46,6 +46,43 @@ export const listStaff = createServerFn({ method: "GET" })
     });
   });
 
+export const promoteExistingUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      email: z.string().email(),
+      role: z.enum(["admin", "staff"]),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: meRole } = await context.supabase
+      .from("user_roles").select("role")
+      .eq("user_id", context.userId).eq("role", "admin").maybeSingle();
+    if (!meRole) throw new Error("Forbidden: admin role required");
+
+    const target = data.email.trim().toLowerCase();
+    // Find existing user by email
+    const { data: list, error: listErr } =
+      await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+    if (listErr) throw new Error(listErr.message);
+    const user = list.users.find((u) => u.email?.toLowerCase() === target);
+    if (!user) {
+      throw new Error(
+        "No existing account found for that email. Use Invite to send them a signup link.",
+      );
+    }
+
+    const { error: roleErr } = await supabaseAdmin
+      .from("user_roles")
+      .upsert(
+        { user_id: user.id, role: data.role },
+        { onConflict: "user_id,role" },
+      );
+    if (roleErr) throw new Error(roleErr.message);
+    return { ok: true, userId: user.id, email: user.email };
+  });
+
 export const inviteStaff = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
