@@ -116,6 +116,7 @@ function EventDashboard() {
   const sponsors = data?.sponsors ?? [];
   const gigs = data?.gigs ?? [];
   const stagesList = data?.stages ?? [];
+  const waitlist = (data as any)?.waitlist ?? [];
 
   const ticketRev = useMemo(
     () => (attendees as any[]).reduce((a, x) => a + (x.ticket_tiers?.price || 0), 0),
