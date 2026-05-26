@@ -28,6 +28,8 @@ export type UnifiedEvent = {
   ticketed: boolean; // city events route to /events/:id ticketing
   detail_href: string | null; // for non-ticketed types
   sponsors: EventSponsor[];
+  focal_x: number; // 0-100, CSS object-position x
+  focal_y: number; // 0-100, CSS object-position y
 };
 
 export const listPublicAllEvents = createServerFn({ method: "GET" })
@@ -43,7 +45,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
     // 1. City sessions
     const sessionsQ = supabaseAdmin
       .from("sessions")
-      .select("id, title, start_time, end_time, image_url, event_type, speaker_name, stage_id, room_id, stages(id,name,venue_id), rooms(id,name,venue_id)")
+      .select("id, title, start_time, end_time, image_url, focal_x, focal_y, event_type, speaker_name, stage_id, room_id, stages(id,name,venue_id), rooms(id,name,venue_id)")
       .order("start_time", { ascending: true });
     if (!includeArchived) sessionsQ.gte("end_time", nowIso);
 
@@ -171,6 +173,8 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         ticketed: true,
         detail_href: `/events/${(s as any).id}`,
         sponsors: sponsorsBySession.get((s as any).id) ?? [],
+        focal_x: (s as any).focal_x ?? 50,
+        focal_y: (s as any).focal_y ?? 50,
       });
     }
 
@@ -193,6 +197,8 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         ticketed: false,
         detail_href: "/community",
         sponsors: [],
+        focal_x: 50,
+        focal_y: 50,
       });
     }
 
@@ -217,6 +223,8 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         ticketed: false,
         detail_href: (s as any).busker_id ? `/artists/${(s as any).busker_id}` : "/streetbeats",
         sponsors: [],
+        focal_x: 50,
+        focal_y: 50,
       });
     }
 

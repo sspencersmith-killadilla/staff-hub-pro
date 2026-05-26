@@ -303,6 +303,9 @@ function EventsPage() {
                           src={e.image_url}
                           alt=""
                           className="h-full w-full object-cover"
+                          style={{
+                            objectPosition: `${e.focal_x ?? 50}% ${e.focal_y ?? 50}%`,
+                          }}
                         />
                       </div>
                     ) : (

@@ -17,6 +17,8 @@ const sessionInput = z.object({
   start_time: z.string().nullable().optional(),
   end_time: z.string().nullable().optional(),
   image_url: z.string().optional().nullable(),
+  focal_x: z.number().int().min(0).max(100).optional(),
+  focal_y: z.number().int().min(0).max(100).optional(),
   open_to_vendors: z.boolean().optional(),
 });
 
@@ -39,6 +41,8 @@ function toSessionRow(data: SessionInput) {
     start_time: data.start_time ?? null,
     end_time: data.end_time ?? null,
     image_url: data.image_url ?? null,
+    focal_x: data.focal_x ?? 50,
+    focal_y: data.focal_y ?? 50,
     accepts_vendors: data.open_to_vendors ?? false,
   };
   return row;
@@ -137,6 +141,8 @@ export const updateEvent = createServerFn({ method: "POST" })
     if (!("title" in data.patch)) delete (patch as any).title;
     if (!("room_id" in data.patch)) delete (patch as any).room_id;
     if (!("stage_id" in data.patch)) delete (patch as any).stage_id;
+    if (!("focal_x" in data.patch)) delete (patch as any).focal_x;
+    if (!("focal_y" in data.patch)) delete (patch as any).focal_y;
     const { data: row, error } = await supabaseAdmin
       .from("sessions")
       .update(patch)

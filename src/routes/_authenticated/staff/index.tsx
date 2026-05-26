@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2, ExternalLink, Pencil, X, Upload, Download } from "lucide-react";
 import { toast } from "sonner";
+import { ImageFocalPicker } from "@/components/image-focal-picker";
 
 export const Route = createFileRoute("/_authenticated/staff/")({
   component: EventsPage,
@@ -35,6 +36,8 @@ const emptyForm = {
   start_time: "",
   end_time: "",
   image_url: "",
+  focal_x: 50,
+  focal_y: 50,
   open_to_vendors: false,
 };
 
@@ -188,6 +191,8 @@ function EventsPage() {
       start_time: toLocalInput(e.start_time),
       end_time: toLocalInput(e.end_time),
       image_url: e.image_url ?? "",
+      focal_x: typeof e.focal_x === "number" ? e.focal_x : 50,
+      focal_y: typeof e.focal_y === "number" ? e.focal_y : 50,
       open_to_vendors: !!e.open_to_vendors,
     });
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
@@ -205,6 +210,8 @@ function EventsPage() {
         start_time: form.start_time ? new Date(form.start_time).toISOString() : null,
         end_time: form.end_time ? new Date(form.end_time).toISOString() : null,
         image_url: form.image_url || null,
+        focal_x: form.focal_x,
+        focal_y: form.focal_y,
         open_to_vendors: form.open_to_vendors,
       };
       return editingId
@@ -392,6 +399,14 @@ function EventsPage() {
               </div>
               <Input placeholder="Image URL (Poster)" value={form.image_url}
                 onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
+              {form.image_url && (
+                <ImageFocalPicker
+                  src={form.image_url}
+                  x={form.focal_x}
+                  y={form.focal_y}
+                  onChange={({ x, y }) => setForm({ ...form, focal_x: x, focal_y: y })}
+                />
+              )}
               <label className="flex items-center gap-2 text-sm text-slate-700">
                 <Checkbox checked={form.open_to_vendors}
                   onCheckedChange={(c) => setForm({ ...form, open_to_vendors: c === true })} />
