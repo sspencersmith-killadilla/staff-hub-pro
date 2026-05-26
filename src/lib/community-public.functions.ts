@@ -347,7 +347,11 @@ export const updateMyCommunityEvent = createServerFn({ method: "POST" })
         end_date: endIso.slice(0, 10),
         location: locationLabel,
         approval_status: "pending",
+        image_url: data.image_url || null,
+        image_focal_x: data.image_focal_x ?? 50,
+        image_focal_y: data.image_focal_y ?? 50,
       })
+
       .eq("id", data.id)
       .eq("organization_id", org.id)
       .eq("is_community", true);
