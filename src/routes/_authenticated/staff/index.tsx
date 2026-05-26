@@ -503,13 +503,19 @@ function EventsPage() {
             </div>
           </div>
 
-          <div className="px-4 py-3 flex items-center justify-between border-b border-slate-200">
+          <div className="px-4 py-3 flex items-center justify-between border-b border-slate-200 gap-3 flex-wrap">
             <span className="text-sm text-slate-600">Showing {filtered.length} of {events.length} events</span>
-            <select className="h-8 rounded-md border border-input bg-transparent px-2 text-sm"
-              value={sort} onChange={(e) => setSort(e.target.value as any)}>
-              <option value="closest">Date: Closest First</option>
-              <option value="farthest">Date: Farthest First</option>
-            </select>
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-600">
+                <Checkbox checked={showPast} onCheckedChange={(c) => setShowPast(c === true)} />
+                Show Past (Archived)
+              </label>
+              <select className="h-8 rounded-md border border-input bg-transparent px-2 text-sm"
+                value={sort} onChange={(e) => setSort(e.target.value as any)}>
+                <option value="closest">Date: Closest First</option>
+                <option value="farthest">Date: Farthest First</option>
+              </select>
+            </div>
           </div>
 
           <div className="px-4 py-2 grid grid-cols-[1fr_220px_120px] gap-3 text-xs font-bold uppercase tracking-wider text-slate-500">
