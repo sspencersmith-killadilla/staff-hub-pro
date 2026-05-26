@@ -173,6 +173,8 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         ticketed: true,
         detail_href: `/events/${(s as any).id}`,
         sponsors: sponsorsBySession.get((s as any).id) ?? [],
+        focal_x: (s as any).focal_x ?? 50,
+        focal_y: (s as any).focal_y ?? 50,
       });
     }
 
