@@ -124,7 +124,7 @@ function Home() {
                   Room Reservations
                 </Link>
               )}
-              {isEnabled("User Manual") && (
+              {isEnabled("User_Manual") && (
                 <Link
                   to="/manual"
                   className="bg-white/10 hover:bg-white/20 text-white border border-white/30 font-bold py-3 px-6 rounded-lg transition-colors text-center uppercase tracking-wider text-sm w-full sm:w-auto"
