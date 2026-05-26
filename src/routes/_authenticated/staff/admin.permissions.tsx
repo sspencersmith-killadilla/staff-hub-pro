@@ -21,17 +21,25 @@ import {
 
 export const Route = createFileRoute("/_authenticated/staff/admin/permissions")({
   beforeLoad: async () => {
-    const me = await getMyRoles();
-    if (!me.roles.includes("admin")) throw redirect({ to: "/staff" });
+    // Skip during SSR / prefetch — no auth header yet. The component
+    // gates rendering on the client once the session is hydrated.
+    if (typeof window === "undefined") return;
+    try {
+      const me = await getMyRoles();
+      if (!me.roles.includes("admin")) throw redirect({ to: "/staff" });
+    } catch (e) {
+      // Auth not ready yet — let the component handle it after hydration.
+      if ((e as any)?.isRedirect) throw e;
+    }
   },
   component: PermissionsPage,
   errorComponent: ({ error }) => (
     <div className="mx-auto max-w-3xl px-4 py-10 space-y-3">
       <h1 className="text-xl font-semibold">Permissions page failed to load</h1>
       <p className="text-sm text-muted-foreground">
-        This usually means the staff permissions database migration
-        (<code>015_staff_permissions.sql</code>) has not been applied yet.
-        Run it in the Supabase SQL editor, then reload this page.
+        If this is the first time opening it, the staff permissions migration
+        (<code>supabase-migrations/015_staff_permissions.sql</code>) may not
+        have been applied yet. Run it in the Supabase SQL editor and reload.
       </p>
       <pre className="text-xs bg-muted p-3 rounded overflow-auto">
         {(error as Error)?.message ?? String(error)}
