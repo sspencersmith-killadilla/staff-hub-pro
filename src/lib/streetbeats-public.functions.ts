@@ -279,6 +279,8 @@ export const upsertMyArtistProfile = createServerFn({ method: "POST" })
       genre: urlOrEmpty(data.genre),
       bio: urlOrEmpty(data.bio),
       avatar_url: urlOrEmpty(data.avatar_url),
+      avatar_focal_x: typeof data.avatar_focal_x === "number" ? data.avatar_focal_x : 50,
+      avatar_focal_y: typeof data.avatar_focal_y === "number" ? data.avatar_focal_y : 50,
       spotify_link: urlOrEmpty(data.spotify_link),
       youtube_link: urlOrEmpty(data.youtube_link),
       soundcloud_link: urlOrEmpty(data.soundcloud_link),
