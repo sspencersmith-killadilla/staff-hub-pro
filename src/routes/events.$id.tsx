@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import {
   getPublicCityEvent,
+  joinTicketWaitlist,
   registerForCityEvent,
 } from "@/lib/events-public.functions";
 import {
@@ -56,6 +57,7 @@ function EventDetail() {
   const router = useRouter();
   const fetchEvent = useServerFn(getPublicCityEvent);
   const register = useServerFn(registerForCityEvent);
+  const joinWaitlist = useServerFn(joinTicketWaitlist);
   const fetchPaymentsStatus = useServerFn(getPaymentsStatus);
   const payAndRegister = useServerFn(payAndRegisterForCityEvent);
 
@@ -73,6 +75,7 @@ function EventDetail() {
   const [selectedTier, setSelectedTier] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [waitlistSuccess, setWaitlistSuccess] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
   const tiers = data?.tiers ?? [];
@@ -86,6 +89,7 @@ function EventDetail() {
   );
   const tierPrice = Number(activeTier?.price ?? 0);
   const isPaid = tierPrice > 0;
+  const isSoldOut = !!activeTier?.sold_out;
   const paymentsReady = !!paymentsStatus?.configured;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -97,7 +101,19 @@ function EventDetail() {
     const email = String(fd.get("email") ?? "");
     const quantity = Number(fd.get("quantity") ?? 1);
     try {
-      if (isPaid) {
+      if (isSoldOut) {
+        if (!tierId) throw new Error("Pick a ticket tier first.");
+        await joinWaitlist({
+          data: {
+            session_id: id,
+            ticket_tier_id: tierId,
+            full_name,
+            email,
+            quantity,
+          },
+        });
+        setWaitlistSuccess(activeTier?.name ?? "this tier");
+      } else if (isPaid) {
         if (!paymentsReady) {
           throw new Error(
             "Payments are not yet configured for this site. Please contact the organizer.",
@@ -460,10 +476,17 @@ function EventDetail() {
                                   {t.description}
                                 </div>
                               )}
-                              <div className="mt-1 text-sm font-bold text-slate-900">
-                                {Number(t.price) > 0
-                                  ? `$${Number(t.price).toFixed(2)}`
-                                  : "Free"}
+                              <div className="mt-1 flex items-center gap-2">
+                                <div className="text-sm font-bold text-slate-900">
+                                  {Number(t.price) > 0
+                                    ? `$${Number(t.price).toFixed(2)}`
+                                    : "Free"}
+                                </div>
+                                {t.sold_out && (
+                                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800">
+                                    Sold out · waitlist
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </label>
@@ -509,7 +532,7 @@ function EventDetail() {
                     </div>
                   </div>
 
-                  {isPaid && (
+                  {isPaid && !isSoldOut && (
                     <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700">
@@ -605,20 +628,30 @@ function EventDetail() {
 
                   <button
                     type="submit"
-                    disabled={submitting || (isPaid && !paymentsReady)}
+                    disabled={submitting || (isPaid && !paymentsReady && !isSoldOut)}
                     className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-md bg-slate-900 px-5 py-3 text-sm font-bold uppercase tracking-wider text-white hover:bg-slate-700 disabled:opacity-50"
                   >
-                    {isPaid ? (
+                    {isSoldOut ? (
+                      <Users className="h-4 w-4" />
+                    ) : isPaid ? (
                       <CreditCard className="h-4 w-4" />
                     ) : (
                       <Ticket className="h-4 w-4" />
                     )}
                     {submitting
                       ? "Submitting…"
-                      : isPaid
-                        ? `Pay $${tierPrice.toFixed(2)} & register`
-                        : "Confirm registration"}
+                      : isSoldOut
+                        ? "Join waitlist"
+                        : isPaid
+                          ? `Pay $${tierPrice.toFixed(2)} & register`
+                          : "Confirm registration"}
                   </button>
+                  {waitlistSuccess && (
+                    <div className="mt-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+                      You're on the waitlist for <b>{waitlistSuccess}</b>. We'll
+                      reach out if a spot opens up.
+                    </div>
+                  )}
                 </form>
               )}
             </div>

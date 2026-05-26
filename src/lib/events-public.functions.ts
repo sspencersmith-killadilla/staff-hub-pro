@@ -237,7 +237,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
 export const getPublicCityEvent = createServerFn({ method: "GET" })
   .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data }) => {
-    const [sessRes, tiersRes, talentRes, sponsorsRes] = await Promise.all([
+    const [sessRes, tiersRes, talentRes, sponsorsRes, attRes] = await Promise.all([
       supabaseAdmin
         .from("sessions")
         .select(
@@ -256,6 +256,10 @@ export const getPublicCityEvent = createServerFn({ method: "GET" })
         .select("id, company_name, logo_url, status")
         .eq("session_id", data.id)
         .in("status", ["approved", "paid"]),
+      supabaseAdmin
+        .from("attendees")
+        .select("ticket_tier_id, quantity, ticket_tiers!inner(session_id)")
+        .eq("ticket_tiers.session_id", data.id),
     ]);
     if (sessRes.error) throw new Error(sessRes.error.message);
     if (!sessRes.data) throw new Error("Event not found");
@@ -276,16 +280,72 @@ export const getPublicCityEvent = createServerFn({ method: "GET" })
       company_name: sp.company_name ?? null,
       logo_url: sp.logo_url ?? null,
     }));
+
+    // Per-tier sold counts so the UI can detect sold-out tiers.
+    const soldByTier = new Map<string, number>();
+    for (const a of (attRes.data ?? []) as any[]) {
+      if (!a.ticket_tier_id) continue;
+      soldByTier.set(
+        a.ticket_tier_id,
+        (soldByTier.get(a.ticket_tier_id) ?? 0) + (a.quantity ?? 1),
+      );
+    }
+    const tiers = (tiersRes.data ?? []).map((t: any) => {
+      const sold = soldByTier.get(t.id) ?? 0;
+      const capacity = Number(t.capacity ?? 0);
+      const sold_out = capacity > 0 && sold >= capacity;
+      return { ...t, sold, sold_out };
+    });
+
     return {
       event: sessRes.data,
       stage,
       room,
       venue,
-      tiers: tiersRes.data ?? [],
+      tiers,
       talent: talentRes.data ?? [],
       sponsors,
     };
   });
+
+export const joinTicketWaitlist = createServerFn({ method: "POST" })
+  .inputValidator((i) =>
+    z
+      .object({
+        session_id: z.string().uuid(),
+        ticket_tier_id: z.string().uuid(),
+        full_name: z.string().trim().min(1).max(200),
+        email: z.string().trim().email().max(255),
+        quantity: z.number().int().min(1).max(20).optional(),
+      })
+      .parse(i),
+  )
+  .handler(async ({ data }) => {
+    const { data: tier } = await supabaseAdmin
+      .from("ticket_tiers")
+      .select("id, session_id")
+      .eq("id", data.ticket_tier_id)
+      .maybeSingle();
+    if (!tier || tier.session_id !== data.session_id) {
+      throw new Error("Invalid ticket tier for this event");
+    }
+    const { error } = await supabaseAdmin
+      .from("ticket_waitlist")
+      .upsert(
+        {
+          session_id: data.session_id,
+          ticket_tier_id: data.ticket_tier_id,
+          full_name: data.full_name,
+          email: data.email.toLowerCase(),
+          quantity: data.quantity ?? 1,
+        },
+        { onConflict: "ticket_tier_id,email" },
+      );
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+
 
 export const registerForCityEvent = createServerFn({ method: "POST" })
   .inputValidator((i) =>

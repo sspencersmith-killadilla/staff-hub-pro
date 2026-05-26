@@ -1,65 +1,56 @@
-# Expand Event Reports Tab
+# Ticket Waitlist
 
-The Reports tab on `/staff/events/$id` currently shows only Gross Revenue, Talent Costs, and Net. All raw data needed for richer metrics is already returned by `getEventDashboard` (attendees, ticket_tiers, vendors, vendor_tiers, sponsors, sponsorship_tiers, talent) — so this is a frontend-only change in `src/routes/_authenticated/staff/events.$id.tsx`.
+Let users join a waitlist for a sold-out ticket tier on the public event page, and surface waitlist entries to staff.
 
-## Metrics to add
+## Migration `013_ticket_waitlist.sql`
 
-**Tickets**
-- Tickets Sold — count of attendees (sum of `quantity` where present, else row count)
-- Ticket Capacity — sum of `ticket_tiers.capacity`
-- Fill Rate — sold / capacity (%)
-- Checked In — attendees with `checked_in = true`
-- Show Rate — checked-in / sold (%)
-- Ticket Revenue — already computed (`ticketRev`)
-- Per-tier breakdown table: tier name, sold, capacity, fill %, revenue
+New table:
 
-**Vendors**
-- Vendors Approved/Paid — count where status ∈ {approved, paid}
-- Vendor Capacity — sum of `vendor_tiers.capacity`
-- Vendor Fill Rate — approved / capacity (%)
-- Vendor Revenue — already computed (`vendorRev`)
-- Pending applications count
-
-**Sponsors**
-- Sponsors Approved/Paid — count where status ∈ {approved, paid}
-- Sponsor Slot Capacity — sum of `sponsorship_tiers.capacity`
-- Sponsor Fill Rate — approved / capacity (%)
-- Sponsor Revenue — already computed (`sponsorRev`)
-- Pending applications count
-
-**Financial (already shown, regroup)**
-- Gross Revenue, Talent Costs, Net Profit
-- Revenue split: Tickets / Vendors / Sponsors
-
-## Layout
-
-Reorganize the Reports tab into three sections, each a card with a header and a grid of `<Stat>` tiles:
-
-```text
-┌─ Financial ────────────────────────────┐
-│ Gross | Talent Cost | Net | Tix/Ven/Spn split │
-├─ Tickets ──────────────────────────────┤
-│ Sold | Capacity | Fill % | Checked In | Show % │
-│ Per-tier table                          │
-├─ Vendors & Sponsors ───────────────────┤
-│ Vendor: Approved | Capacity | Fill % | Pending │
-│ Sponsor: Approved | Capacity | Fill % | Pending │
-└────────────────────────────────────────┘
+```sql
+create table public.ticket_waitlist (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid not null references public.sessions(id) on delete cascade,
+  ticket_tier_id uuid not null references public.ticket_tiers(id) on delete cascade,
+  full_name text not null,
+  email text not null,
+  quantity int not null default 1,
+  notified_at timestamptz,
+  converted_attendee_id uuid references public.attendees(id) on delete set null,
+  created_at timestamptz not null default now(),
+  unique (ticket_tier_id, email)
+);
 ```
 
-Reuse the existing `Stat` component. Add a small `Section` wrapper for the headers. Guard all divisions against zero capacity (show `—` instead of `NaN%`).
+Grants + RLS:
+- `grant select, insert on public.ticket_waitlist to anon, authenticated;`
+- `grant all on public.ticket_waitlist to service_role;`
+- RLS: allow `insert` to anon/authenticated; reads only via service role (staff server fns).
 
-## Technical notes
+## Server functions
 
-- All computations done inline in the component with `useMemo` for the per-tier breakdown.
-- `ticketsRedeemed` already exists — rename usage to `checkedIn` in the new section.
-- For tier-level sold counts: group attendees by `ticket_tier_id` (need to confirm the field is on attendee rows; if not, expand the select in `getEventDashboard` to include `ticket_tier_id` — one-line change).
-- No new server function, no migration.
+**Public** (`src/lib/events-public.functions.ts`):
+- `getTierAvailability({ session_id })` — returns each tier's `sold` count vs `capacity` so the UI can detect sold-out. (Or extend `getEventDetail` to include this; simpler.)
+- `joinTicketWaitlist({ session_id, ticket_tier_id, full_name, email, quantity })` — validates with Zod, verifies the tier belongs to the session, upserts on `(ticket_tier_id, email)`.
+
+**Staff** (`src/lib/event-dashboard.functions.ts` — extend `getEventDashboard`):
+- Include `waitlist` rows joined to tier name.
+- New `removeFromWaitlist({ id })` for staff cleanup.
+
+## Public UI (`src/routes/events.$id.tsx`)
+
+- Compute `soldOut` per tier from availability data.
+- When a tier is sold out: replace the radio with a "Sold out — Join waitlist" button. Selecting it switches the form's submit action to call `joinTicketWaitlist` instead of `registerForCityEvent`, and the success message reads "You're on the waitlist."
+- Tiers with `capacity = 0` are treated as unlimited (no sold-out state).
+
+## Staff UI (`src/routes/_authenticated/staff/events.$id.tsx`)
+
+- Add a "Waitlist" sub-section under the Tickets tab (or new tab if preferred): table of name, email, qty, tier, joined date, with a Remove button.
+- Show waitlist count badge on the per-tier breakdown row in the Reports tab.
 
 ## Out of scope
 
-- Time-series charts (sales over time)
-- CSV export
-- Comparison to prior events
+- Automated notification when a seat opens (manual staff outreach for now).
+- Auto-promotion of waitlist entries to attendees on cancellation.
+- Position-in-line display.
 
-Easy to add later if desired.
+Both can be added later — `notified_at` and `converted_attendee_id` columns are in place to support them.
