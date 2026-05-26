@@ -20,6 +20,7 @@ import {
 } from "@/lib/event-dashboard.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Download, Upload } from "lucide-react";
 
 const RobustMap = lazy(() => import("@/components/RobustMap"));
 const EventMarketingHub = lazy(() => import("@/components/EventMarketingHub"));
