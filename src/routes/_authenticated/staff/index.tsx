@@ -191,6 +191,8 @@ function EventsPage() {
       start_time: toLocalInput(e.start_time),
       end_time: toLocalInput(e.end_time),
       image_url: e.image_url ?? "",
+      focal_x: typeof e.focal_x === "number" ? e.focal_x : 50,
+      focal_y: typeof e.focal_y === "number" ? e.focal_y : 50,
       open_to_vendors: !!e.open_to_vendors,
     });
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
