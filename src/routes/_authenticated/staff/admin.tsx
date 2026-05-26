@@ -43,6 +43,20 @@ function AdminPage() {
     | { total: number; invited: number; existed: number; errors: { email: string; message?: string }[] }
     | null
   >(null);
+  const [promoteEmail, setPromoteEmail] = useState("");
+  const [promoteRole, setPromoteRole] = useState<"staff" | "admin">("staff");
+  const [promoteMsg, setPromoteMsg] = useState<string | null>(null);
+
+  const promote = useMutation({
+    mutationFn: () =>
+      promoteExistingUser({ data: { email: promoteEmail, role: promoteRole } }),
+    onSuccess: (r) => {
+      setPromoteMsg(`Granted ${promoteRole} to ${r.email}.`);
+      setPromoteEmail("");
+      qc.invalidateQueries({ queryKey: ["staff"] });
+    },
+    onError: (e) => setPromoteMsg((e as Error).message),
+  });
 
   const invite = useMutation({
     mutationFn: () => inviteStaff({ data: { email, role } }),
