@@ -8,6 +8,7 @@ import {
   setStaffRole,
   deleteStaff,
   bulkInviteStaff,
+  promoteExistingUser,
 } from "@/lib/staff.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,6 +43,20 @@ function AdminPage() {
     | { total: number; invited: number; existed: number; errors: { email: string; message?: string }[] }
     | null
   >(null);
+  const [promoteEmail, setPromoteEmail] = useState("");
+  const [promoteRole, setPromoteRole] = useState<"staff" | "admin">("staff");
+  const [promoteMsg, setPromoteMsg] = useState<string | null>(null);
+
+  const promote = useMutation({
+    mutationFn: () =>
+      promoteExistingUser({ data: { email: promoteEmail, role: promoteRole } }),
+    onSuccess: (r) => {
+      setPromoteMsg(`Granted ${promoteRole} to ${r.email}.`);
+      setPromoteEmail("");
+      qc.invalidateQueries({ queryKey: ["staff"] });
+    },
+    onError: (e) => setPromoteMsg((e as Error).message),
+  });
 
   const invite = useMutation({
     mutationFn: () => inviteStaff({ data: { email, role } }),
@@ -132,6 +147,57 @@ function AdminPage() {
           {invite.error && (
             <p className="mt-2 text-sm text-destructive">
               {(invite.error as Error).message}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Promote existing user</CardTitle></CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-3">
+            Grant a role to someone who already has an account — no invite email
+            is sent.
+          </p>
+          <form
+            className="flex flex-wrap items-end gap-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              setPromoteMsg(null);
+              promote.mutate();
+            }}
+          >
+            <div className="flex-1 min-w-[220px]">
+              <Label htmlFor="promote-email">Email</Label>
+              <Input
+                id="promote-email"
+                type="email"
+                required
+                value={promoteEmail}
+                onChange={(e) => setPromoteEmail(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Role</Label>
+              <Select value={promoteRole} onValueChange={(v) => setPromoteRole(v as any)}>
+                <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="staff">Staff</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button type="submit" disabled={promote.isPending}>
+              {promote.isPending ? "Granting…" : "Grant role"}
+            </Button>
+          </form>
+          {promoteMsg && (
+            <p
+              className={`mt-2 text-sm ${
+                promote.isError ? "text-destructive" : "text-muted-foreground"
+              }`}
+            >
+              {promoteMsg}
             </p>
           )}
         </CardContent>
