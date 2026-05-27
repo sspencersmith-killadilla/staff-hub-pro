@@ -112,6 +112,25 @@ function Figure({
   );
 }
 
+function Diagram({
+  caption,
+  children,
+}: {
+  caption: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <figure className="my-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+        {children}
+      </div>
+      <figcaption className="border-t border-gray-100 bg-gray-50 px-4 py-2 text-xs text-muted-foreground">
+        {caption}
+      </figcaption>
+    </figure>
+  );
+}
+
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
     <li className="flex gap-4">
