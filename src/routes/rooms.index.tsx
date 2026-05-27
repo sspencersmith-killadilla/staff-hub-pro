@@ -84,11 +84,11 @@ function RoomsIndex() {
 
   const toggleTag = (t: string) => {
     navigate({
-      search: (prev) => {
+      search: (prev: z.infer<typeof searchSchema>) => {
         const exists = prev.tags.includes(t);
         return {
           ...prev,
-          tags: exists ? prev.tags.filter((x) => x !== t) : [...prev.tags, t],
+          tags: exists ? prev.tags.filter((x: string) => x !== t) : [...prev.tags, t],
         };
       },
     });
