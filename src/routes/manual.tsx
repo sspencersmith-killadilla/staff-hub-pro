@@ -227,7 +227,13 @@ const sections: Section[] = [
             Need to apply as a musician later? Just open your hub and tap{" "}
             <em>Apply as a Musician</em>. Same login, more capabilities.
           </Step>
+          <Step n={4} title="Forgot your password?">
+            On the login screen, click <em>Forgot password?</em> and enter your
+            email. We'll send a one-time reset link — open it to choose a new
+            password.
+          </Step>
         </ol>
+        <Figure src={forgotPasswordImg} caption="Password reset — enter your email and we send a secure link" />
         <Callout kind="note">
           City staff are invited (or promoted) by an admin — see the Admin
           section. You'll get an email invitation to set your password.
