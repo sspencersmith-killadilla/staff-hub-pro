@@ -25,37 +25,45 @@ export type PublicArtistGig = {
   venue_name: string | null;
 };
 
+const ARTIST_COLS =
+  "id, full_name, avatar_url, genre, bio, spotify_link, youtube_link, soundcloud_link, tip_link, other_link_url, other_link_name, status";
+
+function rowToArtist(a: any): PublicArtist {
+  return {
+    id: a.id,
+    full_name: a.full_name ?? null,
+    avatar_url: a.avatar_url ?? null,
+    genre: a.genre ?? null,
+    bio: a.bio ?? null,
+    spotify_link: a.spotify_link ?? null,
+    youtube_link: a.youtube_link ?? null,
+    soundcloud_link: a.soundcloud_link ?? null,
+    tip_link: a.tip_link ?? null,
+    other_link_url: a.other_link_url ?? null,
+    other_link_name: a.other_link_name ?? null,
+  };
+}
+
 export const getPublicArtist = createServerFn({ method: "GET" })
   .inputValidator((i) => z.object({ id: z.string().min(1).max(64) }).parse(i))
   .handler(async ({ data }) => {
-    const { data: profile, error } = await supabaseAdmin
-      .from("profiles")
-      .select("*")
+    const { data: artistRow, error } = await supabaseAdmin
+      .from("artists")
+      .select(ARTIST_COLS)
       .eq("id", data.id)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    if (!profile) return { artist: null, gigs: [] as PublicArtistGig[] };
+    if (!artistRow || artistRow.status !== "approved") {
+      return { artist: null, gigs: [] as PublicArtistGig[] };
+    }
 
-    const p = profile as any;
-    const artist: PublicArtist = {
-      id: p.id,
-      full_name: p.full_name ?? null,
-      avatar_url: p.avatar_url ?? null,
-      genre: p.genre ?? null,
-      bio: p.bio ?? null,
-      spotify_link: p.spotify_link ?? null,
-      youtube_link: p.youtube_link ?? null,
-      soundcloud_link: p.soundcloud_link ?? null,
-      tip_link: p.tip_link ?? null,
-      other_link_url: p.other_link_url ?? null,
-      other_link_name: p.other_link_name ?? null,
-    };
+    const artist = rowToArtist(artistRow);
 
     const nowIso = new Date().toISOString();
     const { data: slots, error: slotErr } = await supabaseAdmin
       .from("slots")
       .select("id, title, start_time, end_time, stage_id")
-      .eq("busker_id", data.id)
+      .eq("artist_id", data.id)
       .eq("is_booked", true)
       .gte("start_time", nowIso)
       .order("start_time", { ascending: true });
@@ -133,8 +141,8 @@ export const getPublicGig = createServerFn({ method: "GET" })
       s.stage_id
         ? supabaseAdmin.from("stages").select("*").eq("id", s.stage_id).maybeSingle()
         : Promise.resolve({ data: null }),
-      s.busker_id
-        ? supabaseAdmin.from("profiles").select("*").eq("id", s.busker_id).maybeSingle()
+      s.artist_id
+        ? supabaseAdmin.from("artists").select(ARTIST_COLS).eq("id", s.artist_id).maybeSingle()
         : Promise.resolve({ data: null }),
     ]);
     const stage = (stageRes as any).data;
@@ -142,7 +150,7 @@ export const getPublicGig = createServerFn({ method: "GET" })
       ? await supabaseAdmin.from("venues").select("id, name, city, address").eq("id", stage.venue_id).maybeSingle()
       : { data: null };
     const venue = (venueRes as any).data;
-    const p = (artistRes as any).data;
+    const a = (artistRes as any).data;
 
     const gig: PublicGig = {
       id: s.id,
@@ -163,21 +171,7 @@ export const getPublicGig = createServerFn({ method: "GET" })
       venue: venue
         ? { id: venue.id, name: venue.name, city: venue.city, address: venue.address }
         : null,
-      artist: p
-        ? {
-            id: p.id,
-            full_name: p.full_name ?? null,
-            avatar_url: p.avatar_url ?? null,
-            genre: p.genre ?? null,
-            bio: p.bio ?? null,
-            spotify_link: p.spotify_link ?? null,
-            youtube_link: p.youtube_link ?? null,
-            soundcloud_link: p.soundcloud_link ?? null,
-            tip_link: p.tip_link ?? null,
-            other_link_url: p.other_link_url ?? null,
-            other_link_name: p.other_link_name ?? null,
-          }
-        : null,
+      artist: a ? rowToArtist(a) : null,
     };
     return gig;
   });

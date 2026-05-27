@@ -4,18 +4,17 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { assertStaff } from "./staff-guard";
 
-// Existing schema mapping (see streetbeats-public.functions.ts).
-//   slots.id is integer; we coerce.
-//   "status" is derived from is_booked. Cancelled/completed not supported
-//   in legacy schema — fall back to delete or unclaim.
+// Streetbeats staff functions — operate on the artists table (multi-profile).
 
 const SLOT_COLS =
-  "id, title, description, start_time, end_time, stage_id, session_id, busker_id, is_booked, booked_at, notes, created_at";
+  "id, title, description, start_time, end_time, stage_id, session_id, artist_id, busker_id, is_booked, booked_at, notes, created_at";
+
+const ARTIST_COLS =
+  "id, owner_user_id, full_name, email, genre, bio, avatar_url, spotify_link, youtube_link, soundcloud_link, tip_link, other_link_url, other_link_name, status, staff_notes, created_at";
 
 const gigInput = z.object({
   title: z.string().trim().min(1).max(200),
   description: z.string().trim().max(2000).optional().nullable(),
-  // legacy form passes venue_id; we ignore it (slots only have stage_id)
   venue_id: z.number().int().nullable().optional(),
   stage_id: z.string().uuid().nullable().optional(),
   event_id: z.string().uuid().nullable().optional(),
@@ -38,28 +37,43 @@ export const listArtistsStaff = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     await assertStaff(context.userId);
     const { data, error } = await supabaseAdmin
-      .from("profiles")
-      .select("*")
-      .or("is_staff.is.null,is_staff.eq.false")
+      .from("artists")
+      .select(ARTIST_COLS)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return (data ?? []).map((p: any) => ({
-      id: p.id,
-      stage_name: p.full_name ?? p.email ?? "Unnamed",
-      contact_email: p.email ?? null,
-      phone: null,
-      genre: p.genre ?? null,
-      bio: p.bio ?? null,
-      website:
-        p.other_link_url ??
-        p.spotify_link ??
-        p.soundcloud_link ??
-        p.youtube_link ??
-        null,
-      status: p.is_approved ? "approved" : "pending",
-      staff_notes: null,
-      created_at: p.created_at,
-    }));
+    const rows = data ?? [];
+    // Hydrate owner email for staff display
+    const userIds = Array.from(new Set(rows.map((r: any) => r.owner_user_id).filter(Boolean)));
+    const ownersRes = userIds.length
+      ? await supabaseAdmin
+          .from("profiles")
+          .select("id, email, full_name")
+          .in("id", userIds as any)
+      : { data: [] as any[] };
+    const ownersById = new Map((ownersRes.data ?? []).map((p: any) => [p.id, p]));
+    return rows.map((a: any) => {
+      const owner = ownersById.get(a.owner_user_id);
+      return {
+        id: a.id,
+        stage_name: a.full_name ?? "Unnamed",
+        contact_email: a.email ?? owner?.email ?? null,
+        owner_email: owner?.email ?? null,
+        owner_name: owner?.full_name ?? null,
+        phone: null,
+        genre: a.genre ?? null,
+        bio: a.bio ?? null,
+        avatar_url: a.avatar_url ?? null,
+        website:
+          a.other_link_url ??
+          a.spotify_link ??
+          a.soundcloud_link ??
+          a.youtube_link ??
+          null,
+        status: a.status,
+        staff_notes: a.staff_notes ?? null,
+        created_at: a.created_at,
+      };
+    });
   });
 
 export const setArtistStatus = createServerFn({ method: "POST" })
@@ -75,10 +89,11 @@ export const setArtistStatus = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
-    // Legacy profiles only have is_approved (boolean); 'rejected' maps to false.
+    const patch: Record<string, unknown> = { status: data.status };
+    if (data.staff_notes !== undefined) patch.staff_notes = data.staff_notes;
     const { error } = await supabaseAdmin
-      .from("profiles")
-      .update({ is_approved: data.status === "approved" })
+      .from("artists")
+      .update(patch)
       .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -97,35 +112,35 @@ export const listGigsStaff = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     const gigs = data ?? [];
     const stageIds = Array.from(new Set(gigs.map((g) => g.stage_id).filter(Boolean)));
-    const buskerIds = Array.from(new Set(gigs.map((g) => g.busker_id).filter(Boolean)));
+    const artistIds = Array.from(new Set(gigs.map((g: any) => g.artist_id).filter(Boolean)));
     const stagesRes = stageIds.length
       ? await supabaseAdmin.from("stages").select("id, name, venue_id").in("id", stageIds)
       : { data: [] as any[] };
     const stages = stagesRes.data ?? [];
     const venueIds = Array.from(new Set(stages.map((s: any) => s.venue_id).filter(Boolean)));
-    const [venuesRes, profilesRes] = await Promise.all([
+    const [venuesRes, artistsRes] = await Promise.all([
       venueIds.length
         ? supabaseAdmin.from("venues").select("id, name").in("id", venueIds)
         : Promise.resolve({ data: [] as any[] }),
-      buskerIds.length
+      artistIds.length
         ? supabaseAdmin
-            .from("profiles")
+            .from("artists")
             .select("id, full_name, email")
-            .in("id", buskerIds)
+            .in("id", artistIds as any)
         : Promise.resolve({ data: [] as any[] }),
     ]);
     const stagesById = new Map(stages.map((s: any) => [s.id, s]));
     const venuesById = new Map((venuesRes.data ?? []).map((v: any) => [v.id, v]));
     const artistsById = new Map(
-      (profilesRes.data ?? []).map((p: any) => [
-        p.id,
+      (artistsRes.data ?? []).map((a: any) => [
+        a.id,
         {
-          stage_name: p.full_name ?? p.email ?? "Unknown",
-          contact_email: p.email ?? null,
+          stage_name: a.full_name ?? "Unknown",
+          contact_email: a.email ?? null,
         },
       ]),
     );
-    return gigs.map((g) => {
+    return gigs.map((g: any) => {
       const stage = g.stage_id ? stagesById.get(g.stage_id) : null;
       const venue = stage?.venue_id ? venuesById.get(stage.venue_id) : null;
       return {
@@ -139,11 +154,11 @@ export const listGigsStaff = createServerFn({ method: "GET" })
         starts_at: g.start_time,
         ends_at: g.end_time,
         status: g.is_booked ? "claimed" : "open",
-        claimed_by_artist_id: g.busker_id ?? null,
+        claimed_by_artist_id: g.artist_id ?? null,
         claimed_at: g.booked_at ?? null,
         created_at: g.created_at,
         venue: venue ? { id: venue.id, name: venue.name } : null,
-        artist: g.busker_id ? artistsById.get(g.busker_id) ?? null : null,
+        artist: g.artist_id ? artistsById.get(g.artist_id) ?? null : null,
       };
     });
   });
@@ -224,18 +239,16 @@ export const setGigStatus = createServerFn({ method: "POST" })
     if (data.status === "open") {
       const { error } = await supabaseAdmin
         .from("slots")
-        .update({ is_booked: false, busker_id: null, booked_at: null })
+        .update({ is_booked: false, artist_id: null, busker_id: null, booked_at: null })
         .eq("id", slotId);
       if (error) throw new Error(error.message);
       return { ok: true };
     }
     if (data.status === "cancelled" || data.status === "completed") {
-      // Legacy slots schema has no status column; treat as delete.
       const { error } = await supabaseAdmin.from("slots").delete().eq("id", slotId);
       if (error) throw new Error(error.message);
       return { ok: true };
     }
-    // 'claimed' would require a busker_id; nothing to do generically.
     return { ok: true };
   });
 

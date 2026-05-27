@@ -3,14 +3,22 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Music, MapPin, Calendar, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { useState } from "react";
 import {
   listOpenGigs,
   listScheduledGigs,
   claimGig,
-  getMyArtistProfile,
+  listMyArtists,
 } from "@/lib/streetbeats-public.functions";
 import { SiteHeader } from "@/components/site-header";
 import { useAuth } from "@/hooks/use-auth";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 import { requireModule } from "@/lib/require-module";
 
@@ -53,7 +61,7 @@ function StreetbeatsPage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const fetchOpen = useServerFn(listOpenGigs);
   const fetchScheduled = useServerFn(listScheduledGigs);
-  const fetchProfile = useServerFn(getMyArtistProfile);
+  const fetchMyArtists = useServerFn(listMyArtists);
   const doClaim = useServerFn(claimGig);
 
   const open = useQuery({
@@ -64,18 +72,23 @@ function StreetbeatsPage() {
     queryKey: ["streetbeats", "scheduled"],
     queryFn: () => fetchScheduled(),
   });
-  const profile = useQuery({
-    queryKey: ["streetbeats", "me", "artist"],
-    queryFn: () => fetchProfile(),
+  const me = useQuery({
+    queryKey: ["streetbeats", "me", "artists"],
+    queryFn: () => fetchMyArtists(),
     enabled: isAuthenticated,
   });
 
-  const isApproved = profile.data?.artist?.status === "approved";
+  const myArtists = me.data?.artists ?? [];
+  const approvedArtists = myArtists.filter((a: any) => a.status === "approved");
+
+  const [pickerGigId, setPickerGigId] = useState<string | null>(null);
 
   const claim = useMutation({
-    mutationFn: (gig_id: string) => doClaim({ data: { gig_id } }),
+    mutationFn: (vars: { gig_id: string; artist_id: string }) =>
+      doClaim({ data: vars }),
     onSuccess: () => {
       toast.success("Gig claimed! See it under My Gigs.");
+      setPickerGigId(null);
       qc.invalidateQueries({ queryKey: ["streetbeats"] });
     },
     onError: (err: any) => toast.error(err?.message ?? "Failed to claim"),
@@ -86,17 +99,21 @@ function StreetbeatsPage() {
       navigate({ to: "/login", search: { redirect: "/streetbeats" } });
       return;
     }
-    if (!isApproved) {
+    if (approvedArtists.length === 0) {
       navigate({ to: "/streetbeats/apply" });
       return;
     }
-    claim.mutate(gigId);
+    if (approvedArtists.length === 1) {
+      claim.mutate({ gig_id: gigId, artist_id: approvedArtists[0].id });
+      return;
+    }
+    setPickerGigId(gigId);
   };
 
   const ctaLabel = !isAuthenticated
     ? "Log in to claim"
-    : !isApproved
-      ? profile.isLoading
+    : approvedArtists.length === 0
+      ? me.isLoading
         ? "Loading…"
         : "Apply to claim"
       : "Claim this slot";
@@ -125,7 +142,7 @@ function StreetbeatsPage() {
             to="/streetbeats/apply"
             className="hidden shrink-0 rounded-md bg-slate-900 px-5 py-3 text-sm font-bold uppercase tracking-wider text-white hover:bg-slate-700 sm:inline-block"
           >
-            Apply to perform
+            My artist profiles
           </Link>
         </div>
 
@@ -139,7 +156,9 @@ function StreetbeatsPage() {
             emptyMessage="No open slots right now. Check back soon."
             ctaLabel={authLoading ? "Loading…" : ctaLabel}
             onClaim={handleClaim}
-            claimingId={claim.isPending ? (claim.variables as string) : null}
+            claimingId={
+              claim.isPending ? (claim.variables?.gig_id as string) : null
+            }
           />
         </section>
 
@@ -155,6 +174,56 @@ function StreetbeatsPage() {
           />
         </section>
       </main>
+
+      <Dialog
+        open={!!pickerGigId}
+        onOpenChange={(o) => !o && setPickerGigId(null)}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Claim as which artist?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            {approvedArtists.map((a: any) => (
+              <button
+                key={a.id}
+                type="button"
+                disabled={claim.isPending}
+                onClick={() =>
+                  pickerGigId &&
+                  claim.mutate({ gig_id: pickerGigId, artist_id: a.id })
+                }
+                className="w-full flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 text-left hover:bg-slate-50 disabled:opacity-50"
+              >
+                {a.avatar_url ? (
+                  <img
+                    src={a.avatar_url}
+                    alt=""
+                    className="h-10 w-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="h-10 w-10 rounded-full bg-slate-200" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="font-semibold text-slate-900 truncate">
+                    {a.full_name}
+                  </div>
+                  {a.genre && (
+                    <div className="text-xs text-slate-500 truncate">
+                      {a.genre}
+                    </div>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+          <div className="flex justify-end">
+            <Button variant="ghost" onClick={() => setPickerGigId(null)}>
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -54,6 +54,10 @@ function MyGigsPage() {
     onError: (err: any) => toast.error(err?.message ?? "Failed to release"),
   });
 
+  const artists = data?.artists ?? [];
+  const hasAnyArtist = artists.length > 0;
+  const hasApproved = artists.some((a: any) => a.status === "approved");
+
   return (
     <div className="min-h-screen bg-slate-50">
       <SiteHeader />
@@ -70,24 +74,23 @@ function MyGigsPage() {
 
         {isLoading ? (
           <p className="mt-6 text-sm text-slate-500">Loading…</p>
-        ) : !data?.artist ? (
+        ) : !hasAnyArtist ? (
           <div className="mt-6 rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-600">
-            You haven't applied as an artist yet.{" "}
+            You haven't created an artist profile yet.{" "}
             <Link
               to="/streetbeats/apply"
               className="font-semibold text-slate-900 underline"
             >
-              Apply here
+              Create one
             </Link>
             .
           </div>
-        ) : data.artist.status !== "approved" ? (
+        ) : !hasApproved ? (
           <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
-            Your application is{" "}
-            <span className="font-semibold">{data.artist.status}</span>. Once
-            approved, you'll be able to claim open gigs.
+            None of your artist profiles are approved yet. Once staff approve
+            one, you'll be able to claim open gigs.
           </div>
-        ) : data.gigs.length === 0 ? (
+        ) : data!.gigs.length === 0 ? (
           <div className="mt-6 rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
             You haven't claimed any gigs yet.{" "}
             <Link
@@ -100,7 +103,7 @@ function MyGigsPage() {
           </div>
         ) : (
           <ul className="mt-6 space-y-3">
-            {data.gigs.map((g: any) => {
+            {data!.gigs.map((g: any) => {
               const upcoming = new Date(g.ends_at) > new Date();
               return (
                 <li
@@ -117,6 +120,11 @@ function MyGigsPage() {
                         <MapPin className="h-3.5 w-3.5" />
                         {g.venue?.name ?? g.location_label ?? "Location TBA"}
                       </div>
+                      {g.artist && artists.length > 1 && (
+                        <div className="mt-1 text-xs text-slate-500">
+                          As <span className="font-semibold">{g.artist.stage_name}</span>
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <span
