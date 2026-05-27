@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { OperatingHoursEditor } from "@/components/operating-hours-editor";
 import { Trash2, Plus, ChevronRight } from "lucide-react";
+import { RoomDetailsEditor } from "@/components/room-details-editor";
 
 export const Route = createFileRoute("/_authenticated/staff/venues")({
   component: VenuesPage,
