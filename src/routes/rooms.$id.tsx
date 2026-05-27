@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { FavoriteButton } from "@/components/favorite-button";
 import { useSuspenseQuery, useQuery, queryOptions } from "@tanstack/react-query";
 import { MapPin, Share2, Clock, Users, Check, Calendar, ArrowLeft, Info } from "lucide-react";
 import { useState, useMemo } from "react";
@@ -151,7 +152,10 @@ function RoomDetail() {
           )}
           <div className="absolute inset-x-0 bottom-0 p-6 md:p-8 flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-2xl">
-              <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">{r.name}</h1>
+              <div className="flex items-start gap-3 flex-wrap">
+                <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">{r.name}</h1>
+                <FavoriteButton itemType="room" itemId={id} label />
+              </div>
               <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-white/85 text-sm">
                 <span className="inline-flex items-center gap-1.5">
                   <MapPin className="h-4 w-4" />

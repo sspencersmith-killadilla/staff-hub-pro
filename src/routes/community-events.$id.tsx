@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { FavoriteButton } from "@/components/favorite-button";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { CalendarDays, MapPin, Mail, Globe, ArrowLeft } from "lucide-react";
 import { getPublicCommunityEvent } from "@/lib/community-public.functions";
@@ -120,9 +121,12 @@ function CommunityEventFlyer() {
               <p className="text-xs font-bold tracking-widest uppercase text-emerald-700 mb-2">
                 Community Event
               </p>
-              <h1 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight">
-                {event.title}
-              </h1>
+              <div className="flex items-start gap-3 flex-wrap">
+                <h1 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight">
+                  {event.title}
+                </h1>
+                <FavoriteButton itemType="community_event" itemId={id} label />
+              </div>
               {org?.name && (
                 <p className="mt-2 text-sm text-slate-600">
                   Hosted by <span className="font-semibold">{org.name}</span>

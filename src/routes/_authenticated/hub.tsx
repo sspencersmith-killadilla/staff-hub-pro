@@ -11,6 +11,7 @@ import {
   Store,
   Sparkles,
   Shield,
+  CalendarHeart,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/hub")({
@@ -106,6 +107,14 @@ function HubPage() {
   ];
 
   const manageActions: Action[] = [
+    {
+      title: "My Schedule",
+      description: "Your personalized itinerary of saved events, artists, and places.",
+      to: "/my-schedule",
+      icon: CalendarHeart,
+      accent: "from-rose-500 to-pink-600",
+      cta: "View itinerary",
+    },
     {
       title: "My Tickets",
       description: "Your purchased and reserved event tickets.",

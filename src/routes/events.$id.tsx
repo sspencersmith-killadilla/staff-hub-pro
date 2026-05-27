@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { FavoriteButton } from "@/components/favorite-button";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -242,9 +243,12 @@ function EventDetail() {
               </span>
             )}
           </div>
-          <h1 className="mt-4 text-4xl font-black uppercase tracking-tight sm:text-6xl">
-            {event.title}
-          </h1>
+          <div className="mt-4 flex items-start gap-4 flex-wrap">
+            <h1 className="text-4xl font-black uppercase tracking-tight sm:text-6xl">
+              {event.title}
+            </h1>
+            <FavoriteButton itemType="session" itemId={id} label />
+          </div>
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
             <div className="flex items-start gap-3 text-sm">
               <CalendarDays className="mt-0.5 h-5 w-5 text-amber-300 shrink-0" />

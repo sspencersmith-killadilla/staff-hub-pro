@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { FavoriteButton } from "@/components/favorite-button";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { getPublicGig } from "@/lib/artists-public.functions";
 
@@ -109,7 +110,10 @@ function GigFlyerPage() {
           </div>
           <div className="p-5">
             <div className="text-[#005ea2] text-sm font-semibold mb-2">{dateStr}</div>
-            <h1 className="text-xl font-bold mb-1">{title}</h1>
+            <div className="flex items-start gap-2 mb-1">
+              <h1 className="text-xl font-bold flex-1">{title}</h1>
+              <FavoriteButton itemType="gig" itemId={id} size="sm" />
+            </div>
             <p className="text-sm text-gray-900 font-medium">
               {stage?.name || venue?.name}
             </p>

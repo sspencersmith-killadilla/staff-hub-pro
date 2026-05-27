@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { FavoriteButton } from "@/components/favorite-button";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { getPublicArtist } from "@/lib/artists-public.functions";
 
@@ -87,9 +88,12 @@ function ArtistProfilePage() {
               <p className="text-pink-600 font-bold tracking-widest uppercase text-sm mb-1">
                 {profile.genre || "Local Artist"}
               </p>
-              <h1 className="text-4xl font-extrabold text-[#112e51]">
-                {profile.full_name ?? "Unknown Artist"}
-              </h1>
+              <div className="flex items-start gap-3 flex-wrap">
+                <h1 className="text-4xl font-extrabold text-[#112e51]">
+                  {profile.full_name ?? "Unknown Artist"}
+                </h1>
+                <FavoriteButton itemType="artist" itemId={id} label />
+              </div>
             </div>
 
             <div className="flex flex-wrap gap-3 border-b border-gray-100 pb-6 mb-6">

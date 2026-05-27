@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { FavoriteButton } from "@/components/favorite-button";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { MapPin, Users, Music, DoorOpen } from "lucide-react";
 import { getVenuePublic } from "@/lib/venues-public.functions";
@@ -58,9 +59,12 @@ function VenueDetail() {
         <Link to="/venues" className="text-sm text-slate-500 hover:text-slate-900">
           ← All venues
         </Link>
-        <h1 className="mt-3 text-4xl font-black tracking-tight text-slate-900 uppercase">
-          {v.name}
-        </h1>
+        <div className="mt-3 flex items-start gap-3 flex-wrap">
+          <h1 className="text-4xl font-black tracking-tight text-slate-900 uppercase">
+            {v.name}
+          </h1>
+          <FavoriteButton itemType="venue" itemId={id} label />
+        </div>
         {address && (
           <a
             href={`https://maps.google.com/?q=${encodeURIComponent(address)}`}
