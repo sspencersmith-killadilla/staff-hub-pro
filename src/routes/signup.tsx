@@ -25,7 +25,7 @@ function SignupPage() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: window.location.origin + "/staff" },
+      options: { emailRedirectTo: window.location.origin + "/hub" },
     });
     setLoading(false);
     if (error) return setError(error.message);
