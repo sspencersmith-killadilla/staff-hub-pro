@@ -11,6 +11,7 @@ import {
   Store,
   Sparkles,
   Shield,
+  CalendarHeart,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/hub")({

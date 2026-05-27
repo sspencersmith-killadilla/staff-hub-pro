@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { FavoriteButton } from "@/components/favorite-button";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { MapPin, Users, Music, DoorOpen } from "lucide-react";
 import { getVenuePublic } from "@/lib/venues-public.functions";

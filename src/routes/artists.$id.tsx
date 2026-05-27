@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { FavoriteButton } from "@/components/favorite-button";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { getPublicArtist } from "@/lib/artists-public.functions";
 

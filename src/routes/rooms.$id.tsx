@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { FavoriteButton } from "@/components/favorite-button";
 import { useSuspenseQuery, useQuery, queryOptions } from "@tanstack/react-query";
 import { MapPin, Share2, Clock, Users, Check, Calendar, ArrowLeft, Info } from "lucide-react";
 import { useState, useMemo } from "react";
