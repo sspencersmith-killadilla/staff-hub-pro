@@ -289,28 +289,34 @@ function RoomsPanel({ venueId, rooms }: { venueId: number; rooms: any[] }) {
       {rooms.length === 0 ? (
         <p className="text-sm text-slate-400">No rooms at this venue.</p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-4">
           {rooms.map((r) => (
-            <li key={r.id} className="grid grid-cols-[1fr_140px_100px_auto_auto] gap-2 items-center">
-              <Input defaultValue={r.name} onBlur={(e) => {
-                if (e.target.value !== r.name) upd.mutate({ id: r.id, patch: { name: e.target.value } });
-              }} />
-              <Input placeholder="Building" defaultValue={r.building ?? ""} onBlur={(e) => {
-                if (e.target.value !== (r.building ?? "")) upd.mutate({ id: r.id, patch: { building: e.target.value } });
-              }} />
-              <Input type="number" placeholder="Cap" defaultValue={r.capacity ?? ""} onBlur={(e) => {
-                const v = e.target.value ? Number(e.target.value) : null;
-                if (v !== r.capacity) upd.mutate({ id: r.id, patch: { capacity: v } });
-              }} />
-              <label className="flex items-center gap-1 text-xs text-slate-600">
-                <Checkbox defaultChecked={r.is_publicly_bookable}
-                  onCheckedChange={(c) => upd.mutate({ id: r.id, patch: { is_publicly_bookable: c === true } })} />
-                Public
-              </label>
-              <Button size="icon" variant="ghost"
-                onClick={() => confirm(`Delete room "${r.name}"?`) && del.mutate(r.id)}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
+            <li key={r.id} className="rounded-md border border-slate-200 bg-white p-2">
+              <div className="grid grid-cols-[1fr_140px_100px_auto_auto] gap-2 items-center">
+                <Input defaultValue={r.name} onBlur={(e) => {
+                  if (e.target.value !== r.name) upd.mutate({ id: r.id, patch: { name: e.target.value } });
+                }} />
+                <Input placeholder="Building" defaultValue={r.building ?? ""} onBlur={(e) => {
+                  if (e.target.value !== (r.building ?? "")) upd.mutate({ id: r.id, patch: { building: e.target.value } });
+                }} />
+                <Input type="number" placeholder="Cap" defaultValue={r.capacity ?? ""} onBlur={(e) => {
+                  const v = e.target.value ? Number(e.target.value) : null;
+                  if (v !== r.capacity) upd.mutate({ id: r.id, patch: { capacity: v } });
+                }} />
+                <label className="flex items-center gap-1 text-xs text-slate-600">
+                  <Checkbox defaultChecked={r.is_publicly_bookable}
+                    onCheckedChange={(c) => upd.mutate({ id: r.id, patch: { is_publicly_bookable: c === true } })} />
+                  Public
+                </label>
+                <Button size="icon" variant="ghost"
+                  onClick={() => confirm(`Delete room "${r.name}"?`) && del.mutate(r.id)}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+              <RoomDetailsEditor
+                room={r}
+                onChanged={() => qc.invalidateQueries({ queryKey: ["venue", venueId] })}
+              />
             </li>
           ))}
         </ul>
