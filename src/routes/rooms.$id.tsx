@@ -21,8 +21,8 @@ export const Route = createFileRoute("/rooms/$id")({
 });
 
 function formatHour(h: number) {
-  const ampm = h >= 12? "PM" : "AM";
-  const h12 = h % 12 === 0? 12 : h % 12;
+  const ampm = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
   return `${h12}:00 ${ampm}`;
 }
 
@@ -32,27 +32,27 @@ function RoomDetail() {
   const r: any = data.room;
   const v: any = data.venue;
 
-  const [selectedHour][setSelectedHour] = useState<number | null>(null);
-  const [selectedDate][setSelectedDate] = useState(() =>
+  const [selectedHour, setSelectedHour] = useState<number | null>(null);
+  const [selectedDate, setSelectedDate] = useState(() =>
     new Date().toISOString().split("T")[0]
   );
-  const [copied][setCopied] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const today = new Date().toISOString().split("T")[0];
 
   const { startHour, endHour } = useMemo(() => {
     return {
-      startHour: v?.open_hours?.open?? 7,
-      endHour: v?.open_hours?.close?? 20,
+      startHour: v?.open_hours?.open ?? 7,
+      endHour: v?.open_hours?.close ?? 20,
     };
   }, [v]);
 
   const hours = useMemo(
     () => Array.from({ length: endHour - startHour }, (_, i) => startHour + i),
-    [startHour][endHour]
+    [startHour, endHour]
   );
 
-  const selectedEnd = selectedHour!== null? selectedHour + 2 : null;
+  const selectedEnd = selectedHour !== null ? selectedHour + 2 : null;
 
   const handleShare = async () => {
     await navigator.clipboard.writeText(window.location.href);
@@ -73,11 +73,11 @@ function RoomDetail() {
                 <h1 className="text-3xl md:text-4xl font-bold text-white">{r.name}</h1>
                 <p className="mt-1 text-white/80 flex items-center gap-1.5">
                   <MapPin className="h-4 w-4" />
-                  {v?.name}{r.building? ` • ${r.building}` : ""}
+                  {v?.name}{r.building ? ` • ${r.building}` : ""}
                 </p>
               </div>
               <button onClick={handleShare} className="rounded-lg bg-white/20 backdrop-blur px-3 py-1.5 text-white">
-                {copied? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
+                {copied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
               </button>
             </div>
           </div>
@@ -126,7 +126,7 @@ function RoomDetail() {
                   <div className="grid grid-cols-3 gap-2">
                     {hours.map((h) => {
                       const isStart = selectedHour === h;
-                      const isNext = selectedHour!== null && h === selectedHour + 1;
+                      const isNext = selectedHour !== null && h === selectedHour + 1;
                       const disabled = h > endHour - 2;
                       return (
                         <button
@@ -134,10 +134,10 @@ function RoomDetail() {
                           disabled={disabled}
                           onClick={() => setSelectedHour(h)}
                           className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition
-                            ${disabled? "opacity-40 cursor-not-allowed bg-gray-50" : "hover:bg-gray-50"}
-                            ${isStart? "bg-gray-900 text-white border-gray-900" : ""}
-                            ${isNext? "bg-gray-900/10 text-gray-900 border-gray-900/30" : ""}
-                            ${!isStart &&!isNext &&!disabled? "bg-white border-gray-300 text-gray-700" : ""}
+                            ${disabled ? "opacity-40 cursor-not-allowed bg-gray-50" : "hover:bg-gray-50"}
+                            ${isStart ? "bg-gray-900 text-white border-gray-900" : ""}
+                            ${isNext ? "bg-gray-900/10 text-gray-900 border-gray-900/30" : ""}
+                            ${!isStart && !isNext && !disabled ? "bg-white border-gray-300 text-gray-700" : ""}
                           `}
                         >
                           {formatHour(h)}
@@ -147,7 +147,7 @@ function RoomDetail() {
                   </div>
                 </div>
 
-                {selectedHour!== null && (
+                {selectedHour !== null && (
                   <div className="rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-sm text-blue-800">
                     {new Date(selectedDate).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                     {" "}• {formatHour(selectedHour)} to {formatHour(selectedEnd!)}
