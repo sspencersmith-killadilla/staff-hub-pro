@@ -14,9 +14,11 @@ import { Route as VendorRouteImport } from './routes/vendor'
 import { Route as StreetbeatsRouteImport } from './routes/streetbeats'
 import { Route as SponsorsRouteImport } from './routes/sponsors'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as NoAccessRouteImport } from './routes/no-access'
 import { Route as ManualRouteImport } from './routes/manual'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as CommunityRouteImport } from './routes/community'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
@@ -77,6 +79,11 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NoAccessRoute = NoAccessRouteImport.update({
   id: '/no-access',
   path: '/no-access',
@@ -90,6 +97,11 @@ const ManualRoute = ManualRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CommunityRoute = CommunityRouteImport.update({
@@ -281,9 +293,11 @@ const AuthenticatedStaffAdminPermissionsRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/community': typeof CommunityRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/manual': typeof ManualRoute
   '/no-access': typeof NoAccessRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/sponsors': typeof SponsorsRoute
   '/streetbeats': typeof StreetbeatsRoute
@@ -324,9 +338,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/community': typeof CommunityRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/manual': typeof ManualRoute
   '/no-access': typeof NoAccessRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/sponsors': typeof SponsorsRoute
   '/streetbeats': typeof StreetbeatsRoute
@@ -368,9 +384,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/community': typeof CommunityRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/manual': typeof ManualRoute
   '/no-access': typeof NoAccessRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/sponsors': typeof SponsorsRoute
   '/streetbeats': typeof StreetbeatsRoute
@@ -413,9 +431,11 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/community'
+    | '/forgot-password'
     | '/login'
     | '/manual'
     | '/no-access'
+    | '/reset-password'
     | '/signup'
     | '/sponsors'
     | '/streetbeats'
@@ -456,9 +476,11 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/community'
+    | '/forgot-password'
     | '/login'
     | '/manual'
     | '/no-access'
+    | '/reset-password'
     | '/signup'
     | '/sponsors'
     | '/streetbeats'
@@ -499,9 +521,11 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/community'
+    | '/forgot-password'
     | '/login'
     | '/manual'
     | '/no-access'
+    | '/reset-password'
     | '/signup'
     | '/sponsors'
     | '/streetbeats'
@@ -544,9 +568,11 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   CommunityRoute: typeof CommunityRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   ManualRoute: typeof ManualRoute
   NoAccessRoute: typeof NoAccessRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   SponsorsRoute: typeof SponsorsRoute
   StreetbeatsRoute: typeof StreetbeatsRoute
@@ -599,6 +625,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/no-access': {
       id: '/no-access'
       path: '/no-access'
@@ -618,6 +651,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/community': {
@@ -955,9 +995,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   CommunityRoute: CommunityRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   ManualRoute: ManualRoute,
   NoAccessRoute: NoAccessRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   SponsorsRoute: SponsorsRoute,
   StreetbeatsRoute: StreetbeatsRoute,
