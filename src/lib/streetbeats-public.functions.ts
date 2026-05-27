@@ -3,35 +3,64 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-// Existing schema mapping:
-//   artists     -> profiles (id = auth.users.id, is_approved => 'approved')
-//   gigs        -> slots    (integer id, is_booked => 'claimed', busker_id => artist)
-//                  stages.venue_id -> venues for location display
-// The UI continues to read stage_name / contact_email / starts_at / ends_at /
-// status / venue / artist — we shape the rows accordingly.
+// Streetbeats data model:
+//   public.artists      — performer profiles (multiple per user allowed)
+//   public.slots        — gigs; slot.artist_id -> artists.id when claimed
+//                          (legacy busker_id kept for backward compatibility,
+//                           but writes go through artist_id)
+//   public.stages/venues — location for a gig
 
 const SLOT_COLS =
-  "id, title, description, start_time, end_time, stage_id, session_id, busker_id, is_booked, booked_at, notes";
+  "id, title, description, start_time, end_time, stage_id, session_id, artist_id, busker_id, is_booked, booked_at, notes";
 
-function profileToArtist(p: any) {
-  if (!p) return null;
+const ARTIST_COLS =
+  "id, owner_user_id, full_name, email, genre, bio, avatar_url, avatar_focal_x, avatar_focal_y, spotify_link, youtube_link, soundcloud_link, tip_link, other_link_url, other_link_name, status, staff_notes, created_at, updated_at";
+
+function artistToPublic(a: any) {
+  if (!a) return null;
   return {
-    id: p.id,
-    stage_name: p.full_name ?? p.email ?? "Unnamed artist",
-    contact_email: p.email ?? null,
+    id: a.id,
+    stage_name: a.full_name ?? "Unnamed artist",
+    contact_email: a.email ?? null,
     phone: null,
-    genre: p.genre ?? null,
-    bio: p.bio ?? null,
+    genre: a.genre ?? null,
+    bio: a.bio ?? null,
     website:
-      p.other_link_url ??
-      p.spotify_link ??
-      p.soundcloud_link ??
-      p.youtube_link ??
+      a.other_link_url ??
+      a.spotify_link ??
+      a.soundcloud_link ??
+      a.youtube_link ??
       null,
-    avatar_url: p.avatar_url ?? null,
-    status: p.is_approved ? "approved" : "pending",
-    staff_notes: null as string | null,
-    user_id: p.id,
+    avatar_url: a.avatar_url ?? null,
+    status: a.status,
+    staff_notes: a.staff_notes ?? null,
+    user_id: a.owner_user_id,
+  };
+}
+
+function artistToEditable(a: any) {
+  if (!a) return null;
+  return {
+    id: a.id,
+    owner_user_id: a.owner_user_id,
+    full_name: a.full_name ?? "",
+    email: a.email ?? "",
+    genre: a.genre ?? "",
+    bio: a.bio ?? "",
+    avatar_url: a.avatar_url ?? "",
+    avatar_focal_x: a.avatar_focal_x ?? 50,
+    avatar_focal_y: a.avatar_focal_y ?? 50,
+    spotify_link: a.spotify_link ?? "",
+    youtube_link: a.youtube_link ?? "",
+    soundcloud_link: a.soundcloud_link ?? "",
+    tip_link: a.tip_link ?? "",
+    other_link_url: a.other_link_url ?? "",
+    other_link_name: a.other_link_name ?? "",
+    status: a.status,
+    is_approved: a.status === "approved",
+    stage_name: a.full_name ?? "",
+    contact_email: a.email ?? null,
+    staff_notes: a.staff_notes ?? null,
   };
 }
 
@@ -43,6 +72,8 @@ function slotToGig(
 ) {
   const stage = s.stage_id ? stagesById.get(s.stage_id) ?? null : null;
   const venue = stage?.venue_id ? venuesById.get(stage.venue_id) ?? null : null;
+  const artistKey = s.artist_id ?? null;
+  const artist = artistKey ? artistsById.get(artistKey) ?? null : null;
   return {
     id: String(s.id),
     title: s.title ?? "Open slot",
@@ -54,17 +85,17 @@ function slotToGig(
     starts_at: s.start_time,
     ends_at: s.end_time,
     status: s.is_booked ? "claimed" : "open",
-    claimed_by_artist_id: s.busker_id ?? null,
+    claimed_by_artist_id: artistKey,
     claimed_at: s.booked_at ?? null,
     venue: venue ? { id: venue.id, name: venue.name, city: venue.city ?? null } : null,
     stage: stage ? { id: stage.id, name: stage.name } : null,
-    artist: s.busker_id ? artistsById.get(s.busker_id) ?? null : null,
+    artist,
   };
 }
 
 async function hydrateSlots(rows: any[]) {
   const stageIds = Array.from(new Set(rows.map((r) => r.stage_id).filter(Boolean)));
-  const buskerIds = Array.from(new Set(rows.map((r) => r.busker_id).filter(Boolean)));
+  const artistIds = Array.from(new Set(rows.map((r) => r.artist_id).filter(Boolean)));
   const stagesRes = stageIds.length
     ? await supabaseAdmin
         .from("stages")
@@ -80,23 +111,23 @@ async function hydrateSlots(rows: any[]) {
           .select("id, name, city")
           .in("id", venueIds)
       : Promise.resolve({ data: [] as any[] }),
-    buskerIds.length
+    artistIds.length
       ? supabaseAdmin
-          .from("profiles")
+          .from("artists")
           .select("id, full_name, email, genre")
-          .in("id", buskerIds)
+          .in("id", artistIds as any)
       : Promise.resolve({ data: [] as any[] }),
   ]);
   const stagesById = new Map(stages.map((s: any) => [s.id, s]));
   const venuesById = new Map((venuesRes.data ?? []).map((v: any) => [v.id, v]));
   const artistsById = new Map(
-    (artistsRes.data ?? []).map((p: any) => [
-      p.id,
+    (artistsRes.data ?? []).map((a: any) => [
+      a.id,
       {
-        id: p.id,
-        stage_name: p.full_name ?? p.email ?? "Unknown",
-        contact_email: p.email ?? null,
-        genre: p.genre ?? null,
+        id: a.id,
+        stage_name: a.full_name ?? "Unknown",
+        contact_email: a.email ?? null,
+        genre: a.genre ?? null,
       },
     ]),
   );
@@ -149,7 +180,6 @@ export const listOpenGigs = createServerFn({ method: "GET" }).handler(async () =
   return hydrateSlots(available);
 });
 
-
 export const listScheduledGigs = createServerFn({ method: "GET" }).handler(async () => {
   const nowIso = new Date().toISOString();
   const { data, error } = await supabaseAdmin
@@ -162,7 +192,7 @@ export const listScheduledGigs = createServerFn({ method: "GET" }).handler(async
   return hydrateSlots(data ?? []);
 });
 
-// ---------- Artist self-service ----------
+// ---------- Artist self-service (multi-profile) ----------
 
 function urlOrEmpty(v: string | null | undefined) {
   if (!v) return null;
@@ -186,38 +216,12 @@ const artistInput = z.object({
   other_link_name: z.string().trim().max(120).optional().nullable().or(z.literal("")),
 });
 
-function profileToEditable(p: any) {
-  if (!p) return null;
-  return {
-    id: p.id,
-    full_name: p.full_name ?? "",
-    email: p.email ?? "",
-    genre: p.genre ?? "",
-    bio: p.bio ?? "",
-    avatar_url: p.avatar_url ?? "",
-    avatar_focal_x: p.avatar_focal_x ?? 50,
-    avatar_focal_y: p.avatar_focal_y ?? 50,
-    spotify_link: p.spotify_link ?? "",
-    youtube_link: p.youtube_link ?? "",
-    soundcloud_link: p.soundcloud_link ?? "",
-    tip_link: p.tip_link ?? "",
-    other_link_url: p.other_link_url ?? "",
-    other_link_name: p.other_link_name ?? "",
-    status: p.is_approved ? "approved" : "pending",
-    is_approved: !!p.is_approved,
-    // Back-compat for any older callers
-    stage_name: p.full_name ?? p.email ?? "",
-    contact_email: p.email ?? null,
-    staff_notes: null as string | null,
-  };
-}
-
-async function listUpcomingGigsFor(userId: string) {
+async function listUpcomingGigsForArtist(artistId: string) {
   const nowIso = new Date().toISOString();
   const { data: slots, error } = await supabaseAdmin
     .from("slots")
-    .select("id, title, start_time, end_time, stage_id")
-    .eq("busker_id", userId)
+    .select("id, title, start_time, end_time, stage_id, artist_id")
+    .eq("artist_id", artistId)
     .eq("is_booked", true)
     .gte("start_time", nowIso)
     .order("start_time", { ascending: true });
@@ -246,6 +250,7 @@ async function listUpcomingGigsFor(userId: string) {
     const venue = stage?.venue_id ? venuesById.get(stage.venue_id) : null;
     return {
       id: s.id as number,
+      artist_id: s.artist_id,
       title: s.title ?? null,
       start_time: s.start_time ?? null,
       end_time: s.end_time ?? null,
@@ -255,27 +260,44 @@ async function listUpcomingGigsFor(userId: string) {
   });
 }
 
-export const getMyArtistProfile = createServerFn({ method: "GET" })
+export const listMyArtists = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data, error } = await supabaseAdmin
-      .from("profiles")
-      .select("*")
-      .eq("id", context.userId)
-      .maybeSingle();
+      .from("artists")
+      .select(ARTIST_COLS)
+      .eq("owner_user_id", context.userId)
+      .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
-    const artist = profileToEditable(data);
-    const gigs = data ? await listUpcomingGigsFor(context.userId) : [];
-    return { artist, gigs };
+    const artists = (data ?? []).map(artistToEditable).filter(Boolean) as any[];
+
+    // hydrate upcoming gigs per artist
+    const withGigs = await Promise.all(
+      artists.map(async (a) => ({
+        ...a,
+        gigs: await listUpcomingGigsForArtist(a.id),
+      })),
+    );
+    return { artists: withGigs };
   });
 
-export const upsertMyArtistProfile = createServerFn({ method: "POST" })
+export const createArtist = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => artistInput.parse(i))
   .handler(async ({ data, context }) => {
-    const patch: Record<string, unknown> = {
-      id: context.userId,
+    // Soft cap: 10 per user to prevent abuse.
+    const { count } = await supabaseAdmin
+      .from("artists")
+      .select("id", { count: "exact", head: true })
+      .eq("owner_user_id", context.userId);
+    if ((count ?? 0) >= 10) {
+      throw new Error("You've reached the limit of 10 artist profiles per account");
+    }
+
+    const insert: Record<string, unknown> = {
+      owner_user_id: context.userId,
       full_name: data.full_name,
+      email: urlOrEmpty(data.email),
       genre: urlOrEmpty(data.genre),
       bio: urlOrEmpty(data.bio),
       avatar_url: urlOrEmpty(data.avatar_url),
@@ -287,36 +309,89 @@ export const upsertMyArtistProfile = createServerFn({ method: "POST" })
       tip_link: urlOrEmpty(data.tip_link),
       other_link_url: urlOrEmpty(data.other_link_url),
       other_link_name: urlOrEmpty(data.other_link_name),
-      updated_at: new Date().toISOString(),
+      status: "pending",
     };
-    if (data.email) patch.email = data.email;
     const { data: row, error } = await supabaseAdmin
-      .from("profiles")
-      .upsert(patch, { onConflict: "id" })
-      .select("*")
+      .from("artists")
+      .insert(insert)
+      .select(ARTIST_COLS)
       .single();
     if (error) throw new Error(error.message);
-    const artist = profileToEditable(row);
-    const gigs = await listUpcomingGigsFor(context.userId);
-    return { artist, gigs };
+    return { artist: artistToEditable(row) };
+  });
+
+export const updateArtist = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => artistInput.extend({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    const { data: existing, error: exErr } = await supabaseAdmin
+      .from("artists")
+      .select("id, owner_user_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (exErr) throw new Error(exErr.message);
+    if (!existing) throw new Error("Artist profile not found");
+    if (existing.owner_user_id !== context.userId) {
+      throw new Error("Not your artist profile");
+    }
+    const patch: Record<string, unknown> = {
+      full_name: data.full_name,
+      email: urlOrEmpty(data.email),
+      genre: urlOrEmpty(data.genre),
+      bio: urlOrEmpty(data.bio),
+      avatar_url: urlOrEmpty(data.avatar_url),
+      avatar_focal_x: typeof data.avatar_focal_x === "number" ? data.avatar_focal_x : 50,
+      avatar_focal_y: typeof data.avatar_focal_y === "number" ? data.avatar_focal_y : 50,
+      spotify_link: urlOrEmpty(data.spotify_link),
+      youtube_link: urlOrEmpty(data.youtube_link),
+      soundcloud_link: urlOrEmpty(data.soundcloud_link),
+      tip_link: urlOrEmpty(data.tip_link),
+      other_link_url: urlOrEmpty(data.other_link_url),
+      other_link_name: urlOrEmpty(data.other_link_name),
+    };
+    const { data: row, error } = await supabaseAdmin
+      .from("artists")
+      .update(patch)
+      .eq("id", data.id)
+      .select(ARTIST_COLS)
+      .single();
+    if (error) throw new Error(error.message);
+    return { artist: artistToEditable(row) };
+  });
+
+export const deleteArtist = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    const { data: existing, error: exErr } = await supabaseAdmin
+      .from("artists")
+      .select("id, owner_user_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (exErr) throw new Error(exErr.message);
+    if (!existing) return { ok: true };
+    if (existing.owner_user_id !== context.userId) {
+      throw new Error("Not your artist profile");
+    }
+    // Release any active future gigs first
+    await supabaseAdmin
+      .from("slots")
+      .update({ is_booked: false, artist_id: null, busker_id: null, booked_at: null })
+      .eq("artist_id", data.id);
+    const { error } = await supabaseAdmin
+      .from("artists")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 // ---------- Claim / release ----------
 
-async function getApprovedArtist(userId: string) {
-  const { data, error } = await supabaseAdmin
-    .from("profiles")
-    .select("id, is_approved, full_name")
-    .eq("id", userId)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("Set up your artist profile first");
-  if (!data.is_approved)
-    throw new Error("Your artist profile must be approved before claiming gigs");
-  return data;
-}
-
-const gigIdInput = z.object({ gig_id: z.union([z.string(), z.number()]) });
+const claimInput = z.object({
+  gig_id: z.union([z.string(), z.number()]),
+  artist_id: z.string().uuid(),
+});
 
 function toSlotId(v: string | number): number {
   const n = typeof v === "number" ? v : Number(v);
@@ -324,11 +399,26 @@ function toSlotId(v: string | number): number {
   return n;
 }
 
+async function getOwnedApprovedArtist(userId: string, artistId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("artists")
+    .select("id, status, owner_user_id, full_name")
+    .eq("id", artistId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Artist profile not found");
+  if (data.owner_user_id !== userId) throw new Error("Not your artist profile");
+  if (data.status !== "approved") {
+    throw new Error("This artist profile must be approved before claiming gigs");
+  }
+  return data;
+}
+
 export const claimGig = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i) => gigIdInput.parse(i))
+  .inputValidator((i) => claimInput.parse(i))
   .handler(async ({ data, context }) => {
-    const artist = await getApprovedArtist(context.userId);
+    const artist = await getOwnedApprovedArtist(context.userId, data.artist_id);
     const slotId = toSlotId(data.gig_id);
 
     const { data: slot, error: slotErr } = await supabaseAdmin
@@ -352,18 +442,24 @@ export const claimGig = createServerFn({ method: "POST" })
       }
     }
 
-
-
     if (slot.start_time && slot.end_time) {
-      const { data: conflicts } = await supabaseAdmin
-        .from("slots")
+      // Conflict check: any of THIS USER's artists can't be in two places at once
+      const { data: myArtists } = await supabaseAdmin
+        .from("artists")
         .select("id")
-        .eq("busker_id", artist.id)
-        .eq("is_booked", true)
-        .lt("start_time", slot.end_time)
-        .gt("end_time", slot.start_time);
-      if ((conflicts ?? []).length > 0) {
-        throw new Error("You already have a gig that overlaps this time");
+        .eq("owner_user_id", context.userId);
+      const myArtistIds = (myArtists ?? []).map((a: any) => a.id);
+      if (myArtistIds.length) {
+        const { data: conflicts } = await supabaseAdmin
+          .from("slots")
+          .select("id")
+          .in("artist_id", myArtistIds as any)
+          .eq("is_booked", true)
+          .lt("start_time", slot.end_time)
+          .gt("end_time", slot.start_time);
+        if ((conflicts ?? []).length > 0) {
+          throw new Error("You already have a gig that overlaps this time");
+        }
       }
     }
 
@@ -371,7 +467,8 @@ export const claimGig = createServerFn({ method: "POST" })
       .from("slots")
       .update({
         is_booked: true,
-        busker_id: artist.id,
+        artist_id: artist.id,
+        busker_id: context.userId, // legacy mirror
         booked_at: new Date().toISOString(),
       })
       .eq("id", slotId)
@@ -382,15 +479,28 @@ export const claimGig = createServerFn({ method: "POST" })
 
 export const releaseMyGig = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i) => gigIdInput.parse(i))
+  .inputValidator((i) => z.object({ gig_id: z.union([z.string(), z.number()]) }).parse(i))
   .handler(async ({ data, context }) => {
-    const artist = await getApprovedArtist(context.userId);
     const slotId = toSlotId(data.gig_id);
+    // Confirm the slot belongs to one of the user's artists
+    const { data: slot } = await supabaseAdmin
+      .from("slots")
+      .select("id, artist_id")
+      .eq("id", slotId)
+      .maybeSingle();
+    if (!slot?.artist_id) throw new Error("Gig not found");
+    const { data: artist } = await supabaseAdmin
+      .from("artists")
+      .select("id, owner_user_id")
+      .eq("id", slot.artist_id)
+      .maybeSingle();
+    if (!artist || artist.owner_user_id !== context.userId) {
+      throw new Error("Not your gig");
+    }
     const { error } = await supabaseAdmin
       .from("slots")
-      .update({ is_booked: false, busker_id: null, booked_at: null })
-      .eq("id", slotId)
-      .eq("busker_id", artist.id);
+      .update({ is_booked: false, artist_id: null, busker_id: null, booked_at: null })
+      .eq("id", slotId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -398,18 +508,18 @@ export const releaseMyGig = createServerFn({ method: "POST" })
 export const listMyClaimedGigs = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data: profile } = await supabaseAdmin
-      .from("profiles")
-      .select("id, is_approved, full_name, email")
-      .eq("id", context.userId)
-      .maybeSingle();
-    if (!profile) return { artist: null, gigs: [] };
-    const artist = profileToArtist(profile);
+    const { data: artists } = await supabaseAdmin
+      .from("artists")
+      .select(ARTIST_COLS)
+      .eq("owner_user_id", context.userId);
+    const list = (artists ?? []).map(artistToPublic).filter(Boolean) as any[];
+    const ids = list.map((a) => a.id);
+    if (ids.length === 0) return { artists: [], gigs: [] };
     const { data, error } = await supabaseAdmin
       .from("slots")
       .select(SLOT_COLS)
-      .eq("busker_id", context.userId)
+      .in("artist_id", ids as any)
       .order("start_time", { ascending: false });
     if (error) throw new Error(error.message);
-    return { artist, gigs: await hydrateSlots(data ?? []) };
+    return { artists: list, gigs: await hydrateSlots(data ?? []) };
   });
