@@ -147,7 +147,7 @@ function RoomsIndex() {
                 onChange={(e) => {
                   const n = Number(e.target.value);
                   navigate({
-                    search: (prev) => ({
+                    search: (prev: z.infer<typeof searchSchema>) => ({
                       ...prev,
                       min_cap: Number.isFinite(n) && n > 0 ? n : 0,
                     }),
