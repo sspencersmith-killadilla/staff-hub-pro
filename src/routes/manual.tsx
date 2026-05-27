@@ -33,6 +33,7 @@ import loginImg from "@/assets/manual/login.png";
 import staffImg from "@/assets/manual/staff.png";
 import adminImg from "@/assets/manual/admin.png";
 import venuesImg from "@/assets/manual/venues.png";
+import forgotPasswordImg from "@/assets/manual/forgot-password.png";
 
 export const Route = createFileRoute("/manual")({
   head: () => ({
