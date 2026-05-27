@@ -118,7 +118,7 @@ function RoomsIndex() {
                 value={search.venue || "all"}
                 onValueChange={(v) =>
                   navigate({
-                    search: (prev) => ({ ...prev, venue: v === "all" ? "" : v }),
+                    search: (prev: z.infer<typeof searchSchema>) => ({ ...prev, venue: v === "all" ? "" : v }),
                   })
                 }
               >
