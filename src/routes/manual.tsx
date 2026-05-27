@@ -78,6 +78,7 @@ const groups: { label: string; sectionIds: string[] }[] = [
       "tickets",
       "rooms",
       "streetbeats",
+      "gig-flyers",
       "community-orgs",
       "vendor-apply",
       "sponsor",
