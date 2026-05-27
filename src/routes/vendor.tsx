@@ -11,6 +11,7 @@ import {
   submitApplication,
   updateApplication,
   cancelApplication,
+  payForApplication,
 } from "@/lib/vendor-portal.functions";
 
 const RobustMap = lazy(() => import("@/components/RobustMap"));
@@ -156,8 +157,14 @@ function AuthGate() {
 }
 
 // ─── Authenticated dashboard ──────────────────────────────────────────
-type Tab = "dashboard" | "apply";
+type Tab = "dashboard" | "archive" | "apply";
 type Kind = "vendor" | "sponsor";
+
+function isPastApp(app: any): boolean {
+  const t = app?.sessions?.start_time;
+  if (!t) return false;
+  return new Date(t).getTime() < Date.now() - 24 * 60 * 60 * 1000;
+}
 
 function PortalDashboard({ user }: { user: any }) {
   const qc = useQueryClient();
@@ -168,8 +175,13 @@ function PortalDashboard({ user }: { user: any }) {
     queryKey: ["vendor-portal", "apps", user.id],
     queryFn: () => fetchApps(),
   });
-  const vendors = data?.vendors ?? [];
-  const sponsors = data?.sponsors ?? [];
+  const allVendors = data?.vendors ?? [];
+  const allSponsors = data?.sponsors ?? [];
+  const vendors = allVendors.filter((a: any) => !isPastApp(a));
+  const sponsors = allSponsors.filter((a: any) => !isPastApp(a));
+  const archivedVendors = allVendors.filter((a: any) => isPastApp(a));
+  const archivedSponsors = allSponsors.filter((a: any) => isPastApp(a));
+  const archiveCount = archivedVendors.length + archivedSponsors.length;
 
   const refresh = () =>
     qc.invalidateQueries({ queryKey: ["vendor-portal", "apps", user.id] });
@@ -209,6 +221,12 @@ function PortalDashboard({ user }: { user: any }) {
             My Applications
           </TabButton>
           <TabButton
+            active={activeTab === "archive"}
+            onClick={() => setActiveTab("archive")}
+          >
+            Archive {archiveCount > 0 && `(${archiveCount})`}
+          </TabButton>
+          <TabButton
             active={activeTab === "apply"}
             onClick={() => setActiveTab("apply")}
           >
@@ -222,6 +240,16 @@ function PortalDashboard({ user }: { user: any }) {
             sponsors={sponsors}
             onRefresh={refresh}
             goApply={() => setActiveTab("apply")}
+          />
+        )}
+
+        {activeTab === "archive" && (
+          <DashboardTab
+            vendors={archivedVendors}
+            sponsors={archivedSponsors}
+            onRefresh={refresh}
+            goApply={() => setActiveTab("apply")}
+            archived
           />
         )}
 
@@ -268,41 +296,55 @@ function DashboardTab({
   sponsors,
   onRefresh,
   goApply,
+  archived = false,
 }: {
   vendors: any[];
   sponsors: any[];
   onRefresh: () => void;
   goApply: () => void;
+  archived?: boolean;
 }) {
   if (vendors.length === 0 && sponsors.length === 0) {
     return (
       <div className="bg-white p-12 text-center rounded-xl border border-gray-200 shadow-sm">
         <p className="text-gray-500 text-lg font-medium">
-          You haven&apos;t submitted any applications yet.
+          {archived
+            ? "No archived applications yet."
+            : "You haven\u2019t submitted any applications yet."}
         </p>
-        <p className="text-gray-500 text-sm mt-2">
-          One account can hold multiple vendor businesses and sponsor brands —
-          submit a separate application for each event you want to participate
-          in.
-        </p>
-        <button
-          onClick={goApply}
-          className="mt-4 text-[#005ea2] font-bold hover:underline"
-        >
-          Browse Open Events →
-        </button>
+        {!archived && (
+          <>
+            <p className="text-gray-500 text-sm mt-2">
+              One account can hold multiple vendor businesses and sponsor brands —
+              submit a separate application for each event you want to
+              participate in.
+            </p>
+            <button
+              onClick={goApply}
+              className="mt-4 text-[#005ea2] font-bold hover:underline"
+            >
+              Browse Open Events →
+            </button>
+          </>
+        )}
       </div>
     );
   }
 
   return (
     <div className="space-y-8">
+      {archived && (
+        <p className="text-xs uppercase tracking-widest text-gray-500 font-bold">
+          Past events · read-only
+        </p>
+      )}
       {sponsors.map((app) => (
         <ApplicationCard
           key={`s-${app.id}`}
           app={app}
           kind="sponsor"
           onRefresh={onRefresh}
+          archived={archived}
         />
       ))}
       {vendors.map((app) => (
@@ -311,6 +353,7 @@ function DashboardTab({
           app={app}
           kind="vendor"
           onRefresh={onRefresh}
+          archived={archived}
         />
       ))}
     </div>
@@ -339,13 +382,16 @@ function ApplicationCard({
   app,
   kind,
   onRefresh,
+  archived = false,
 }: {
   app: any;
   kind: Kind;
   onRefresh: () => void;
+  archived?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [paying, setPaying] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
 
@@ -363,8 +409,9 @@ function ApplicationCard({
       : app.photo_urls || "",
   });
 
-  const canEdit = app.status !== "cancelled";
-  const canCancel = app.status === "pending";
+  const canEdit = !archived && app.status !== "cancelled";
+  const canCancel = !archived && app.status === "pending";
+  const canPay = !archived && app.status === "approved";
 
   const doSave = useServerFn(updateApplication);
   const doCancel = useServerFn(cancelApplication);
@@ -466,6 +513,18 @@ function ApplicationCard({
                   Edit
                 </button>
               )}
+              {canPay && !paying && (
+                <button
+                  onClick={() => {
+                    setPaying(true);
+                    setEditing(false);
+                    setConfirmCancel(false);
+                  }}
+                  className="text-xs font-bold text-white bg-[#00a91c] hover:bg-green-700 border border-[#00a91c] px-3 py-1.5 rounded transition-colors"
+                >
+                  Pay Now
+                </button>
+              )}
               {canCancel && !confirmCancel && !editing && (
                 <button
                   onClick={() => {
@@ -481,6 +540,18 @@ function ApplicationCard({
           )}
         </div>
       </div>
+
+      {paying && (
+        <PaymentPanel
+          app={app}
+          kind={kind}
+          onClose={() => setPaying(false)}
+          onPaid={() => {
+            setPaying(false);
+            onRefresh();
+          }}
+        />
+      )}
 
       {confirmCancel && (
         <div className="p-5 border-b border-red-100 bg-red-50">
@@ -936,6 +1007,187 @@ function ApplyTab({
       </form>
 
       <p className="text-xs text-gray-400 mt-4">Signed in as {user.email}</p>
+    </div>
+  );
+}
+
+// ─── Payment panel ────────────────────────────────────────────────────
+function PaymentPanel({
+  app,
+  kind,
+  onClose,
+  onPaid,
+}: {
+  app: any;
+  kind: Kind;
+  onClose: () => void;
+  onPaid: () => void;
+}) {
+  const isSponsor = kind === "sponsor";
+  const tier = isSponsor ? app.sponsorship_tiers : app.vendor_tiers;
+  const price = tier?.price;
+  const doPay = useServerFn(payForApplication);
+
+  const [agreed, setAgreed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    full_name: app.contact_name || "",
+    email: app.contact_email || "",
+    number: "",
+    expiration: "",
+    cvc: "",
+    avs_zip: "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!agreed) {
+      alert("You must agree to the contract terms to proceed.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await doPay({
+        data: {
+          id: app.id,
+          kind,
+          contract_accepted: true,
+          full_name: form.full_name,
+          email: form.email,
+          card: {
+            number: form.number,
+            expiration: form.expiration,
+            cvc: form.cvc,
+            avs_zip: form.avs_zip || undefined,
+          },
+        },
+      });
+      alert(
+        `Payment approved! $${res.amount.toFixed(2)} charged. Ref: ${res.transaction_ref ?? "—"}`,
+      );
+      onPaid();
+    } catch (err: any) {
+      alert("Payment failed: " + (err?.message ?? "Unknown error"));
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="p-6 border-t border-gray-200 bg-[#f0f6ff]">
+      <h3 className="text-sm font-black uppercase tracking-wider mb-2 text-[#112e51]">
+        Pay for {isSponsor ? "sponsorship" : "vendor booth"}
+      </h3>
+      <p className="text-sm text-gray-700 mb-4">
+        {tier?.name ?? "Selected tier"} ·{" "}
+        <strong className="text-[#00a91c]">
+          {price != null ? `$${Number(price).toFixed(2)}` : "—"}
+        </strong>
+      </p>
+
+      <div className="mb-4 max-h-40 overflow-y-auto rounded border border-gray-300 bg-white p-4 text-xs text-gray-700 leading-relaxed">
+        <p className="font-bold mb-1">{isSponsor ? "Sponsorship" : "Vendor"} Agreement</p>
+        <p>
+          By submitting payment, you agree to the terms and conditions of the{" "}
+          {isSponsor ? "sponsorship package" : "vendor booth"} for "{app.sessions?.title}",
+          including event rules, cancellation and refund policy, indemnification, and
+          insurance requirements as published by the organizer. Payments are
+          non-refundable except as required by law or expressly granted by the
+          organizer. You confirm that you are authorized to bind your organization to
+          this agreement and that all information provided is accurate.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <Field label="Cardholder Name *">
+            <input
+              required
+              value={form.full_name}
+              onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))}
+              className="w-full p-2.5 border border-gray-300 rounded text-sm bg-white outline-none focus:ring-2 focus:ring-[#005ea2]"
+            />
+          </Field>
+          <Field label="Email *">
+            <input
+              required
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+              className="w-full p-2.5 border border-gray-300 rounded text-sm bg-white outline-none focus:ring-2 focus:ring-[#005ea2]"
+            />
+          </Field>
+        </div>
+        <Field label="Card Number *">
+          <input
+            required
+            inputMode="numeric"
+            placeholder="4111 1111 1111 1111"
+            value={form.number}
+            onChange={(e) => setForm((f) => ({ ...f, number: e.target.value }))}
+            className="w-full p-2.5 border border-gray-300 rounded text-sm bg-white outline-none focus:ring-2 focus:ring-[#005ea2]"
+          />
+        </Field>
+        <div className="grid grid-cols-3 gap-3">
+          <Field label="Expiration (MM/YY) *">
+            <input
+              required
+              placeholder="12/27"
+              value={form.expiration}
+              onChange={(e) => setForm((f) => ({ ...f, expiration: e.target.value }))}
+              className="w-full p-2.5 border border-gray-300 rounded text-sm bg-white outline-none focus:ring-2 focus:ring-[#005ea2]"
+            />
+          </Field>
+          <Field label="CVC *">
+            <input
+              required
+              inputMode="numeric"
+              placeholder="123"
+              value={form.cvc}
+              onChange={(e) => setForm((f) => ({ ...f, cvc: e.target.value }))}
+              className="w-full p-2.5 border border-gray-300 rounded text-sm bg-white outline-none focus:ring-2 focus:ring-[#005ea2]"
+            />
+          </Field>
+          <Field label="Billing ZIP">
+            <input
+              value={form.avs_zip}
+              onChange={(e) => setForm((f) => ({ ...f, avs_zip: e.target.value }))}
+              className="w-full p-2.5 border border-gray-300 rounded text-sm bg-white outline-none focus:ring-2 focus:ring-[#005ea2]"
+            />
+          </Field>
+        </div>
+
+        <label className="flex items-start gap-2 text-sm text-gray-800 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-1 h-4 w-4"
+          />
+          <span>
+            I have read and agree to the contract terms above, and I authorize the
+            charge of{" "}
+            <strong>{price != null ? `$${Number(price).toFixed(2)}` : "the listed amount"}</strong>{" "}
+            to the card provided.
+          </span>
+        </label>
+
+        <div className="flex gap-3 pt-1">
+          <button
+            type="submit"
+            disabled={loading || !agreed}
+            className="bg-[#00a91c] hover:bg-green-700 disabled:bg-gray-300 text-white text-sm font-bold px-5 py-2.5 rounded transition-colors"
+          >
+            {loading ? "Processing…" : "Submit Payment"}
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="bg-white border border-gray-300 text-gray-700 text-sm font-bold px-4 py-2.5 rounded hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

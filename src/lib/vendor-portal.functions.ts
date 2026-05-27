@@ -2,6 +2,20 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import {
+  loadUsaepayConfig,
+  buildUsaepayAuthHeader,
+} from "@/lib/usaepay.server";
+
+export const getVendorPaymentsStatus = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const cfg = loadUsaepayConfig();
+    return { configured: !!cfg, mode: cfg?.mode ?? null };
+  },
+);
+
+
+
 
 // ─── Public: open sessions accepting vendors/sponsors ─────────────────
 export const listOpenSessions = createServerFn({ method: "GET" }).handler(
@@ -190,3 +204,104 @@ export const listPublicSponsors = createServerFn({ method: "GET" }).handler(
     return grouped;
   },
 );
+
+// ─── Pay for an approved vendor/sponsor application ───────────────────
+const PayInput = z.object({
+  id: z.string().uuid(),
+  kind: z.enum(["vendor", "sponsor"]),
+  contract_accepted: z.literal(true),
+  full_name: z.string().trim().min(1).max(200),
+  email: z.string().trim().email().max(255),
+  card: z.object({
+    number: z.string().trim().min(12).max(25),
+    expiration: z.string().trim().regex(/^\d{2}\/?\d{2}$/u),
+    cvc: z.string().trim().regex(/^\d{3,4}$/u),
+    avs_zip: z.string().trim().min(3).max(10).optional(),
+  }),
+});
+
+export const payForApplication = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => PayInput.parse(i))
+  .handler(async ({ data, context }) => {
+    const uid = context.userId;
+    const isVendor = data.kind === "vendor";
+    const table = isVendor ? "vendors" : "sponsors";
+    const tierTable = isVendor ? "vendor_tiers" : "sponsorship_tiers";
+    const tierFk = isVendor ? "vendor_tier_id" : "sponsorship_tier_id";
+
+    const { data: row, error: rowErr } = await supabaseAdmin
+      .from(table)
+      .select(`id, user_id, status, session_id, ${tierFk}`)
+      .eq("id", data.id)
+      .eq("user_id", uid)
+      .maybeSingle();
+    if (rowErr) throw new Error(rowErr.message);
+    if (!row) throw new Error("Application not found");
+    if (row.status !== "approved")
+      throw new Error("Only approved applications can be paid");
+
+    const tierId = (row as any)[tierFk];
+    if (!tierId) throw new Error("No tier associated with this application");
+    const { data: tier, error: tierErr } = await supabaseAdmin
+      .from(tierTable)
+      .select("id, name, price")
+      .eq("id", tierId)
+      .maybeSingle();
+    if (tierErr) throw new Error(tierErr.message);
+    if (!tier || !(Number(tier.price) > 0))
+      throw new Error("This tier has no payable price");
+
+    const amount = +Number(tier.price).toFixed(2);
+
+    const cfg = loadUsaepayConfig();
+    if (!cfg)
+      throw new Error(
+        "Payments are not yet configured. The site operator needs to add USAEPAY_API_KEY and USAEPAY_API_PIN.",
+      );
+
+    const expRaw = data.card.expiration.replace(/\D/g, "");
+    if (expRaw.length !== 4) throw new Error("Invalid card expiration");
+
+    const res = await fetch(`${cfg.baseUrl}/transactions`, {
+      method: "POST",
+      headers: {
+        Authorization: buildUsaepayAuthHeader(cfg),
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        command: "sale",
+        amount: amount.toFixed(2),
+        invoice: `${isVendor ? "vnd" : "spn"}-${data.id.slice(0, 8)}`,
+        description: `${isVendor ? "Vendor booth" : "Sponsorship"}: ${tier.name}`,
+        creditcard: {
+          number: data.card.number.replace(/\s+/g, ""),
+          expiration: expRaw,
+          cvc: data.card.cvc,
+          cardholder: data.full_name,
+          avs_zip: data.card.avs_zip ?? undefined,
+        },
+        billing_address: { email: data.email },
+      }),
+    });
+    const json: any = await res.json().catch(() => ({}));
+    const approved = json?.result_code === "A" || json?.result === "Approved";
+    if (!res.ok || !approved) {
+      const msg = json?.error ?? json?.result ?? `Payment declined (${res.status})`;
+      throw new Error(String(msg));
+    }
+
+    const { error: updErr } = await supabaseAdmin
+      .from(table)
+      .update({ status: "paid" })
+      .eq("id", data.id)
+      .eq("user_id", uid);
+    if (updErr) throw new Error(updErr.message);
+
+    return {
+      ok: true,
+      amount,
+      transaction_ref: json?.refnum ?? null,
+    };
+  });
