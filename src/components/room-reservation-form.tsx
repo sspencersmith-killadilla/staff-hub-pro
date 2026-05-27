@@ -15,8 +15,8 @@ function toTimeInput(hour: number) {
 }
 
 function toDisplay(hour: number) {
-  const ampm = hour >= 12? "PM" : "AM";
-  const h12 = hour % 12 === 0? 12 : hour % 12;
+  const ampm = hour >= 12 ? "PM" : "AM";
+  const h12 = hour % 12 === 0 ? 12 : hour % 12;
   return `${h12}:00 ${ampm}`;
 }
 
@@ -28,26 +28,26 @@ export function RoomReservationForm({
   initialStartHour,
   initialEndHour,
 }: Props) {
-  const [date][setDate] = useState(() => new Date().toISOString().split("T")[0]);
-  const [startTime][setStartTime] = useState("");
-  const [endTime][setEndTime] = useState("");
-  const [name][setName] = useState("");
-  const [email][setEmail] = useState("");
-  const [purpose][setPurpose] = useState("");
-  const [submitting][setSubmitting] = useState(false);
+  const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [purpose, setPurpose] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (initialDate) setDate(initialDate);
   }, [initialDate]);
 
   useEffect(() => {
-    if (initialStartHour!= null) setStartTime(toTimeInput(initialStartHour));
-    if (initialEndHour!= null) setEndTime(toTimeInput(initialEndHour));
-  }, [initialStartHour][initialEndHour]);
+    if (initialStartHour != null) setStartTime(toTimeInput(initialStartHour));
+    if (initialEndHour != null) setEndTime(toTimeInput(initialEndHour));
+  }, [initialStartHour, initialEndHour]);
 
-  const timesLocked = initialStartHour!= null && initialEndHour!= null;
-  const dateLocked =!!initialDate;
-  const canSubmit = date && startTime && endTime && name && email &&!submitting;
+  const timesLocked = initialStartHour != null && initialEndHour != null;
+  const dateLocked = !!initialDate;
+  const canSubmit = date && startTime && endTime && name && email && !submitting;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,10 +72,10 @@ export function RoomReservationForm({
         <input
           type="date"
           value={date}
-          onChange={(e) =>!dateLocked && setDate(e.target.value)}
+          onChange={(e) => !dateLocked && setDate(e.target.value)}
           readOnly={dateLocked}
           className={`w-full rounded-lg border px-3 py-2 text-sm ${
-            dateLocked? "bg-gray-50 border-gray-200 text-gray-700 cursor-not-allowed" : "border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900"
+            dateLocked ? "bg-gray-50 border-gray-200 text-gray-700 cursor-not-allowed" : "border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900"
           }`}
           required
         />
@@ -88,14 +88,14 @@ export function RoomReservationForm({
           <input
             type="time"
             value={startTime}
-            onChange={(e) =>!timesLocked && setStartTime(e.target.value)}
+            onChange={(e) => !timesLocked && setStartTime(e.target.value)}
             readOnly={timesLocked}
             className={`w-full rounded-lg border px-3 py-2 text-sm ${
-              timesLocked? "bg-gray-50 border-gray-200 cursor-not-allowed" : "border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900"
+              timesLocked ? "bg-gray-50 border-gray-200 cursor-not-allowed" : "border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900"
             }`}
             required
           />
-          {timesLocked && initialStartHour!= null && (
+          {timesLocked && initialStartHour != null && (
             <p className="mt-1 text-xs text-gray-500">{toDisplay(initialStartHour)}</p>
           )}
         </div>
@@ -104,14 +104,14 @@ export function RoomReservationForm({
           <input
             type="time"
             value={endTime}
-            onChange={(e) =>!timesLocked && setEndTime(e.target.value)}
+            onChange={(e) => !timesLocked && setEndTime(e.target.value)}
             readOnly={timesLocked}
             className={`w-full rounded-lg border px-3 py-2 text-sm ${
-              timesLocked? "bg-gray-50 border-gray-200 cursor-not-allowed" : "border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900"
+              timesLocked ? "bg-gray-50 border-gray-200 cursor-not-allowed" : "border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900"
             }`}
             required
           />
-          {timesLocked && initialEndHour!= null && (
+          {timesLocked && initialEndHour != null && (
             <p className="mt-1 text-xs text-gray-500">{toDisplay(initialEndHour)}</p>
           )}
         </div>
@@ -160,7 +160,7 @@ export function RoomReservationForm({
         disabled={!canSubmit}
         className="w-full rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {submitting? "Sending..." : "Request booking"}
+        {submitting ? "Sending..." : "Request booking"}
       </button>
     </form>
   );
