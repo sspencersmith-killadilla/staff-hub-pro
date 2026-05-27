@@ -33,6 +33,7 @@ import loginImg from "@/assets/manual/login.png";
 import staffImg from "@/assets/manual/staff.png";
 import adminImg from "@/assets/manual/admin.png";
 import venuesImg from "@/assets/manual/venues.png";
+import forgotPasswordImg from "@/assets/manual/forgot-password.png";
 
 export const Route = createFileRoute("/manual")({
   head: () => ({
@@ -77,6 +78,7 @@ const groups: { label: string; sectionIds: string[] }[] = [
       "tickets",
       "rooms",
       "streetbeats",
+      "gig-flyers",
       "community-orgs",
       "vendor-apply",
       "sponsor",
@@ -103,6 +105,25 @@ function Figure({
   return (
     <figure className="my-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
       <img src={src} alt={caption} className="block w-full" loading="lazy" />
+      <figcaption className="border-t border-gray-100 bg-gray-50 px-4 py-2 text-xs text-muted-foreground">
+        {caption}
+      </figcaption>
+    </figure>
+  );
+}
+
+function Diagram({
+  caption,
+  children,
+}: {
+  caption: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <figure className="my-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+        {children}
+      </div>
       <figcaption className="border-t border-gray-100 bg-gray-50 px-4 py-2 text-xs text-muted-foreground">
         {caption}
       </figcaption>
@@ -206,7 +227,13 @@ const sections: Section[] = [
             Need to apply as a musician later? Just open your hub and tap{" "}
             <em>Apply as a Musician</em>. Same login, more capabilities.
           </Step>
+          <Step n={4} title="Forgot your password?">
+            On the login screen, click <em>Forgot password?</em> and enter your
+            email. We'll send a one-time reset link — open it to choose a new
+            password.
+          </Step>
         </ol>
+        <Figure src={forgotPasswordImg} caption="Password reset — enter your email and we send a secure link" />
         <Callout kind="note">
           City staff are invited (or promoted) by an admin — see the Admin
           section. You'll get an email invitation to set your password.
@@ -299,17 +326,24 @@ const sections: Section[] = [
     audience: "community",
     render: () => (
       <>
-        <Figure src={roomsImg} caption="Room reservations — pick a room, time, and submit" />
+        <Figure src={roomsImg} caption="Rooms page with venue, capacity, and tag filters at the top" />
         <ol className="my-6 space-y-4">
-          <Step n={1} title="Pick a room">
-            Browse <code>/rooms</code>. Each card shows capacity, building, and
-            address.
+          <Step n={1} title="Filter to the right room">
+            Use the filter bar to narrow down by <strong>venue</strong>,{" "}
+            <strong>minimum capacity</strong>, and{" "}
+            <strong>tags</strong> (Power, Projector, TV, etc.). Filters update
+            the list instantly and are remembered in the URL — share the link
+            and the recipient sees the same filtered view.
           </Step>
-          <Step n={2} title="Choose a time">
+          <Step n={2} title="Pick a room">
+            Each card shows the photo, capacity, building, and address. Click
+            for full details.
+          </Step>
+          <Step n={3} title="Choose a time">
             The detail page shows a live 7-day availability calendar. Booked or
             blocked-by-event windows are greyed out.
           </Step>
-          <Step n={3} title="Submit your request">
+          <Step n={4} title="Submit your request">
             Sign in if prompted. Staff review and email you a confirmation.
           </Step>
         </ol>
@@ -330,20 +364,134 @@ const sections: Section[] = [
         <Figure src={streetbeatsImg} caption="Public StreetBeats lineup and open slots" />
         <p>
           StreetBeats lets approved musicians claim open busking slots at city
-          venues.
+          venues. One account can hold <strong>up to 10 separate artist
+          profiles</strong> — perfect for solo acts who also play in bands, or
+          for managers handling several performers.
         </p>
+        <Diagram caption="One account, many artist identities — each approved separately">
+          <div className="flex items-center justify-center gap-4 text-xs">
+            <div className="rounded-lg border-2 border-[#002f49] bg-white px-4 py-3 text-center font-semibold">
+              Your Account
+              <div className="mt-1 text-[10px] font-normal text-gray-500">
+                one email + password
+              </div>
+            </div>
+            <div className="text-2xl text-gray-400">→</div>
+            <div className="grid grid-cols-1 gap-2">
+              <div className="rounded-md bg-emerald-100 px-3 py-1.5 text-center font-semibold text-emerald-900">
+                🎸 Solo Acoustic <span className="text-[10px]">(approved)</span>
+              </div>
+              <div className="rounded-md bg-emerald-100 px-3 py-1.5 text-center font-semibold text-emerald-900">
+                🎺 Jazz Quartet <span className="text-[10px]">(approved)</span>
+              </div>
+              <div className="rounded-md bg-amber-100 px-3 py-1.5 text-center font-semibold text-amber-900">
+                🎤 DJ Set <span className="text-[10px]">(pending)</span>
+              </div>
+            </div>
+          </div>
+        </Diagram>
         <ol className="my-6 space-y-4">
-          <Step n={1} title="Apply to perform">
-            Click <em>Apply to Perform</em> and tell us about your act.
+          <Step n={1} title="Create your first artist profile">
+            From <em>My Artist Profiles</em> on the StreetBeats page (or{" "}
+            <em>Apply as a Musician</em> in the Hub), fill in stage name, genre,
+            bio, photo, and social/tip links.
           </Step>
-          <Step n={2} title="Wait for approval">
-            Staff review your application and notify you by email.
+          <Step n={2} title="Add more profiles if you wear multiple hats">
+            Tap <em>Add another artist</em> to register an additional persona.
+            Each one is reviewed and approved independently.
           </Step>
-          <Step n={3} title="Claim slots">
-            Once approved, head to <em>My Gigs</em> in your hub to claim
-            available slots.
+          <Step n={3} title="Wait for approval">
+            Staff review each artist and notify you by email. Pending profiles
+            can't claim slots yet.
+          </Step>
+          <Step n={4} title="Claim a slot — and pick which artist">
+            On the StreetBeats page or <em>My Gigs</em>, hit <em>Claim</em>. If
+            you have more than one approved profile, a dialog asks which artist
+            is performing this gig. The slot is locked to that artist and
+            appears on their public profile.
+          </Step>
+          <Step n={5} title="Release if your plans change">
+            From <em>My Gigs</em>, hit <em>Release</em> on an upcoming gig to
+            open the slot back up for other performers.
           </Step>
         </ol>
+        <Callout kind="tip">
+          Each artist profile gets its own shareable page at{" "}
+          <code>/artists/&lt;id&gt;</code> showing upcoming gigs, social links,
+          and tip jar.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "gig-flyers",
+    title: "Gig Flyers &amp; Sharing",
+    icon: Sparkles,
+    audience: "community",
+    render: () => (
+      <>
+        <p>
+          Every claimed StreetBeats gig has its own public flyer page at{" "}
+          <code>/gigs/&lt;id&gt;</code> — designed for sharing on phones,
+          printing as a QR poster, or dropping into social posts. The "More
+          info" button on each music card on the events page links straight to
+          it.
+        </p>
+        <Diagram caption="Anatomy of a gig flyer">
+          <div className="mx-auto max-w-sm space-y-2 rounded-2xl border bg-white p-4 text-xs">
+            <div className="rounded-lg bg-gradient-to-br from-pink-200 to-purple-300 p-4 text-center font-bold text-white">
+              [ Artist photo ]
+              <div className="mt-1 inline-block rounded-full bg-pink-600 px-2 py-0.5 text-[10px]">
+                FREE MUSIC EVENT
+              </div>
+            </div>
+            <div className="font-bold">Sat, Jun 7 · 6:00 PM</div>
+            <div className="text-sm">Solo Acoustic at Town Square Stage</div>
+            <div className="text-blue-700 underline">📍 123 Main St →</div>
+            <div className="flex gap-1.5">
+              <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] text-green-800">⚡ Power</span>
+              <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] text-blue-800">⛱ Shade</span>
+            </div>
+            <div className="grid grid-cols-4 gap-1 pt-2">
+              {["Spotify", "YouTube", "SoundCloud", "Tip"].map((s) => (
+                <div key={s} className="rounded-md border bg-gray-50 p-1 text-center text-[9px]">
+                  <div className="mx-auto mb-0.5 h-8 w-8 bg-gray-200" />
+                  {s}
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-5 gap-1 pt-1">
+              {["WhatsApp", "Facebook", "X", "IG", "Copy"].map((s) => (
+                <div key={s} className="rounded-md bg-gray-900 py-1 text-center text-[9px] text-white">
+                  {s}
+                </div>
+              ))}
+            </div>
+          </div>
+        </Diagram>
+        <ul className="my-4 list-disc space-y-2 pl-6 text-sm">
+          <li>
+            <strong>Date, venue, address</strong> — the address links straight
+            to Google Maps so listeners can navigate.
+          </li>
+          <li>
+            <strong>Stage features</strong> — power, shade, seating, bathrooms,
+            and backline are shown as colored chips.
+          </li>
+          <li>
+            <strong>Scan-or-tap QR grid</strong> — each social/tip link becomes
+            a QR code that doubles as a tap target on mobile.
+          </li>
+          <li>
+            <strong>One-tap share row</strong> — WhatsApp, Facebook, X,
+            Instagram (copy + open), and copy-link.
+          </li>
+        </ul>
+        <Callout kind="tip">
+          Performers: open your flyer, hit <em>Copy</em>, and paste into your
+          own stories. The page renders rich Open Graph previews so it looks
+          great in iMessage, WhatsApp, and Facebook.
+        </Callout>
       </>
     ),
   },
