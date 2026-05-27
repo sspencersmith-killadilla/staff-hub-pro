@@ -45,19 +45,26 @@ export function ApplicationManager({ kind, listFn, setStatusFn, title, blurb }: 
   });
 
   const [filter, setFilter] = useState<
-    "pending" | "approved" | "rejected" | "all"
+    "pending" | "approved" | "rejected" | "all" | "archive"
   >("pending");
+
+  const isPast = (r: any) => {
+    const t = r?.sessions?.start_time;
+    return t ? new Date(t).getTime() < Date.now() - 24 * 60 * 60 * 1000 : false;
+  };
 
   const filtered = useMemo(() => {
     const all = rows ?? [];
-    if (filter === "all") return all;
+    if (filter === "archive") return all.filter(isPast);
+    const current = all.filter((r: any) => !isPast(r));
+    if (filter === "all") return current;
     if (filter === "approved")
-      return all.filter((r: any) => r.status === "approved" || r.status === "paid");
+      return current.filter((r: any) => r.status === "approved" || r.status === "paid");
     if (filter === "rejected")
-      return all.filter(
+      return current.filter(
         (r: any) => r.status === "rejected" || r.status === "cancelled",
       );
-    return all.filter((r: any) => r.status === "pending");
+    return current.filter((r: any) => r.status === "pending");
   }, [rows, filter]);
 
   if (isLoading) return <p className="text-sm text-slate-500">Loading…</p>;
@@ -70,7 +77,7 @@ export function ApplicationManager({ kind, listFn, setStatusFn, title, blurb }: 
       <p className="mt-1 text-sm text-slate-600">{blurb}</p>
 
       <div className="mt-6 flex gap-1 border-b border-slate-200">
-        {(["pending", "approved", "rejected", "all"] as const).map((k) => (
+        {(["pending", "approved", "rejected", "all", "archive"] as const).map((k) => (
           <button
             key={k}
             onClick={() => setFilter(k)}
