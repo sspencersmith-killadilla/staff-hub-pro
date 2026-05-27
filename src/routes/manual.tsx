@@ -533,10 +533,25 @@ const sections: Section[] = [
             Go to <code>/vendor</code> and create an account if needed.
           </Step>
           <Step n={2} title="Apply for events open to vendors">
-            Pick an event and submit your booth application.
+            Pick an event, choose a booth tier, and submit your application.
           </Step>
-          <Step n={3} title="Track status and invoices">
-            Once approved, you'll see booth placement and payment requests.
+          <Step n={3} title="Wait for staff approval">
+            City staff review and approve your application before any payment
+            is collected.
+          </Step>
+          <Step n={4} title="Review the contract and pay">
+            Once approved, an in-app payment panel opens showing your tier,
+            the exact amount due, and the full <strong>Vendor Agreement</strong>{" "}
+            (event rules, cancellation/refund policy, indemnification, and
+            insurance requirements). You must tick{" "}
+            <em>"I have read and agree to the contract terms"</em> before the{" "}
+            <strong>Submit Payment</strong> button enables. Card details are
+            captured on the same screen and charged on submit; you'll receive a
+            confirmation with a transaction reference and invoice number.
+          </Step>
+          <Step n={5} title="Manage booth placement">
+            After payment clears, your booth assignment and event-day logistics
+            appear in the same vendor dashboard.
           </Step>
         </ol>
       </>
@@ -553,7 +568,19 @@ const sections: Section[] = [
         <p>
           Browse current partners at <code>/sponsors</code> and click{" "}
           <em>Become a Sponsor</em> to start a conversation about tiers and
-          placement.
+          placement. Sponsorship applications are submitted through the same{" "}
+          <code>/vendor</code> portal — pick the event, choose a sponsorship
+          tier (which controls logo placement, mentions, and benefits), and
+          submit for staff review.
+        </p>
+        <p className="mt-3">
+          After approval, the portal opens the same payment + contract panel
+          used for vendors. You'll see your tier and price, the full{" "}
+          <strong>Sponsorship Agreement</strong>, and must check{" "}
+          <em>"I have read and agree to the contract terms"</em> to authorize
+          the charge. Payment is processed in-app and a confirmation with
+          transaction reference and invoice number is issued immediately —
+          your logo then appears on the event page and flyers.
         </p>
       </>
     ),
