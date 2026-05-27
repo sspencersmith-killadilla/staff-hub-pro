@@ -73,7 +73,7 @@ function RoomsIndex() {
       if (search.min_cap > 0 && (r.capacity ?? 0) < search.min_cap) return false;
       if (search.tags.length > 0) {
         const tags = new Set<string>(r.tags ?? []);
-        if (!search.tags.every((t) => tags.has(t))) return false;
+        if (!search.tags.every((t: string) => tags.has(t))) return false;
       }
       return true;
     });
@@ -84,11 +84,11 @@ function RoomsIndex() {
 
   const toggleTag = (t: string) => {
     navigate({
-      search: (prev) => {
+      search: (prev: z.infer<typeof searchSchema>) => {
         const exists = prev.tags.includes(t);
         return {
           ...prev,
-          tags: exists ? prev.tags.filter((x) => x !== t) : [...prev.tags, t],
+          tags: exists ? prev.tags.filter((x: string) => x !== t) : [...prev.tags, t],
         };
       },
     });
@@ -118,7 +118,7 @@ function RoomsIndex() {
                 value={search.venue || "all"}
                 onValueChange={(v) =>
                   navigate({
-                    search: (prev) => ({ ...prev, venue: v === "all" ? "" : v }),
+                    search: (prev: z.infer<typeof searchSchema>) => ({ ...prev, venue: v === "all" ? "" : v }),
                   })
                 }
               >
@@ -147,7 +147,7 @@ function RoomsIndex() {
                 onChange={(e) => {
                   const n = Number(e.target.value);
                   navigate({
-                    search: (prev) => ({
+                    search: (prev: z.infer<typeof searchSchema>) => ({
                       ...prev,
                       min_cap: Number.isFinite(n) && n > 0 ? n : 0,
                     }),
