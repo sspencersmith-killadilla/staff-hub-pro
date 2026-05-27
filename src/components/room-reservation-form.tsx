@@ -57,15 +57,7 @@ export function RoomReservationForm({
       await fetch("/api/reservations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          roomId,
-          date,
-          startTime,
-          endTime,
-          name,
-          email,
-          purpose,
-        }),
+        body: JSON.stringify({ roomId, date, startTime, endTime, name, email, purpose }),
       });
       alert("Request sent");
     } finally {
@@ -83,9 +75,7 @@ export function RoomReservationForm({
           onChange={(e) =>!dateLocked && setDate(e.target.value)}
           readOnly={dateLocked}
           className={`w-full rounded-lg border px-3 py-2 text-sm ${
-            dateLocked
-             ? "bg-gray-50 border-gray-200 text-gray-700 cursor-not-allowed"
-              : "border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900"
+            dateLocked? "bg-gray-50 border-gray-200 text-gray-700 cursor-not-allowed" : "border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900"
           }`}
           required
         />
@@ -101,9 +91,7 @@ export function RoomReservationForm({
             onChange={(e) =>!timesLocked && setStartTime(e.target.value)}
             readOnly={timesLocked}
             className={`w-full rounded-lg border px-3 py-2 text-sm ${
-              timesLocked
-               ? "bg-gray-50 border-gray-200 cursor-not-allowed"
-                : "border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900"
+              timesLocked? "bg-gray-50 border-gray-200 cursor-not-allowed" : "border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900"
             }`}
             required
           />
@@ -119,9 +107,7 @@ export function RoomReservationForm({
             onChange={(e) =>!timesLocked && setEndTime(e.target.value)}
             readOnly={timesLocked}
             className={`w-full rounded-lg border px-3 py-2 text-sm ${
-              timesLocked
-               ? "bg-gray-50 border-gray-200 cursor-not-allowed"
-                : "border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900"
+              timesLocked? "bg-gray-50 border-gray-200 cursor-not-allowed" : "border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900"
             }`}
             required
           />
