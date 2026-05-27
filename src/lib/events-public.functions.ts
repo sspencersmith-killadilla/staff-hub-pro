@@ -269,7 +269,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         org_name: busker?.full_name ?? null,
         cost_text: "Free",
         ticketed: false,
-        detail_href: (s as any).busker_id ? `/artists/${(s as any).busker_id}` : "/streetbeats",
+        detail_href: `/gigs/${(s as any).id}`,
         sponsors: [],
         focal_x: busker?.avatar_focal_x ?? 50,
         focal_y: busker?.avatar_focal_y ?? 50,
