@@ -167,6 +167,9 @@ const roomInput = z.object({
   capacity: z.number().int().nullable().optional(),
   is_publicly_bookable: z.boolean().optional(),
   linked_stage_id: z.string().uuid().nullable().optional(),
+  image_url: z.string().url().nullable().optional().or(z.literal("")),
+  description: z.string().max(2000).nullable().optional(),
+  tags: z.array(z.string().trim().min(1).max(40)).max(4).optional(),
 });
 
 export const createRoom = createServerFn({ method: "POST" })
