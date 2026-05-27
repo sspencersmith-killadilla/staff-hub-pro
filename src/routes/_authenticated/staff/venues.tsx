@@ -217,14 +217,6 @@ function StagesPanel({ venueId, stages }: { venueId: number; stages: any[] }) {
     mutationFn: () => createStage({ data: { name, venue_id: venueId } }),
     onSuccess: () => { setName(""); qc.invalidateQueries({ queryKey: ["venue", venueId] }); },
   });
-  const del = useMutation({
-    mutationFn: (id: string) => deleteStage({ data: { id } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["venue", venueId] }),
-  });
-  const upd = useMutation({
-    mutationFn: (v: { id: string; patch: any }) => updateStage({ data: v }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["venue", venueId] }),
-  });
 
   return (
     <div className="bg-white rounded-lg border border-slate-200 p-6">
@@ -241,22 +233,41 @@ function StagesPanel({ venueId, stages }: { venueId: number; stages: any[] }) {
       ) : (
         <ul className="space-y-2">
           {stages.map((s) => (
-            <li key={s.id} className="flex items-center gap-2">
-              <Input defaultValue={s.name} onBlur={(e) => {
-                if (e.target.value !== s.name) upd.mutate({ id: s.id, patch: { name: e.target.value } });
-              }} />
-              <Input placeholder="Description" defaultValue={s.description ?? ""} onBlur={(e) => {
-                if (e.target.value !== (s.description ?? "")) upd.mutate({ id: s.id, patch: { description: e.target.value } });
-              }} />
-              <Button size="icon" variant="ghost"
-                onClick={() => confirm(`Delete stage "${s.name}"?`) && del.mutate(s.id)}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </li>
+            <StageRow key={s.id} venueId={venueId} stage={s} />
           ))}
         </ul>
       )}
     </div>
+  );
+}
+
+function StageRow({ venueId, stage }: { venueId: number; stage: any }) {
+  const qc = useQueryClient();
+  const [name, setName] = useState(stage.name ?? "");
+  const [description, setDescription] = useState(stage.description ?? "");
+  const dirty = name !== (stage.name ?? "") || description !== (stage.description ?? "");
+
+  const save = useMutation({
+    mutationFn: () => updateStage({ data: { id: stage.id, patch: { name, description } } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["venue", venueId] }),
+  });
+  const del = useMutation({
+    mutationFn: () => deleteStage({ data: { id: stage.id } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["venue", venueId] }),
+  });
+
+  return (
+    <li className="flex items-center gap-2">
+      <Input value={name} onChange={(e) => setName(e.target.value)} />
+      <Input placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
+      <Button size="sm" disabled={!dirty || save.isPending} onClick={() => save.mutate()}>
+        {save.isPending ? "Saving…" : "Save"}
+      </Button>
+      <Button size="icon" variant="ghost"
+        onClick={() => confirm(`Delete stage "${stage.name}"?`) && del.mutate()}>
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </li>
   );
 }
 
@@ -266,14 +277,6 @@ function RoomsPanel({ venueId, rooms }: { venueId: number; rooms: any[] }) {
   const add = useMutation({
     mutationFn: () => createRoom({ data: { name, venue_id: venueId } }),
     onSuccess: () => { setName(""); qc.invalidateQueries({ queryKey: ["venue", venueId] }); },
-  });
-  const del = useMutation({
-    mutationFn: (id: string) => deleteRoom({ data: { id } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["venue", venueId] }),
-  });
-  const upd = useMutation({
-    mutationFn: (v: { id: string; patch: any }) => updateRoom({ data: v }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["venue", venueId] }),
   });
 
   return (
@@ -291,36 +294,65 @@ function RoomsPanel({ venueId, rooms }: { venueId: number; rooms: any[] }) {
       ) : (
         <ul className="space-y-4">
           {rooms.map((r) => (
-            <li key={r.id} className="rounded-md border border-slate-200 bg-white p-2">
-              <div className="grid grid-cols-[1fr_140px_100px_auto_auto] gap-2 items-center">
-                <Input defaultValue={r.name} onBlur={(e) => {
-                  if (e.target.value !== r.name) upd.mutate({ id: r.id, patch: { name: e.target.value } });
-                }} />
-                <Input placeholder="Building" defaultValue={r.building ?? ""} onBlur={(e) => {
-                  if (e.target.value !== (r.building ?? "")) upd.mutate({ id: r.id, patch: { building: e.target.value } });
-                }} />
-                <Input type="number" placeholder="Cap" defaultValue={r.capacity ?? ""} onBlur={(e) => {
-                  const v = e.target.value ? Number(e.target.value) : null;
-                  if (v !== r.capacity) upd.mutate({ id: r.id, patch: { capacity: v } });
-                }} />
-                <label className="flex items-center gap-1 text-xs text-slate-600">
-                  <Checkbox defaultChecked={r.is_publicly_bookable}
-                    onCheckedChange={(c) => upd.mutate({ id: r.id, patch: { is_publicly_bookable: c === true } })} />
-                  Public
-                </label>
-                <Button size="icon" variant="ghost"
-                  onClick={() => confirm(`Delete room "${r.name}"?`) && del.mutate(r.id)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-              <RoomDetailsEditor
-                room={r}
-                onChanged={() => qc.invalidateQueries({ queryKey: ["venue", venueId] })}
-              />
-            </li>
+            <RoomRow key={r.id} venueId={venueId} room={r} />
           ))}
         </ul>
       )}
     </div>
+  );
+}
+
+function RoomRow({ venueId, room }: { venueId: number; room: any }) {
+  const qc = useQueryClient();
+  const [name, setName] = useState(room.name ?? "");
+  const [building, setBuilding] = useState(room.building ?? "");
+  const [capacity, setCapacity] = useState<string>(room.capacity != null ? String(room.capacity) : "");
+  const [isPublic, setIsPublic] = useState<boolean>(!!room.is_publicly_bookable);
+
+  const capNum = capacity ? Number(capacity) : null;
+  const dirty =
+    name !== (room.name ?? "") ||
+    building !== (room.building ?? "") ||
+    capNum !== (room.capacity ?? null) ||
+    isPublic !== !!room.is_publicly_bookable;
+
+  const save = useMutation({
+    mutationFn: () =>
+      updateRoom({
+        data: {
+          id: room.id,
+          patch: { name, building, capacity: capNum, is_publicly_bookable: isPublic },
+        },
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["venue", venueId] }),
+  });
+  const del = useMutation({
+    mutationFn: () => deleteRoom({ data: { id: room.id } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["venue", venueId] }),
+  });
+
+  return (
+    <li className="rounded-md border border-slate-200 bg-white p-2">
+      <div className="grid grid-cols-[1fr_140px_100px_auto_auto_auto] gap-2 items-center">
+        <Input value={name} onChange={(e) => setName(e.target.value)} />
+        <Input placeholder="Building" value={building} onChange={(e) => setBuilding(e.target.value)} />
+        <Input type="number" placeholder="Cap" value={capacity} onChange={(e) => setCapacity(e.target.value)} />
+        <label className="flex items-center gap-1 text-xs text-slate-600">
+          <Checkbox checked={isPublic} onCheckedChange={(c) => setIsPublic(c === true)} />
+          Public
+        </label>
+        <Button size="sm" disabled={!dirty || save.isPending} onClick={() => save.mutate()}>
+          {save.isPending ? "Saving…" : "Save"}
+        </Button>
+        <Button size="icon" variant="ghost"
+          onClick={() => confirm(`Delete room "${room.name}"?`) && del.mutate()}>
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+      <RoomDetailsEditor
+        room={room}
+        onChanged={() => qc.invalidateQueries({ queryKey: ["venue", venueId] })}
+      />
+    </li>
   );
 }
