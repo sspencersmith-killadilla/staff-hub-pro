@@ -57,7 +57,15 @@ export function RoomReservationForm({
       await fetch("/api/reservations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ roomId, date, startTime, endTime, name, email, purpose }),
+        body: JSON.stringify({
+          roomId,
+          date,
+          startTime,
+          endTime,
+          name,
+          email,
+          purpose,
+        }),
       });
       alert("Request sent");
     } finally {
