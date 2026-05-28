@@ -227,6 +227,8 @@ function EventsPage() {
         focal_x: form.focal_x,
         focal_y: form.focal_y,
         open_to_vendors: form.open_to_vendors,
+        department_id: deptId,
+        staff_owner_id: ownerId || null,
       };
       return editingId
         ? updateEvent({ data: { id: editingId, patch } })
