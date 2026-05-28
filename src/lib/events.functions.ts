@@ -73,11 +73,19 @@ export const listEvents = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
+    const admin = await isAdmin(context.userId);
     let q = supabaseAdmin
       .from("sessions")
       .select("*, stages(id,name), rooms(id,name)")
       .order("start_time", { ascending: true, nullsFirst: false });
-    if (data.departmentId && !data.includeAll) q = q.eq("department_id", data.departmentId);
+    if (data.departmentId && !(admin && data.includeAll)) {
+      q = q.eq("department_id", data.departmentId);
+    } else if (!admin) {
+      // Non-admin without explicit dept: restrict to their departments.
+      const ids = Array.from(await getUserDepartmentIds(context.userId));
+      if (ids.length === 0) return [];
+      q = q.in("department_id", ids);
+    }
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
     return (rows ?? []).map(fromSessionRow);
