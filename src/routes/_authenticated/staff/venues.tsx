@@ -301,7 +301,7 @@ function StageRow({ venueId, stage }: { venueId: number; stage: any }) {
   );
 }
 
-function RoomsPanel({ venueId, rooms }: { venueId: number; rooms: any[] }) {
+function RoomsPanel({ venueId, rooms, depts }: { venueId: number; rooms: any[]; depts: any[] }) {
   const qc = useQueryClient();
   const [name, setName] = useState("");
   const add = useMutation({
@@ -324,7 +324,7 @@ function RoomsPanel({ venueId, rooms }: { venueId: number; rooms: any[] }) {
       ) : (
         <ul className="space-y-4">
           {rooms.map((r) => (
-            <RoomRow key={r.id} venueId={venueId} room={r} />
+            <RoomRow key={r.id} venueId={venueId} room={r} depts={depts} />
           ))}
         </ul>
       )}
@@ -332,26 +332,34 @@ function RoomsPanel({ venueId, rooms }: { venueId: number; rooms: any[] }) {
   );
 }
 
-function RoomRow({ venueId, room }: { venueId: number; room: any }) {
+function RoomRow({ venueId, room, depts }: { venueId: number; room: any; depts: any[] }) {
   const qc = useQueryClient();
   const [name, setName] = useState(room.name ?? "");
   const [building, setBuilding] = useState(room.building ?? "");
   const [capacity, setCapacity] = useState<string>(room.capacity != null ? String(room.capacity) : "");
   const [isPublic, setIsPublic] = useState<boolean>(!!room.is_publicly_bookable);
+  const [departmentId, setDepartmentId] = useState<string>(room.department_id ?? "");
 
   const capNum = capacity ? Number(capacity) : null;
   const dirty =
     name !== (room.name ?? "") ||
     building !== (room.building ?? "") ||
     capNum !== (room.capacity ?? null) ||
-    isPublic !== !!room.is_publicly_bookable;
+    isPublic !== !!room.is_publicly_bookable ||
+    (departmentId || null) !== (room.department_id ?? null);
 
   const save = useMutation({
     mutationFn: () =>
       updateRoom({
         data: {
           id: room.id,
-          patch: { name, building, capacity: capNum, is_publicly_bookable: isPublic },
+          patch: {
+            name,
+            building,
+            capacity: capNum,
+            is_publicly_bookable: isPublic,
+            department_id: departmentId || null,
+          },
         },
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["venue", venueId] }),
@@ -379,6 +387,19 @@ function RoomRow({ venueId, room }: { venueId: number; room: any }) {
           <Trash2 className="h-4 w-4" />
         </Button>
       </div>
+      <div className="mt-2 flex items-center gap-2 text-xs text-slate-600">
+        <span className="font-semibold uppercase tracking-wider">Department override:</span>
+        <select
+          className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+          value={departmentId}
+          onChange={(e) => setDepartmentId(e.target.value)}
+        >
+          <option value="">— Inherit from venue —</option>
+          {depts.map((d) => (
+            <option key={d.id} value={d.id}>{d.name}</option>
+          ))}
+        </select>
+      </div>
       <RoomDetailsEditor
         room={room}
         onChanged={() => qc.invalidateQueries({ queryKey: ["venue", venueId] })}
@@ -386,3 +407,4 @@ function RoomRow({ venueId, room }: { venueId: number; room: any }) {
     </li>
   );
 }
+
