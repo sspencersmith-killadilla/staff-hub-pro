@@ -66,8 +66,20 @@ export const getEventDashboard = createServerFn({ method: "GET" })
       /* column not present yet */
     }
 
+    let department: { id: string; name: string; brand_css: Record<string, string> | null } | null = null;
+    const departmentId = (sess.data as any)?.department_id;
+    if (departmentId) {
+      const { data: dept } = await supabaseAdmin
+        .from("departments")
+        .select("id, name, brand_css")
+        .eq("id", departmentId)
+        .maybeSingle();
+      department = (dept as any) ?? null;
+    }
+
     return {
       session: sess.data ?? null,
+      department,
       attendees: att.data ?? [],
       talent: tal.data ?? [],
       volunteers: vol.data ?? [],
