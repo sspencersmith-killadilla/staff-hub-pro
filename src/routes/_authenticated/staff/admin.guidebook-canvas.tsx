@@ -94,10 +94,15 @@ function CanvasPage() {
   const dataQ = useQuery({
     queryKey: ["guidebook-canvas", startDate, endDate],
     queryFn: async () => {
-      const res = await fetcher({ data: { startDate, endDate } });
-      setData(res);
-      setItems(buildInitialLayout(res));
-      return res;
+      try {
+        const res = await fetcher({ data: { startDate, endDate } });
+        setData(res);
+        setItems(buildInitialLayout(res));
+        return res;
+      } catch (e: any) {
+        toast.error(e?.message ?? "Failed to load guidebook data");
+        throw e;
+      }
     },
     enabled: false,
   });

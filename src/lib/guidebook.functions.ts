@@ -26,11 +26,11 @@ async function fetchData(
   endIso: string,
   departmentId: string | null | undefined,
 ) {
-  // Events (sessions)
+  // Events (sessions) — note: `sessions` has no description column
   let sessQ = supabaseAdmin
     .from("sessions")
     .select(
-      "id, title, description, start_time, end_time, department_id, stage_id, room_id, stages(id, name, venue_id), rooms(id, name, venue_id)",
+      "id, title, speaker_name, start_time, end_time, department_id, stage_id, room_id, stages(id, name, venue_id), rooms(id, name, venue_id)",
     )
     .gte("start_time", startIso)
     .lte("start_time", endIso)
@@ -149,7 +149,7 @@ async function fetchData(
       title: s.title,
       start_time: s.start_time,
       end_time: s.end_time,
-      description: s.description ?? null,
+      description: s.speaker_name ?? null,
       department_name: deptsById.get(s.department_id)?.name ?? null,
       venue_name: venue?.name ?? null,
       location_name: s.stages?.name ?? s.rooms?.name ?? null,
@@ -277,6 +277,99 @@ export const fetchGuidebookCanvasData = createServerFn({ method: "POST" })
         logo_url: s.logo_url ?? null,
       })),
     };
+  });
+
+// ─── Standalone guidebook sponsor management (no event required) ─────
+const StandaloneSponsorInput = z.object({
+  companyName: z.string().min(1).max(200),
+  contactName: z.string().min(1).max(200).optional().nullable(),
+  contactEmail: z.string().email().max(200).optional().nullable(),
+  logoUrl: z.string().max(1000).optional().nullable(),
+  adCopy: z.string().max(2000).optional().nullable(),
+});
+
+async function getOrCreateGuidebookTierId(): Promise<string> {
+  const tiersRes = await supabaseAdmin
+    .from("sponsorship_tiers")
+    .select("id, name, placement");
+  if (tiersRes.error) throw new Error(tiersRes.error.message);
+  const existing = (tiersRes.data ?? []).find(
+    (t: any) =>
+      t.placement === "guidebook" ||
+      (t.name ?? "").toLowerCase().includes("guidebook"),
+  );
+  if (existing) return existing.id;
+  const ins = await supabaseAdmin
+    .from("sponsorship_tiers")
+    .insert([{ name: "Guidebook Ad Space", placement: "guidebook", price: 0 }])
+    .select("id")
+    .single();
+  if (ins.error) throw new Error(ins.error.message);
+  return ins.data.id;
+}
+
+export const createStandaloneGuidebookSponsor = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => StandaloneSponsorInput.parse(i))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const tierId = await getOrCreateGuidebookTierId();
+    const { data: row, error } = await supabaseAdmin
+      .from("sponsors")
+      .insert([
+        {
+          user_id: context.userId,
+          company_name: data.companyName,
+          contact_name: data.contactName ?? null,
+          contact_email: data.contactEmail ?? null,
+          logo_url: data.logoUrl ?? null,
+          ad_copy: data.adCopy ?? null,
+          session_id: null,
+          sponsorship_tier_id: tierId,
+          status: "approved",
+        },
+      ])
+      .select("id, company_name")
+      .single();
+    if (error) throw new Error(error.message);
+    return { id: row.id, company_name: row.company_name };
+  });
+
+export const listGuidebookSponsors = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.userId);
+    const tiersRes = await supabaseAdmin
+      .from("sponsorship_tiers")
+      .select("id, name, placement");
+    if (tiersRes.error) throw new Error(tiersRes.error.message);
+    const ids = (tiersRes.data ?? [])
+      .filter(
+        (t: any) =>
+          t.placement === "guidebook" ||
+          (t.name ?? "").toLowerCase().includes("guidebook"),
+      )
+      .map((t: any) => t.id);
+    if (!ids.length) return { sponsors: [] };
+    const { data, error } = await supabaseAdmin
+      .from("sponsors")
+      .select("id, company_name, status, logo_url, ad_copy, session_id, created_at")
+      .in("sponsorship_tier_id", ids)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return { sponsors: data ?? [] };
+  });
+
+const DeleteSponsorInput = z.object({ id: z.string().uuid() });
+
+export const deleteGuidebookSponsor = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => DeleteSponsorInput.parse(i))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { error } = await supabaseAdmin.from("sponsors").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 const LayoutItem = z.object({

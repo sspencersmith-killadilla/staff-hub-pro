@@ -112,6 +112,7 @@ const groups: { label: string; sectionIds: string[] }[] = [
       "admin-departments",
       "admin-dept-roles",
       "admin-modules",
+      "admin-guidebook",
     ],
   },
 ];
@@ -1110,6 +1111,77 @@ const sections: Section[] = [
             Departments &amp; Active Context
           </a>
           .
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "admin-guidebook",
+    title: "Program Guidebook Generator",
+    icon: FileText,
+    audience: "admin",
+    render: () => (
+      <>
+        <p>
+          Admins can compile every approved event, StreetBeats performance, and
+          class within a date range into a print-ready PDF program guide, with
+          sponsor ads automatically interleaved. Open it from{" "}
+          <em>Admin → Generate Guidebook</em>.
+        </p>
+
+        <h4 className="mt-6 font-semibold text-[#002f49]">Quick generate</h4>
+        <ol className="my-3 space-y-3">
+          <Step n={1} title="Pick a date range">
+            Set a start and end date. Click <em>Preview counts</em> to see how
+            many events, gigs, classes, and sponsor ads will land in the PDF.
+          </Step>
+          <Step n={2} title="Generate PDF">
+            Click <em>Generate PDF</em> for an automatic layout. The browser
+            downloads <code>program-guide-{"{start}"}_to_{"{end}"}.pdf</code>.
+          </Step>
+        </ol>
+
+        <h4 className="mt-6 font-semibold text-[#002f49]">Customize with the Layout Builder</h4>
+        <p>
+          Need finer control? Click <em>Open in Layout Builder</em> to enter the
+          Guidebook Canvas, where every event, gig, class, and ad is a
+          drag-and-drop card.
+        </p>
+        <ul className="my-3 list-disc space-y-2 pl-6 text-sm">
+          <li><strong>Drag</strong> any row to reorder it within the print edition.</li>
+          <li><strong>Hide / show</strong> items that don't fit the visual flow.</li>
+          <li><strong>Edit print copy</strong> to override a title or description just for this edition — the underlying database record is not touched.</li>
+          <li><strong>Insert ad slot</strong> drops a sponsor's bought ad block exactly between any two listings.</li>
+          <li>Click <strong>Export PDF</strong> to render the final layout.</li>
+        </ul>
+
+        <h4 className="mt-6 font-semibold text-[#002f49]">Guidebook sponsors (no event required)</h4>
+        <p>
+          You don't have to attach a sponsor to an event to get them into the
+          guidebook. On the <em>Generate Guidebook</em> page, scroll to{" "}
+          <strong>Guidebook sponsors</strong> and fill in the form:
+        </p>
+        <ol className="my-3 space-y-3">
+          <Step n={1} title="Enter company info">
+            Company name is required. Add contact name, email, logo URL, and ad
+            copy as available.
+          </Step>
+          <Step n={2} title="Click Add guidebook sponsor">
+            The sponsor is created as <em>standalone</em> (no event link) on the{" "}
+            <strong>Guidebook Ad Space</strong> tier and immediately marked{" "}
+            <em>approved</em>. The tier is auto-created the first time it's
+            needed.
+          </Step>
+          <Step n={3} title="They appear in the next PDF">
+            Standalone and event-attached guidebook sponsors are pooled together
+            and rotated through the cover logo, full-page ad, half-page slots,
+            and footer credits.
+          </Step>
+        </ol>
+        <Callout kind="tip">
+          Sponsors who applied through the public sponsor portal and chose the
+          Guidebook tier still flow in automatically — you only need the form
+          above for sponsors you want to add manually without an event.
         </Callout>
       </>
     ),
