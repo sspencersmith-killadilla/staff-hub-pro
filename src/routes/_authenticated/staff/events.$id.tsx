@@ -123,6 +123,7 @@ function EventDashboard() {
   const { id } = Route.useParams();
   const qc = useQueryClient();
   const { can } = usePermissions();
+  const { isStaff, isAdmin } = useAuth();
 
   const { data, isLoading } = useQuery({
     queryKey: ["event-dashboard", id],
