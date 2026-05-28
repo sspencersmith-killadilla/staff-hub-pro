@@ -23,15 +23,19 @@ interface Props {
   blurb: string;
 }
 
+import { useDepartment } from "@/contexts/department-context";
+
 export function ApplicationManager({ kind, listFn, setStatusFn, title, blurb }: Props) {
   const qc = useQueryClient();
   const fetchAll = useServerFn(listFn);
   const setStatus = useServerFn(setStatusFn);
+  const { activeDepartment } = useDepartment();
+  const departmentId = activeDepartment?.id ?? null;
 
-  const key = ["staff", kind, "applications"];
+  const key = ["staff", kind, "applications", departmentId];
   const { data: rows, isLoading } = useQuery({
     queryKey: key,
-    queryFn: () => fetchAll(),
+    queryFn: () => fetchAll({ data: { departmentId } }),
   });
 
   const mut = useMutation({

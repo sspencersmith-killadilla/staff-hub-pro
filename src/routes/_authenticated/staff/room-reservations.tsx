@@ -46,6 +46,7 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 import { requireModule } from "@/lib/require-module";
+import { useDepartment } from "@/contexts/department-context";
 
 export const Route = createFileRoute(
   "/_authenticated/staff/room-reservations",
@@ -67,11 +68,13 @@ function fmtDt(iso: string) {
 
 function RoomReservationsPage() {
   const qc = useQueryClient();
+  const { activeDepartment } = useDepartment();
+  const departmentId = activeDepartment?.id ?? null;
   const [status, setStatus] = useState<Status>("pending");
 
   const { data: rows = [], isLoading } = useQuery({
-    queryKey: ["reservations", status],
-    queryFn: () => listReservations({ data: { status } }),
+    queryKey: ["reservations", status, departmentId],
+    queryFn: () => listReservations({ data: { status, departmentId } }),
   });
 
   const counts = useMemo(() => {

@@ -18,6 +18,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useModules } from "@/hooks/use-modules";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useDepartment } from "@/contexts/department-context";
+
+function ActiveDepartmentBadge() {
+  const { activeDepartment, memberships } = useDepartment();
+  if (!activeDepartment) return null;
+  return (
+    <div className="mt-2 text-[10px] uppercase tracking-widest text-white/60">
+      <span className="text-white/40">Dept ·</span>{" "}
+      <span className="text-white font-bold">{activeDepartment.name}</span>
+      {memberships.length > 1 && (
+        <span className="ml-1 text-white/40">({memberships.length})</span>
+      )}
+    </div>
+  );
+}
 import type { ModuleKey } from "@/lib/platform-modules.functions";
 import type { PermissionKey } from "@/lib/staff-permissions";
 
@@ -70,6 +85,7 @@ export function EventOpsSidebar() {
     <aside className="hidden md:flex w-60 shrink-0 flex-col bg-[hsl(210_60%_12%)] text-white">
       <div className="px-5 py-5 border-b border-white/10">
         <div className="text-lg font-black italic tracking-tight">EVENT OPS</div>
+        <ActiveDepartmentBadge />
       </div>
       <nav className="flex-1 overflow-y-auto py-3">
         {visibleItems.map((it) => {

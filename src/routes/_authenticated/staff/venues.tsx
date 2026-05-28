@@ -14,13 +14,20 @@ import { OperatingHoursEditor } from "@/components/operating-hours-editor";
 import { Trash2, Plus, ChevronRight } from "lucide-react";
 import { RoomDetailsEditor } from "@/components/room-details-editor";
 
+import { useDepartment } from "@/contexts/department-context";
+
 export const Route = createFileRoute("/_authenticated/staff/venues")({
   component: VenuesPage,
 });
 
 function VenuesPage() {
   const qc = useQueryClient();
-  const { data: venues = [] } = useQuery({ queryKey: ["venues"], queryFn: () => listVenues() });
+  const { activeDepartment } = useDepartment();
+  const departmentId = activeDepartment?.id ?? null;
+  const { data: venues = [] } = useQuery({
+    queryKey: ["venues", departmentId],
+    queryFn: () => listVenues({ data: { departmentId } }),
+  });
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [newName, setNewName] = useState("");
 
