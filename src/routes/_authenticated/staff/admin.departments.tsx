@@ -172,8 +172,13 @@ function DepartmentEditDialog({
   const [error, setError] = useState<string | null>(null);
 
   const save = useMutation({
-    mutationFn: (payload: Parameters<typeof upsertDepartment>[0]["data"]) =>
-      upsertDepartment({ data: payload }),
+    mutationFn: (payload: {
+      id?: string;
+      name: string;
+      logo_url: string | null;
+      room_policy_text: string | null;
+      brand_css: Record<string, string> | null;
+    }) => upsertDepartment({ data: payload }),
     onSuccess: onSaved,
     onError: (e) => setError((e as Error).message),
   });
