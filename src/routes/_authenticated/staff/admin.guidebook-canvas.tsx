@@ -43,7 +43,7 @@ const SearchSchema = z.object({
   end: z.string().optional(),
 });
 
-export const Route = createFileRoute("/_authenticated/staff/admin/guidebook/canvas")({
+export const Route = createFileRoute("/_authenticated/staff/admin/guidebook-canvas")({
   validateSearch: (s) => SearchSchema.parse(s),
   beforeLoad: async () => {
     if (typeof window === "undefined") return;
