@@ -240,7 +240,7 @@ function RoomReservationsPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="inline-flex gap-1">
-                      {r.status === "pending" && (
+                      {r.status === "pending" && scope === "inbound" && (
                         <>
                           <Button
                             size="sm"
@@ -274,6 +274,11 @@ function RoomReservationsPage() {
                             <X className="h-4 w-4 mr-1" /> Decline
                           </Button>
                         </>
+                      )}
+                      {r.status === "pending" && scope === "outbound" && (
+                        <span className="text-xs text-slate-500 italic px-2">
+                          Awaiting their review
+                        </span>
                       )}
                       {r.status === "approved" && (
                         <Button
