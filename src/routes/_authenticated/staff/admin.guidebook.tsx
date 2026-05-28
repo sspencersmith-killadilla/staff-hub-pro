@@ -1,17 +1,23 @@
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyRoles } from "@/lib/auth.functions";
 import { waitForSupabaseSession } from "@/integrations/supabase/auth-ready";
 import {
   generateGuidebook,
   previewGuidebookCounts,
+  createStandaloneGuidebookSponsor,
+  listGuidebookSponsors,
+  deleteGuidebookSponsor,
 } from "@/lib/guidebook.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/staff/admin/guidebook")({
