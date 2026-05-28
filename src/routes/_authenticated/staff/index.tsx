@@ -413,7 +413,7 @@ function EventsPage() {
                     <option value="">— Unassigned —</option>
                     {(deptStaff as any[]).map((s) => (
                       <option key={s.user_id} value={s.user_id}>
-                        {(s.full_name ?? s.email ?? s.user_id)}
+                        {s.email ?? s.full_name ?? s.user_id}
                         {s.roles?.length ? ` — ${s.roles.join(", ")}` : ""}
                       </option>
                     ))}
@@ -606,7 +606,7 @@ function EventsPage() {
                       <div className="text-xs text-slate-500 mt-0.5">
                         Owner: {(() => {
                           const s = (deptStaff as any[]).find((x) => x.user_id === e.staff_owner_id);
-                          return s?.full_name ?? s?.email ?? "Unknown";
+                          return s?.email ?? s?.full_name ?? "Unknown";
                         })()}
                       </div>
                     )}
