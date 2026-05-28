@@ -29,6 +29,7 @@ function DepartmentHub() {
 
   return (
     <div className="min-h-screen bg-background">
+      <BrandThemeApplier brand={department.brand_css} />
       <SiteHeader />
       <main className="mx-auto max-w-6xl px-4 py-8">
         {/* Department header */}
