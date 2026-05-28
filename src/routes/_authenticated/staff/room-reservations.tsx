@@ -401,6 +401,13 @@ function NewReservationDialog({
               </SelectContent>
             </Select>
           </Field>
+          {crossDept && (
+            <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              Cross-department request: this room belongs to another department.
+              The booking will be stamped with your active department so the
+              other team can review it in their Inbound queue.
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <Field label="Requester name">
               <Input
