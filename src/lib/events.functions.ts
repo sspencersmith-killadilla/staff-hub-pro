@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { assertStaff } from "./staff-guard";
+import { assertStaff, assertCanManageDepartment, isAdmin, getUserDepartmentIds } from "./staff-guard";
 
 // City-controlled events live in the `sessions` table.
 // Each session attaches to EITHER a room OR a stage — exactly one — so
@@ -73,11 +73,19 @@ export const listEvents = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
+    const admin = await isAdmin(context.userId);
     let q = supabaseAdmin
       .from("sessions")
       .select("*, stages(id,name), rooms(id,name)")
       .order("start_time", { ascending: true, nullsFirst: false });
-    if (data.departmentId && !data.includeAll) q = q.eq("department_id", data.departmentId);
+    if (data.departmentId && !(admin && data.includeAll)) {
+      q = q.eq("department_id", data.departmentId);
+    } else if (!admin) {
+      // Non-admin without explicit dept: restrict to their departments.
+      const ids = Array.from(await getUserDepartmentIds(context.userId));
+      if (ids.length === 0) return [];
+      q = q.in("department_id", ids);
+    }
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
     return (rows ?? []).map(fromSessionRow);
@@ -200,6 +208,7 @@ export const createEvent = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
     assertRoomOrStage(data);
+    await assertCanManageDepartment(context.userId, data.department_id ?? null);
     const { data: row, error } = await supabaseAdmin
       .from("sessions")
       .insert(toSessionRow(data))
@@ -216,14 +225,18 @@ export const updateEvent = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
-    // If either room_id or stage_id appears in the patch, enforce XOR with the
-    // existing row's other side.
+    // Fetch existing row for cross-dept guard + room/stage XOR check.
+    const { data: existing } = await supabaseAdmin
+      .from("sessions")
+      .select("room_id, stage_id, department_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    // Guard: caller must own the existing department AND, if reassigning, the target one too.
+    await assertCanManageDepartment(context.userId, existing?.department_id ?? null);
+    if ("department_id" in data.patch) {
+      await assertCanManageDepartment(context.userId, data.patch.department_id ?? null);
+    }
     if ("room_id" in data.patch || "stage_id" in data.patch) {
-      const { data: existing } = await supabaseAdmin
-        .from("sessions")
-        .select("room_id, stage_id")
-        .eq("id", data.id)
-        .maybeSingle();
       const merged = {
         room_id:
           "room_id" in data.patch ? data.patch.room_id ?? null : existing?.room_id ?? null,
@@ -264,6 +277,12 @@ export const deleteEvent = createServerFn({ method: "POST" })
   .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
+    const { data: existing } = await supabaseAdmin
+      .from("sessions")
+      .select("department_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    await assertCanManageDepartment(context.userId, existing?.department_id ?? null);
     const { error } = await supabaseAdmin.from("sessions").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -292,8 +311,15 @@ export const bulkUpsertEvents = createServerFn({ method: "POST" })
       const row = data.rows[i];
       try {
         assertRoomOrStage(row);
+        await assertCanManageDepartment(context.userId, row.department_id ?? null);
         const payload = toSessionRow(row);
         if (row.id) {
+          const { data: existing } = await supabaseAdmin
+            .from("sessions")
+            .select("department_id")
+            .eq("id", row.id)
+            .maybeSingle();
+          await assertCanManageDepartment(context.userId, existing?.department_id ?? null);
           const { error } = await supabaseAdmin
             .from("sessions")
             .update(payload)

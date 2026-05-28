@@ -181,10 +181,12 @@ function EventsPage() {
   const { isAdmin } = useAuth();
   const deptId = activeDepartment?.id ?? null;
   const [form, setForm] = useState(emptyForm);
+  const [adminViewAll, setAdminViewAll] = useState(false);
   const selectedDepartmentId = form.department_id || deptId;
+  const includeAll = isAdmin && adminViewAll;
   const { data: events = [] } = useQuery({
-    queryKey: ["events", deptId, isAdmin],
-    queryFn: () => listEvents({ data: { departmentId: deptId, includeAll: isAdmin } }),
+    queryKey: ["events", deptId, includeAll],
+    queryFn: () => listEvents({ data: { departmentId: deptId, includeAll } }),
   });
   const { data: locations } = useQuery({
     queryKey: ["event-locations", selectedDepartmentId],
@@ -388,7 +390,29 @@ function EventsPage() {
           </Link>
         )}
       </div>
-      <div className="h-px bg-slate-200 mb-6" />
+      <div className="h-px bg-slate-200 mb-4" />
+      <div className="mb-6 flex flex-wrap items-center gap-3 text-sm">
+        <span className="text-slate-600">
+          Showing:{" "}
+          <span className="font-semibold text-slate-900">
+            {includeAll
+              ? "All departments"
+              : activeDepartment
+                ? activeDepartment.name
+                : "Unassigned"}
+          </span>
+        </span>
+        {isAdmin && (
+          <label className="inline-flex items-center gap-2 ml-2">
+            <Checkbox
+              checked={adminViewAll}
+              onCheckedChange={(v) => setAdminViewAll(!!v)}
+            />
+            <span className="text-slate-700">View all departments (admin)</span>
+          </label>
+        )}
+      </div>
+
 
 
       <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-6">
