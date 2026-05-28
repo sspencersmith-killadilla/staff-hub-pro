@@ -20,6 +20,8 @@ const sessionInput = z.object({
   focal_x: z.number().int().min(0).max(100).optional(),
   focal_y: z.number().int().min(0).max(100).optional(),
   open_to_vendors: z.boolean().optional(),
+  department_id: z.string().uuid().nullable().optional(),
+  staff_owner_id: z.string().uuid().nullable().optional(),
 });
 
 type SessionInput = z.infer<typeof sessionInput>;
