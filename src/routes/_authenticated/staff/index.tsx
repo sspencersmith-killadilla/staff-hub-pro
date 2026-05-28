@@ -178,25 +178,29 @@ function csvRowToInput(r: Record<string, string>) {
 function EventsPage() {
   const qc = useQueryClient();
   const { activeDepartment } = useDepartment();
+  const { isAdmin } = useAuth();
   const deptId = activeDepartment?.id ?? null;
+  const [form, setForm] = useState(emptyForm);
+  const selectedDepartmentId = form.department_id || deptId;
   const { data: events = [] } = useQuery({
-    queryKey: ["events", deptId],
-    queryFn: () => listEvents({ data: { departmentId: deptId } }),
+    queryKey: ["events", deptId, isAdmin],
+    queryFn: () => listEvents({ data: { departmentId: deptId, includeAll: isAdmin } }),
   });
   const { data: locations } = useQuery({
-    queryKey: ["event-locations", deptId],
-    queryFn: () => listEventLocations({ data: { departmentId: deptId } }),
+    queryKey: ["event-locations", selectedDepartmentId],
+    queryFn: () => listEventLocations({ data: { departmentId: selectedDepartmentId } }),
   });
-  const { data: deptStaff = [] } = useQuery({
-    queryKey: ["dept-staff", deptId],
-    queryFn: () => (deptId ? listDepartmentStaff({ data: { departmentId: deptId } }) : Promise.resolve([])),
-    enabled: !!deptId,
+  const { data: staffProfiles = [] } = useQuery({
+    queryKey: ["assignable-staff-profiles"],
+    queryFn: () => listAllStaffProfiles(),
   });
-  const [ownerId, setOwnerId] = useState<string>("");
+  const { data: departments = [] } = useQuery({
+    queryKey: ["assignable-departments"],
+    queryFn: () => listAssignableDepartments(),
+  });
   const rooms = locations?.rooms ?? [];
   const stages = locations?.stages ?? [];
 
-  const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
@@ -208,9 +212,8 @@ function EventsPage() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const resetForm = () => {
-    setForm(emptyForm);
+    setForm({ ...emptyForm, department_id: deptId ?? "" });
     setEditingId(null);
-    setOwnerId("");
   };
 
   const startEdit = (e: any) => {
@@ -219,6 +222,8 @@ function EventsPage() {
       title: e.title ?? "",
       event_type: e.event_type ?? "",
       featured_guest: e.featured_guest ?? "",
+      department_id: e.department_id ?? deptId ?? "",
+      staff_owner_name: e.staff_owner_name ?? "",
       location: locationValue(e),
       start_time: toLocalInput(e.start_time),
       end_time: toLocalInput(e.end_time),
@@ -227,7 +232,6 @@ function EventsPage() {
       focal_y: typeof e.focal_y === "number" ? e.focal_y : 50,
       open_to_vendors: !!e.open_to_vendors,
     });
-    setOwnerId(e.staff_owner_id ?? "");
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -246,8 +250,9 @@ function EventsPage() {
         focal_x: form.focal_x,
         focal_y: form.focal_y,
         open_to_vendors: form.open_to_vendors,
-        department_id: deptId,
-        staff_owner_id: ownerId || null,
+        department_id: form.department_id || deptId,
+        staff_owner_id: null,
+        staff_owner_name: form.staff_owner_name || null,
       };
       return editingId
         ? updateEvent({ data: { id: editingId, patch } })
