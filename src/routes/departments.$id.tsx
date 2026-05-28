@@ -3,6 +3,7 @@ import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { Building2, CalendarDays, DoorOpen } from "lucide-react";
 import { getDepartmentHub } from "@/lib/departments.functions";
 import { SiteHeader } from "@/components/site-header";
+import { BrandThemeApplier } from "@/components/theme-provider";
 
 const hubQO = (id: string) =>
   queryOptions({
@@ -28,6 +29,7 @@ function DepartmentHub() {
 
   return (
     <div className="min-h-screen bg-background">
+      <BrandThemeApplier brand={department.brand_css} />
       <SiteHeader />
       <main className="mx-auto max-w-6xl px-4 py-8">
         {/* Department header */}

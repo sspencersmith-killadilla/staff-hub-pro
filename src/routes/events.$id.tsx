@@ -28,6 +28,7 @@ import {
   payAndRegisterForCityEvent,
 } from "@/lib/payments.functions";
 import { SiteHeader } from "@/components/site-header";
+import { BrandThemeApplier } from "@/components/theme-provider";
 
 export const Route = createFileRoute("/events/$id")({
   head: () => ({
@@ -214,6 +215,7 @@ function EventDetail() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <BrandThemeApplier brand={(data as any)?.department?.brand_css ?? null} />
       <SiteHeader />
 
       {/* HERO */}

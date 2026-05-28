@@ -345,6 +345,16 @@ export const getPublicCityEvent = createServerFn({ method: "GET" })
         .maybeSingle();
       venue = v.data ?? null;
     }
+    const deptId = (sessRes.data as any).department_id ?? null;
+    let department: { id: string; name: string; logo_url: string | null; brand_css: Record<string, string> | null } | null = null;
+    if (deptId) {
+      const d = await supabaseAdmin
+        .from("departments")
+        .select("id, name, logo_url, brand_css")
+        .eq("id", deptId)
+        .maybeSingle();
+      department = (d.data as any) ?? null;
+    }
     const sponsors: EventSponsor[] = (sponsorsRes.data ?? []).map((sp: any) => ({
       id: sp.id,
       company_name: sp.company_name ?? null,
@@ -372,6 +382,7 @@ export const getPublicCityEvent = createServerFn({ method: "GET" })
       stage,
       room,
       venue,
+      department,
       tiers,
       talent: talentRes.data ?? [],
       sponsors,
