@@ -1,7 +1,32 @@
 // SERVER ONLY — Render a magazine-style guidebook PDF from a pages/blocks layout.
 // Coordinate system: per-page (PAGE_W x PAGE_H pt, US Letter portrait).
 // Block (x,y) are measured from the TOP-LEFT of the page. The renderer flips Y.
-import { PDFDocument, StandardFonts, rgb, PDFPage, PDFFont, PDFImage } from "pdf-lib";
+import {
+  PDFDocument,
+  StandardFonts,
+  rgb,
+  PDFPage,
+  PDFFont,
+  PDFImage,
+  pushGraphicsState,
+  popGraphicsState,
+  moveTo,
+  lineTo,
+  closePath,
+  clip,
+  endPath,
+} from "pdf-lib";
+
+export type ShapeKind =
+  | "rect"
+  | "circle"
+  | "ellipse"
+  | "triangle"
+  | "hexagon"
+  | "star"
+  | "line";
+
+export type FrameKind = "rect" | "rounded" | "circle" | "hexagon";
 
 export type MagazineBlock = {
   id: string;
@@ -10,12 +35,13 @@ export type MagazineBlock = {
   y: number;
   w: number;
   h: number;
+  groupId?: string | null;
   // text
   text?: string | null;
   fontSize?: number | null;
   bold?: boolean | null;
   italic?: boolean | null;
-  color?: string | null; // #rrggbb
+  color?: string | null;
   bgColor?: string | null;
   align?: "left" | "center" | "right" | null;
   lineHeight?: number | null;
@@ -23,7 +49,9 @@ export type MagazineBlock = {
   // image
   imageUrl?: string | null;
   fit?: "cover" | "contain" | null;
-  // rect
+  frame?: FrameKind | null;
+  // rect / shape
+  shape?: ShapeKind | null;
   fill?: string | null;
   borderColor?: string | null;
   borderWidth?: number | null;
@@ -109,20 +137,171 @@ async function embedImg(doc: PDFDocument, data: { bytes: Uint8Array; mime: strin
   }
 }
 
-function drawRectBlock(page: PDFPage, b: MagazineBlock) {
-  const pyTop = PAGE_H - b.y;
-  const y = pyTop - b.h;
-  const opts: any = { x: b.x, y, width: b.w, height: b.h };
-  if (b.fill) {
-    const [r, g, bl] = hexToRgb(b.fill);
-    opts.color = rgb(r, g, bl);
+// Build a polygon-approximated path for any shape, returns operators for stroke/fill via SVG path.
+function polygonPoints(shape: ShapeKind, x: number, y: number, w: number, h: number): [number, number][] {
+  // y here is page Y (bottom-left coordinate space) for the BOTTOM of the box.
+  const cx = x + w / 2;
+  const cy = y + h / 2;
+  const rx = w / 2;
+  const ry = h / 2;
+  if (shape === "triangle") {
+    return [
+      [cx, y + h],
+      [x, y],
+      [x + w, y],
+    ];
   }
-  if (b.borderColor) {
-    const [r, g, bl] = hexToRgb(b.borderColor);
-    opts.borderColor = rgb(r, g, bl);
-    opts.borderWidth = b.borderWidth ?? 1;
+  if (shape === "hexagon") {
+    const pts: [number, number][] = [];
+    for (let i = 0; i < 6; i++) {
+      const a = (Math.PI / 3) * i + Math.PI / 6;
+      pts.push([cx + rx * Math.cos(a), cy + ry * Math.sin(a)]);
+    }
+    return pts;
   }
-  page.drawRectangle(opts);
+  if (shape === "star") {
+    const pts: [number, number][] = [];
+    for (let i = 0; i < 10; i++) {
+      const a = (Math.PI / 5) * i - Math.PI / 2;
+      const r = i % 2 === 0 ? 1 : 0.45;
+      pts.push([cx + rx * r * Math.cos(a), cy + ry * r * Math.sin(a)]);
+    }
+    return pts;
+  }
+  if (shape === "circle" || shape === "ellipse") {
+    const pts: [number, number][] = [];
+    const N = 48;
+    for (let i = 0; i < N; i++) {
+      const a = (2 * Math.PI * i) / N;
+      pts.push([cx + rx * Math.cos(a), cy + ry * Math.sin(a)]);
+    }
+    return pts;
+  }
+  if (shape === "rect") {
+    return [
+      [x, y],
+      [x + w, y],
+      [x + w, y + h],
+      [x, y + h],
+    ];
+  }
+  return [];
+}
+
+function pathOpsForPoints(points: [number, number][]) {
+  if (!points.length) return [];
+  const ops = [moveTo(points[0][0], points[0][1])];
+  for (let i = 1; i < points.length; i++) ops.push(lineTo(points[i][0], points[i][1]));
+  ops.push(closePath());
+  return ops;
+}
+
+function roundedRectPoints(x: number, y: number, w: number, h: number, r: number): [number, number][] {
+  const rr = Math.max(0, Math.min(r, Math.min(w, h) / 2));
+  if (rr <= 0) {
+    return [
+      [x, y],
+      [x + w, y],
+      [x + w, y + h],
+      [x, y + h],
+    ];
+  }
+  const N = 8; // segments per corner
+  const pts: [number, number][] = [];
+  const corners: [number, number, number][] = [
+    [x + w - rr, y + rr, -Math.PI / 2], // bottom-right (start angle)
+    [x + w - rr, y + h - rr, 0], // top-right
+    [x + rr, y + h - rr, Math.PI / 2], // top-left
+    [x + rr, y + rr, Math.PI], // bottom-left
+  ];
+  for (const [cx, cy, start] of corners) {
+    for (let i = 0; i <= N; i++) {
+      const a = start + (Math.PI / 2) * (i / N);
+      pts.push([cx + rr * Math.cos(a), cy + rr * Math.sin(a)]);
+    }
+  }
+  return pts;
+}
+
+function drawShape(page: PDFPage, b: MagazineBlock) {
+  const shape = (b.shape ?? "rect") as ShapeKind;
+  const yBottom = PAGE_H - b.y - b.h;
+  const fill = b.fill ? rgb(...hexToRgb(b.fill)) : undefined;
+  const border = b.borderColor ? rgb(...hexToRgb(b.borderColor)) : undefined;
+  const borderWidth = b.borderWidth ?? (border ? 1 : 0);
+
+  if (shape === "line") {
+    // diagonal line from top-left to bottom-right of the box
+    const color = border ?? fill ?? rgb(0, 0, 0);
+    page.drawLine({
+      start: { x: b.x, y: PAGE_H - b.y },
+      end: { x: b.x + b.w, y: PAGE_H - b.y - b.h },
+      thickness: borderWidth || 1,
+      color,
+    });
+    return;
+  }
+
+  if (shape === "rect") {
+    if ((b.radius ?? 0) > 0) {
+      const pts = roundedRectPoints(b.x, yBottom, b.w, b.h, b.radius!);
+      page.drawSvgPath(pointsToSvgPath(pts), {
+        x: 0,
+        y: 0,
+        color: fill,
+        borderColor: border,
+        borderWidth,
+      });
+    } else {
+      page.drawRectangle({
+        x: b.x,
+        y: yBottom,
+        width: b.w,
+        height: b.h,
+        color: fill,
+        borderColor: border,
+        borderWidth,
+      });
+    }
+    return;
+  }
+
+  if (shape === "circle" && b.w === b.h) {
+    page.drawCircle({
+      x: b.x + b.w / 2,
+      y: yBottom + b.h / 2,
+      size: b.w / 2,
+      color: fill,
+      borderColor: border,
+      borderWidth,
+    });
+    return;
+  }
+
+  // polygon shapes (incl. ellipse approximation, triangle, hexagon, star)
+  const pts = polygonPoints(shape, b.x, yBottom, b.w, b.h);
+  if (!pts.length) return;
+  page.drawSvgPath(pointsToSvgPath(pts), {
+    x: 0,
+    y: 0,
+    color: fill,
+    borderColor: border,
+    borderWidth,
+  });
+}
+
+function pointsToSvgPath(points: [number, number][]): string {
+  if (!points.length) return "";
+  // pdf-lib's drawSvgPath uses SVG coordinate system (Y-down) relative to the supplied (x,y)
+  // origin which defaults to the page top-left. We want to draw in page-bottom coordinates,
+  // so we'll flip via the page height.
+  const flip = (y: number) => PAGE_H - y;
+  let d = `M ${points[0][0]} ${flip(points[0][1])}`;
+  for (let i = 1; i < points.length; i++) {
+    d += ` L ${points[i][0]} ${flip(points[i][1])}`;
+  }
+  d += " Z";
+  return d;
 }
 
 function drawTextBlock(
@@ -150,11 +329,9 @@ function drawTextBlock(
   const innerW = Math.max(1, b.w - pad * 2);
   const lines = wrapText(text, font, size, innerW);
   const lineHeight = size * lh;
-  const totalH = lines.length * lineHeight;
   const yTop = PAGE_H - b.y - pad;
   const innerH = b.h - pad * 2;
-  // vertical-top align inside block
-  const startY = yTop - size; // baseline of first line
+  const startY = yTop - size;
   const maxLines = Math.max(1, Math.floor(innerH / lineHeight));
   const [cr, cg, cb] = hexToRgb(b.color, [0.06, 0.11, 0.24]);
   for (let i = 0; i < Math.min(lines.length, maxLines); i++) {
@@ -173,9 +350,32 @@ function drawTextBlock(
   }
 }
 
+// Build clip-path operators (in page-bottom coordinates) for an image frame
+function frameClipOps(b: MagazineBlock) {
+  const frame = (b.frame ?? "rect") as FrameKind;
+  const yBottom = PAGE_H - b.y - b.h;
+  let pts: [number, number][] = [];
+  if (frame === "rounded") {
+    pts = roundedRectPoints(b.x, yBottom, b.w, b.h, b.radius ?? 16);
+  } else if (frame === "circle") {
+    const r = Math.min(b.w, b.h) / 2;
+    const cx = b.x + b.w / 2;
+    const cy = yBottom + b.h / 2;
+    const N = 48;
+    for (let i = 0; i < N; i++) {
+      const a = (2 * Math.PI * i) / N;
+      pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]);
+    }
+  } else if (frame === "hexagon") {
+    pts = polygonPoints("hexagon", b.x, yBottom, b.w, b.h);
+  } else {
+    return null;
+  }
+  return pathOpsForPoints(pts);
+}
+
 async function drawImageBlock(page: PDFPage, b: MagazineBlock, doc: PDFDocument) {
   if (!b.imageUrl) {
-    // placeholder
     page.drawRectangle({
       x: b.x,
       y: PAGE_H - b.y - b.h,
@@ -190,6 +390,7 @@ async function drawImageBlock(page: PDFPage, b: MagazineBlock, doc: PDFDocument)
   if (!data) return;
   const img = await embedImg(doc, data);
   if (!img) return;
+
   const fit = b.fit ?? "cover";
   const ratio = img.width / img.height;
   let dw = b.w;
@@ -202,12 +403,7 @@ async function drawImageBlock(page: PDFPage, b: MagazineBlock, doc: PDFDocument)
       dw = b.w;
       dh = dw / ratio;
     }
-    const dx = b.x + (b.w - dw) / 2;
-    const dyTop = PAGE_H - b.y - (b.h - dh) / 2;
-    page.drawImage(img, { x: dx, y: dyTop - dh, width: dw, height: dh });
   } else {
-    // cover: scale to fill, crop excess by clipping via temporary embedded image scale.
-    // pdf-lib has no real clip; we approximate by sizing exactly and accepting overflow.
     if (b.w / b.h > ratio) {
       dw = b.w;
       dh = dw / ratio;
@@ -215,8 +411,16 @@ async function drawImageBlock(page: PDFPage, b: MagazineBlock, doc: PDFDocument)
       dh = b.h;
       dw = dh * ratio;
     }
-    const dx = b.x + (b.w - dw) / 2;
-    const dyTop = PAGE_H - b.y - (b.h - dh) / 2;
+  }
+  const dx = b.x + (b.w - dw) / 2;
+  const dyTop = PAGE_H - b.y - (b.h - dh) / 2;
+
+  const clipOps = frameClipOps(b);
+  if (clipOps) {
+    page.pushOperators(pushGraphicsState(), ...clipOps, clip(), endPath());
+    page.drawImage(img, { x: dx, y: dyTop - dh, width: dw, height: dh });
+    page.pushOperators(popGraphicsState());
+  } else {
     page.drawImage(img, { x: dx, y: dyTop - dh, width: dw, height: dh });
   }
 }
@@ -238,7 +442,7 @@ export async function buildMagazinePdf(input: MagazineInput): Promise<Uint8Array
       page.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: PAGE_H, color: rgb(r, g, b) });
     }
     for (const block of pg.blocks) {
-      if (block.type === "rect") drawRectBlock(page, block);
+      if (block.type === "rect") drawShape(page, block);
       else if (block.type === "text") drawTextBlock(page, block, fonts);
       else if (block.type === "image") await drawImageBlock(page, block, doc);
     }
