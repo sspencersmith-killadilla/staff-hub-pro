@@ -153,8 +153,10 @@ export default function EventMarketingHub({ event, sponsors, talent, brandCss }:
   const brand = normalizeBrandCss(brandCss ?? (event as any)?.departments?.brand_css ?? (event as any)?.department?.brand_css ?? null);
   const brandVars = {
     "--marketing-primary": brand["--brand-primary"] ?? brand["--primary"] ?? "#093140",
+    "--marketing-primary-foreground": brand["--primary-foreground"] ?? "#ffffff",
     "--marketing-accent": brand["--brand-accent"] ?? brand["--accent"] ?? "#0d9488",
     "--marketing-surface": brand["--brand-surface"] ?? brand["--card"] ?? "#ffffff",
+    "--marketing-surface-text": brand["--card-foreground"] ?? brand["--brand-text"] ?? brand["--foreground"] ?? "#093140",
     "--marketing-muted": brand["--muted"] ?? "#f0fdfa",
     "--marketing-text": brand["--brand-text"] ?? brand["--foreground"] ?? "#093140",
     "--marketing-border": brand["--border"] ?? "rgba(20,90,109,0.2)",
@@ -414,18 +416,31 @@ export default function EventMarketingHub({ event, sponsors, talent, brandCss }:
   return (
     <div className="-m-8" style={brandVars}>
       <style>{`
+        .marketing-shell { background: var(--marketing-primary) !important; color: var(--marketing-primary-foreground) !important; }
+        .marketing-shell .marketing-action { background: var(--marketing-primary) !important; color: var(--marketing-primary-foreground) !important; }
+        .marketing-shell .marketing-action button { border-color: var(--marketing-accent) !important; }
         #flyer-capture-zone, #ig-capture-zone, #fb-capture-zone { background: var(--marketing-primary) !important; }
         #flyer-capture-zone > div, #ig-capture-zone > div, #fb-capture-zone > div { background: var(--marketing-surface) !important; border-color: var(--marketing-border) !important; }
         #flyer-capture-zone h1, #ig-capture-zone h1, #fb-capture-zone h1 { color: var(--marketing-text) !important; }
+        #flyer-capture-zone .bg-white, #ig-capture-zone .bg-white, #fb-capture-zone .bg-white { background: var(--marketing-surface) !important; }
+        #flyer-capture-zone .text-gray-900, #ig-capture-zone .text-gray-900, #fb-capture-zone .text-gray-900 { color: var(--marketing-surface-text) !important; }
+        #flyer-capture-zone .border-teal-100, #flyer-capture-zone .border-teal-200, #flyer-capture-zone .border-teal-400,
+        #ig-capture-zone .border-teal-100, #ig-capture-zone .border-teal-200, #ig-capture-zone .border-teal-400,
+        #fb-capture-zone a, #fb-capture-zone div { border-color: var(--marketing-border) !important; }
         #flyer-capture-zone .text-teal-600, #flyer-capture-zone .text-teal-700, #flyer-capture-zone .text-teal-800,
+        #flyer-capture-zone .text-teal-200,
         #ig-capture-zone .text-teal-600, #ig-capture-zone .text-teal-700, #ig-capture-zone .text-teal-800,
+        #ig-capture-zone .text-teal-200,
         #fb-capture-zone p { border-color: var(--marketing-border); }
         #flyer-capture-zone .text-teal-600, #flyer-capture-zone .text-teal-700, #flyer-capture-zone .text-teal-800,
-        #ig-capture-zone .text-teal-600, #ig-capture-zone .text-teal-700, #ig-capture-zone .text-teal-800 { color: var(--marketing-accent) !important; }
+        #flyer-capture-zone .text-teal-200,
+        #ig-capture-zone .text-teal-600, #ig-capture-zone .text-teal-700, #ig-capture-zone .text-teal-800,
+        #ig-capture-zone .text-teal-200,
+        #fb-capture-zone [style*="color: rgb(13, 148, 136)"], #fb-capture-zone [style*="color: #0d9488"], #fb-capture-zone [style*="color: #0f766e"], #fb-capture-zone [style*="color: #134e4a"] { color: var(--marketing-accent) !important; }
         #flyer-capture-zone .bg-teal-50, #ig-capture-zone .bg-teal-50 { background: var(--marketing-muted) !important; }
       `}</style>
       {/* ACTION BAR */}
-      <div className="bg-[#093140] text-white p-4 flex flex-col md:flex-row md:justify-between md:items-center gap-4 shadow-lg">
+      <div className="marketing-action p-4 flex flex-col md:flex-row md:justify-between md:items-center gap-4 shadow-lg">
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setActiveTab("flyer")}
