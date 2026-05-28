@@ -57,6 +57,9 @@ const requestSchema = z.object({
   party_size: z.number().int().positive().max(10000).optional().nullable(),
   purpose: z.string().trim().max(500).optional().nullable(),
   notes: z.string().trim().max(2000).optional().nullable(),
+  policy_accepted: z.literal(true, {
+    errorMap: () => ({ message: "You must accept the department's room policy" }),
+  }),
 });
 
 // Limits per user (active = pending or approved, in the future)
