@@ -405,20 +405,24 @@ function EventsPage() {
                   <label className="text-xs font-semibold uppercase text-slate-600">
                     Staff Owner — {activeDepartment?.name}
                   </label>
-                  <input
-                    list="dept-staff-list"
-                    placeholder="Search staff by name or email…"
+                  <select
                     value={ownerId}
                     onChange={(e) => setOwnerId(e.target.value)}
                     className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm"
-                  />
-                  <datalist id="dept-staff-list">
+                  >
+                    <option value="">— Unassigned —</option>
                     {(deptStaff as any[]).map((s) => (
                       <option key={s.user_id} value={s.user_id}>
-                        {s.full_name ?? s.email ?? s.user_id} ({s.roles.join(", ")})
+                        {(s.full_name ?? s.email ?? s.user_id)}
+                        {s.roles?.length ? ` — ${s.roles.join(", ")}` : ""}
                       </option>
                     ))}
-                  </datalist>
+                  </select>
+                  {ownerId && !(deptStaff as any[]).some((s) => s.user_id === ownerId) && (
+                    <p className="text-[11px] text-amber-600">
+                      Current owner is not in this department's staff list.
+                    </p>
+                  )}
                 </div>
               ) : (
                 <p className="text-xs text-amber-600">
