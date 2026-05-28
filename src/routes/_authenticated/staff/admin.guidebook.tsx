@@ -145,6 +145,14 @@ function GuidebookPage() {
                 Open in Layout Builder
               </Link>
             </Button>
+            <Button asChild type="button" disabled={!!dateError}>
+              <Link
+                to="/staff/admin/guidebook-magazine"
+                search={{ start: startDate, end: endDate }}
+              >
+                Open Magazine Builder
+              </Link>
+            </Button>
           </div>
 
           {previewMut.data && (

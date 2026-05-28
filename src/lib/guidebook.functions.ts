@@ -30,7 +30,7 @@ async function fetchData(
   let sessQ = supabaseAdmin
     .from("sessions")
     .select(
-      "id, title, speaker_name, start_time, end_time, department_id, stage_id, room_id, stages(id, name, venue_id), rooms(id, name, venue_id)",
+      "id, title, speaker_name, start_time, end_time, department_id, stage_id, room_id, image_url, stages(id, name, venue_id), rooms(id, name, venue_id)",
     )
     .gte("start_time", startIso)
     .lte("start_time", endIso)
@@ -153,6 +153,7 @@ async function fetchData(
       department_name: deptsById.get(s.department_id)?.name ?? null,
       venue_name: venue?.name ?? null,
       location_name: s.stages?.name ?? s.rooms?.name ?? null,
+      image_url: s.image_url ?? null,
     };
   });
 
@@ -176,7 +177,7 @@ async function fetchData(
   let classQ = supabaseAdmin
     .from("course_sessions")
     .select(
-      "id, start_time, end_time, instructor_name, room_id, course_id, courses(title, price, department_id), rooms(name, venue_id, venues(name))",
+      "id, start_time, end_time, instructor_name, room_id, course_id, courses(title, price, department_id, image_url, description), rooms(name, venue_id, venues(name))",
     )
     .gte("start_time", startIso)
     .lte("start_time", endIso)
@@ -214,6 +215,8 @@ async function fetchData(
       : null,
     instructor_name: c.instructor_name ?? null,
     price: Number(c.courses?.price ?? 0),
+    image_url: c.courses?.image_url ?? null,
+    description: c.courses?.description ?? null,
   }));
 
   return { events, gigs, classes, sponsors };
@@ -449,5 +452,68 @@ export const generateGuidebook = createServerFn({ method: "POST" })
         classes: classes.length,
         sponsors: sponsors.length,
       },
+    };
+  });
+
+// ─── Magazine-style page+block guidebook ──────────────────────────────
+const MagazineBlockSchema = z.object({
+  id: z.string(),
+  type: z.enum(["text", "image", "rect"]),
+  x: z.number(),
+  y: z.number(),
+  w: z.number(),
+  h: z.number(),
+  text: z.string().nullable().optional(),
+  fontSize: z.number().nullable().optional(),
+  bold: z.boolean().nullable().optional(),
+  italic: z.boolean().nullable().optional(),
+  color: z.string().nullable().optional(),
+  bgColor: z.string().nullable().optional(),
+  align: z.enum(["left", "center", "right"]).nullable().optional(),
+  lineHeight: z.number().nullable().optional(),
+  padding: z.number().nullable().optional(),
+  imageUrl: z.string().nullable().optional(),
+  fit: z.enum(["cover", "contain"]).nullable().optional(),
+  fill: z.string().nullable().optional(),
+  borderColor: z.string().nullable().optional(),
+  borderWidth: z.number().nullable().optional(),
+  radius: z.number().nullable().optional(),
+});
+
+const MagazineInputSchema = z.object({
+  title: z.string().max(200).default("Program Guide"),
+  pages: z
+    .array(
+      z.object({
+        id: z.string(),
+        bgColor: z.string().nullable().optional(),
+        blocks: z.array(MagazineBlockSchema).max(200),
+      }),
+    )
+    .min(1)
+    .max(60),
+});
+
+export const generateMagazineGuidebook = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => MagazineInputSchema.parse(i))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { buildMagazinePdf } = await import("./guidebook-magazine-pdf.server");
+    const pdfBytes = await buildMagazinePdf({
+      title: data.title,
+      pages: data.pages,
+    });
+    let binary = "";
+    const chunk = 0x8000;
+    for (let i = 0; i < pdfBytes.length; i += chunk) {
+      binary += String.fromCharCode(...pdfBytes.subarray(i, i + chunk));
+    }
+    const base64 = btoa(binary);
+    const stamp = new Date().toISOString().slice(0, 10);
+    return {
+      filename: `program-guide-magazine-${stamp}.pdf`,
+      base64,
+      pageCount: data.pages.length,
     };
   });
