@@ -190,6 +190,11 @@ function RoomReservationsPage() {
                     <div className="text-xs text-slate-500">
                       {r.requester_email}
                     </div>
+                    {r.requester_department_name && (
+                      <div className="mt-1 inline-flex rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                        from {r.requester_department_name}
+                      </div>
+                    )}
                     {r.purpose && (
                       <div className="mt-1 text-xs text-slate-600">
                         {r.purpose}
@@ -201,6 +206,11 @@ function RoomReservationsPage() {
                       {r.room_name}
                     </div>
                     <div className="text-xs text-slate-500">{r.venue_name}</div>
+                    {r.room_department_name && (
+                      <div className="mt-1 inline-flex rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                        owned by {r.room_department_name}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-slate-700">
                     <div className="flex items-center gap-1">
