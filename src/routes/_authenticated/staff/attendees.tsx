@@ -12,6 +12,7 @@ import {
   promoteWaitlistEntry,
   removeFromWaitlist,
 } from "@/lib/event-dashboard.functions";
+import { useDepartment } from "@/contexts/department-context";
 
 const Scanner = lazy(() =>
   import("@yudiel/react-qr-scanner").then((m) => ({ default: m.Scanner })),
