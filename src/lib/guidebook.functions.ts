@@ -493,11 +493,11 @@ const MagazineInputSchema = z.object({
       z.object({
         id: z.string(),
         bgColor: z.string().nullable().optional(),
-        blocks: z.array(MagazineBlockSchema).max(200),
+        blocks: z.array(MagazineBlockSchema).max(800),
       }),
     )
     .min(1)
-    .max(60),
+    .max(80),
 });
 
 export const generateMagazineGuidebook = createServerFn({ method: "POST" })
