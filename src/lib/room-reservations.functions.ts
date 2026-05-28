@@ -77,38 +77,48 @@ export const listReservations = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
-    let q = supabaseAdmin
-      .from("room_reservations")
-      .select(
-        "id, room_id, requester_name, requester_email, starts_at, ends_at, party_size, purpose, notes, status, decision_note, decided_at, created_at, requester_department_id",
-      )
-      .order("created_at", { ascending: false });
-    if (data.status !== "all") q = q.eq("status", data.status);
+    const baseCols =
+      "id, room_id, requester_name, requester_email, starts_at, ends_at, party_size, purpose, notes, status, decision_note, decided_at, created_at";
+    const colsWithDept = `${baseCols}, requester_department_id`;
 
-    if (data.departmentId) {
-      if (data.scope === "outbound") {
-        // Requests this department has sent out (to other departments' rooms).
-        q = q.eq("requester_department_id", data.departmentId);
-      } else {
-        // Inbound: bookings against rooms owned by this department.
-        const { data: deptRooms, error: rErr } = await supabaseAdmin
-          .from("rooms")
-          .select("id")
-          .eq("department_id", data.departmentId);
-        if (rErr) throw new Error(rErr.message);
-        const ids = (deptRooms ?? []).map((r: any) => r.id as string);
-        if (ids.length === 0) return [];
-        q = q.in("room_id", ids);
+    const runQuery = async (withDept: boolean) => {
+      let q = supabaseAdmin
+        .from("room_reservations")
+        .select(withDept ? colsWithDept : baseCols)
+        .order("created_at", { ascending: false });
+      if (data.status !== "all") q = q.eq("status", data.status);
+      if (data.departmentId) {
+        if (data.scope === "outbound") {
+          if (!withDept) return { data: [], error: null } as any;
+          q = q.eq("requester_department_id", data.departmentId);
+        } else {
+          const { data: deptRooms, error: rErr } = await supabaseAdmin
+            .from("rooms")
+            .select("id")
+            .eq("department_id", data.departmentId);
+          if (rErr) throw new Error(rErr.message);
+          const ids = (deptRooms ?? []).map((r: any) => r.id as string);
+          if (ids.length === 0) return { data: [], error: null } as any;
+          q = q.in("room_id", ids);
+        }
       }
-    }
+      return await q;
+    };
 
-    const [resvRes, roomsRes, venuesRes, deptsRes] = await Promise.all([
-      q,
+    let resvRes: any = await runQuery(true);
+    if (
+      resvRes.error &&
+      /requester_department_id/i.test(resvRes.error.message ?? "")
+    ) {
+      resvRes = await runQuery(false);
+    }
+    if (resvRes.error) throw new Error(resvRes.error.message);
+
+    const [roomsRes, venuesRes, deptsRes] = await Promise.all([
       supabaseAdmin.from("rooms").select("id, name, venue_id, department_id"),
       supabaseAdmin.from("venues").select("id, name"),
       supabaseAdmin.from("departments").select("id, name"),
     ]);
-    if (resvRes.error) throw new Error(resvRes.error.message);
     const roomMap = new Map(
       (roomsRes.data ?? []).map((r: any) => [r.id, r]),
     );
@@ -135,6 +145,7 @@ export const listReservations = createServerFn({ method: "GET" })
       };
     });
   });
+
 
 const upsertSchema = z.object({
   room_id: z.string().uuid(),
