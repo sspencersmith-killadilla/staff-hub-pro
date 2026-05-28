@@ -61,11 +61,15 @@ const CSV_COLS = [
   "title",
   "event_type",
   "featured_guest",
+  "department_id",
+  "staff_owner_id",
   "room_id",
   "stage_id",
   "start_time",
   "end_time",
   "image_url",
+  "focal_x",
+  "focal_y",
   "open_to_vendors",
 ] as const;
 
@@ -144,16 +148,25 @@ function csvRowToInput(r: Record<string, string>) {
     const d = new Date(v);
     return isNaN(d.getTime()) ? v : d.toISOString();
   };
+  const toIntOrUndef = (v: string) => {
+    if (!v) return undefined;
+    const n = parseInt(v, 10);
+    return isNaN(n) ? undefined : Math.max(0, Math.min(100, n));
+  };
   return {
     id: r.id || undefined,
     title: r.title || "",
     event_type: r.event_type || null,
     featured_guest: r.featured_guest || null,
+    department_id: r.department_id || null,
+    staff_owner_id: r.staff_owner_id || null,
     room_id: r.room_id || null,
     stage_id: r.stage_id || null,
     start_time: toIso(r.start_time),
     end_time: toIso(r.end_time),
     image_url: r.image_url || null,
+    focal_x: toIntOrUndef(r.focal_x),
+    focal_y: toIntOrUndef(r.focal_y),
     open_to_vendors: /^(1|true|yes)$/i.test(r.open_to_vendors ?? ""),
   };
 }
@@ -392,20 +405,24 @@ function EventsPage() {
                   <label className="text-xs font-semibold uppercase text-slate-600">
                     Staff Owner — {activeDepartment?.name}
                   </label>
-                  <input
-                    list="dept-staff-list"
-                    placeholder="Search staff by name or email…"
+                  <select
                     value={ownerId}
                     onChange={(e) => setOwnerId(e.target.value)}
                     className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm"
-                  />
-                  <datalist id="dept-staff-list">
+                  >
+                    <option value="">— Unassigned —</option>
                     {(deptStaff as any[]).map((s) => (
                       <option key={s.user_id} value={s.user_id}>
-                        {s.full_name ?? s.email ?? s.user_id} ({s.roles.join(", ")})
+                        {(s.full_name ?? s.email ?? s.user_id)}
+                        {s.roles?.length ? ` — ${s.roles.join(", ")}` : ""}
                       </option>
                     ))}
-                  </datalist>
+                  </select>
+                  {ownerId && !(deptStaff as any[]).some((s) => s.user_id === ownerId) && (
+                    <p className="text-[11px] text-amber-600">
+                      Current owner is not in this department's staff list.
+                    </p>
+                  )}
                 </div>
               ) : (
                 <p className="text-xs text-amber-600">
@@ -585,6 +602,14 @@ function EventsPage() {
                   <div className="text-sm text-slate-600">
                     <div>{e.event_type || "—"}</div>
                     <div className="text-xs text-slate-400">{locationLabelFor(e)}</div>
+                    {e.staff_owner_id && (
+                      <div className="text-xs text-slate-500 mt-0.5">
+                        Owner: {(() => {
+                          const s = (deptStaff as any[]).find((x) => x.user_id === e.staff_owner_id);
+                          return s?.full_name ?? s?.email ?? "Unknown";
+                        })()}
+                      </div>
+                    )}
                   </div>
                   <div className="flex justify-end gap-1">
                     <Button size="icon" variant="ghost" title="Edit" onClick={() => startEdit(e)}>
