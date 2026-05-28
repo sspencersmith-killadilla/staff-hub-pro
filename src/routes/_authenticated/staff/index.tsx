@@ -602,6 +602,14 @@ function EventsPage() {
                   <div className="text-sm text-slate-600">
                     <div>{e.event_type || "—"}</div>
                     <div className="text-xs text-slate-400">{locationLabelFor(e)}</div>
+                    {e.staff_owner_id && (
+                      <div className="text-xs text-slate-500 mt-0.5">
+                        Owner: {(() => {
+                          const s = (deptStaff as any[]).find((x) => x.user_id === e.staff_owner_id);
+                          return s?.full_name ?? s?.email ?? "Unknown";
+                        })()}
+                      </div>
+                    )}
                   </div>
                   <div className="flex justify-end gap-1">
                     <Button size="icon" variant="ghost" title="Edit" onClick={() => startEdit(e)}>
