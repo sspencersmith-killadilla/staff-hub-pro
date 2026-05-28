@@ -70,6 +70,7 @@ export const listReservations = createServerFn({ method: "GET" })
         status: z
           .enum(["pending", "approved", "declined", "cancelled", "all"])
           .default("pending"),
+        departmentId: z.string().uuid().nullable().optional(),
       })
       .parse(i ?? {}),
   )
@@ -82,6 +83,20 @@ export const listReservations = createServerFn({ method: "GET" })
       )
       .order("created_at", { ascending: false });
     if (data.status !== "all") q = q.eq("status", data.status);
+
+    // Department scope: only rooms belonging to the active department.
+    let allowedRoomIds: Set<string> | null = null;
+    if (data.departmentId) {
+      const { data: deptRooms, error: rErr } = await supabaseAdmin
+        .from("rooms")
+        .select("id")
+        .eq("department_id", data.departmentId);
+      if (rErr) throw new Error(rErr.message);
+      allowedRoomIds = new Set((deptRooms ?? []).map((r: any) => r.id as string));
+      if (allowedRoomIds.size === 0) return [];
+      q = q.in("room_id", Array.from(allowedRoomIds));
+    }
+
     const [resvRes, roomsRes, venuesRes] = await Promise.all([
       q,
       supabaseAdmin.from("rooms").select("id, name, venue_id"),
