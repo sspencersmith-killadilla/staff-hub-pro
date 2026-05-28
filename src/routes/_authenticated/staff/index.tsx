@@ -8,9 +8,11 @@ import {
   deleteEvent,
   bulkUpsertEvents,
   listEventLocations,
-  listDepartmentStaff,
+  listAllStaffProfiles,
+  listAssignableDepartments,
 } from "@/lib/events.functions";
 import { useDepartment } from "@/contexts/department-context";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -62,7 +64,7 @@ const CSV_COLS = [
   "event_type",
   "featured_guest",
   "department_id",
-  "staff_owner_id",
+  "staff_owner_name",
   "room_id",
   "stage_id",
   "start_time",
