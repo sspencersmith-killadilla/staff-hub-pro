@@ -418,7 +418,8 @@ export default function EventMarketingHub({ event, sponsors, talent, brandCss }:
       <style>{`
         .marketing-shell { background: var(--marketing-primary) !important; color: var(--marketing-primary-foreground) !important; }
         .marketing-shell .marketing-action { background: var(--marketing-primary) !important; color: var(--marketing-primary-foreground) !important; }
-        .marketing-shell .marketing-action button { border-color: var(--marketing-accent) !important; }
+        .marketing-shell .marketing-action button { background: var(--marketing-accent) !important; border-color: var(--marketing-accent) !important; color: var(--marketing-primary-foreground) !important; }
+        .marketing-shell .marketing-action button:last-child { background: var(--marketing-surface) !important; color: var(--marketing-text) !important; }
         #flyer-capture-zone, #ig-capture-zone, #fb-capture-zone { background: var(--marketing-primary) !important; }
         #flyer-capture-zone > div, #ig-capture-zone > div, #fb-capture-zone > div { background: var(--marketing-surface) !important; border-color: var(--marketing-border) !important; }
         #flyer-capture-zone h1, #ig-capture-zone h1, #fb-capture-zone h1 { color: var(--marketing-text) !important; }
@@ -436,7 +437,7 @@ export default function EventMarketingHub({ event, sponsors, talent, brandCss }:
         #flyer-capture-zone .text-teal-200,
         #ig-capture-zone .text-teal-600, #ig-capture-zone .text-teal-700, #ig-capture-zone .text-teal-800,
         #ig-capture-zone .text-teal-200,
-        #fb-capture-zone [style*="color: rgb(13, 148, 136)"], #fb-capture-zone [style*="color: #0d9488"], #fb-capture-zone [style*="color: #0f766e"], #fb-capture-zone [style*="color: #134e4a"] { color: var(--marketing-accent) !important; }
+        #fb-capture-zone [style*="color: rgb(13, 148, 136)"], #fb-capture-zone [style*="color: rgb(15, 118, 110)"], #fb-capture-zone [style*="color: rgb(19, 78, 74)"], #fb-capture-zone [style*="color: #0d9488"], #fb-capture-zone [style*="color: #0f766e"], #fb-capture-zone [style*="color: #134e4a"] { color: var(--marketing-accent) !important; }
         #flyer-capture-zone .bg-teal-50, #ig-capture-zone .bg-teal-50 { background: var(--marketing-muted) !important; }
       `}</style>
       {/* ACTION BAR */}
