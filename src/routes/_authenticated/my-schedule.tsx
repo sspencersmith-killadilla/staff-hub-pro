@@ -10,7 +10,7 @@ import { FavoriteButton } from "@/components/favorite-button";
 export const Route = createFileRoute("/_authenticated/my-schedule")({
   head: () => ({
     meta: [
-      { title: "My Schedule" },
+      { title: "My Favorites" },
       {
         name: "description",
         content:
@@ -120,10 +120,10 @@ function MySchedulePage() {
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full bg-rose-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-rose-900">
-              <CalendarHeart className="h-3.5 w-3.5" /> My Schedule
+              <CalendarHeart className="h-3.5 w-3.5" /> My Favorites
             </div>
             <h1 className="mt-3 text-4xl font-black uppercase tracking-tight text-slate-900">
-              Your personalized itinerary
+              Your personalized favorites
             </h1>
             <p className="mt-2 max-w-2xl text-slate-600">
               Everything you've saved — sessions, community programs,
