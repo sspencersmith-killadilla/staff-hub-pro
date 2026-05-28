@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import { useAuth } from "@/hooks/use-auth";
 import { useModules } from "@/hooks/use-modules";
+import { useLayoutPrefs } from "@/hooks/use-layout-prefs";
+import { CustomizeToolbar, SectionControls } from "@/components/customize-toolbar";
 import {
   Music,
   BedDouble,
@@ -148,22 +151,70 @@ function HubPage() {
   const visible = (list: Action[]) =>
     list.filter((a) => !a.module || isEnabled(a.module));
 
+  const staffActions: Action[] = (isStaff || isAdmin)
+    ? [
+        {
+          title: "Staff Portal",
+          description: "Operations, approvals, events, venues.",
+          to: "/staff",
+          icon: Shield,
+          accent: "from-slate-700 to-slate-900",
+          cta: "Open staff portal",
+        },
+        ...(isAdmin
+          ? [
+              {
+                title: "Admin",
+                description: "User roles, platform modules, settings.",
+                to: "/staff/admin",
+                icon: Shield,
+                accent: "from-red-600 to-rose-700",
+                cta: "Admin tools",
+              } as Action,
+            ]
+          : []),
+      ]
+    : [];
+
+  const sectionMap: Record<string, { title: string; actions: Action[] }> = {
+    apply: { title: "Apply / Add a new role", actions: visible(applyActions) },
+    do: { title: "Do something", actions: visible(doActions) },
+    manage: { title: "Manage your stuff", actions: visible(manageActions) },
+    ...(staffActions.length ? { staff: { title: "Staff", actions: staffActions } } : {}),
+  };
+
+  const allIds = Object.keys(sectionMap);
+  const [editing, setEditing] = useState(false);
+  const { visibleIds, orderedIds, hidden, move, toggleHidden, reset } = useLayoutPrefs(
+    "personal-hub",
+    allIds,
+  );
+
+  const idsToRender = editing ? orderedIds : visibleIds;
+
   return (
     <div className="min-h-screen bg-[#f8fafc]">
       <SiteHeader />
       <div className="mx-auto max-w-6xl px-4 py-10">
-        <div className="mb-10">
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-muted-foreground">
-            Your Hub
-          </p>
-          <h1 className="mt-2 text-4xl font-black tracking-tight text-[#002f49]">
-            Welcome back{me?.email ? `, ${me.email.split("@")[0]}` : ""}.
-          </h1>
-          <p className="mt-2 max-w-2xl text-muted-foreground">
-            One account, every program. Apply as a musician, register a community
-            org, book a room, or buy a ticket — all under the same login. Apply
-            for as many programs (or as many acts / orgs) as you want.
-          </p>
+        <div className="mb-10 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-muted-foreground">
+              Your Hub
+            </p>
+            <h1 className="mt-2 text-4xl font-black tracking-tight text-[#002f49]">
+              Welcome back{me?.email ? `, ${me.email.split("@")[0]}` : ""}.
+            </h1>
+            <p className="mt-2 max-w-2xl text-muted-foreground">
+              One account, every program. Apply as a musician, register a community
+              org, book a room, or buy a ticket — all under the same login. Apply
+              for as many programs (or as many acts / orgs) as you want.
+            </p>
+          </div>
+          <CustomizeToolbar
+            editing={editing}
+            onToggleEditing={() => setEditing((v) => !v)}
+            onReset={reset}
+          />
         </div>
 
         <Link
@@ -187,53 +238,39 @@ function HubPage() {
               </p>
             </div>
           </div>
-          <span className="hidden shrink-0 rounded-full bg-white/15 px-4 py-2 text-xs font-bold uppercase tracking-wider backdrop-blur group-hover:bg-white/25 md:inline-flex">
-            Tap the heart on any event, artist, vendor, room, or venue — everything you save lands here as a personalized favorites.
-          </span>
         </Link>
 
-
-
-        <Section title="Apply / Add a new role">
-          <Grid actions={visible(applyActions)} />
-        </Section>
-
-        <Section title="Do something">
-          <Grid actions={visible(doActions)} />
-        </Section>
-
-        <Section title="Manage your stuff">
-          <Grid actions={visible(manageActions)} />
-        </Section>
-
-        {(isStaff || isAdmin) && (
-          <Section title="Staff">
-            <Grid
-              actions={[
-                {
-                  title: "Staff Portal",
-                  description: "Operations, approvals, events, venues.",
-                  to: "/staff",
-                  icon: Shield,
-                  accent: "from-slate-700 to-slate-900",
-                  cta: "Open staff portal",
-                },
-                ...(isAdmin
-                  ? [
-                      {
-                        title: "Admin",
-                        description: "User roles, platform modules, settings.",
-                        to: "/staff/admin",
-                        icon: Shield,
-                        accent: "from-red-600 to-rose-700",
-                        cta: "Admin tools",
-                      } as Action,
-                    ]
-                  : []),
-              ]}
-            />
-          </Section>
-        )}
+        {idsToRender.map((sid, idx) => {
+          const sect = sectionMap[sid];
+          if (!sect) return null;
+          const isHidden = hidden.includes(sid);
+          return (
+            <section key={sid} className={`mb-10 ${isHidden ? "opacity-40" : ""}`}>
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <h2 className="text-sm font-black uppercase tracking-widest text-[#002f49]">
+                  {sect.title}
+                </h2>
+                {editing && (
+                  <SectionControls
+                    id={sid}
+                    index={idx}
+                    total={orderedIds.length}
+                    isHidden={isHidden}
+                    onMove={move}
+                    onToggleHidden={toggleHidden}
+                  />
+                )}
+              </div>
+              {isHidden ? (
+                <p className="text-xs italic text-muted-foreground">
+                  Hidden — toggle the eye icon to show.
+                </p>
+              ) : (
+                <Grid actions={sect.actions} />
+              )}
+            </section>
+          );
+        })}
       </div>
     </div>
   );
