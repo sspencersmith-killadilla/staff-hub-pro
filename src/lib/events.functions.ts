@@ -103,6 +103,18 @@ export const listAllStaffProfiles = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
+export const listAssignableDepartments = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context.userId);
+    const { data, error } = await supabaseAdmin
+      .from("departments")
+      .select("id, name")
+      .order("name", { ascending: true });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
 export const listEventLocations = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) =>
