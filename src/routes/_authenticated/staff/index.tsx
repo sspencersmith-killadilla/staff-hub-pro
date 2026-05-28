@@ -387,6 +387,31 @@ function EventsPage() {
                 onChange={(e) => setForm({ ...form, event_type: e.target.value })} />
               <Input placeholder="Featured Guest" value={form.featured_guest}
                 onChange={(e) => setForm({ ...form, featured_guest: e.target.value })} />
+              {deptId ? (
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold uppercase text-slate-600">
+                    Staff Owner — {activeDepartment?.name}
+                  </label>
+                  <input
+                    list="dept-staff-list"
+                    placeholder="Search staff by name or email…"
+                    value={ownerId}
+                    onChange={(e) => setOwnerId(e.target.value)}
+                    className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm"
+                  />
+                  <datalist id="dept-staff-list">
+                    {(deptStaff as any[]).map((s) => (
+                      <option key={s.user_id} value={s.user_id}>
+                        {s.full_name ?? s.email ?? s.user_id} ({s.roles.join(", ")})
+                      </option>
+                    ))}
+                  </datalist>
+                </div>
+              ) : (
+                <p className="text-xs text-amber-600">
+                  Select an active department in the header to assign a staff owner.
+                </p>
+              )}
               <select
                 required
                 className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm font-semibold text-slate-700"
