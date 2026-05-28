@@ -298,7 +298,11 @@ function RoomReservationsPage() {
   );
 }
 
-function NewReservationDialog() {
+function NewReservationDialog({
+  requesterDepartmentId,
+}: {
+  requesterDepartmentId: string | null;
+}) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const { data: rooms = [] } = useQuery({
@@ -318,6 +322,12 @@ function NewReservationDialog() {
     notes: "",
   });
 
+  const selectedRoom = (rooms as any[]).find((r) => r.id === form.room_id);
+  const crossDept =
+    requesterDepartmentId &&
+    selectedRoom?.department_id &&
+    selectedRoom.department_id !== requesterDepartmentId;
+
   const create = useMutation({
     mutationFn: () =>
       createReservation({
@@ -330,6 +340,9 @@ function NewReservationDialog() {
           party_size: form.party_size ? Number(form.party_size) : null,
           purpose: form.purpose || null,
           notes: form.notes || null,
+          // Stamp the booking with the staff member's active department so the
+          // other side can track it in their Outbound queue.
+          requester_department_id: requesterDepartmentId,
         },
       }),
     onSuccess: () => {
