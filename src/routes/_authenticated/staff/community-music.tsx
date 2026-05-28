@@ -12,7 +12,7 @@ import {
   updateGig,
   deleteGig,
   setGigStatus,
-  listVenuesForGigs,
+  listStagesForGigs,
 } from "@/lib/streetbeats.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -104,7 +104,7 @@ function CommunityMusicPage() {
 function GigsTab() {
   const qc = useQueryClient();
   const fetchGigs = useServerFn(listGigsStaff);
-  const fetchVenues = useServerFn(listVenuesForGigs);
+  const fetchStages = useServerFn(listStagesForGigs);
   const create = useServerFn(createGig);
   const update = useServerFn(updateGig);
   const remove = useServerFn(deleteGig);
@@ -114,9 +114,9 @@ function GigsTab() {
     queryKey: ["staff", "streetbeats", "gigs"],
     queryFn: () => fetchGigs(),
   });
-  const { data: venues } = useQuery({
-    queryKey: ["staff", "streetbeats", "venues"],
-    queryFn: () => fetchVenues(),
+  const { data: stages } = useQuery({
+    queryKey: ["staff", "streetbeats", "stages"],
+    queryFn: () => fetchStages(),
   });
 
   const [open, setOpen] = useState(false);
@@ -168,7 +168,7 @@ function GigsTab() {
               </DialogTitle>
             </DialogHeader>
             <GigForm
-              venues={venues ?? []}
+              stages={stages ?? []}
               initial={editing}
               onSubmit={async (values) => {
                 try {
@@ -334,17 +334,22 @@ function GigsTab() {
 }
 
 function GigForm({
-  venues,
+  stages,
   initial,
   onSubmit,
 }: {
-  venues: { id: number; name: string }[];
+  stages: {
+    id: string;
+    name: string;
+    venue_id: number | null;
+    venue_name: string | null;
+  }[];
   initial: any | null;
   onSubmit: (values: any) => Promise<void> | void;
 }) {
   const [submitting, setSubmitting] = useState(false);
-  const [venueId, setVenueId] = useState<string>(
-    initial?.venue_id ? String(initial.venue_id) : "none",
+  const [stageId, setStageId] = useState<string>(
+    initial?.stage_id ? String(initial.stage_id) : "none",
   );
 
   async function handle(e: FormEvent<HTMLFormElement>) {
@@ -352,12 +357,13 @@ function GigForm({
     const fd = new FormData(e.currentTarget);
     const starts = String(fd.get("starts_at"));
     const ends = String(fd.get("ends_at"));
+    const chosenStage = stages.find((s) => s.id === stageId);
     const values = {
       title: String(fd.get("title") ?? "").trim(),
       description: String(fd.get("description") ?? "").trim() || null,
       location_label: String(fd.get("location_label") ?? "").trim() || null,
-      venue_id: venueId === "none" ? null : Number(venueId),
-      stage_id: null,
+      venue_id: chosenStage?.venue_id ?? null,
+      stage_id: stageId === "none" ? null : stageId,
       event_id: null,
       starts_at: starts ? new Date(starts).toISOString() : "",
       ends_at: ends ? new Date(ends).toISOString() : "",
@@ -404,20 +410,24 @@ function GigForm({
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label>Venue</Label>
-          <Select value={venueId} onValueChange={setVenueId}>
+          <Label>Stage</Label>
+          <Select value={stageId} onValueChange={setStageId}>
             <SelectTrigger>
-              <SelectValue placeholder="Pick a venue" />
+              <SelectValue placeholder="Pick a stage" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">— None —</SelectItem>
-              {venues.map((v) => (
-                <SelectItem key={v.id} value={String(v.id)}>
-                  {v.name}
+              {stages.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.name}
+                  {s.venue_name ? ` — ${s.venue_name}` : ""}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+          <p className="text-[11px] text-slate-500">
+            Gig appears on the department hub that owns this stage's venue.
+          </p>
         </div>
         <div className="space-y-1.5">
           <Label>Location label (optional)</Label>

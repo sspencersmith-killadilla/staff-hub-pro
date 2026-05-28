@@ -263,3 +263,34 @@ export const listVenuesForGigs = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return data ?? [];
   });
+
+/** Returns stages with their parent venue so staff can pick a precise location. */
+export const listStagesForGigs = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context.userId);
+    const { data, error } = await supabaseAdmin
+      .from("stages")
+      .select("id, name, venue_id")
+      .order("name");
+    if (error) throw new Error(error.message);
+    const stages = data ?? [];
+    const venueIds = Array.from(new Set(stages.map((s: any) => s.venue_id).filter(Boolean)));
+    const venuesRes = venueIds.length
+      ? await supabaseAdmin
+          .from("venues")
+          .select("id, name, department_id")
+          .in("id", venueIds as any)
+      : { data: [] as any[] };
+    const venuesById = new Map((venuesRes.data ?? []).map((v: any) => [v.id, v]));
+    return stages.map((s: any) => {
+      const venue = s.venue_id ? venuesById.get(s.venue_id) : null;
+      return {
+        id: s.id as string,
+        name: s.name as string,
+        venue_id: s.venue_id ?? null,
+        venue_name: venue?.name ?? null,
+        department_id: venue?.department_id ?? null,
+      };
+    });
+  });

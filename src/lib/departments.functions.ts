@@ -52,7 +52,7 @@ export const getDepartmentHub = createServerFn({ method: "GET" })
     if (deptErr) throw new Error(deptErr.message);
     if (!dept) throw new Error("Department not found");
 
-    const [sessionsRes, roomsRes, venueRoomsRes] = await Promise.all([
+    const [sessionsRes, roomsRes, venueRoomsRes, deptStagesRes] = await Promise.all([
       supabaseAdmin
         .from("sessions")
         .select("id, title, start_time, end_time, image_url, focal_x, focal_y")
@@ -70,19 +70,74 @@ export const getDepartmentHub = createServerFn({ method: "GET" })
         .select("id, name, capacity, image_url, instant_bookable, venue:venues!inner(id, name, city, department_id)")
         .eq("venues.department_id", data.id)
         .limit(24),
+      // Stages whose venue belongs to this department — used to scope streetbeats gigs.
+      supabaseAdmin
+        .from("stages")
+        .select("id, name, venue:venues!inner(id, name, department_id)")
+        .eq("venues.department_id", data.id),
     ]);
 
     if (sessionsRes.error) throw new Error(sessionsRes.error.message);
     if (roomsRes.error) throw new Error(roomsRes.error.message);
     if (venueRoomsRes.error) throw new Error(venueRoomsRes.error.message);
+    if (deptStagesRes.error) throw new Error(deptStagesRes.error.message);
     const roomsById = new Map<string, any>();
     for (const room of [...(roomsRes.data ?? []), ...(venueRoomsRes.data ?? [])]) {
       roomsById.set(String((room as any).id), room);
+    }
+
+    // Streetbeats gigs scoped to stages owned by this department.
+    const stageIds = (deptStagesRes.data ?? []).map((s: any) => s.id);
+    const stagesById = new Map<string, any>(
+      (deptStagesRes.data ?? []).map((s: any) => [s.id, s]),
+    );
+    let gigs: any[] = [];
+    if (stageIds.length) {
+      const { data: slotRows, error: slotsErr } = await supabaseAdmin
+        .from("slots")
+        .select("id, title, start_time, end_time, stage_id, artist_id, is_booked")
+        .in("stage_id", stageIds as any)
+        .gte("end_time", nowIso)
+        .order("start_time", { ascending: true })
+        .limit(48);
+      if (slotsErr) throw new Error(slotsErr.message);
+      const artistIds = Array.from(
+        new Set((slotRows ?? []).map((s: any) => s.artist_id).filter(Boolean)),
+      );
+      const artistsRes = artistIds.length
+        ? await supabaseAdmin
+            .from("artists")
+            .select("id, full_name, avatar_url, genre")
+            .in("id", artistIds as any)
+        : { data: [] as any[] };
+      const artistsById = new Map((artistsRes.data ?? []).map((a: any) => [a.id, a]));
+      gigs = (slotRows ?? []).map((s: any) => {
+        const stage = stagesById.get(s.stage_id);
+        const artist = s.artist_id ? artistsById.get(s.artist_id) : null;
+        return {
+          id: String(s.id),
+          title: s.title ?? "Open slot",
+          start_time: s.start_time,
+          end_time: s.end_time,
+          status: s.is_booked ? "claimed" : "open",
+          stage: stage ? { id: stage.id, name: stage.name } : null,
+          venue: stage?.venue ? { id: stage.venue.id, name: stage.venue.name } : null,
+          artist: artist
+            ? {
+                id: artist.id,
+                full_name: artist.full_name,
+                avatar_url: artist.avatar_url ?? null,
+                genre: artist.genre ?? null,
+              }
+            : null,
+        };
+      });
     }
 
     return {
       department: dept as Department,
       events: sessionsRes.data ?? [],
       rooms: Array.from(roomsById.values()),
+      gigs,
     };
   });
