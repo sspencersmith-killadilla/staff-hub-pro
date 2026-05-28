@@ -131,6 +131,14 @@ function GuidebookPage() {
             >
               {generateMut.isPending ? "Generating PDF…" : "Generate PDF"}
             </Button>
+            <Button asChild type="button" variant="secondary" disabled={!!dateError}>
+              <Link
+                to="/staff/admin/guidebook-canvas"
+                search={{ start: startDate, end: endDate }}
+              >
+                Open in Layout Builder
+              </Link>
+            </Button>
           </div>
 
           {previewMut.data && (
