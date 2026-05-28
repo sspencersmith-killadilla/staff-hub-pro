@@ -61,11 +61,15 @@ const CSV_COLS = [
   "title",
   "event_type",
   "featured_guest",
+  "department_id",
+  "staff_owner_id",
   "room_id",
   "stage_id",
   "start_time",
   "end_time",
   "image_url",
+  "focal_x",
+  "focal_y",
   "open_to_vendors",
 ] as const;
 
