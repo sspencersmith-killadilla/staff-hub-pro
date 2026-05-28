@@ -55,6 +55,7 @@ import { Route as AuthenticatedCommunityManageRouteImport } from './routes/_auth
 import { Route as AuthenticatedCommunityApplyRouteImport } from './routes/_authenticated/community/apply'
 import { Route as AuthenticatedStaffEventsIdRouteImport } from './routes/_authenticated/staff/events.$id'
 import { Route as AuthenticatedStaffAdminPermissionsRouteImport } from './routes/_authenticated/staff/admin.permissions'
+import { Route as AuthenticatedStaffAdminGuidebookRouteImport } from './routes/_authenticated/staff/admin.guidebook'
 import { Route as AuthenticatedStaffAdminDepartmentsRouteImport } from './routes/_authenticated/staff/admin.departments'
 
 const VenuesRoute = VenuesRouteImport.update({
@@ -302,6 +303,12 @@ const AuthenticatedStaffAdminPermissionsRoute =
     path: '/permissions',
     getParentRoute: () => AuthenticatedStaffAdminRoute,
   } as any)
+const AuthenticatedStaffAdminGuidebookRoute =
+  AuthenticatedStaffAdminGuidebookRouteImport.update({
+    id: '/guidebook',
+    path: '/guidebook',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
 const AuthenticatedStaffAdminDepartmentsRoute =
   AuthenticatedStaffAdminDepartmentsRouteImport.update({
     id: '/departments',
@@ -354,6 +361,7 @@ export interface FileRoutesByFullPath {
   '/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
   '/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
+  '/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
   '/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
 }
@@ -401,6 +409,7 @@ export interface FileRoutesByTo {
   '/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
   '/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
+  '/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
   '/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
 }
@@ -451,6 +460,7 @@ export interface FileRoutesById {
   '/_authenticated/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
   '/_authenticated/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
+  '/_authenticated/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
   '/_authenticated/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
   '/_authenticated/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
 }
@@ -501,6 +511,7 @@ export interface FileRouteTypes {
     | '/streetbeats/my-gigs'
     | '/staff/'
     | '/staff/admin/departments'
+    | '/staff/admin/guidebook'
     | '/staff/admin/permissions'
     | '/staff/events/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -548,6 +559,7 @@ export interface FileRouteTypes {
     | '/streetbeats/my-gigs'
     | '/staff'
     | '/staff/admin/departments'
+    | '/staff/admin/guidebook'
     | '/staff/admin/permissions'
     | '/staff/events/$id'
   id:
@@ -597,6 +609,7 @@ export interface FileRouteTypes {
     | '/_authenticated/streetbeats/my-gigs'
     | '/_authenticated/staff/'
     | '/_authenticated/staff/admin/departments'
+    | '/_authenticated/staff/admin/guidebook'
     | '/_authenticated/staff/admin/permissions'
     | '/_authenticated/staff/events/$id'
   fileRoutesById: FileRoutesById
@@ -950,6 +963,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffAdminPermissionsRouteImport
       parentRoute: typeof AuthenticatedStaffAdminRoute
     }
+    '/_authenticated/staff/admin/guidebook': {
+      id: '/_authenticated/staff/admin/guidebook'
+      path: '/guidebook'
+      fullPath: '/staff/admin/guidebook'
+      preLoaderRoute: typeof AuthenticatedStaffAdminGuidebookRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
     '/_authenticated/staff/admin/departments': {
       id: '/_authenticated/staff/admin/departments'
       path: '/departments'
@@ -962,6 +982,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedStaffAdminRouteChildren {
   AuthenticatedStaffAdminDepartmentsRoute: typeof AuthenticatedStaffAdminDepartmentsRoute
+  AuthenticatedStaffAdminGuidebookRoute: typeof AuthenticatedStaffAdminGuidebookRoute
   AuthenticatedStaffAdminPermissionsRoute: typeof AuthenticatedStaffAdminPermissionsRoute
 }
 
@@ -969,6 +990,8 @@ const AuthenticatedStaffAdminRouteChildren: AuthenticatedStaffAdminRouteChildren
   {
     AuthenticatedStaffAdminDepartmentsRoute:
       AuthenticatedStaffAdminDepartmentsRoute,
+    AuthenticatedStaffAdminGuidebookRoute:
+      AuthenticatedStaffAdminGuidebookRoute,
     AuthenticatedStaffAdminPermissionsRoute:
       AuthenticatedStaffAdminPermissionsRoute,
   }

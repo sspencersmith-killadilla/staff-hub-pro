@@ -143,6 +143,12 @@ function AdminPage() {
           >
             Manage departments →
           </Link>
+          <Link
+            to="/staff/admin/guidebook"
+            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
+          >
+            Generate guidebook →
+          </Link>
         </div>
       </div>
 
