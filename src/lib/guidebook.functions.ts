@@ -177,7 +177,7 @@ async function fetchData(
   let classQ = supabaseAdmin
     .from("course_sessions")
     .select(
-      "id, start_time, end_time, instructor_name, room_id, course_id, courses(title, price, department_id), rooms(name, venue_id, venues(name))",
+      "id, start_time, end_time, instructor_name, room_id, course_id, courses(title, price, department_id, image_url, description), rooms(name, venue_id, venues(name))",
     )
     .gte("start_time", startIso)
     .lte("start_time", endIso)
@@ -215,6 +215,8 @@ async function fetchData(
       : null,
     instructor_name: c.instructor_name ?? null,
     price: Number(c.courses?.price ?? 0),
+    image_url: c.courses?.image_url ?? null,
+    description: c.courses?.description ?? null,
   }));
 
   return { events, gigs, classes, sponsors };
