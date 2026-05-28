@@ -19,6 +19,10 @@ import {
   Building2,
   BookOpen,
   ChevronRight,
+  Network,
+  Repeat,
+  Palette,
+  FileText,
 } from "lucide-react";
 
 import homeImg from "@/assets/manual/home.png";
@@ -72,6 +76,10 @@ const audienceLabels: Record<Section["audience"], { label: string; color: string
 const groups: { label: string; sectionIds: string[] }[] = [
   { label: "Getting Started", sectionIds: ["overview", "accounts", "hub"] },
   {
+    label: "Multi-Department Model",
+    sectionIds: ["departments-overview", "dept-hub", "dept-theming"],
+  },
+  {
     label: "For Community Members",
     sectionIds: [
       "events",
@@ -87,11 +95,24 @@ const groups: { label: string; sectionIds: string[] }[] = [
   },
   {
     label: "For Staff",
-    sectionIds: ["staff-portal", "staff-events", "staff-attendees", "staff-approvals"],
+    sectionIds: [
+      "staff-portal",
+      "staff-active-dept",
+      "staff-events",
+      "staff-attendees",
+      "staff-approvals",
+      "staff-cross-dept",
+    ],
   },
   {
     label: "For Admins",
-    sectionIds: ["admin-staff", "admin-permissions", "admin-modules"],
+    sectionIds: [
+      "admin-staff",
+      "admin-permissions",
+      "admin-departments",
+      "admin-dept-roles",
+      "admin-modules",
+    ],
   },
 ];
 
@@ -183,22 +204,33 @@ const sections: Section[] = [
         <Figure src={homeImg} caption="Public home page with the four community portals" />
         <p>
           Everyone starts at the same landing page. From there, your view of the
-          app depends on your role:
+          app depends on your role <strong>and</strong> which{" "}
+          <em>department</em> you're currently acting in:
         </p>
         <ul className="my-4 list-disc space-y-2 pl-6 text-sm">
           <li>
             <strong>Community members</strong> browse events, buy tickets, book
-            rooms, and apply to programs.
+            rooms, and apply to programs across every department.
           </li>
           <li>
-            <strong>Staff</strong> get an Event Ops sidebar to manage events,
-            attendees, vendors, music, and reservations.
+            <strong>Staff</strong> see an Event Ops sidebar scoped to their{" "}
+            <em>active department</em> — events, venues, approvals, and box
+            office only show records belonging to that department.
           </li>
           <li>
-            <strong>Admins</strong> additionally manage user roles, granular
-            permissions, and which platform modules are turned on.
+            <strong>Dept admins &amp; Super admins</strong> additionally manage
+            department settings, branding, room policies, user roles, and which
+            platform modules are turned on.
           </li>
         </ul>
+        <Callout kind="note">
+          The platform is multi-tenant by department (City Hall, Fire, Parks,
+          etc.). The same login can belong to several departments — see{" "}
+          <a href="#departments-overview" className="underline">
+            Multi-Department Model
+          </a>
+          .
+        </Callout>
       </>
     ),
   },
@@ -343,13 +375,25 @@ const sections: Section[] = [
             The detail page shows a live 7-day availability calendar. Booked or
             blocked-by-event windows are greyed out.
           </Step>
-          <Step n={4} title="Submit your request">
-            Sign in if prompted. Staff review and email you a confirmation.
+          <Step n={4} title="Read and accept the departmental room policy">
+            Before the request is submitted, a modal shows the{" "}
+            <strong>room policy</strong> set by the department that owns the
+            room (rules, fees, cleanup, alcohol, etc.). You must tick{" "}
+            <em>"I agree to this departmental policy"</em> to continue. Each
+            department writes its own policy, so the wording changes with the
+            room.
+          </Step>
+          <Step n={5} title="Instant-bookable rooms confirm immediately">
+            If the room is marked <strong>instant-bookable</strong>, your
+            reservation is approved on submit and you receive a confirmation
+            email right away — no staff review needed. Otherwise it joins the{" "}
+            <em>pending</em> queue for that department's staff to review.
           </Step>
         </ol>
         <Callout kind="warn">
-          Submitting a request does <strong>not</strong> guarantee the booking
-          until staff approve it.
+          For non-instant rooms, submitting does <strong>not</strong> guarantee
+          the booking until the owning department's staff approve it. The
+          policy you agreed to is recorded with your request.
         </Callout>
       </>
     ),
@@ -789,6 +833,284 @@ const sections: Section[] = [
           <li>Existing data is preserved — modules can be re-enabled at any time.</li>
           <li>Use this to phase rollouts or pilot a single program.</li>
         </ul>
+      </>
+    ),
+  },
+  {
+    id: "departments-overview",
+    title: "Departments &amp; Active Context",
+    icon: Network,
+    audience: "community",
+    render: () => (
+      <>
+        <p>
+          The platform is organized into <strong>departments</strong> (City
+          Hall, Fire, Parks &amp; Rec, Library, etc.). Every event, venue,
+          room, vendor application, and reservation belongs to exactly one
+          department. This keeps each team's queue, calendar, and box office
+          focused on their own work — while still letting the public see and
+          book across the whole city from one site.
+        </p>
+        <Diagram caption="One platform, many departments — each owns its events, rooms, and approvals">
+          <div className="grid grid-cols-2 gap-3 text-xs md:grid-cols-4">
+            {["City Hall", "Fire Dept.", "Parks &amp; Rec", "Library"].map(
+              (d) => (
+                <div
+                  key={d}
+                  className="rounded-lg border-2 border-[#002f49] bg-white p-3 text-center"
+                >
+                  <div
+                    className="font-bold text-[#002f49]"
+                    dangerouslySetInnerHTML={{ __html: d }}
+                  />
+                  <div className="mt-1 text-[10px] text-gray-500">
+                    own logo · own brand · own policy · own staff
+                  </div>
+                </div>
+              ),
+            )}
+          </div>
+        </Diagram>
+        <p>
+          A single staff login can belong to <strong>multiple</strong>{" "}
+          departments (for example, the city clerk who supports both City Hall
+          and the Library). When that's the case, a department picker appears
+          in the top-right of the site header. Whatever you pick is your{" "}
+          <strong>Active Department</strong> — every staff page, sidebar count,
+          and "new event / new booking" form fills in that department until you
+          switch.
+        </p>
+        <Callout kind="tip">
+          Staff: glance at the badge in the Event Ops sidebar to confirm which
+          department you're acting in. Switch in the header before creating
+          anything important.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "dept-hub",
+    title: "Department Hub Pages",
+    icon: Building2,
+    audience: "community",
+    render: () => (
+      <>
+        <p>
+          Each department has a public landing page at{" "}
+          <code>/departments/&lt;id&gt;</code> that shows its logo, name, and a
+          curated grid of <strong>upcoming events</strong> and{" "}
+          <strong>bookable rooms</strong> scoped to that department only.
+        </p>
+        <ul className="my-4 list-disc space-y-2 pl-6 text-sm">
+          <li>
+            Great for sharing — link the Fire Department's page to send people
+            straight to their open houses and training rooms.
+          </li>
+          <li>
+            Theming (colors, logo) on the hub matches the department's brand,
+            so it doesn't feel like a generic listing.
+          </li>
+          <li>
+            Public visitors can click straight from the hub into ticketing or
+            room booking, with the department's policy applied automatically.
+          </li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    id: "dept-theming",
+    title: "Department Branding &amp; Theming",
+    icon: Palette,
+    audience: "community",
+    render: () => (
+      <>
+        <p>
+          When you're viewing a department's hub — or when staff have a
+          department selected as active — the site automatically adopts that
+          department's <strong>brand colors</strong>. Behind the scenes, each
+          department stores a small block of CSS variables (primary color,
+          accent, etc.) that override the default theme globally for the
+          current view.
+        </p>
+        <Callout kind="note">
+          Departments can swap their look without code changes. Admins paste
+          updated CSS variables in the department editor and the new theme
+          applies on the next page load.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "staff-active-dept",
+    title: "Working in Your Active Department",
+    icon: Repeat,
+    audience: "staff",
+    render: () => (
+      <>
+        <p>
+          Almost every page in the Staff Portal is filtered by your{" "}
+          <strong>active department</strong>:
+        </p>
+        <ul className="my-4 list-disc space-y-2 pl-6 text-sm">
+          <li>
+            <strong>Master Schedule</strong> only lists events whose{" "}
+            <em>department_id</em> matches.
+          </li>
+          <li>
+            <strong>Venues &amp; Stages</strong> shows only the rooms/venues
+            owned by that department.
+          </li>
+          <li>
+            <strong>Box Office</strong> &amp; <strong>Attendees</strong> only
+            show tickets for that department's events.
+          </li>
+          <li>
+            <strong>Approvals</strong> (vendors, sponsors, room reservations)
+            only show requests for things this department owns.
+          </li>
+          <li>
+            <strong>New Event</strong> auto-fills the department, and the{" "}
+            <em>Staff Owner</em> dropdown only lists users who belong to that
+            same department.
+          </li>
+        </ul>
+        <Callout kind="tip">
+          If you swap departments mid-task, your forms and lists update
+          immediately. The active department is shown as a badge in the Event
+          Ops sidebar, with a count of how many departments you belong to.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "staff-cross-dept",
+    title: "Cross-Department Room Requests",
+    icon: Repeat,
+    audience: "staff",
+    render: () => (
+      <>
+        <p>
+          Staff frequently need to book a room that belongs to{" "}
+          <em>another</em> department (e.g., the Fire Dept. wants a City Hall
+          conference room). The <code>/staff/room-reservations</code> page now
+          has two tabs to keep this clear:
+        </p>
+        <Diagram caption="Inbound vs. Outbound — two sides of every cross-department booking">
+          <div className="grid grid-cols-2 gap-4 text-xs">
+            <div className="rounded-lg border-2 border-emerald-500 bg-emerald-50 p-3">
+              <div className="font-bold text-emerald-900">Inbound</div>
+              <div className="mt-1 text-emerald-900">
+                Bookings against rooms <strong>your</strong> department owns,
+                including requests from other departments. Approve / decline
+                here.
+              </div>
+            </div>
+            <div className="rounded-lg border-2 border-sky-500 bg-sky-50 p-3">
+              <div className="font-bold text-sky-900">Outbound</div>
+              <div className="mt-1 text-sky-900">
+                Requests <strong>your</strong> department has sent out to
+                other departments. Read-only — track status while you wait.
+              </div>
+            </div>
+          </div>
+        </Diagram>
+        <ol className="my-6 space-y-4">
+          <Step n={1} title="Submit a request">
+            Use the <em>New reservation</em> dialog. If the room is owned by a
+            different department, a banner warns you it's a cross-department
+            request; your active department is stamped as the requester.
+          </Step>
+          <Step n={2} title="Track it under Outbound">
+            Your request appears in your <strong>Outbound</strong> tab with a
+            "to {"{owning department}"}" badge. You'll see status updates
+            (pending → approved / declined) as the other team reviews it.
+          </Step>
+          <Step n={3} title="Review incoming requests under Inbound">
+            When another department asks for one of <em>your</em> rooms, it
+            shows up in your <strong>Inbound</strong> tab with a "from{" "}
+            {"{requester department}"}" badge. Approve or decline — only the
+            inbound side shows action buttons.
+          </Step>
+        </ol>
+        <Callout kind="note">
+          Instant-bookable rooms still apply: a public user (or staff) booking
+          an instant room is auto-approved regardless of department.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "admin-departments",
+    title: "Managing Departments",
+    icon: Building2,
+    audience: "admin",
+    render: () => (
+      <>
+        <p>
+          Super admins manage departments from{" "}
+          <code>/staff/admin/departments</code>. The page has a datatable of
+          every department and full CRUD via a dialog editor.
+        </p>
+        <ul className="my-4 list-disc space-y-2 pl-6 text-sm">
+          <li>
+            <strong>Department Name</strong> — shown on the public hub, in the
+            staff sidebar badge, and on cross-department badges.
+          </li>
+          <li>
+            <strong>Logo upload</strong> — stored in the{" "}
+            <code>department-logos</code> bucket and rendered on the
+            department hub and header.
+          </li>
+          <li>
+            <strong>Room Policy Text</strong> — the agreement the public must
+            accept before booking any room owned by this department.
+          </li>
+          <li>
+            <strong>Brand CSS</strong> — a small JSON block of CSS variables
+            (e.g.{" "}
+            <code>{`{ "--primary": "262 83% 58%" }`}</code>) applied
+            globally when this department is active or being viewed.
+          </li>
+        </ul>
+        <Callout kind="warn">
+          Deleting a department is destructive: events, rooms, and approvals
+          tied to it lose their owner. Re-assign first, then delete.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "admin-dept-roles",
+    title: "Assigning Users to Departments",
+    icon: KeyRound,
+    audience: "admin",
+    render: () => (
+      <>
+        <p>
+          Open <em>Manage permissions</em> from the admin page and pick a user.
+          The drawer now has a <strong>Departments</strong> tab where you can
+          attach the user to one or more departments and grant them either:
+        </p>
+        <ul className="my-4 list-disc space-y-2 pl-6 text-sm">
+          <li>
+            <strong>staff</strong> — works inside that department's queues
+            (events, approvals, box office) with whatever global/per-event
+            permissions you've granted.
+          </li>
+          <li>
+            <strong>dept_admin</strong> — same as staff plus can edit that
+            department's branding, room policy, and assignments.
+          </li>
+        </ul>
+        <Callout kind="tip">
+          Users with multiple memberships get the department picker in the
+          header — see{" "}
+          <a href="#departments-overview" className="underline">
+            Departments &amp; Active Context
+          </a>
+          .
+        </Callout>
       </>
     ),
   },
