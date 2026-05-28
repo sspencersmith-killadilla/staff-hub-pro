@@ -71,6 +71,7 @@ export const listReservations = createServerFn({ method: "GET" })
           .enum(["pending", "approved", "declined", "cancelled", "all"])
           .default("pending"),
         departmentId: z.string().uuid().nullable().optional(),
+        scope: z.enum(["inbound", "outbound"]).default("inbound"),
       })
       .parse(i ?? {}),
   )
@@ -79,28 +80,33 @@ export const listReservations = createServerFn({ method: "GET" })
     let q = supabaseAdmin
       .from("room_reservations")
       .select(
-        "id, room_id, requester_name, requester_email, starts_at, ends_at, party_size, purpose, notes, status, decision_note, decided_at, created_at",
+        "id, room_id, requester_name, requester_email, starts_at, ends_at, party_size, purpose, notes, status, decision_note, decided_at, created_at, requester_department_id",
       )
       .order("created_at", { ascending: false });
     if (data.status !== "all") q = q.eq("status", data.status);
 
-    // Department scope: only rooms belonging to the active department.
-    let allowedRoomIds: Set<string> | null = null;
     if (data.departmentId) {
-      const { data: deptRooms, error: rErr } = await supabaseAdmin
-        .from("rooms")
-        .select("id")
-        .eq("department_id", data.departmentId);
-      if (rErr) throw new Error(rErr.message);
-      allowedRoomIds = new Set((deptRooms ?? []).map((r: any) => r.id as string));
-      if (allowedRoomIds.size === 0) return [];
-      q = q.in("room_id", Array.from(allowedRoomIds));
+      if (data.scope === "outbound") {
+        // Requests this department has sent out (to other departments' rooms).
+        q = q.eq("requester_department_id", data.departmentId);
+      } else {
+        // Inbound: bookings against rooms owned by this department.
+        const { data: deptRooms, error: rErr } = await supabaseAdmin
+          .from("rooms")
+          .select("id")
+          .eq("department_id", data.departmentId);
+        if (rErr) throw new Error(rErr.message);
+        const ids = (deptRooms ?? []).map((r: any) => r.id as string);
+        if (ids.length === 0) return [];
+        q = q.in("room_id", ids);
+      }
     }
 
-    const [resvRes, roomsRes, venuesRes] = await Promise.all([
+    const [resvRes, roomsRes, venuesRes, deptsRes] = await Promise.all([
       q,
-      supabaseAdmin.from("rooms").select("id, name, venue_id"),
+      supabaseAdmin.from("rooms").select("id, name, venue_id, department_id"),
       supabaseAdmin.from("venues").select("id, name"),
+      supabaseAdmin.from("departments").select("id, name"),
     ]);
     if (resvRes.error) throw new Error(resvRes.error.message);
     const roomMap = new Map(
@@ -109,6 +115,9 @@ export const listReservations = createServerFn({ method: "GET" })
     const venueMap = new Map(
       (venuesRes.data ?? []).map((v: any) => [v.id, v]),
     );
+    const deptMap = new Map(
+      (deptsRes.data ?? []).map((d: any) => [d.id, d.name]),
+    );
     return (resvRes.data ?? []).map((r: any) => {
       const room: any = roomMap.get(r.room_id);
       const venue: any = room ? venueMap.get(room.venue_id) : null;
@@ -116,6 +125,13 @@ export const listReservations = createServerFn({ method: "GET" })
         ...r,
         room_name: room?.name ?? "—",
         venue_name: venue?.name ?? "—",
+        room_department_id: room?.department_id ?? null,
+        room_department_name: room?.department_id
+          ? deptMap.get(room.department_id) ?? null
+          : null,
+        requester_department_name: r.requester_department_id
+          ? deptMap.get(r.requester_department_id) ?? null
+          : null,
       };
     });
   });
@@ -129,6 +145,7 @@ const upsertSchema = z.object({
   party_size: z.number().int().positive().max(10000).optional().nullable(),
   purpose: z.string().max(500).optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
+  requester_department_id: z.string().uuid().optional().nullable(),
 });
 
 async function validateBooking(input: z.infer<typeof upsertSchema>) {
@@ -184,23 +201,25 @@ export const createReservation = createServerFn({ method: "POST" })
       decided_by: context.userId,
       decided_at: new Date().toISOString(),
     };
-    const { data: row, error } = await supabaseAdmin
-      .from("room_reservations")
-      .insert(reservationPayload)
-      .select()
-      .single();
-    if (!error) return row;
-    if (error.message.includes("'start_time'") || error.message.includes("'end_time'")) {
-      const { start_time, end_time, ...canonicalPayload } = reservationPayload;
-      const { data: retryRow, error: retryError } = await supabaseAdmin
+    async function tryInsert(payload: any) {
+      return supabaseAdmin
         .from("room_reservations")
-        .insert(canonicalPayload)
+        .insert(payload)
         .select()
         .single();
-      if (retryError) throw new Error(retryError.message);
-      return retryRow;
     }
-    throw new Error(error.message);
+    let { data: row, error } = await tryInsert(reservationPayload);
+    if (error && /requester_department_id/i.test(error.message)) {
+      // Migration 021 not applied yet — retry without the new column.
+      const { requester_department_id, ...without } = reservationPayload;
+      ({ data: row, error } = await tryInsert(without));
+    }
+    if (error && (error.message.includes("'start_time'") || error.message.includes("'end_time'"))) {
+      const { start_time, end_time, ...canonical } = reservationPayload as any;
+      ({ data: row, error } = await tryInsert(canonical));
+    }
+    if (error) throw new Error(error.message);
+    return row;
   });
 
 export const setReservationStatus = createServerFn({ method: "POST" })
@@ -266,7 +285,7 @@ export const listBookableRooms = createServerFn({ method: "GET" })
     const [roomsRes, venuesRes] = await Promise.all([
       supabaseAdmin
         .from("rooms")
-        .select("id, name, venue_id, capacity")
+        .select("id, name, venue_id, capacity, department_id")
         .order("name"),
       supabaseAdmin.from("venues").select("id, name"),
     ]);

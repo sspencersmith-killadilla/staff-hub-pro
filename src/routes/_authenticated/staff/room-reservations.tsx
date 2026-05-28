@@ -70,11 +70,13 @@ function RoomReservationsPage() {
   const qc = useQueryClient();
   const { activeDepartment } = useDepartment();
   const departmentId = activeDepartment?.id ?? null;
+  const [scope, setScope] = useState<"inbound" | "outbound">("inbound");
   const [status, setStatus] = useState<Status>("pending");
 
   const { data: rows = [], isLoading } = useQuery({
-    queryKey: ["reservations", status, departmentId],
-    queryFn: () => listReservations({ data: { status, departmentId } }),
+    queryKey: ["reservations", scope, status, departmentId],
+    queryFn: () =>
+      listReservations({ data: { status, departmentId, scope } }),
   });
 
   const counts = useMemo(() => {
@@ -109,9 +111,35 @@ function RoomReservationsPage() {
         <h1 className="text-4xl font-black tracking-tight text-slate-900 uppercase">
           Room Reservations
         </h1>
-        <NewReservationDialog />
+        <NewReservationDialog requesterDepartmentId={departmentId} />
       </div>
       <div className="h-px bg-slate-200 mb-6" />
+
+      <div className="flex gap-2 mb-4">
+        {(["inbound", "outbound"] as const).map((s) => (
+          <button
+            key={s}
+            onClick={() => setScope(s)}
+            className={`px-4 py-2 text-sm font-bold uppercase tracking-wider rounded-md border transition ${
+              scope === s
+                ? "border-slate-900 bg-slate-900 text-white"
+                : "border-slate-200 text-slate-600 hover:border-slate-400"
+            }`}
+          >
+            {s === "inbound" ? "Inbound Requests" : "Outbound Requests"}
+          </button>
+        ))}
+        {!departmentId && (
+          <p className="text-xs text-amber-700 self-center ml-2">
+            Pick an active department to scope inbound / outbound queues.
+          </p>
+        )}
+      </div>
+      <p className="text-xs text-slate-500 mb-4">
+        {scope === "inbound"
+          ? "Pending bookings against rooms owned by your active department."
+          : "Bookings your department has requested in other departments' rooms."}
+      </p>
 
       <div className="flex gap-1 mb-6 border-b border-slate-200">
         {TABS.map((t) => (
@@ -162,6 +190,11 @@ function RoomReservationsPage() {
                     <div className="text-xs text-slate-500">
                       {r.requester_email}
                     </div>
+                    {r.requester_department_name && (
+                      <div className="mt-1 inline-flex rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                        from {r.requester_department_name}
+                      </div>
+                    )}
                     {r.purpose && (
                       <div className="mt-1 text-xs text-slate-600">
                         {r.purpose}
@@ -173,6 +206,11 @@ function RoomReservationsPage() {
                       {r.room_name}
                     </div>
                     <div className="text-xs text-slate-500">{r.venue_name}</div>
+                    {r.room_department_name && (
+                      <div className="mt-1 inline-flex rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                        owned by {r.room_department_name}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-slate-700">
                     <div className="flex items-center gap-1">
@@ -202,7 +240,7 @@ function RoomReservationsPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="inline-flex gap-1">
-                      {r.status === "pending" && (
+                      {r.status === "pending" && scope === "inbound" && (
                         <>
                           <Button
                             size="sm"
@@ -237,6 +275,11 @@ function RoomReservationsPage() {
                           </Button>
                         </>
                       )}
+                      {r.status === "pending" && scope === "outbound" && (
+                        <span className="text-xs text-slate-500 italic px-2">
+                          Awaiting their review
+                        </span>
+                      )}
                       {r.status === "approved" && (
                         <Button
                           size="sm"
@@ -270,7 +313,11 @@ function RoomReservationsPage() {
   );
 }
 
-function NewReservationDialog() {
+function NewReservationDialog({
+  requesterDepartmentId,
+}: {
+  requesterDepartmentId: string | null;
+}) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const { data: rooms = [] } = useQuery({
@@ -290,6 +337,12 @@ function NewReservationDialog() {
     notes: "",
   });
 
+  const selectedRoom = (rooms as any[]).find((r) => r.id === form.room_id);
+  const crossDept =
+    requesterDepartmentId &&
+    selectedRoom?.department_id &&
+    selectedRoom.department_id !== requesterDepartmentId;
+
   const create = useMutation({
     mutationFn: () =>
       createReservation({
@@ -302,6 +355,9 @@ function NewReservationDialog() {
           party_size: form.party_size ? Number(form.party_size) : null,
           purpose: form.purpose || null,
           notes: form.notes || null,
+          // Stamp the booking with the staff member's active department so the
+          // other side can track it in their Outbound queue.
+          requester_department_id: requesterDepartmentId,
         },
       }),
     onSuccess: () => {
@@ -360,6 +416,13 @@ function NewReservationDialog() {
               </SelectContent>
             </Select>
           </Field>
+          {crossDept && (
+            <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              Cross-department request: this room belongs to another department.
+              The booking will be stamped with your active department so the
+              other team can review it in their Inbound queue.
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <Field label="Requester name">
               <Input
