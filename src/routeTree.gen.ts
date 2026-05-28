@@ -58,9 +58,9 @@ import { Route as AuthenticatedCommunityManageRouteImport } from './routes/_auth
 import { Route as AuthenticatedCommunityApplyRouteImport } from './routes/_authenticated/community/apply'
 import { Route as AuthenticatedStaffEventsIdRouteImport } from './routes/_authenticated/staff/events.$id'
 import { Route as AuthenticatedStaffAdminPermissionsRouteImport } from './routes/_authenticated/staff/admin.permissions'
+import { Route as AuthenticatedStaffAdminGuidebookCanvasRouteImport } from './routes/_authenticated/staff/admin.guidebook-canvas'
 import { Route as AuthenticatedStaffAdminGuidebookRouteImport } from './routes/_authenticated/staff/admin.guidebook'
 import { Route as AuthenticatedStaffAdminDepartmentsRouteImport } from './routes/_authenticated/staff/admin.departments'
-import { Route as AuthenticatedStaffAdminGuidebookCanvasRouteImport } from './routes/_authenticated/staff/admin.guidebook.canvas'
 
 const VenuesRoute = VenuesRouteImport.update({
   id: '/venues',
@@ -323,6 +323,12 @@ const AuthenticatedStaffAdminPermissionsRoute =
     path: '/permissions',
     getParentRoute: () => AuthenticatedStaffAdminRoute,
   } as any)
+const AuthenticatedStaffAdminGuidebookCanvasRoute =
+  AuthenticatedStaffAdminGuidebookCanvasRouteImport.update({
+    id: '/guidebook-canvas',
+    path: '/guidebook-canvas',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
 const AuthenticatedStaffAdminGuidebookRoute =
   AuthenticatedStaffAdminGuidebookRouteImport.update({
     id: '/guidebook',
@@ -334,12 +340,6 @@ const AuthenticatedStaffAdminDepartmentsRoute =
     id: '/departments',
     path: '/departments',
     getParentRoute: () => AuthenticatedStaffAdminRoute,
-  } as any)
-const AuthenticatedStaffAdminGuidebookCanvasRoute =
-  AuthenticatedStaffAdminGuidebookCanvasRouteImport.update({
-    id: '/canvas',
-    path: '/canvas',
-    getParentRoute: () => AuthenticatedStaffAdminGuidebookRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -390,10 +390,10 @@ export interface FileRoutesByFullPath {
   '/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
   '/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
-  '/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRouteWithChildren
+  '/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
+  '/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   '/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
-  '/staff/admin/guidebook/canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -442,10 +442,10 @@ export interface FileRoutesByTo {
   '/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
   '/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
-  '/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRouteWithChildren
+  '/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
+  '/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   '/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
-  '/staff/admin/guidebook/canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -497,10 +497,10 @@ export interface FileRoutesById {
   '/_authenticated/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
   '/_authenticated/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
-  '/_authenticated/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRouteWithChildren
+  '/_authenticated/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
+  '/_authenticated/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   '/_authenticated/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
   '/_authenticated/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
-  '/_authenticated/staff/admin/guidebook/canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -553,9 +553,9 @@ export interface FileRouteTypes {
     | '/staff/'
     | '/staff/admin/departments'
     | '/staff/admin/guidebook'
+    | '/staff/admin/guidebook-canvas'
     | '/staff/admin/permissions'
     | '/staff/events/$id'
-    | '/staff/admin/guidebook/canvas'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -605,9 +605,9 @@ export interface FileRouteTypes {
     | '/staff'
     | '/staff/admin/departments'
     | '/staff/admin/guidebook'
+    | '/staff/admin/guidebook-canvas'
     | '/staff/admin/permissions'
     | '/staff/events/$id'
-    | '/staff/admin/guidebook/canvas'
   id:
     | '__root__'
     | '/'
@@ -659,9 +659,9 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/'
     | '/_authenticated/staff/admin/departments'
     | '/_authenticated/staff/admin/guidebook'
+    | '/_authenticated/staff/admin/guidebook-canvas'
     | '/_authenticated/staff/admin/permissions'
     | '/_authenticated/staff/events/$id'
-    | '/_authenticated/staff/admin/guidebook/canvas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1035,6 +1035,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffAdminPermissionsRouteImport
       parentRoute: typeof AuthenticatedStaffAdminRoute
     }
+    '/_authenticated/staff/admin/guidebook-canvas': {
+      id: '/_authenticated/staff/admin/guidebook-canvas'
+      path: '/guidebook-canvas'
+      fullPath: '/staff/admin/guidebook-canvas'
+      preLoaderRoute: typeof AuthenticatedStaffAdminGuidebookCanvasRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
     '/_authenticated/staff/admin/guidebook': {
       id: '/_authenticated/staff/admin/guidebook'
       path: '/guidebook'
@@ -1049,34 +1056,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffAdminDepartmentsRouteImport
       parentRoute: typeof AuthenticatedStaffAdminRoute
     }
-    '/_authenticated/staff/admin/guidebook/canvas': {
-      id: '/_authenticated/staff/admin/guidebook/canvas'
-      path: '/canvas'
-      fullPath: '/staff/admin/guidebook/canvas'
-      preLoaderRoute: typeof AuthenticatedStaffAdminGuidebookCanvasRouteImport
-      parentRoute: typeof AuthenticatedStaffAdminGuidebookRoute
-    }
   }
 }
-
-interface AuthenticatedStaffAdminGuidebookRouteChildren {
-  AuthenticatedStaffAdminGuidebookCanvasRoute: typeof AuthenticatedStaffAdminGuidebookCanvasRoute
-}
-
-const AuthenticatedStaffAdminGuidebookRouteChildren: AuthenticatedStaffAdminGuidebookRouteChildren =
-  {
-    AuthenticatedStaffAdminGuidebookCanvasRoute:
-      AuthenticatedStaffAdminGuidebookCanvasRoute,
-  }
-
-const AuthenticatedStaffAdminGuidebookRouteWithChildren =
-  AuthenticatedStaffAdminGuidebookRoute._addFileChildren(
-    AuthenticatedStaffAdminGuidebookRouteChildren,
-  )
 
 interface AuthenticatedStaffAdminRouteChildren {
   AuthenticatedStaffAdminDepartmentsRoute: typeof AuthenticatedStaffAdminDepartmentsRoute
-  AuthenticatedStaffAdminGuidebookRoute: typeof AuthenticatedStaffAdminGuidebookRouteWithChildren
+  AuthenticatedStaffAdminGuidebookRoute: typeof AuthenticatedStaffAdminGuidebookRoute
+  AuthenticatedStaffAdminGuidebookCanvasRoute: typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   AuthenticatedStaffAdminPermissionsRoute: typeof AuthenticatedStaffAdminPermissionsRoute
 }
 
@@ -1085,7 +1071,9 @@ const AuthenticatedStaffAdminRouteChildren: AuthenticatedStaffAdminRouteChildren
     AuthenticatedStaffAdminDepartmentsRoute:
       AuthenticatedStaffAdminDepartmentsRoute,
     AuthenticatedStaffAdminGuidebookRoute:
-      AuthenticatedStaffAdminGuidebookRouteWithChildren,
+      AuthenticatedStaffAdminGuidebookRoute,
+    AuthenticatedStaffAdminGuidebookCanvasRoute:
+      AuthenticatedStaffAdminGuidebookCanvasRoute,
     AuthenticatedStaffAdminPermissionsRoute:
       AuthenticatedStaffAdminPermissionsRoute,
   }
@@ -1213,3 +1201,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
