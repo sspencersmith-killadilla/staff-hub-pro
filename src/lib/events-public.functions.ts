@@ -116,9 +116,24 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
       : { data: [] as any[] };
     const orgsById = new Map((orgsRes.data ?? []).map((o: any) => [o.id, o]));
 
-    // Busker profiles for music gigs
+    // Artists for music gigs (preferred), with legacy busker profile fallback
+    const artistIds = Array.from(
+      new Set((slotRes.data ?? []).map((s: any) => s.artist_id).filter(Boolean)),
+    );
+    const artistsRes = artistIds.length
+      ? await supabaseAdmin
+          .from("artists")
+          .select("id, full_name, avatar_url, avatar_focal_x, avatar_focal_y")
+          .in("id", artistIds as any)
+      : { data: [] as any[] };
+    const artistsById = new Map((artistsRes.data ?? []).map((a: any) => [a.id, a]));
+
     const buskerIds = Array.from(
-      new Set((slotRes.data ?? []).map((s: any) => s.busker_id).filter(Boolean)),
+      new Set(
+        (slotRes.data ?? [])
+          .filter((s: any) => !s.artist_id && s.busker_id)
+          .map((s: any) => s.busker_id),
+      ),
     );
     const buskersRes = buskerIds.length
       ? await supabaseAdmin
@@ -127,6 +142,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
           .in("id", buskerIds as any)
       : { data: [] as any[] };
     const buskersById = new Map((buskersRes.data ?? []).map((p: any) => [p.id, p]));
+
 
     // Sponsors for city sessions (approved/paid only)
     const sessionIds = (sessRes.data ?? []).map((s: any) => s.id);
