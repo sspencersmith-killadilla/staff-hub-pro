@@ -37,6 +37,7 @@ const venueInput = z.object({
   rules: z.string().optional().nullable(),
   latitude: z.number().nullable().optional(),
   longitude: z.number().nullable().optional(),
+  department_id: z.string().uuid().nullable().optional(),
   open_hours: openHoursSchema.optional(),
   closures: closuresSchema.optional(),
 });
@@ -169,6 +170,7 @@ const roomInput = z.object({
   capacity: z.number().int().nullable().optional(),
   is_publicly_bookable: z.boolean().optional(),
   linked_stage_id: z.string().uuid().nullable().optional(),
+  department_id: z.string().uuid().nullable().optional(),
   image_url: z.string().url().nullable().optional().or(z.literal("")),
   description: z.string().max(2000).nullable().optional(),
   tags: z.array(z.string().trim().min(1).max(40)).max(4).optional(),
