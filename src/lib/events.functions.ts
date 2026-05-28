@@ -87,9 +87,17 @@ export const listAllStaffProfiles = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertStaff(context.userId);
+    const { data: roles, error: roleError } = await supabaseAdmin
+      .from("user_roles")
+      .select("user_id")
+      .in("role", ["staff", "admin"]);
+    if (roleError) throw new Error(roleError.message);
+    const userIds = Array.from(new Set((roles ?? []).map((r: any) => r.user_id).filter(Boolean)));
+    if (userIds.length === 0) return [];
     const { data, error } = await supabaseAdmin
       .from("profiles")
       .select("id, full_name, email")
+      .in("id", userIds)
       .order("full_name", { ascending: true, nullsFirst: false });
     if (error) throw new Error(error.message);
     return data ?? [];
