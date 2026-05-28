@@ -96,7 +96,10 @@ export const listAllAttendees = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) =>
     z
-      .object({ session_id: z.string().uuid().optional().nullable() })
+      .object({
+        session_id: z.string().uuid().optional().nullable(),
+        departmentId: z.string().uuid().optional().nullable(),
+      })
       .parse(i ?? {}),
   )
   .handler(async ({ data, context }) => {
