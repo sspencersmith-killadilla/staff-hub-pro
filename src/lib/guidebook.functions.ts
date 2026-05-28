@@ -149,7 +149,7 @@ async function fetchData(
       title: s.title,
       start_time: s.start_time,
       end_time: s.end_time,
-      description: s.description ?? null,
+      description: s.speaker_name ?? null,
       department_name: deptsById.get(s.department_id)?.name ?? null,
       venue_name: venue?.name ?? null,
       location_name: s.stages?.name ?? s.rooms?.name ?? null,
