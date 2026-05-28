@@ -8,7 +8,9 @@ import {
   deleteEvent,
   bulkUpsertEvents,
   listEventLocations,
+  listDepartmentStaff,
 } from "@/lib/events.functions";
+import { useDepartment } from "@/contexts/department-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
