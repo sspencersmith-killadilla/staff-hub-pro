@@ -36,6 +36,8 @@ const emptyForm = {
   title: "",
   event_type: "",
   featured_guest: "",
+  department_id: "",
+  staff_owner_name: "",
   location: "" as string, // "room:<uuid>" or "stage:<uuid>"
   start_time: "",
   end_time: "",
@@ -161,7 +163,7 @@ function csvRowToInput(r: Record<string, string>) {
     event_type: r.event_type || null,
     featured_guest: r.featured_guest || null,
     department_id: r.department_id || null,
-    staff_owner_id: r.staff_owner_id || null,
+    staff_owner_name: r.staff_owner_name || null,
     room_id: r.room_id || null,
     stage_id: r.stage_id || null,
     start_time: toIso(r.start_time),
