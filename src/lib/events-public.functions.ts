@@ -63,10 +63,11 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
     // 3. Music gigs (booked slots)
     const slotsQ = supabaseAdmin
       .from("slots")
-      .select("id, title, description, start_time, end_time, is_booked, stage_id, busker_id")
+      .select("id, title, description, start_time, end_time, is_booked, stage_id, artist_id, busker_id")
       .eq("is_booked", true)
       .order("start_time", { ascending: true });
     if (!includeArchived) slotsQ.gte("end_time", nowIso);
+
 
     const [sessRes, commRes, slotRes] = await Promise.all([sessionsQ, commQ, slotsQ]);
     if (sessRes.error) throw new Error(sessRes.error.message);
@@ -115,9 +116,24 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
       : { data: [] as any[] };
     const orgsById = new Map((orgsRes.data ?? []).map((o: any) => [o.id, o]));
 
-    // Busker profiles for music gigs
+    // Artists for music gigs (preferred), with legacy busker profile fallback
+    const artistIds = Array.from(
+      new Set((slotRes.data ?? []).map((s: any) => s.artist_id).filter(Boolean)),
+    );
+    const artistsRes = artistIds.length
+      ? await supabaseAdmin
+          .from("artists")
+          .select("id, full_name, avatar_url, avatar_focal_x, avatar_focal_y")
+          .in("id", artistIds as any)
+      : { data: [] as any[] };
+    const artistsById = new Map((artistsRes.data ?? []).map((a: any) => [a.id, a]));
+
     const buskerIds = Array.from(
-      new Set((slotRes.data ?? []).map((s: any) => s.busker_id).filter(Boolean)),
+      new Set(
+        (slotRes.data ?? [])
+          .filter((s: any) => !s.artist_id && s.busker_id)
+          .map((s: any) => s.busker_id),
+      ),
     );
     const buskersRes = buskerIds.length
       ? await supabaseAdmin
@@ -126,6 +142,7 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
           .in("id", buskerIds as any)
       : { data: [] as any[] };
     const buskersById = new Map((buskersRes.data ?? []).map((p: any) => [p.id, p]));
+
 
     // Sponsors for city sessions (approved/paid only)
     const sessionIds = (sessRes.data ?? []).map((s: any) => s.id);
@@ -253,7 +270,10 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
     for (const s of slotRes.data ?? []) {
       const stage = (s as any).stage_id ? stagesById.get((s as any).stage_id) : null;
       const venue = stage?.venue_id ? venuesById.get(stage.venue_id) : null;
-      const busker = (s as any).busker_id ? buskersById.get((s as any).busker_id) : null;
+      const performer =
+        ((s as any).artist_id && artistsById.get((s as any).artist_id)) ||
+        ((s as any).busker_id && buskersById.get((s as any).busker_id)) ||
+        null;
       out.push({
         id: `slot-${(s as any).id}`,
         source: "music",
@@ -261,22 +281,23 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         description: (s as any).description ?? null,
         starts_at: (s as any).start_time ?? null,
         ends_at: (s as any).end_time ?? null,
-        image_url: busker?.avatar_url ?? null,
+        image_url: performer?.avatar_url ?? null,
         venue_name: venue?.name ?? stage?.name ?? null,
         venue_city: venue?.city ?? null,
         sub_location_name: stage?.name ?? null,
         sub_location_type: stage ? "stage" : null,
-        org_name: busker?.full_name ?? null,
+        org_name: performer?.full_name ?? null,
         cost_text: "Free",
         ticketed: false,
         detail_href: `/gigs/${(s as any).id}`,
         sponsors: [],
-        focal_x: busker?.avatar_focal_x ?? 50,
-        focal_y: busker?.avatar_focal_y ?? 50,
+        focal_x: performer?.avatar_focal_x ?? 50,
+        focal_y: performer?.avatar_focal_y ?? 50,
         sold_out: false,
         waitlist_available: false,
       });
     }
+
 
     return out;
   });
