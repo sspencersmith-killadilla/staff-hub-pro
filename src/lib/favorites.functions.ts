@@ -155,30 +155,72 @@ export const getMyItinerary = createServerFn({ method: "GET" })
       }
     }
 
-    // Streetbeats gigs
+    // Streetbeats gigs (current canonical source is `slots`; legacy
+    // `streetbeats_gigs` rows are no longer used by the public gig route).
     if (byType.gig.length) {
-      const { data: gigs } = await supabaseAdmin
-        .from("streetbeats_gigs")
-        .select(
-          "id, title, starts_at, ends_at, location_label, venues(name), artists(full_name, avatar_url)",
-        )
-        .in("id", byType.gig);
+      const gigIds = byType.gig
+        .map((x) => Number(x.startsWith("slot-") ? x.slice(5) : x))
+        .filter((n) => Number.isFinite(n));
+      const { data: gigs } = gigIds.length
+        ? await supabaseAdmin
+            .from("slots")
+            .select("id, title, notes, start_time, end_time, stage_id, artist_id, busker_id")
+            .in("id", gigIds as any)
+        : { data: [] as any[] };
+      const stageIds = Array.from(
+        new Set((gigs ?? []).map((g: any) => g.stage_id).filter(Boolean)),
+      );
+      const artistIds = Array.from(
+        new Set((gigs ?? []).map((g: any) => g.artist_id).filter(Boolean)),
+      );
+      const buskerIds = Array.from(
+        new Set(
+          (gigs ?? [])
+            .filter((g: any) => !g.artist_id && g.busker_id)
+            .map((g: any) => g.busker_id),
+        ),
+      );
+      const [stagesRes, artistsRes, buskersRes] = await Promise.all([
+        stageIds.length
+          ? supabaseAdmin.from("stages").select("id, name, venue_id").in("id", stageIds as any)
+          : Promise.resolve({ data: [] as any[] }),
+        artistIds.length
+          ? supabaseAdmin.from("artists").select("id, full_name, avatar_url").in("id", artistIds as any)
+          : Promise.resolve({ data: [] as any[] }),
+        buskerIds.length
+          ? supabaseAdmin.from("profiles").select("id, full_name, avatar_url").in("id", buskerIds as any)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
+      const stagesById = new Map((stagesRes.data ?? []).map((s: any) => [s.id, s]));
+      const venueIds = Array.from(
+        new Set((stagesRes.data ?? []).map((s: any) => s.venue_id).filter(Boolean)),
+      );
+      const venuesRes = venueIds.length
+        ? await supabaseAdmin.from("venues").select("id, name").in("id", venueIds as any)
+        : { data: [] as any[] };
+      const venuesById = new Map((venuesRes.data ?? []).map((v: any) => [v.id, v]));
+      const artistsById = new Map((artistsRes.data ?? []).map((a: any) => [a.id, a]));
+      const buskersById = new Map((buskersRes.data ?? []).map((p: any) => [p.id, p]));
       for (const g of gigs ?? []) {
-        const artist = (g as any).artists;
+        const stage = (g as any).stage_id ? stagesById.get((g as any).stage_id) : null;
+        const venue = stage?.venue_id ? venuesById.get(stage.venue_id) : null;
+        const artist =
+          ((g as any).artist_id && artistsById.get((g as any).artist_id)) ||
+          ((g as any).busker_id && buskersById.get((g as any).busker_id)) ||
+          null;
         out.push({
           key: `gig:${(g as any).id}`,
           item_type: "gig",
-          item_id: (g as any).id,
+          item_id: String((g as any).id),
           title: artist?.full_name
             ? `${artist.full_name} — ${(g as any).title}`
-            : (g as any).title,
+            : (g as any).title ?? "Live music",
           subtitle: "Streetbeats",
           image_url: artist?.avatar_url ?? null,
           href: `/gigs/${(g as any).id}`,
-          starts_at: (g as any).starts_at ?? null,
-          ends_at: (g as any).ends_at ?? null,
-          location:
-            (g as any).venues?.name ?? (g as any).location_label ?? null,
+          starts_at: (g as any).start_time ?? null,
+          ends_at: (g as any).end_time ?? null,
+          location: venue?.name ?? stage?.name ?? (g as any).notes ?? null,
         });
       }
     }
