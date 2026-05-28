@@ -1,5 +1,5 @@
 import { createFileRoute, redirect, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMyRoles } from "@/lib/auth.functions";
 import { waitForSupabaseSession } from "@/integrations/supabase/auth-ready";
@@ -10,7 +10,15 @@ import {
   deleteStaff,
   bulkInviteStaff,
   promoteExistingUser,
+  updateStaffProfile,
+  updateStaffEmail,
 } from "@/lib/staff.functions";
+import {
+  listDepartmentsAdmin,
+  listUserDepartmentRoles,
+  assignUserDepartmentRole,
+  removeUserDepartmentRole,
+} from "@/lib/departments-admin.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +29,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/staff/admin")({
   beforeLoad: async () => {
