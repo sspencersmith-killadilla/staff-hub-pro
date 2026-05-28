@@ -375,13 +375,25 @@ const sections: Section[] = [
             The detail page shows a live 7-day availability calendar. Booked or
             blocked-by-event windows are greyed out.
           </Step>
-          <Step n={4} title="Submit your request">
-            Sign in if prompted. Staff review and email you a confirmation.
+          <Step n={4} title="Read and accept the departmental room policy">
+            Before the request is submitted, a modal shows the{" "}
+            <strong>room policy</strong> set by the department that owns the
+            room (rules, fees, cleanup, alcohol, etc.). You must tick{" "}
+            <em>"I agree to this departmental policy"</em> to continue. Each
+            department writes its own policy, so the wording changes with the
+            room.
+          </Step>
+          <Step n={5} title="Instant-bookable rooms confirm immediately">
+            If the room is marked <strong>instant-bookable</strong>, your
+            reservation is approved on submit and you receive a confirmation
+            email right away — no staff review needed. Otherwise it joins the{" "}
+            <em>pending</em> queue for that department's staff to review.
           </Step>
         </ol>
         <Callout kind="warn">
-          Submitting a request does <strong>not</strong> guarantee the booking
-          until staff approve it.
+          For non-instant rooms, submitting does <strong>not</strong> guarantee
+          the booking until the owning department's staff approve it. The
+          policy you agreed to is recorded with your request.
         </Callout>
       </>
     ),
