@@ -120,9 +120,14 @@ function VenueEditor({ venueId, onDeleted }: { venueId: number; onDeleted: () =>
     queryKey: ["venue", venueId],
     queryFn: () => getVenue({ data: { id: venueId } }),
   });
+  const { data: depts = [] } = useQuery({
+    queryKey: ["location-departments"],
+    queryFn: () => listLocationDepartments(),
+  });
 
   const [patch, setPatch] = useState<Record<string, any>>({});
   const merged = { ...(data?.venue ?? {}), ...patch } as any;
+
 
   const save = useMutation({
     mutationFn: () => updateVenue({ data: { id: venueId, patch } }),
