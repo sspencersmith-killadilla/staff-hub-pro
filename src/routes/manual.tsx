@@ -76,6 +76,10 @@ const audienceLabels: Record<Section["audience"], { label: string; color: string
 const groups: { label: string; sectionIds: string[] }[] = [
   { label: "Getting Started", sectionIds: ["overview", "accounts", "hub"] },
   {
+    label: "Multi-Department Model",
+    sectionIds: ["departments-overview", "dept-hub", "dept-theming"],
+  },
+  {
     label: "For Community Members",
     sectionIds: [
       "events",
@@ -91,11 +95,24 @@ const groups: { label: string; sectionIds: string[] }[] = [
   },
   {
     label: "For Staff",
-    sectionIds: ["staff-portal", "staff-events", "staff-attendees", "staff-approvals"],
+    sectionIds: [
+      "staff-portal",
+      "staff-active-dept",
+      "staff-events",
+      "staff-attendees",
+      "staff-approvals",
+      "staff-cross-dept",
+    ],
   },
   {
     label: "For Admins",
-    sectionIds: ["admin-staff", "admin-permissions", "admin-modules"],
+    sectionIds: [
+      "admin-staff",
+      "admin-permissions",
+      "admin-departments",
+      "admin-dept-roles",
+      "admin-modules",
+    ],
   },
 ];
 
