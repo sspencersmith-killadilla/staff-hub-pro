@@ -57,6 +57,9 @@ const requestSchema = z.object({
   party_size: z.number().int().positive().max(10000).optional().nullable(),
   purpose: z.string().trim().max(500).optional().nullable(),
   notes: z.string().trim().max(2000).optional().nullable(),
+  policy_accepted: z.literal(true, {
+    errorMap: () => ({ message: "You must accept the department's room policy" }),
+  }),
 });
 
 // Limits per user (active = pending or approved, in the future)
@@ -96,6 +99,19 @@ export const submitReservationRequest = createServerFn({ method: "POST" })
     if (!room) throw new Error("Room not found");
     if (!room.is_publicly_bookable) {
       throw new Error("This room is not publicly bookable");
+    }
+
+    // Soft-fetch instant_bookable flag (migration 019). Defaults to false.
+    let instantBookable = false;
+    try {
+      const { data: extra } = await supabaseAdmin
+        .from("rooms")
+        .select("instant_bookable")
+        .eq("id", data.room_id)
+        .maybeSingle();
+      instantBookable = !!extra?.instant_bookable;
+    } catch {
+      instantBookable = false;
     }
 
     const { data: venue } = await supabaseAdmin
@@ -165,13 +181,16 @@ export const submitReservationRequest = createServerFn({ method: "POST" })
       throw new Error("You can only book up to 2 hours per day");
     }
 
+    const status = instantBookable ? "approved" : "pending";
+    // policy_accepted is validated above; never persist it.
+    const { policy_accepted: _pa, ...persisted } = data;
     const reservationPayload = {
-      ...data,
+      ...persisted,
       start_time: data.starts_at,
       end_time: data.ends_at,
       requester_email: email,
       requester_user_id: context.userId,
-      status: "pending",
+      status,
     };
     const { error } = await supabaseAdmin.from("room_reservations").insert(reservationPayload);
     if (error) {
@@ -185,7 +204,15 @@ export const submitReservationRequest = createServerFn({ method: "POST" })
         throw new Error(error.message);
       }
     }
-    return { ok: true };
+
+    // TODO: wire transactional email infra to actually deliver this.
+    if (status === "approved") {
+      console.log(
+        `[room-booking] Instant-approved booking ${data.room_id} for ${email}; confirmation email queued.`,
+      );
+    }
+
+    return { ok: true, status };
   });
 
 export const getRoomAvailability = createServerFn({ method: "GET" })

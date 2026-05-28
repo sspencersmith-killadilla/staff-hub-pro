@@ -77,7 +77,33 @@ export const getRoomPublic = createServerFn({ method: "GET" })
       .select(VENUE_COLS)
       .eq("id", room.venue_id)
       .maybeSingle();
-    return { room, venue };
+
+    // Soft-fetch department-tenancy fields (migration 019). If columns/tables
+    // don't yet exist, fall back gracefully.
+    let instant_bookable = false;
+    let department: { id: string; name: string; room_policy_text: string | null } | null = null;
+    try {
+      const { data: extra } = await supabaseAdmin
+        .from("rooms")
+        .select("instant_bookable, department_id")
+        .eq("id", data.id)
+        .maybeSingle();
+      if (extra) {
+        instant_bookable = !!extra.instant_bookable;
+        if (extra.department_id) {
+          const { data: dept } = await supabaseAdmin
+            .from("departments")
+            .select("id, name, room_policy_text")
+            .eq("id", extra.department_id)
+            .maybeSingle();
+          if (dept) department = dept as any;
+        }
+      }
+    } catch {
+      /* migration not applied yet */
+    }
+
+    return { room: { ...room, instant_bookable }, venue, department };
   });
 
 export const getStagePublic = createServerFn({ method: "GET" })

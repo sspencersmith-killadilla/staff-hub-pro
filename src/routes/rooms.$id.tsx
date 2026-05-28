@@ -43,6 +43,7 @@ function RoomDetail() {
   const { data } = useSuspenseQuery(roomQO(id));
   const r: any = data.room;
   const v: any = data.venue;
+  const dept: any = (data as any).department ?? null;
 
   const today = new Date().toISOString().split("T")[0];
   const [selectedDate, setSelectedDate] = useState(today);
@@ -338,8 +339,12 @@ function RoomDetail() {
                   initialDate={selectedDate}
                   initialStartHour={selectedHour}
                   initialEndHour={selectedEnd}
+                  instantBookable={!!r.instant_bookable}
+                  departmentName={dept?.name ?? null}
+                  roomPolicyText={dept?.room_policy_text ?? null}
                   key={`${selectedDate}-${selectedHour}`}
                 />
+
               )}
             </div>
           </div>
