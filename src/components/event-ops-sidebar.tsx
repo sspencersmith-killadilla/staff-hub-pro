@@ -71,7 +71,7 @@ export function EventOpsSidebar() {
 
   const logout = async () => {
     await supabase.auth.signOut();
-    navigate({ to: "/login" });
+    navigate({ to: "/" });
   };
 
   const visibleItems = items.filter(

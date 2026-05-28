@@ -21,7 +21,7 @@ export function SiteHeader() {
 
   const handleLogout = async () => {
     await logout();
-    router.navigate({ to: "/login" });
+    router.navigate({ to: "/" });
   };
 
   return (
