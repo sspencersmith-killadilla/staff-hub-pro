@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
-import { Building2, CalendarDays, DoorOpen, Info } from "lucide-react";
+import { Building2, CalendarDays, DoorOpen, Info, Music } from "lucide-react";
 import { getDepartmentHub } from "@/lib/departments.functions";
 import { SiteHeader } from "@/components/site-header";
 import { BrandThemeApplier } from "@/components/theme-provider";
@@ -32,12 +32,12 @@ export const Route = createFileRoute("/departments/$id")({
   component: DepartmentHub,
 });
 
-const ALL_SECTIONS = ["events", "rooms"] as const;
+const ALL_SECTIONS = ["events", "gigs", "rooms"] as const;
 
 function DepartmentHub() {
   const { id } = Route.useParams();
   const { data } = useSuspenseQuery(hubQO(id));
-  const { department, events, rooms } = data;
+  const { department, events, rooms, gigs = [] } = data as any;
   const [editing, setEditing] = useState(false);
 
   const { visibleIds, orderedIds, hidden, move, toggleHidden, reset } = useLayoutPrefs(
@@ -105,6 +105,10 @@ function DepartmentHub() {
                 {sectionId === "events" ? (
                   <>
                     <CalendarDays className="h-5 w-5" /> Upcoming Events
+                  </>
+                ) : sectionId === "gigs" ? (
+                  <>
+                    <Music className="h-5 w-5" /> Streetbeats Gigs
                   </>
                 ) : (
                   <>
