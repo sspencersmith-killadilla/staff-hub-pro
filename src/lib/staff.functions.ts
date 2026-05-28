@@ -30,16 +30,25 @@ export const listStaff = createServerFn({ method: "GET" })
 
     const ids = Array.from(new Set((roles ?? []).map((r) => r.user_id)));
     const { data: users } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
-    const map = new Map(users.users.map((u) => [u.id, u]));
+    const userMap = new Map(users.users.map((u) => [u.id, u]));
+
+    const { data: profiles } = await supabaseAdmin
+      .from("profiles")
+      .select("id, full_name, phone")
+      .in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+    const profMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
 
     return ids.map((id) => {
-      const u = map.get(id);
+      const u = userMap.get(id);
+      const p: any = profMap.get(id) ?? {};
       const userRoles = (roles ?? [])
         .filter((r) => r.user_id === id)
         .map((r) => r.role as "admin" | "staff");
       return {
         userId: id,
         email: u?.email ?? "(unknown)",
+        full_name: (p.full_name as string | null) ?? null,
+        phone: (p.phone as string | null) ?? null,
         roles: userRoles,
         createdAt: u?.created_at,
       };
