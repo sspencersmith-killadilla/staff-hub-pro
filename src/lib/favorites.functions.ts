@@ -159,7 +159,7 @@ export const getMyItinerary = createServerFn({ method: "GET" })
     // `streetbeats_gigs` rows are no longer used by the public gig route).
     if (byType.gig.length) {
       const gigIds = byType.gig
-        .map((x) => Number(x))
+        .map((x) => Number(x.startsWith("slot-") ? x.slice(5) : x))
         .filter((n) => Number.isFinite(n));
       const { data: gigs } = gigIds.length
         ? await supabaseAdmin
