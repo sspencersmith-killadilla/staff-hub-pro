@@ -9,6 +9,12 @@ import {
   listEventsForPermissions,
 } from "@/lib/staff-permissions.functions";
 import {
+  listDepartmentsAdmin,
+  listUserDepartmentRoles,
+  assignUserDepartmentRole,
+  removeUserDepartmentRole,
+} from "@/lib/departments-admin.functions";
+import {
   PAGE_PERMISSIONS,
   EVENT_PERMISSIONS,
   type PermissionKey,
