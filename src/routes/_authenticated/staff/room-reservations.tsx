@@ -67,11 +67,13 @@ function fmtDt(iso: string) {
 
 function RoomReservationsPage() {
   const qc = useQueryClient();
+  const { activeDepartment } = useDepartment();
+  const departmentId = activeDepartment?.id ?? null;
   const [status, setStatus] = useState<Status>("pending");
 
   const { data: rows = [], isLoading } = useQuery({
-    queryKey: ["reservations", status],
-    queryFn: () => listReservations({ data: { status } }),
+    queryKey: ["reservations", status, departmentId],
+    queryFn: () => listReservations({ data: { status, departmentId } }),
   });
 
   const counts = useMemo(() => {
