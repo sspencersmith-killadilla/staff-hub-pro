@@ -18,6 +18,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useModules } from "@/hooks/use-modules";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useDepartment } from "@/contexts/department-context";
+
+function ActiveDepartmentBadge() {
+  const { activeDepartment, memberships } = useDepartment();
+  if (!activeDepartment) return null;
+  return (
+    <div className="mt-2 text-[10px] uppercase tracking-widest text-white/60">
+      <span className="text-white/40">Dept ·</span>{" "}
+      <span className="text-white font-bold">{activeDepartment.name}</span>
+      {memberships.length > 1 && (
+        <span className="ml-1 text-white/40">({memberships.length})</span>
+      )}
+    </div>
+  );
+}
 import type { ModuleKey } from "@/lib/platform-modules.functions";
 import type { PermissionKey } from "@/lib/staff-permissions";
 
