@@ -80,6 +80,7 @@ const SubmitInput = z.object({
   contactName: z.string().min(1).max(200),
   logoUrl: z.string().max(1000).optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
+  adCopy: z.string().max(2000).optional().nullable(),
 });
 
 export const submitApplication = createServerFn({ method: "POST" })
@@ -110,6 +111,7 @@ export const submitApplication = createServerFn({ method: "POST" })
           contact_name: data.contactName,
           contact_email: email,
           logo_url: data.logoUrl ?? null,
+          ad_copy: data.adCopy ?? null,
           session_id: data.sessionId,
           sponsorship_tier_id: data.tierId,
           status: "pending",
