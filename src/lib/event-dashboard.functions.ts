@@ -48,7 +48,7 @@ export const getEventDashboard = createServerFn({ method: "GET" })
     ]);
 
     // Soft-fetch staff owner profile (migration 019: sessions.staff_owner_id).
-    let staffOwner: { id: string; full_name: string | null; email: string | null } | null = null;
+    let staffOwner: { id: string | null; full_name: string | null; email: string | null } | null = null;
     try {
       const ownerId = (sess.data as any)?.staff_owner_id;
       if (ownerId) {
@@ -58,6 +58,9 @@ export const getEventDashboard = createServerFn({ method: "GET" })
           .eq("id", ownerId)
           .maybeSingle();
         if (prof) staffOwner = prof as any;
+      }
+      if (!staffOwner && (sess.data as any)?.staff_owner_name) {
+        staffOwner = { id: null, full_name: (sess.data as any).staff_owner_name, email: null };
       }
     } catch {
       /* column not present yet */
