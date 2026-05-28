@@ -204,22 +204,33 @@ const sections: Section[] = [
         <Figure src={homeImg} caption="Public home page with the four community portals" />
         <p>
           Everyone starts at the same landing page. From there, your view of the
-          app depends on your role:
+          app depends on your role <strong>and</strong> which{" "}
+          <em>department</em> you're currently acting in:
         </p>
         <ul className="my-4 list-disc space-y-2 pl-6 text-sm">
           <li>
             <strong>Community members</strong> browse events, buy tickets, book
-            rooms, and apply to programs.
+            rooms, and apply to programs across every department.
           </li>
           <li>
-            <strong>Staff</strong> get an Event Ops sidebar to manage events,
-            attendees, vendors, music, and reservations.
+            <strong>Staff</strong> see an Event Ops sidebar scoped to their{" "}
+            <em>active department</em> — events, venues, approvals, and box
+            office only show records belonging to that department.
           </li>
           <li>
-            <strong>Admins</strong> additionally manage user roles, granular
-            permissions, and which platform modules are turned on.
+            <strong>Dept admins &amp; Super admins</strong> additionally manage
+            department settings, branding, room policies, user roles, and which
+            platform modules are turned on.
           </li>
         </ul>
+        <Callout kind="note">
+          The platform is multi-tenant by department (City Hall, Fire, Parks,
+          etc.). The same login can belong to several departments — see{" "}
+          <a href="#departments-overview" className="underline">
+            Multi-Department Model
+          </a>
+          .
+        </Callout>
       </>
     ),
   },
