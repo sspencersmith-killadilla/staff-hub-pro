@@ -203,6 +203,52 @@ function DepartmentHub() {
                     ))}
                   </div>
                 )
+              ) : sectionId === "gigs" ? (
+                gigs.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No upcoming Streetbeats gigs at this department's stages.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {gigs.map((g: any) => (
+                      <Link
+                        key={g.id}
+                        to="/gigs/$id"
+                        params={{ id: g.id }}
+                        className="group overflow-hidden rounded-lg border bg-card p-4 transition-shadow hover:shadow-md"
+                        style={{ borderColor: "color-mix(in oklab, var(--primary) 25%, transparent)" }}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="line-clamp-2 font-medium text-foreground">{g.title}</h3>
+                          <span
+                            className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
+                            style={{
+                              background: g.status === "claimed"
+                                ? "color-mix(in oklab, var(--primary) 18%, transparent)"
+                                : "color-mix(in oklab, var(--accent) 18%, transparent)",
+                              color: "var(--primary)",
+                            }}
+                          >
+                            {g.status}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {new Date(g.start_time).toLocaleString()}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {g.stage?.name ?? "—"}
+                          {g.venue?.name ? ` · ${g.venue.name}` : ""}
+                        </p>
+                        {g.artist && (
+                          <p className="mt-2 text-xs font-semibold" style={{ color: "var(--primary)" }}>
+                            {g.artist.full_name}
+                            {g.artist.genre ? ` · ${g.artist.genre}` : ""}
+                          </p>
+                        )}
+                      </Link>
+                    ))}
+                  </div>
+                )
               ) : rooms.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No rooms scoped to this department.</p>
               ) : (
