@@ -365,10 +365,22 @@ function EventsPage() {
 
   return (
     <div className="p-8 max-w-[1400px]">
-      <h1 className="text-4xl font-black tracking-tight text-slate-900 uppercase mb-2">
-        Master Schedule
-      </h1>
+      <div className="flex items-end justify-between gap-4 mb-2">
+        <h1 className="text-4xl font-black tracking-tight text-slate-900 uppercase">
+          Master Schedule
+        </h1>
+        {activeDepartment && (
+          <Link
+            to="/departments/$id"
+            params={{ id: activeDepartment.id }}
+            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
+          >
+            View {activeDepartment.name} hub →
+          </Link>
+        )}
+      </div>
       <div className="h-px bg-slate-200 mb-6" />
+
 
       <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-6">
         <div className="space-y-6">
