@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { normalizeBrandCss } from "@/components/theme-provider";
 
 type Props = {
@@ -158,7 +158,7 @@ export default function EventMarketingHub({ event, sponsors, talent, brandCss }:
     "--marketing-muted": brand["--muted"] ?? "#f0fdfa",
     "--marketing-text": brand["--brand-text"] ?? brand["--foreground"] ?? "#093140",
     "--marketing-border": brand["--border"] ?? "rgba(20,90,109,0.2)",
-  } as React.CSSProperties;
+  } as CSSProperties;
 
   // Resolve venue/sub-stage/sub-room hierarchy.
   // Sessions link to either a stage (with parent venue) or a room (with parent venue).
@@ -413,6 +413,17 @@ export default function EventMarketingHub({ event, sponsors, talent, brandCss }:
 
   return (
     <div className="-m-8" style={brandVars}>
+      <style>{`
+        #flyer-capture-zone, #ig-capture-zone, #fb-capture-zone { background: var(--marketing-primary) !important; }
+        #flyer-capture-zone > div, #ig-capture-zone > div, #fb-capture-zone > div { background: var(--marketing-surface) !important; border-color: var(--marketing-border) !important; }
+        #flyer-capture-zone h1, #ig-capture-zone h1, #fb-capture-zone h1 { color: var(--marketing-text) !important; }
+        #flyer-capture-zone .text-teal-600, #flyer-capture-zone .text-teal-700, #flyer-capture-zone .text-teal-800,
+        #ig-capture-zone .text-teal-600, #ig-capture-zone .text-teal-700, #ig-capture-zone .text-teal-800,
+        #fb-capture-zone p { border-color: var(--marketing-border); }
+        #flyer-capture-zone .text-teal-600, #flyer-capture-zone .text-teal-700, #flyer-capture-zone .text-teal-800,
+        #ig-capture-zone .text-teal-600, #ig-capture-zone .text-teal-700, #ig-capture-zone .text-teal-800 { color: var(--marketing-accent) !important; }
+        #flyer-capture-zone .bg-teal-50, #ig-capture-zone .bg-teal-50 { background: var(--marketing-muted) !important; }
+      `}</style>
       {/* ACTION BAR */}
       <div className="bg-[#093140] text-white p-4 flex flex-col md:flex-row md:justify-between md:items-center gap-4 shadow-lg">
         <div className="flex flex-wrap gap-2">
