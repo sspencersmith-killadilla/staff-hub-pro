@@ -56,6 +56,18 @@ export const listVenues = createServerFn({ method: "GET" })
     return rows ?? [];
   });
 
+export const listLocationDepartments = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context.userId);
+    const { data, error } = await supabaseAdmin
+      .from("departments")
+      .select("id, name")
+      .order("name", { ascending: true });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
 export const getVenue = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => z.object({ id: z.number().int() }).parse(i))
