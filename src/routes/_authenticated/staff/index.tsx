@@ -8,7 +8,9 @@ import {
   deleteEvent,
   bulkUpsertEvents,
   listEventLocations,
+  listDepartmentStaff,
 } from "@/lib/events.functions";
+import { useDepartment } from "@/contexts/department-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -158,11 +160,22 @@ function csvRowToInput(r: Record<string, string>) {
 
 function EventsPage() {
   const qc = useQueryClient();
-  const { data: events = [] } = useQuery({ queryKey: ["events"], queryFn: () => listEvents() });
-  const { data: locations } = useQuery({
-    queryKey: ["event-locations"],
-    queryFn: () => listEventLocations(),
+  const { activeDepartment } = useDepartment();
+  const deptId = activeDepartment?.id ?? null;
+  const { data: events = [] } = useQuery({
+    queryKey: ["events", deptId],
+    queryFn: () => listEvents({ data: { departmentId: deptId } }),
   });
+  const { data: locations } = useQuery({
+    queryKey: ["event-locations", deptId],
+    queryFn: () => listEventLocations({ data: { departmentId: deptId } }),
+  });
+  const { data: deptStaff = [] } = useQuery({
+    queryKey: ["dept-staff", deptId],
+    queryFn: () => (deptId ? listDepartmentStaff({ data: { departmentId: deptId } }) : Promise.resolve([])),
+    enabled: !!deptId,
+  });
+  const [ownerId, setOwnerId] = useState<string>("");
   const rooms = locations?.rooms ?? [];
   const stages = locations?.stages ?? [];
 
@@ -180,6 +193,7 @@ function EventsPage() {
   const resetForm = () => {
     setForm(emptyForm);
     setEditingId(null);
+    setOwnerId("");
   };
 
   const startEdit = (e: any) => {
@@ -196,6 +210,7 @@ function EventsPage() {
       focal_y: typeof e.focal_y === "number" ? e.focal_y : 50,
       open_to_vendors: !!e.open_to_vendors,
     });
+    setOwnerId(e.staff_owner_id ?? "");
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -214,6 +229,8 @@ function EventsPage() {
         focal_x: form.focal_x,
         focal_y: form.focal_y,
         open_to_vendors: form.open_to_vendors,
+        department_id: deptId,
+        staff_owner_id: ownerId || null,
       };
       return editingId
         ? updateEvent({ data: { id: editingId, patch } })
@@ -370,6 +387,31 @@ function EventsPage() {
                 onChange={(e) => setForm({ ...form, event_type: e.target.value })} />
               <Input placeholder="Featured Guest" value={form.featured_guest}
                 onChange={(e) => setForm({ ...form, featured_guest: e.target.value })} />
+              {deptId ? (
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold uppercase text-slate-600">
+                    Staff Owner — {activeDepartment?.name}
+                  </label>
+                  <input
+                    list="dept-staff-list"
+                    placeholder="Search staff by name or email…"
+                    value={ownerId}
+                    onChange={(e) => setOwnerId(e.target.value)}
+                    className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm"
+                  />
+                  <datalist id="dept-staff-list">
+                    {(deptStaff as any[]).map((s) => (
+                      <option key={s.user_id} value={s.user_id}>
+                        {s.full_name ?? s.email ?? s.user_id} ({s.roles.join(", ")})
+                      </option>
+                    ))}
+                  </datalist>
+                </div>
+              ) : (
+                <p className="text-xs text-amber-600">
+                  Select an active department in the header to assign a staff owner.
+                </p>
+              )}
               <select
                 required
                 className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm font-semibold text-slate-700"

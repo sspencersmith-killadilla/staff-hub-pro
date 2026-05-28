@@ -43,14 +43,16 @@ const venueInput = z.object({
 
 export const listVenues = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((i) =>
+    z.object({ departmentId: z.string().uuid().nullable().optional() }).parse(i ?? {}),
+  )
+  .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
-    const { data, error } = await supabaseAdmin
-      .from("venues")
-      .select("*")
-      .order("name");
+    let q = supabaseAdmin.from("venues").select("*").order("name");
+    if (data.departmentId) q = q.eq("department_id", data.departmentId);
+    const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
-    return data ?? [];
+    return rows ?? [];
   });
 
 export const getVenue = createServerFn({ method: "GET" })

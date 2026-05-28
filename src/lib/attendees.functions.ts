@@ -96,11 +96,27 @@ export const listAllAttendees = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) =>
     z
-      .object({ session_id: z.string().uuid().optional().nullable() })
+      .object({
+        session_id: z.string().uuid().optional().nullable(),
+        departmentId: z.string().uuid().optional().nullable(),
+      })
       .parse(i ?? {}),
   )
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
+
+    let allowedSessionIds: Set<string> | null = null;
+    if (data.departmentId) {
+      const { data: ds, error: dsErr } = await supabaseAdmin
+        .from("sessions")
+        .select("id")
+        .eq("department_id", data.departmentId);
+      if (dsErr) throw new Error(dsErr.message);
+      allowedSessionIds = new Set((ds ?? []).map((s: any) => s.id as string));
+      if (allowedSessionIds.size === 0) {
+        return { attendees: [], sessions: [], waitlist: [] };
+      }
+    }
 
     let q = supabaseAdmin
       .from("attendees")
@@ -109,6 +125,7 @@ export const listAllAttendees = createServerFn({ method: "GET" })
       )
       .order("created_at", { ascending: false });
     if (data.session_id) q = q.eq("ticket_tiers.session_id", data.session_id);
+    if (allowedSessionIds) q = q.in("ticket_tiers.session_id", Array.from(allowedSessionIds));
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
 
@@ -138,11 +155,13 @@ export const listAllAttendees = createServerFn({ method: "GET" })
     });
     annotateSeats(attendees);
 
-    const { data: sessions } = await supabaseAdmin
+    let sessionsQ = supabaseAdmin
       .from("sessions")
       .select("id, title, start_time")
       .order("start_time", { ascending: false })
       .limit(500);
+    if (allowedSessionIds) sessionsQ = sessionsQ.in("id", Array.from(allowedSessionIds));
+    const { data: sessions } = await sessionsQ;
 
     let waitlist: any[] = [];
     if (data.session_id) {
