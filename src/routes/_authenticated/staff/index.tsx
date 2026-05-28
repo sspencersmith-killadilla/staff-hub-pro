@@ -193,6 +193,7 @@ function EventsPage() {
   const resetForm = () => {
     setForm(emptyForm);
     setEditingId(null);
+    setOwnerId("");
   };
 
   const startEdit = (e: any) => {
@@ -209,6 +210,7 @@ function EventsPage() {
       focal_y: typeof e.focal_y === "number" ? e.focal_y : 50,
       open_to_vendors: !!e.open_to_vendors,
     });
+    setOwnerId(e.staff_owner_id ?? "");
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
