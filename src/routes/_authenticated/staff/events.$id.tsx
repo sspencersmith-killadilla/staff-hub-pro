@@ -430,6 +430,27 @@ function EventDashboard() {
         </nav>
       </header>
 
+      {(isStaff || isAdmin) && data?.staffOwner && (
+        <div className="px-8 pt-4">
+          <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm flex flex-wrap items-center gap-x-4 gap-y-1">
+            <span className="text-xs font-bold uppercase tracking-widest text-slate-500">
+              Staff Owner
+            </span>
+            <span className="font-semibold text-slate-900">
+              {data.staffOwner.full_name ?? "Unassigned"}
+            </span>
+            {data.staffOwner.email && (
+              <a
+                href={`mailto:${data.staffOwner.email}`}
+                className="text-blue-600 hover:underline"
+              >
+                {data.staffOwner.email}
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
       <main className="p-8 max-w-[1400px]">
         {!canShowActive && navItems.length === 0 && (
           <div className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">
