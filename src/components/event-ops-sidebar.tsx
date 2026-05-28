@@ -70,6 +70,7 @@ export function EventOpsSidebar() {
     <aside className="hidden md:flex w-60 shrink-0 flex-col bg-[hsl(210_60%_12%)] text-white">
       <div className="px-5 py-5 border-b border-white/10">
         <div className="text-lg font-black italic tracking-tight">EVENT OPS</div>
+        <ActiveDepartmentBadge />
       </div>
       <nav className="flex-1 overflow-y-auto py-3">
         {visibleItems.map((it) => {
