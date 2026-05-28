@@ -37,6 +37,8 @@ function AttendeesPage() {
   const qc = useQueryClient();
   const fetchAll = useServerFn(listAllAttendees);
   const doCheckIn = useServerFn(checkInAttendee);
+  const { activeDepartment } = useDepartment();
+  const departmentId = activeDepartment?.id ?? null;
 
   const [sessionFilter, setSessionFilter] = useState<string>("");
   const [search, setSearch] = useState("");
@@ -49,12 +51,13 @@ function AttendeesPage() {
   const eventSelected = sessionFilter !== "" && sessionFilter !== "all";
 
   const { data, isLoading } = useQuery({
-    queryKey: ["staff", "attendees", sessionFilter || "none"],
+    queryKey: ["staff", "attendees", sessionFilter || "none", departmentId],
     queryFn: () =>
       fetchAll({
         data: {
           session_id:
             sessionFilter && sessionFilter !== "all" ? sessionFilter : null,
+          departmentId,
         },
       }),
   });
