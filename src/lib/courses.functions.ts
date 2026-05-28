@@ -3,20 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { assertStaff, isAdmin } from "./staff-guard";
-import { loadUsaepayConfig } from "./usaepay.server";
-import { createHash, randomBytes } from "crypto";
-
-function buildAuthHeader(cfg: {
-  apiKey: string;
-  apiPin: string;
-}): string {
-  const seed = randomBytes(16).toString("hex");
-  const hash = createHash("sha256")
-    .update(cfg.apiKey + seed + cfg.apiPin)
-    .digest("hex");
-  const token = Buffer.from(`${cfg.apiKey}:${hash}:${seed}`).toString("base64");
-  return `Basic ${token}`;
-}
+import { loadUsaepayConfig, buildUsaepayAuthHeader } from "./usaepay.server";
 
 // ─── COURSES ────────────────────────────────────────────────────────────
 
