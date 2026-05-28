@@ -204,7 +204,7 @@ function GuidebookSponsorsCard() {
 
   const sponsorsQ = useQuery({
     queryKey: ["guidebook-sponsors"],
-    queryFn: () => listFn({ data: {} }),
+    queryFn: () => listFn(),
   });
 
   const [companyName, setCompanyName] = useState("");
