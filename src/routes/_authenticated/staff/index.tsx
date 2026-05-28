@@ -8,9 +8,11 @@ import {
   deleteEvent,
   bulkUpsertEvents,
   listEventLocations,
-  listDepartmentStaff,
+  listAllStaffProfiles,
+  listAssignableDepartments,
 } from "@/lib/events.functions";
 import { useDepartment } from "@/contexts/department-context";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -34,6 +36,8 @@ const emptyForm = {
   title: "",
   event_type: "",
   featured_guest: "",
+  department_id: "",
+  staff_owner_name: "",
   location: "" as string, // "room:<uuid>" or "stage:<uuid>"
   start_time: "",
   end_time: "",
@@ -62,7 +66,7 @@ const CSV_COLS = [
   "event_type",
   "featured_guest",
   "department_id",
-  "staff_owner_id",
+  "staff_owner_name",
   "room_id",
   "stage_id",
   "start_time",
@@ -159,7 +163,7 @@ function csvRowToInput(r: Record<string, string>) {
     event_type: r.event_type || null,
     featured_guest: r.featured_guest || null,
     department_id: r.department_id || null,
-    staff_owner_id: r.staff_owner_id || null,
+    staff_owner_name: r.staff_owner_name || null,
     room_id: r.room_id || null,
     stage_id: r.stage_id || null,
     start_time: toIso(r.start_time),
@@ -174,25 +178,29 @@ function csvRowToInput(r: Record<string, string>) {
 function EventsPage() {
   const qc = useQueryClient();
   const { activeDepartment } = useDepartment();
+  const { isAdmin } = useAuth();
   const deptId = activeDepartment?.id ?? null;
+  const [form, setForm] = useState(emptyForm);
+  const selectedDepartmentId = form.department_id || deptId;
   const { data: events = [] } = useQuery({
-    queryKey: ["events", deptId],
-    queryFn: () => listEvents({ data: { departmentId: deptId } }),
+    queryKey: ["events", deptId, isAdmin],
+    queryFn: () => listEvents({ data: { departmentId: deptId, includeAll: isAdmin } }),
   });
   const { data: locations } = useQuery({
-    queryKey: ["event-locations", deptId],
-    queryFn: () => listEventLocations({ data: { departmentId: deptId } }),
+    queryKey: ["event-locations", selectedDepartmentId],
+    queryFn: () => listEventLocations({ data: { departmentId: selectedDepartmentId } }),
   });
-  const { data: deptStaff = [] } = useQuery({
-    queryKey: ["dept-staff", deptId],
-    queryFn: () => (deptId ? listDepartmentStaff({ data: { departmentId: deptId } }) : Promise.resolve([])),
-    enabled: !!deptId,
+  const { data: staffProfiles = [] } = useQuery({
+    queryKey: ["assignable-staff-profiles"],
+    queryFn: () => listAllStaffProfiles(),
   });
-  const [ownerId, setOwnerId] = useState<string>("");
+  const { data: departments = [] } = useQuery({
+    queryKey: ["assignable-departments"],
+    queryFn: () => listAssignableDepartments(),
+  });
   const rooms = locations?.rooms ?? [];
   const stages = locations?.stages ?? [];
 
-  const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
@@ -204,9 +212,8 @@ function EventsPage() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const resetForm = () => {
-    setForm(emptyForm);
+    setForm({ ...emptyForm, department_id: deptId ?? "" });
     setEditingId(null);
-    setOwnerId("");
   };
 
   const startEdit = (e: any) => {
@@ -215,6 +222,8 @@ function EventsPage() {
       title: e.title ?? "",
       event_type: e.event_type ?? "",
       featured_guest: e.featured_guest ?? "",
+      department_id: e.department_id ?? deptId ?? "",
+      staff_owner_name: e.staff_owner_name ?? "",
       location: locationValue(e),
       start_time: toLocalInput(e.start_time),
       end_time: toLocalInput(e.end_time),
@@ -223,7 +232,6 @@ function EventsPage() {
       focal_y: typeof e.focal_y === "number" ? e.focal_y : 50,
       open_to_vendors: !!e.open_to_vendors,
     });
-    setOwnerId(e.staff_owner_id ?? "");
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -242,8 +250,9 @@ function EventsPage() {
         focal_x: form.focal_x,
         focal_y: form.focal_y,
         open_to_vendors: form.open_to_vendors,
-        department_id: deptId,
-        staff_owner_id: ownerId || null,
+        department_id: form.department_id || deptId,
+        staff_owner_id: null,
+        staff_owner_name: form.staff_owner_name || null,
       };
       return editingId
         ? updateEvent({ data: { id: editingId, patch } })
@@ -412,35 +421,39 @@ function EventsPage() {
                 onChange={(e) => setForm({ ...form, event_type: e.target.value })} />
               <Input placeholder="Featured Guest" value={form.featured_guest}
                 onChange={(e) => setForm({ ...form, featured_guest: e.target.value })} />
-              {deptId ? (
+              <div className="grid grid-cols-1 gap-3">
                 <div className="space-y-1">
                   <label className="text-xs font-semibold uppercase text-slate-600">
-                    Staff Owner — {activeDepartment?.name}
+                    Department
                   </label>
                   <select
-                    value={ownerId}
-                    onChange={(e) => setOwnerId(e.target.value)}
+                    value={form.department_id || deptId || ""}
+                    onChange={(e) => setForm({ ...form, department_id: e.target.value })}
                     className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm"
                   >
                     <option value="">— Unassigned —</option>
-                    {(deptStaff as any[]).map((s) => (
-                      <option key={s.user_id} value={s.user_id}>
-                        {s.email ?? s.full_name ?? s.user_id}
-                        {s.roles?.length ? ` — ${s.roles.join(", ")}` : ""}
-                      </option>
+                    {(departments as any[]).map((d) => (
+                      <option key={d.id} value={d.id}>{d.name}</option>
                     ))}
                   </select>
-                  {ownerId && !(deptStaff as any[]).some((s) => s.user_id === ownerId) && (
-                    <p className="text-[11px] text-amber-600">
-                      Current owner is not in this department's staff list.
-                    </p>
-                  )}
                 </div>
-              ) : (
-                <p className="text-xs text-amber-600">
-                  Select an active department in the header to assign a staff owner.
-                </p>
-              )}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold uppercase text-slate-600">
+                    Staff Owner
+                  </label>
+                  <Input
+                    list="staff-owner-options"
+                    placeholder="Type staff member name"
+                    value={form.staff_owner_name}
+                    onChange={(e) => setForm({ ...form, staff_owner_name: e.target.value })}
+                  />
+                  <datalist id="staff-owner-options">
+                    {(staffProfiles as any[]).map((s) => (
+                      <option key={s.id} value={s.full_name || s.email || ""} />
+                    ))}
+                  </datalist>
+                </div>
+              </div>
               <select
                 required
                 className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm font-semibold text-slate-700"
@@ -614,12 +627,9 @@ function EventsPage() {
                   <div className="text-sm text-slate-600">
                     <div>{e.event_type || "—"}</div>
                     <div className="text-xs text-slate-400">{locationLabelFor(e)}</div>
-                    {e.staff_owner_id && (
+                    {(e.staff_owner_name || e.staff_owner_id) && (
                       <div className="text-xs text-slate-500 mt-0.5">
-                        Owner: {(() => {
-                          const s = (deptStaff as any[]).find((x) => x.user_id === e.staff_owner_id);
-                          return s?.email ?? s?.full_name ?? "Unknown";
-                        })()}
+                        Owner: {e.staff_owner_name || "Assigned staff"}
                       </div>
                     )}
                   </div>

@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
+import { normalizeBrandCss } from "@/components/theme-provider";
 
 type Props = {
   event: any;
   sponsors: any[];
   talent: any[];
+  brandCss?: Record<string, unknown> | null;
 };
 
 const EXPORT_SIZES: Record<string, { w: number; h: number }> = {
@@ -143,11 +145,20 @@ async function toDataURL(url: string): Promise<string> {
   throw lastErr ?? new Error("failed to fetch image");
 }
 
-export default function EventMarketingHub({ event, sponsors, talent }: Props) {
+export default function EventMarketingHub({ event, sponsors, talent, brandCss }: Props) {
   const [activeTab, setActiveTab] = useState<"flyer" | "ig" | "fb">("flyer");
   const [ticketsHref, setTicketsHref] = useState("https://mckinneylibrary.org/tickets");
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const [isDownloading, setIsDownloading] = useState(false);
+  const brand = normalizeBrandCss(brandCss ?? (event as any)?.departments?.brand_css ?? (event as any)?.department?.brand_css ?? null);
+  const brandVars = {
+    "--marketing-primary": brand["--brand-primary"] ?? brand["--primary"] ?? "#093140",
+    "--marketing-accent": brand["--brand-accent"] ?? brand["--accent"] ?? "#0d9488",
+    "--marketing-surface": brand["--brand-surface"] ?? brand["--card"] ?? "#ffffff",
+    "--marketing-muted": brand["--muted"] ?? "#f0fdfa",
+    "--marketing-text": brand["--brand-text"] ?? brand["--foreground"] ?? "#093140",
+    "--marketing-border": brand["--border"] ?? "rgba(20,90,109,0.2)",
+  } as CSSProperties;
 
   // Resolve venue/sub-stage/sub-room hierarchy.
   // Sessions link to either a stage (with parent venue) or a room (with parent venue).
@@ -401,7 +412,18 @@ export default function EventMarketingHub({ event, sponsors, talent }: Props) {
   };
 
   return (
-    <div className="-m-8">
+    <div className="-m-8" style={brandVars}>
+      <style>{`
+        #flyer-capture-zone, #ig-capture-zone, #fb-capture-zone { background: var(--marketing-primary) !important; }
+        #flyer-capture-zone > div, #ig-capture-zone > div, #fb-capture-zone > div { background: var(--marketing-surface) !important; border-color: var(--marketing-border) !important; }
+        #flyer-capture-zone h1, #ig-capture-zone h1, #fb-capture-zone h1 { color: var(--marketing-text) !important; }
+        #flyer-capture-zone .text-teal-600, #flyer-capture-zone .text-teal-700, #flyer-capture-zone .text-teal-800,
+        #ig-capture-zone .text-teal-600, #ig-capture-zone .text-teal-700, #ig-capture-zone .text-teal-800,
+        #fb-capture-zone p { border-color: var(--marketing-border); }
+        #flyer-capture-zone .text-teal-600, #flyer-capture-zone .text-teal-700, #flyer-capture-zone .text-teal-800,
+        #ig-capture-zone .text-teal-600, #ig-capture-zone .text-teal-700, #ig-capture-zone .text-teal-800 { color: var(--marketing-accent) !important; }
+        #flyer-capture-zone .bg-teal-50, #ig-capture-zone .bg-teal-50 { background: var(--marketing-muted) !important; }
+      `}</style>
       {/* ACTION BAR */}
       <div className="bg-[#093140] text-white p-4 flex flex-col md:flex-row md:justify-between md:items-center gap-4 shadow-lg">
         <div className="flex flex-wrap gap-2">

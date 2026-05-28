@@ -20,6 +20,19 @@ export type AdminDepartment = {
   room_policy_text: string | null;
 };
 
+export const listDepartmentsForAssignment = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ id: string; name: string }[]> => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("departments")
+      .select("id, name")
+      .order("name", { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { id: string; name: string }[];
+  });
+
 export const listDepartmentsAdmin = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<AdminDepartment[]> => {

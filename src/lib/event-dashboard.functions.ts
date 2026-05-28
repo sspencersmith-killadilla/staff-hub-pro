@@ -48,7 +48,7 @@ export const getEventDashboard = createServerFn({ method: "GET" })
     ]);
 
     // Soft-fetch staff owner profile (migration 019: sessions.staff_owner_id).
-    let staffOwner: { id: string; full_name: string | null; email: string | null } | null = null;
+    let staffOwner: { id: string | null; full_name: string | null; email: string | null } | null = null;
     try {
       const ownerId = (sess.data as any)?.staff_owner_id;
       if (ownerId) {
@@ -59,12 +59,27 @@ export const getEventDashboard = createServerFn({ method: "GET" })
           .maybeSingle();
         if (prof) staffOwner = prof as any;
       }
+      if (!staffOwner && (sess.data as any)?.staff_owner_name) {
+        staffOwner = { id: null, full_name: (sess.data as any).staff_owner_name, email: null };
+      }
     } catch {
       /* column not present yet */
     }
 
+    let department: { id: string; name: string; brand_css: Record<string, string> | null } | null = null;
+    const departmentId = (sess.data as any)?.department_id;
+    if (departmentId) {
+      const { data: dept } = await supabaseAdmin
+        .from("departments")
+        .select("id, name, brand_css")
+        .eq("id", departmentId)
+        .maybeSingle();
+      department = (dept as any) ?? null;
+    }
+
     return {
       session: sess.data ?? null,
+      department,
       attendees: att.data ?? [],
       talent: tal.data ?? [],
       volunteers: vol.data ?? [],

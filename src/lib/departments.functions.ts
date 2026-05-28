@@ -52,7 +52,7 @@ export const getDepartmentHub = createServerFn({ method: "GET" })
     if (deptErr) throw new Error(deptErr.message);
     if (!dept) throw new Error("Department not found");
 
-    const [sessionsRes, roomsRes] = await Promise.all([
+    const [sessionsRes, roomsRes, venueRoomsRes] = await Promise.all([
       supabaseAdmin
         .from("sessions")
         .select("id, title, start_time, end_time, image_url, focal_x, focal_y")
@@ -65,14 +65,24 @@ export const getDepartmentHub = createServerFn({ method: "GET" })
         .select("id, name, capacity, image_url, instant_bookable, venue:venues(id, name, city)")
         .eq("department_id", data.id)
         .limit(24),
+      supabaseAdmin
+        .from("rooms")
+        .select("id, name, capacity, image_url, instant_bookable, venue:venues!inner(id, name, city, department_id)")
+        .eq("venues.department_id", data.id)
+        .limit(24),
     ]);
 
     if (sessionsRes.error) throw new Error(sessionsRes.error.message);
     if (roomsRes.error) throw new Error(roomsRes.error.message);
+    if (venueRoomsRes.error) throw new Error(venueRoomsRes.error.message);
+    const roomsById = new Map<string, any>();
+    for (const room of [...(roomsRes.data ?? []), ...(venueRoomsRes.data ?? [])]) {
+      roomsById.set(String((room as any).id), room);
+    }
 
     return {
       department: dept as Department,
       events: sessionsRes.data ?? [],
-      rooms: roomsRes.data ?? [],
+      rooms: Array.from(roomsById.values()),
     };
   });

@@ -22,6 +22,7 @@ const sessionInput = z.object({
   open_to_vendors: z.boolean().optional(),
   department_id: z.string().uuid().nullable().optional(),
   staff_owner_id: z.string().uuid().nullable().optional(),
+  staff_owner_name: z.string().trim().max(200).nullable().optional(),
 });
 
 type SessionInput = z.infer<typeof sessionInput>;
@@ -48,6 +49,7 @@ function toSessionRow(data: SessionInput) {
     accepts_vendors: data.open_to_vendors ?? false,
     department_id: data.department_id ?? null,
     staff_owner_id: data.staff_owner_id ?? null,
+    staff_owner_name: data.staff_owner_name ?? null,
   };
   return row;
 }
@@ -65,7 +67,9 @@ function fromSessionRow(row: any) {
 export const listEvents = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) =>
-    z.object({ departmentId: z.string().uuid().nullable().optional() }).parse(i ?? {}),
+    z
+      .object({ departmentId: z.string().uuid().nullable().optional(), includeAll: z.boolean().optional() })
+      .parse(i ?? {}),
   )
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
@@ -73,10 +77,42 @@ export const listEvents = createServerFn({ method: "GET" })
       .from("sessions")
       .select("*, stages(id,name), rooms(id,name)")
       .order("start_time", { ascending: true, nullsFirst: false });
-    if (data.departmentId) q = q.eq("department_id", data.departmentId);
+    if (data.departmentId && !data.includeAll) q = q.eq("department_id", data.departmentId);
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
     return (rows ?? []).map(fromSessionRow);
+  });
+
+export const listAllStaffProfiles = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context.userId);
+    const { data: roles, error: roleError } = await supabaseAdmin
+      .from("user_roles")
+      .select("user_id")
+      .in("role", ["staff", "admin"]);
+    if (roleError) throw new Error(roleError.message);
+    const userIds = Array.from(new Set((roles ?? []).map((r: any) => r.user_id).filter(Boolean)));
+    if (userIds.length === 0) return [];
+    const { data, error } = await supabaseAdmin
+      .from("profiles")
+      .select("id, full_name, email")
+      .in("id", userIds)
+      .order("full_name", { ascending: true, nullsFirst: false });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const listAssignableDepartments = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context.userId);
+    const { data, error } = await supabaseAdmin
+      .from("departments")
+      .select("id, name")
+      .order("name", { ascending: true });
+    if (error) throw new Error(error.message);
+    return data ?? [];
   });
 
 export const listEventLocations = createServerFn({ method: "GET" })
@@ -200,10 +236,19 @@ export const updateEvent = createServerFn({ method: "POST" })
     }
     const patch = toSessionRow({ title: "x", ...data.patch } as SessionInput);
     if (!("title" in data.patch)) delete (patch as any).title;
+    if (!("event_type" in data.patch)) delete (patch as any).event_type;
+    if (!("featured_guest" in data.patch)) delete (patch as any).speaker_name;
     if (!("room_id" in data.patch)) delete (patch as any).room_id;
     if (!("stage_id" in data.patch)) delete (patch as any).stage_id;
+    if (!("start_time" in data.patch)) delete (patch as any).start_time;
+    if (!("end_time" in data.patch)) delete (patch as any).end_time;
+    if (!("image_url" in data.patch)) delete (patch as any).image_url;
     if (!("focal_x" in data.patch)) delete (patch as any).focal_x;
     if (!("focal_y" in data.patch)) delete (patch as any).focal_y;
+    if (!("open_to_vendors" in data.patch)) delete (patch as any).accepts_vendors;
+    if (!("department_id" in data.patch)) delete (patch as any).department_id;
+    if (!("staff_owner_id" in data.patch)) delete (patch as any).staff_owner_id;
+    if (!("staff_owner_name" in data.patch)) delete (patch as any).staff_owner_name;
     const { data: row, error } = await supabaseAdmin
       .from("sessions")
       .update(patch)
