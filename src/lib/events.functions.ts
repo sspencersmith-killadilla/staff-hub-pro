@@ -81,29 +81,72 @@ export const listEvents = createServerFn({ method: "GET" })
 
 export const listEventLocations = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((i) =>
+    z.object({ departmentId: z.string().uuid().nullable().optional() }).parse(i ?? {}),
+  )
+  .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
+    const roomsQ = supabaseAdmin.from("rooms").select("id, name, venue_id, department_id").order("name");
+    const stagesQ = supabaseAdmin.from("stages").select("id, name, venue_id").order("name");
+    const venuesQ = supabaseAdmin.from("venues").select("id, name, department_id");
     const [rooms, stages, venues] = await Promise.all([
-      supabaseAdmin.from("rooms").select("id, name, venue_id").order("name"),
-      supabaseAdmin.from("stages").select("id, name, venue_id").order("name"),
-      supabaseAdmin.from("venues").select("id, name"),
+      data.departmentId ? roomsQ.eq("department_id", data.departmentId) : roomsQ,
+      stagesQ,
+      data.departmentId ? venuesQ.eq("department_id", data.departmentId) : venuesQ,
     ]);
     if (rooms.error) throw new Error(rooms.error.message);
     if (stages.error) throw new Error(stages.error.message);
     if (venues.error) throw new Error(venues.error.message);
     const venueName = new Map((venues.data ?? []).map((v: any) => [v.id, v.name]));
+    // When a department filter is active, restrict stages to venues in the same department.
+    const stageRows = data.departmentId
+      ? (stages.data ?? []).filter((s: any) => venueName.has(s.venue_id))
+      : (stages.data ?? []);
     return {
       rooms: (rooms.data ?? []).map((r: any) => ({
         id: r.id,
         name: r.name,
         venue_name: venueName.get(r.venue_id) ?? null,
       })),
-      stages: (stages.data ?? []).map((s: any) => ({
+      stages: stageRows.map((s: any) => ({
         id: s.id,
         name: s.name,
         venue_name: venueName.get(s.venue_id) ?? null,
       })),
     };
+  });
+
+/** Users assigned to a department via department_roles — used to pick a staff owner. */
+export const listDepartmentStaff = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ departmentId: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    const { data: roles, error } = await supabaseAdmin
+      .from("department_roles")
+      .select("user_id, role")
+      .eq("department_id", data.departmentId);
+    if (error) {
+      if (/relation .* does not exist/i.test(error.message)) return [];
+      throw new Error(error.message);
+    }
+    const userIds = Array.from(new Set((roles ?? []).map((r: any) => r.user_id)));
+    if (userIds.length === 0) return [];
+    const { data: profiles } = await supabaseAdmin
+      .from("profiles")
+      .select("id, full_name, email")
+      .in("id", userIds);
+    const profById = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+    return userIds.map((id) => {
+      const p: any = profById.get(id) ?? {};
+      const roleList = (roles ?? []).filter((r: any) => r.user_id === id).map((r: any) => r.role);
+      return {
+        user_id: id,
+        full_name: p.full_name ?? null,
+        email: p.email ?? null,
+        roles: roleList,
+      };
+    });
   });
 
 export const createEvent = createServerFn({ method: "POST" })
