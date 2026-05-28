@@ -311,8 +311,15 @@ export const bulkUpsertEvents = createServerFn({ method: "POST" })
       const row = data.rows[i];
       try {
         assertRoomOrStage(row);
+        await assertCanManageDepartment(context.userId, row.department_id ?? null);
         const payload = toSessionRow(row);
         if (row.id) {
+          const { data: existing } = await supabaseAdmin
+            .from("sessions")
+            .select("department_id")
+            .eq("id", row.id)
+            .maybeSingle();
+          await assertCanManageDepartment(context.userId, existing?.department_id ?? null);
           const { error } = await supabaseAdmin
             .from("sessions")
             .update(payload)
