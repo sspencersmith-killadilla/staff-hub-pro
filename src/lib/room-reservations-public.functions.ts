@@ -101,6 +101,19 @@ export const submitReservationRequest = createServerFn({ method: "POST" })
       throw new Error("This room is not publicly bookable");
     }
 
+    // Soft-fetch instant_bookable flag (migration 019). Defaults to false.
+    let instantBookable = false;
+    try {
+      const { data: extra } = await supabaseAdmin
+        .from("rooms")
+        .select("instant_bookable")
+        .eq("id", data.room_id)
+        .maybeSingle();
+      instantBookable = !!extra?.instant_bookable;
+    } catch {
+      instantBookable = false;
+    }
+
     const { data: venue } = await supabaseAdmin
       .from("venues")
       .select("open_hours, closures")
