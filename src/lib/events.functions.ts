@@ -64,14 +64,19 @@ function fromSessionRow(row: any) {
 
 export const listEvents = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((i) =>
+    z.object({ departmentId: z.string().uuid().nullable().optional() }).parse(i ?? {}),
+  )
+  .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
-    const { data, error } = await supabaseAdmin
+    let q = supabaseAdmin
       .from("sessions")
       .select("*, stages(id,name), rooms(id,name)")
       .order("start_time", { ascending: true, nullsFirst: false });
+    if (data.departmentId) q = q.eq("department_id", data.departmentId);
+    const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
-    return (data ?? []).map(fromSessionRow);
+    return (rows ?? []).map(fromSessionRow);
   });
 
 export const listEventLocations = createServerFn({ method: "GET" })
