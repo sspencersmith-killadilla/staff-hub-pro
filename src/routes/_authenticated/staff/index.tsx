@@ -158,11 +158,22 @@ function csvRowToInput(r: Record<string, string>) {
 
 function EventsPage() {
   const qc = useQueryClient();
-  const { data: events = [] } = useQuery({ queryKey: ["events"], queryFn: () => listEvents() });
-  const { data: locations } = useQuery({
-    queryKey: ["event-locations"],
-    queryFn: () => listEventLocations(),
+  const { activeDepartment } = useDepartment();
+  const deptId = activeDepartment?.id ?? null;
+  const { data: events = [] } = useQuery({
+    queryKey: ["events", deptId],
+    queryFn: () => listEvents({ data: { departmentId: deptId } }),
   });
+  const { data: locations } = useQuery({
+    queryKey: ["event-locations", deptId],
+    queryFn: () => listEventLocations({ data: { departmentId: deptId } }),
+  });
+  const { data: deptStaff = [] } = useQuery({
+    queryKey: ["dept-staff", deptId],
+    queryFn: () => (deptId ? listDepartmentStaff({ data: { departmentId: deptId } }) : Promise.resolve([])),
+    enabled: !!deptId,
+  });
+  const [ownerId, setOwnerId] = useState<string>("");
   const rooms = locations?.rooms ?? [];
   const stages = locations?.stages ?? [];
 
