@@ -276,22 +276,6 @@ function HubPage() {
   );
 }
 
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="mb-10">
-      <h2 className="mb-4 text-sm font-black uppercase tracking-widest text-[#002f49]">
-        {title}
-      </h2>
-      {children}
-    </section>
-  );
-}
 
 function Grid({ actions }: { actions: Action[] }) {
   if (actions.length === 0) {
