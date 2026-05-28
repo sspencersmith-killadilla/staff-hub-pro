@@ -5,6 +5,7 @@ import {
   listVenues, getVenue, createVenue, updateVenue, deleteVenue,
   createStage, updateStage, deleteStage,
   createRoom, updateRoom, deleteRoom,
+  listLocationDepartments,
 } from "@/lib/venues.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ import { Trash2, Plus, ChevronRight } from "lucide-react";
 import { RoomDetailsEditor } from "@/components/room-details-editor";
 
 import { useDepartment } from "@/contexts/department-context";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/staff/venues")({
   component: VenuesPage,
@@ -23,11 +25,13 @@ export const Route = createFileRoute("/_authenticated/staff/venues")({
 function VenuesPage() {
   const qc = useQueryClient();
   const { activeDepartment } = useDepartment();
+  const { isAdmin } = useAuth();
   const departmentId = activeDepartment?.id ?? null;
   const { data: venues = [] } = useQuery({
-    queryKey: ["venues", departmentId],
-    queryFn: () => listVenues({ data: { departmentId } }),
+    queryKey: ["venues", departmentId, isAdmin],
+    queryFn: () => listVenues({ data: { departmentId, includeAll: isAdmin } }),
   });
+
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [newName, setNewName] = useState("");
 
