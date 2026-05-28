@@ -26,11 +26,11 @@ async function fetchData(
   endIso: string,
   departmentId: string | null | undefined,
 ) {
-  // Events (sessions)
+  // Events (sessions) — note: `sessions` has no description column
   let sessQ = supabaseAdmin
     .from("sessions")
     .select(
-      "id, title, description, start_time, end_time, department_id, stage_id, room_id, stages(id, name, venue_id), rooms(id, name, venue_id)",
+      "id, title, speaker_name, start_time, end_time, department_id, stage_id, room_id, stages(id, name, venue_id), rooms(id, name, venue_id)",
     )
     .gte("start_time", startIso)
     .lte("start_time", endIso)
