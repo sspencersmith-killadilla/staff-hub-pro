@@ -46,6 +46,8 @@ function toSessionRow(data: SessionInput) {
     focal_x: data.focal_x ?? 50,
     focal_y: data.focal_y ?? 50,
     accepts_vendors: data.open_to_vendors ?? false,
+    department_id: data.department_id ?? null,
+    staff_owner_id: data.staff_owner_id ?? null,
   };
   return row;
 }
