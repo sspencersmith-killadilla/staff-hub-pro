@@ -112,6 +112,7 @@ const groups: { label: string; sectionIds: string[] }[] = [
       "admin-departments",
       "admin-dept-roles",
       "admin-modules",
+      "admin-guidebook",
     ],
   },
 ];
