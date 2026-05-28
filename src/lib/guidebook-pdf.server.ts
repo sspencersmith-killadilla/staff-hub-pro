@@ -629,3 +629,164 @@ export async function buildGuidebookPdf(input: GuidebookInput): Promise<Uint8Arr
   drawPageFooter(ctx);
   return await doc.save();
 }
+
+// ── Layout-driven renderer ──────────────────────────────────────────────
+export type CanvasLayoutItem = {
+  id: string;
+  kind: "section" | "event" | "gig" | "class" | "ad";
+  refId?: string | null;
+  label?: string | null;
+  hidden?: boolean;
+  overrides?: {
+    title?: string | null;
+    description?: string | null;
+    adCopy?: string | null;
+  } | null;
+};
+
+async function drawHalfPageAdFor(ctx: Ctx, sponsor: GuidebookSponsor) {
+  ensureSpace(ctx, 240);
+  const top = ctx.y;
+  const h = 220;
+  const bottom = top - h;
+  ctx.page.drawRectangle({
+    x: MARGIN, y: bottom, width: PAGE_W - 2 * MARGIN, height: h,
+    borderColor: ACCENT, borderWidth: 1.5,
+  });
+  ctx.page.drawText("SPONSORED", { x: MARGIN + 14, y: top - 18, size: 8, font: ctx.bold, color: ACCENT });
+  ctx.page.drawText(sponsor.company_name, { x: MARGIN + 14, y: top - 42, size: 18, font: ctx.bold, color: NAVY });
+  const logo = await embedLogo(ctx, sponsor);
+  if (logo) {
+    const scale = Math.min(140 / logo.width, 140 / logo.height);
+    const lw = logo.width * scale;
+    const lh = logo.height * scale;
+    ctx.page.drawImage(logo, { x: PAGE_W - MARGIN - lw - 14, y: bottom + (h - lh) / 2, width: lw, height: lh });
+  }
+  if (sponsor.ad_copy) {
+    const lines = wrapText(sponsor.ad_copy, ctx.font, 11, PAGE_W - 2 * MARGIN - 180);
+    let yy = top - 70;
+    for (const ln of lines.slice(0, 8)) {
+      ctx.page.drawText(ln, { x: MARGIN + 14, y: yy, size: 11, font: ctx.font, color: NAVY });
+      yy -= 15;
+    }
+  }
+  ctx.y = bottom - 20;
+  ctx.pagesSinceAd = 0;
+}
+
+export async function buildGuidebookPdfFromLayout(
+  input: GuidebookInput,
+  layout: CanvasLayoutItem[],
+): Promise<Uint8Array> {
+  const doc = await PDFDocument.create();
+  doc.setTitle(input.title);
+  doc.setCreator("Total Events System Solutions");
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const italic = await doc.embedFont(StandardFonts.HelveticaOblique);
+
+  const ctx: Ctx = {
+    doc,
+    page: doc.addPage([PAGE_W, PAGE_H]),
+    y: PAGE_H - MARGIN,
+    font, bold, italic,
+    pageNum: 1,
+    sponsors: input.sponsors,
+    sponsorIdx: 0,
+    pagesSinceAd: 0,
+  };
+
+  // Cover (same as default)
+  ctx.page.drawRectangle({ x: 0, y: PAGE_H - 220, width: PAGE_W, height: 220, color: NAVY });
+  ctx.page.drawText("PROGRAM", { x: MARGIN, y: PAGE_H - 110, size: 48, font: bold, color: rgb(1, 1, 1) });
+  ctx.page.drawText("GUIDE", { x: MARGIN, y: PAGE_H - 160, size: 48, font: bold, color: ACCENT });
+  ctx.page.drawText(input.title, { x: MARGIN, y: PAGE_H - 190, size: 14, font: italic, color: rgb(1, 1, 1) });
+  ctx.page.drawText(`${fmtDateLong(input.startDate)} – ${fmtDateLong(input.endDate)}`, {
+    x: MARGIN, y: PAGE_H - 260, size: 14, font: bold, color: NAVY,
+  });
+  ctx.page.drawText("Custom layout edition", {
+    x: MARGIN, y: PAGE_H - 285, size: 11, font, color: MUTED,
+  });
+  const heroSponsor = input.sponsors[0];
+  if (heroSponsor) {
+    const logo = await embedLogo(ctx, heroSponsor);
+    if (logo) {
+      const scale = Math.min(220 / logo.width, 180 / logo.height);
+      const lw = logo.width * scale, lh = logo.height * scale;
+      ctx.page.drawImage(logo, { x: (PAGE_W - lw) / 2, y: 180, width: lw, height: lh });
+      ctx.page.drawText(heroSponsor.company_name, {
+        x: (PAGE_W - bold.widthOfTextAtSize(heroSponsor.company_name, 14)) / 2,
+        y: 160, size: 14, font: bold, color: NAVY,
+      });
+    }
+  }
+
+  newPage(ctx);
+
+  const eventsById = new Map(input.events.map((e) => [e.id, e]));
+  const gigsById = new Map(input.gigs.map((g) => [g.id, g]));
+  const classesById = new Map(input.classes.map((c) => [c.id, c]));
+  const sponsorsById = new Map(input.sponsors.map((s) => [s.id, s]));
+
+  for (const item of layout) {
+    if (item.hidden) continue;
+    if (item.kind === "section") {
+      drawSectionHeader(ctx, item.label || "Section");
+      continue;
+    }
+    if (item.kind === "event") {
+      const base = eventsById.get(item.refId || "");
+      if (!base) continue;
+      drawEvent(ctx, {
+        ...base,
+        title: item.overrides?.title || base.title,
+        description: item.overrides?.description ?? base.description,
+      });
+      continue;
+    }
+    if (item.kind === "gig") {
+      const base = gigsById.get(item.refId || "");
+      if (!base) continue;
+      drawGig(ctx, { ...base, title: item.overrides?.title || base.title });
+      continue;
+    }
+    if (item.kind === "class") {
+      const base = classesById.get(item.refId || "");
+      if (!base) continue;
+      ensureSpace(ctx, 40);
+      const title = item.overrides?.title || base.course_title;
+      ctx.page.drawText(`${fmtTime(base.start_time)} — ${title}`, {
+        x: MARGIN, y: ctx.y, size: 11, font: bold, color: NAVY,
+      });
+      ctx.y -= 14;
+      const meta = [
+        base.venue_name && base.room_name ? `${base.venue_name} · ${base.room_name}` : base.room_name ?? base.venue_name ?? "",
+        base.instructor_name ? `Instructor: ${base.instructor_name}` : "",
+        base.department_name ?? "",
+        base.price > 0 ? `$${base.price.toFixed(2)}` : "Free",
+      ].filter(Boolean).join("  ·  ");
+      if (meta) {
+        ctx.page.drawText(meta, { x: MARGIN, y: ctx.y, size: 9, font, color: MUTED });
+        ctx.y -= 16;
+      } else ctx.y -= 6;
+      const descLines = item.overrides?.description
+        ? wrapText(item.overrides.description, font, 9.5, PAGE_W - 2 * MARGIN).slice(0, 3)
+        : [];
+      for (const ln of descLines) {
+        ctx.page.drawText(ln, { x: MARGIN, y: ctx.y, size: 9.5, font, color: NAVY });
+        ctx.y -= 12;
+      }
+      continue;
+    }
+    if (item.kind === "ad") {
+      const base = sponsorsById.get(item.refId || "");
+      if (!base) continue;
+      const sponsor = { ...base, ad_copy: item.overrides?.adCopy ?? base.ad_copy };
+      await drawHalfPageAdFor(ctx, sponsor);
+      continue;
+    }
+  }
+
+  drawPageFooter(ctx);
+  return await doc.save();
+}
