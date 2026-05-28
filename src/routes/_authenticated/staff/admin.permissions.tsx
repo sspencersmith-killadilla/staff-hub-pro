@@ -9,6 +9,12 @@ import {
   listEventsForPermissions,
 } from "@/lib/staff-permissions.functions";
 import {
+  listDepartmentsAdmin,
+  listUserDepartmentRoles,
+  assignUserDepartmentRole,
+  removeUserDepartmentRole,
+} from "@/lib/departments-admin.functions";
+import {
   PAGE_PERMISSIONS,
   EVENT_PERMISSIONS,
   type PermissionKey,
@@ -166,7 +172,9 @@ function PermissionEditor({
   staff: StaffRow;
   onSaved: () => void;
 }) {
-  const [tab, setTab] = useState<"global" | "event">("global");
+  const [tab, setTab] = useState<"global" | "event" | "departments">(
+    staff.isAdmin ? "departments" : "global",
+  );
   const [globalSet, setGlobalSet] = useState<Set<string>>(
     () => new Set(staff.global),
   );
@@ -185,39 +193,46 @@ function PermissionEditor({
     onSuccess: onSaved,
   });
 
-  if (staff.isAdmin) {
-    return (
-      <Card>
-        <CardContent className="p-8 text-sm text-muted-foreground">
-          {staff.email} is an admin and has full access to every page and tab.
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card>
       <CardHeader>
         <CardTitle>{staff.email}</CardTitle>
-        <div className="flex gap-2 pt-2">
+        <div className="flex flex-wrap gap-2 pt-2">
+          {!staff.isAdmin && (
+            <>
+              <Button
+                size="sm"
+                variant={tab === "global" ? "default" : "outline"}
+                onClick={() => setTab("global")}
+              >
+                Global defaults
+              </Button>
+              <Button
+                size="sm"
+                variant={tab === "event" ? "default" : "outline"}
+                onClick={() => setTab("event")}
+              >
+                Per-event overrides
+              </Button>
+            </>
+          )}
           <Button
             size="sm"
-            variant={tab === "global" ? "default" : "outline"}
-            onClick={() => setTab("global")}
+            variant={tab === "departments" ? "default" : "outline"}
+            onClick={() => setTab("departments")}
           >
-            Global defaults
-          </Button>
-          <Button
-            size="sm"
-            variant={tab === "event" ? "default" : "outline"}
-            onClick={() => setTab("event")}
-          >
-            Per-event overrides
+            Departments
           </Button>
         </div>
+        {staff.isAdmin && (
+          <p className="text-xs text-muted-foreground pt-2">
+            {staff.email} is an admin with full access to every page and tab.
+            Use the Departments tab to assign tenant-level roles.
+          </p>
+        )}
       </CardHeader>
       <CardContent className="space-y-6">
-        {tab === "global" && (
+        {tab === "global" && !staff.isAdmin && (
           <GlobalGrid
             globalSet={globalSet}
             setGlobalSet={setGlobalSet}
@@ -225,7 +240,7 @@ function PermissionEditor({
             saving={saveGlobal.isPending}
           />
         )}
-        {tab === "event" && (
+        {tab === "event" && !staff.isAdmin && (
           <div className="space-y-4">
             <div>
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1 block">
@@ -258,8 +273,133 @@ function PermissionEditor({
             )}
           </div>
         )}
+        {tab === "departments" && <DepartmentAssignments userId={staff.userId} />}
       </CardContent>
     </Card>
+  );
+}
+
+function DepartmentAssignments({ userId }: { userId: string }) {
+  const qc = useQueryClient();
+  const { data: departments = [] } = useQuery({
+    queryKey: ["admin-departments"],
+    queryFn: () => listDepartmentsAdmin(),
+  });
+  const { data: assignments = [], isLoading } = useQuery({
+    queryKey: ["user-department-roles", userId],
+    queryFn: () => listUserDepartmentRoles({ data: { userId } }),
+  });
+
+  const [departmentId, setDepartmentId] = useState<string>("");
+  const [role, setRole] = useState<"dept_admin" | "staff">("staff");
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["user-department-roles", userId] });
+  };
+
+  const assign = useMutation({
+    mutationFn: () =>
+      assignUserDepartmentRole({
+        data: { userId, departmentId, role },
+      }),
+    onSuccess: () => {
+      setDepartmentId("");
+      invalidate();
+    },
+  });
+  const remove = useMutation({
+    mutationFn: (id: string) => removeUserDepartmentRole({ data: { id } }),
+    onSuccess: invalidate,
+  });
+
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-muted-foreground">
+        Assign this user to one or more departments and grant either
+        <strong> dept_admin</strong> or <strong>staff</strong> access scoped to
+        that department.
+      </p>
+
+      <div className="rounded-md border divide-y">
+        {isLoading ? (
+          <p className="p-3 text-sm text-muted-foreground">Loading…</p>
+        ) : assignments.length === 0 ? (
+          <p className="p-3 text-sm text-muted-foreground">
+            No department assignments yet.
+          </p>
+        ) : (
+          assignments.map((a) => (
+            <div
+              key={a.id}
+              className="flex items-center justify-between gap-3 px-3 py-2"
+            >
+              <div>
+                <div className="text-sm font-medium">{a.department_name}</div>
+                <div className="text-xs text-muted-foreground">{a.role}</div>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => remove.mutate(a.id)}
+                disabled={remove.isPending}
+              >
+                Remove
+              </Button>
+            </div>
+          ))
+        )}
+      </div>
+
+      <form
+        className="flex flex-wrap items-end gap-2 pt-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!departmentId) return;
+          assign.mutate();
+        }}
+      >
+        <div className="flex-1 min-w-[200px]">
+          <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1 block">
+            Department
+          </label>
+          <Select value={departmentId} onValueChange={setDepartmentId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Pick a department…" />
+            </SelectTrigger>
+            <SelectContent>
+              {departments.map((d) => (
+                <SelectItem key={d.id} value={d.id}>
+                  {d.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1 block">
+            Role
+          </label>
+          <Select value={role} onValueChange={(v) => setRole(v as any)}>
+            <SelectTrigger className="w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="staff">staff</SelectItem>
+              <SelectItem value="dept_admin">dept_admin</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <Button type="submit" disabled={!departmentId || assign.isPending}>
+          {assign.isPending ? "Assigning…" : "Assign"}
+        </Button>
+      </form>
+      {assign.error && (
+        <p className="text-sm text-destructive">{(assign.error as Error).message}</p>
+      )}
+      {remove.error && (
+        <p className="text-sm text-destructive">{(remove.error as Error).message}</p>
+      )}
+    </div>
   );
 }
 
