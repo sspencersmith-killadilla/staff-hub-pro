@@ -21,7 +21,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       for (const [rawKey, rawVal] of Object.entries(brand)) {
         if (typeof rawVal !== "string") continue;
         const key = rawKey.startsWith("--") ? rawKey : `--${rawKey}`;
-        root.style.setProperty(key, rawVal);
+        // Use !important so class-scoped overrides like `.dark { --primary: ... }`
+        // in src/styles.css do not beat the active department's brand tokens.
+        root.style.setProperty(key, rawVal, "important");
         applied.push(key);
       }
     }
