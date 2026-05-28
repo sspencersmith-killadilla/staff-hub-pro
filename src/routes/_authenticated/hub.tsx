@@ -176,19 +176,19 @@ function HubPage() {
             </div>
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/80">
-                Your festival, your way
+                Your Community, your way
               </p>
               <h2 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">
-                My Schedule
+                My Favorites
               </h2>
               <p className="mt-1 max-w-xl text-sm text-white/90">
                 Tap the heart on any event, artist, vendor, room, or venue —
-                everything you save lands here as a personalized itinerary.
+                everything you save lands here as a personalized favorites.
               </p>
             </div>
           </div>
           <span className="hidden shrink-0 rounded-full bg-white/15 px-4 py-2 text-xs font-bold uppercase tracking-wider backdrop-blur group-hover:bg-white/25 md:inline-flex">
-            Open itinerary →
+            Tap the heart on any event, artist, vendor, room, or venue — everything you save lands here as a personalized favorites.
           </span>
         </Link>
 
