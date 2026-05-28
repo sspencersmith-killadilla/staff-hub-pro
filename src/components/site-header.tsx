@@ -49,6 +49,12 @@ export function SiteHeader() {
           >
             Events
           </Link>
+          <Link
+            to="/classes"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            Classes
+          </Link>
           {isEnabled("room_reservations") && (
             <Link
               to="/rooms"

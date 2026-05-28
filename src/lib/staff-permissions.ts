@@ -56,6 +56,7 @@ export const PAGE_PERMISSIONS = [
   { key: "page.community_orgs", label: "Community Orgs" },
   { key: "page.community_events", label: "Community Events" },
   { key: "page.room_reservations", label: "Room Reservations" },
+  { key: "page.classes", label: "Class Management" },
   { key: "page.settings", label: "Platform Settings" },
 ] as const;
 
