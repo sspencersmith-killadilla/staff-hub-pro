@@ -70,11 +70,13 @@ function RoomReservationsPage() {
   const qc = useQueryClient();
   const { activeDepartment } = useDepartment();
   const departmentId = activeDepartment?.id ?? null;
+  const [scope, setScope] = useState<"inbound" | "outbound">("inbound");
   const [status, setStatus] = useState<Status>("pending");
 
   const { data: rows = [], isLoading } = useQuery({
-    queryKey: ["reservations", status, departmentId],
-    queryFn: () => listReservations({ data: { status, departmentId } }),
+    queryKey: ["reservations", scope, status, departmentId],
+    queryFn: () =>
+      listReservations({ data: { status, departmentId, scope } }),
   });
 
   const counts = useMemo(() => {
