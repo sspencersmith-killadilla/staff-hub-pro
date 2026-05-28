@@ -45,16 +45,22 @@ const venueInput = z.object({
 export const listVenues = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) =>
-    z.object({ departmentId: z.string().uuid().nullable().optional() }).parse(i ?? {}),
+    z
+      .object({
+        departmentId: z.string().uuid().nullable().optional(),
+        includeAll: z.boolean().optional(),
+      })
+      .parse(i ?? {}),
   )
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
     let q = supabaseAdmin.from("venues").select("*").order("name");
-    if (data.departmentId) q = q.eq("department_id", data.departmentId);
+    if (data.departmentId && !data.includeAll) q = q.eq("department_id", data.departmentId);
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
     return rows ?? [];
   });
+
 
 export const listLocationDepartments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

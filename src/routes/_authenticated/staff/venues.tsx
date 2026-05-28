@@ -5,6 +5,7 @@ import {
   listVenues, getVenue, createVenue, updateVenue, deleteVenue,
   createStage, updateStage, deleteStage,
   createRoom, updateRoom, deleteRoom,
+  listLocationDepartments,
 } from "@/lib/venues.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ import { Trash2, Plus, ChevronRight } from "lucide-react";
 import { RoomDetailsEditor } from "@/components/room-details-editor";
 
 import { useDepartment } from "@/contexts/department-context";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/staff/venues")({
   component: VenuesPage,
@@ -23,11 +25,13 @@ export const Route = createFileRoute("/_authenticated/staff/venues")({
 function VenuesPage() {
   const qc = useQueryClient();
   const { activeDepartment } = useDepartment();
+  const { isAdmin } = useAuth();
   const departmentId = activeDepartment?.id ?? null;
   const { data: venues = [] } = useQuery({
-    queryKey: ["venues", departmentId],
-    queryFn: () => listVenues({ data: { departmentId } }),
+    queryKey: ["venues", departmentId, isAdmin],
+    queryFn: () => listVenues({ data: { departmentId, includeAll: isAdmin } }),
   });
+
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [newName, setNewName] = useState("");
 
@@ -116,9 +120,14 @@ function VenueEditor({ venueId, onDeleted }: { venueId: number; onDeleted: () =>
     queryKey: ["venue", venueId],
     queryFn: () => getVenue({ data: { id: venueId } }),
   });
+  const { data: depts = [] } = useQuery({
+    queryKey: ["location-departments"],
+    queryFn: () => listLocationDepartments(),
+  });
 
   const [patch, setPatch] = useState<Record<string, any>>({});
   const merged = { ...(data?.venue ?? {}), ...patch } as any;
+
 
   const save = useMutation({
     mutationFn: () => updateVenue({ data: { id: venueId, patch } }),
@@ -159,7 +168,20 @@ function VenueEditor({ venueId, onDeleted }: { venueId: number; onDeleted: () =>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Field label="Name"><Input value={merged.name ?? ""} onChange={(e) => set("name", e.target.value)} /></Field>
+          <Field label="Department">
+            <select
+              className="w-full h-9 rounded-md border border-input bg-background px-2 text-sm"
+              value={merged.department_id ?? ""}
+              onChange={(e) => set("department_id", e.target.value || null)}
+            >
+              <option value="">— Unassigned —</option>
+              {(depts as any[]).map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+          </Field>
           <Field label="Stage Type"><Input value={merged.stage_type ?? ""} onChange={(e) => set("stage_type", e.target.value)} /></Field>
+
           <Field label="Address"><Input value={merged.address ?? ""} onChange={(e) => set("address", e.target.value)} /></Field>
           <Field label="Capacity">
             <Input type="number" value={merged.capacity ?? ""}
@@ -203,7 +225,8 @@ function VenueEditor({ venueId, onDeleted }: { venueId: number; onDeleted: () =>
       </div>
 
       <StagesPanel venueId={venueId} stages={data.stages} />
-      <RoomsPanel venueId={venueId} rooms={data.rooms} />
+      <RoomsPanel venueId={venueId} rooms={data.rooms} depts={depts as any[]} />
+
     </div>
   );
 }
@@ -278,7 +301,7 @@ function StageRow({ venueId, stage }: { venueId: number; stage: any }) {
   );
 }
 
-function RoomsPanel({ venueId, rooms }: { venueId: number; rooms: any[] }) {
+function RoomsPanel({ venueId, rooms, depts }: { venueId: number; rooms: any[]; depts: any[] }) {
   const qc = useQueryClient();
   const [name, setName] = useState("");
   const add = useMutation({
@@ -301,7 +324,7 @@ function RoomsPanel({ venueId, rooms }: { venueId: number; rooms: any[] }) {
       ) : (
         <ul className="space-y-4">
           {rooms.map((r) => (
-            <RoomRow key={r.id} venueId={venueId} room={r} />
+            <RoomRow key={r.id} venueId={venueId} room={r} depts={depts} />
           ))}
         </ul>
       )}
@@ -309,26 +332,34 @@ function RoomsPanel({ venueId, rooms }: { venueId: number; rooms: any[] }) {
   );
 }
 
-function RoomRow({ venueId, room }: { venueId: number; room: any }) {
+function RoomRow({ venueId, room, depts }: { venueId: number; room: any; depts: any[] }) {
   const qc = useQueryClient();
   const [name, setName] = useState(room.name ?? "");
   const [building, setBuilding] = useState(room.building ?? "");
   const [capacity, setCapacity] = useState<string>(room.capacity != null ? String(room.capacity) : "");
   const [isPublic, setIsPublic] = useState<boolean>(!!room.is_publicly_bookable);
+  const [departmentId, setDepartmentId] = useState<string>(room.department_id ?? "");
 
   const capNum = capacity ? Number(capacity) : null;
   const dirty =
     name !== (room.name ?? "") ||
     building !== (room.building ?? "") ||
     capNum !== (room.capacity ?? null) ||
-    isPublic !== !!room.is_publicly_bookable;
+    isPublic !== !!room.is_publicly_bookable ||
+    (departmentId || null) !== (room.department_id ?? null);
 
   const save = useMutation({
     mutationFn: () =>
       updateRoom({
         data: {
           id: room.id,
-          patch: { name, building, capacity: capNum, is_publicly_bookable: isPublic },
+          patch: {
+            name,
+            building,
+            capacity: capNum,
+            is_publicly_bookable: isPublic,
+            department_id: departmentId || null,
+          },
         },
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["venue", venueId] }),
@@ -356,6 +387,19 @@ function RoomRow({ venueId, room }: { venueId: number; room: any }) {
           <Trash2 className="h-4 w-4" />
         </Button>
       </div>
+      <div className="mt-2 flex items-center gap-2 text-xs text-slate-600">
+        <span className="font-semibold uppercase tracking-wider">Department override:</span>
+        <select
+          className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+          value={departmentId}
+          onChange={(e) => setDepartmentId(e.target.value)}
+        >
+          <option value="">— Inherit from venue —</option>
+          {depts.map((d) => (
+            <option key={d.id} value={d.id}>{d.name}</option>
+          ))}
+        </select>
+      </div>
       <RoomDetailsEditor
         room={room}
         onChanged={() => qc.invalidateQueries({ queryKey: ["venue", venueId] })}
@@ -363,3 +407,4 @@ function RoomRow({ venueId, room }: { venueId: number; room: any }) {
     </li>
   );
 }
+
