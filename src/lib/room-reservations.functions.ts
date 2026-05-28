@@ -285,7 +285,7 @@ export const listBookableRooms = createServerFn({ method: "GET" })
     const [roomsRes, venuesRes] = await Promise.all([
       supabaseAdmin
         .from("rooms")
-        .select("id, name, venue_id, capacity")
+        .select("id, name, venue_id, capacity, department_id")
         .order("name"),
       supabaseAdmin.from("venues").select("id, name"),
     ]);
