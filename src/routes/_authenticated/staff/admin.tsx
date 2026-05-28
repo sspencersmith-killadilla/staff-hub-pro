@@ -292,7 +292,11 @@ function AdminPage() {
                 <div key={s.userId}
                   className="flex flex-wrap items-center justify-between gap-3 rounded-md border p-3">
                   <div>
-                    <div className="font-medium">{s.email}</div>
+                    <div className="font-medium">{s.full_name || s.email}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {s.email}
+                      {s.phone ? ` · ${s.phone}` : ""}
+                    </div>
                     <div className="text-xs text-muted-foreground">
                       Roles: {s.roles.join(", ") || "—"}
                     </div>
@@ -321,6 +325,19 @@ function AdminPage() {
                       />
                     </label>
                     <Button
+                      size="sm" variant="outline"
+                      onClick={() =>
+                        setEditingStaff({
+                          userId: s.userId,
+                          email: s.email,
+                          full_name: s.full_name ?? null,
+                          phone: s.phone ?? null,
+                        })
+                      }
+                    >
+                      Edit
+                    </Button>
+                    <Button
                       size="sm" variant="destructive"
                       onClick={() => {
                         if (confirm(`Delete ${s.email}? This removes their account entirely.`))
@@ -336,6 +353,16 @@ function AdminPage() {
           )}
         </CardContent>
       </Card>
+
+      {editingStaff && (
+        <EditStaffDialog
+          staff={editingStaff}
+          onClose={() => setEditingStaff(null)}
+          onSaved={() => {
+            qc.invalidateQueries({ queryKey: ["staff"] });
+          }}
+        />
+      )}
     </div>
   );
 }
