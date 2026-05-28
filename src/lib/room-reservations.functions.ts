@@ -201,23 +201,25 @@ export const createReservation = createServerFn({ method: "POST" })
       decided_by: context.userId,
       decided_at: new Date().toISOString(),
     };
-    const { data: row, error } = await supabaseAdmin
-      .from("room_reservations")
-      .insert(reservationPayload)
-      .select()
-      .single();
-    if (!error) return row;
-    if (error.message.includes("'start_time'") || error.message.includes("'end_time'")) {
-      const { start_time, end_time, ...canonicalPayload } = reservationPayload;
-      const { data: retryRow, error: retryError } = await supabaseAdmin
+    async function tryInsert(payload: any) {
+      return supabaseAdmin
         .from("room_reservations")
-        .insert(canonicalPayload)
+        .insert(payload)
         .select()
         .single();
-      if (retryError) throw new Error(retryError.message);
-      return retryRow;
     }
-    throw new Error(error.message);
+    let { data: row, error } = await tryInsert(reservationPayload);
+    if (error && /requester_department_id/i.test(error.message)) {
+      // Migration 021 not applied yet — retry without the new column.
+      const { requester_department_id, ...without } = reservationPayload;
+      ({ data: row, error } = await tryInsert(without));
+    }
+    if (error && (error.message.includes("'start_time'") || error.message.includes("'end_time'"))) {
+      const { start_time, end_time, ...canonical } = reservationPayload as any;
+      ({ data: row, error } = await tryInsert(canonical));
+    }
+    if (error) throw new Error(error.message);
+    return row;
   });
 
 export const setReservationStatus = createServerFn({ method: "POST" })
