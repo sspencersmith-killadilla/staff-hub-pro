@@ -606,7 +606,7 @@ function EventsPage() {
                       <div className="text-xs text-slate-500 mt-0.5">
                         Owner: {(() => {
                           const s = (deptStaff as any[]).find((x) => x.user_id === e.staff_owner_id);
-                          return s?.full_name ?? s?.email ?? "Unknown";
+                          return s?.email ?? s?.full_name ?? "Unknown";
                         })()}
                       </div>
                     )}
