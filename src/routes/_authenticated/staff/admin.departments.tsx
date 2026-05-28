@@ -102,6 +102,13 @@ function DepartmentsPage() {
                     </td>
                     <td className="px-4 py-2 text-right">
                       <div className="flex justify-end gap-2">
+                        <Link
+                          to="/departments/$id"
+                          params={{ id: d.id }}
+                          className="inline-flex h-9 items-center rounded-md border border-input bg-background px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                        >
+                          View hub
+                        </Link>
                         <Button size="sm" variant="outline" onClick={() => setEditing(d)}>
                           Edit
                         </Button>
