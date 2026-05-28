@@ -34,11 +34,11 @@ export const Route = createFileRoute("/_authenticated/staff/admin")({
 });
 
 function AdminRouteComponent() {
-  const isPermissionsRoute = useRouterState({
-    select: (state) => state.location.pathname === "/staff/admin/permissions",
+  const isChildRoute = useRouterState({
+    select: (state) => state.location.pathname !== "/staff/admin",
   });
 
-  return isPermissionsRoute ? <Outlet /> : <AdminPage />;
+  return isChildRoute ? <Outlet /> : <AdminPage />;
 }
 
 function AdminPage() {
@@ -118,12 +118,20 @@ function AdminPage() {
             Invite staff and admins, change roles, or remove accounts.
           </p>
         </div>
-        <Link
-          to="/staff/admin/permissions"
-          className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-        >
-          Manage permissions →
-        </Link>
+        <div className="flex flex-col items-end gap-1">
+          <Link
+            to="/staff/admin/permissions"
+            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
+          >
+            Manage permissions →
+          </Link>
+          <Link
+            to="/staff/admin/departments"
+            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
+          >
+            Manage departments →
+          </Link>
+        </div>
       </div>
 
 
