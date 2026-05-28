@@ -2,36 +2,43 @@ import { useEffect, type ReactNode } from "react";
 import { useDepartment } from "@/contexts/department-context";
 
 /**
+ * Apply a brand_css JSON object (e.g. { "--primary": "oklch(...)", "background": "#fff" })
+ * as CSS variables on :root. Returns a cleanup that removes only the keys it set.
+ */
+export function applyBrandCss(brand: Record<string, unknown> | null | undefined): () => void {
+  if (typeof document === "undefined" || !brand || typeof brand !== "object") {
+    return () => {};
+  }
+  const root = document.documentElement;
+  const applied: string[] = [];
+  for (const [rawKey, rawVal] of Object.entries(brand)) {
+    if (typeof rawVal !== "string") continue;
+    const key = rawKey.startsWith("--") ? rawKey : `--${rawKey}`;
+    // Use !important so class-scoped overrides like `.dark { --primary: ... }`
+    // in src/styles.css do not beat the brand tokens.
+    root.style.setProperty(key, rawVal, "important");
+    applied.push(key);
+  }
+  return () => {
+    for (const key of applied) root.style.removeProperty(key);
+  };
+}
+
+/** Apply brand_css from any source (public route loader, etc.) for the lifetime of the mount. */
+export function BrandThemeApplier({ brand }: { brand: Record<string, unknown> | null | undefined }) {
+  useEffect(() => applyBrandCss(brand), [brand]);
+  return null;
+}
+
+/**
  * Reads the active department's `brand_css` (a key/value map of CSS variables)
  * and applies them to :root so they override the default Tailwind theme tokens.
- *
- * Example brand_css:
- *   { "--primary": "oklch(0.55 0.2 250)", "--primary-foreground": "oklch(1 0 0)" }
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const { activeDepartment } = useDepartment();
-
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    const root = document.documentElement;
-    const brand = activeDepartment?.brand_css ?? null;
-
-    const applied: string[] = [];
-    if (brand && typeof brand === "object") {
-      for (const [rawKey, rawVal] of Object.entries(brand)) {
-        if (typeof rawVal !== "string") continue;
-        const key = rawKey.startsWith("--") ? rawKey : `--${rawKey}`;
-        // Use !important so class-scoped overrides like `.dark { --primary: ... }`
-        // in src/styles.css do not beat the active department's brand tokens.
-        root.style.setProperty(key, rawVal, "important");
-        applied.push(key);
-      }
-    }
-
-    return () => {
-      for (const key of applied) root.style.removeProperty(key);
-    };
-  }, [activeDepartment]);
-
+  useEffect(
+    () => applyBrandCss(activeDepartment?.brand_css ?? null),
+    [activeDepartment],
+  );
   return <>{children}</>;
 }
