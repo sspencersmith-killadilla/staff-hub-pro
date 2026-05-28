@@ -414,7 +414,7 @@ export default function EventMarketingHub({ event, sponsors, talent, brandCss }:
   };
 
   return (
-    <div className="-m-8" style={brandVars}>
+    <div className="marketing-shell -m-8" style={brandVars}>
       <style>{`
         .marketing-shell { background: var(--marketing-primary) !important; color: var(--marketing-primary-foreground) !important; }
         .marketing-shell .marketing-action { background: var(--marketing-primary) !important; color: var(--marketing-primary-foreground) !important; }
