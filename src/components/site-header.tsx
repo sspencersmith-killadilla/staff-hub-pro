@@ -1,12 +1,22 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { Home, LogOut } from "lucide-react";
+import { Home, LogOut, Building2, Check } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useModules } from "@/hooks/use-modules";
+import { useDepartment } from "@/contexts/department-context";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function SiteHeader() {
   const { me, isAuthenticated, isStaff, isAdmin, logout } = useAuth();
   const { isEnabled } = useModules();
+  const { memberships, activeDepartment, setActiveDepartmentId } = useDepartment();
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -62,6 +72,37 @@ export function SiteHeader() {
             >
               My Hub
             </Link>
+          )}
+          {isStaff && memberships.length > 1 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" className="h-8 gap-1">
+                  <Building2 className="h-3.5 w-3.5" />
+                  <span className="max-w-[140px] truncate">
+                    {activeDepartment?.name ?? "Department"}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Active Department</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {memberships.map((m) => (
+                  <DropdownMenuItem
+                    key={m.department.id}
+                    onSelect={() => setActiveDepartmentId(m.department.id)}
+                    className="flex items-center justify-between"
+                  >
+                    <span className="flex flex-col">
+                      <span className="text-sm">{m.department.name}</span>
+                      <span className="text-xs text-muted-foreground">{m.role}</span>
+                    </span>
+                    {activeDepartment?.id === m.department.id && (
+                      <Check className="h-4 w-4 text-primary" />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
           {isStaff && (
             <Link to="/staff" className="text-muted-foreground hover:text-foreground">
