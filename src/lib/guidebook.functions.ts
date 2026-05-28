@@ -153,6 +153,7 @@ async function fetchData(
       department_name: deptsById.get(s.department_id)?.name ?? null,
       venue_name: venue?.name ?? null,
       location_name: s.stages?.name ?? s.rooms?.name ?? null,
+      image_url: s.image_url ?? null,
     };
   });
 
