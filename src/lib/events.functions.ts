@@ -86,24 +86,32 @@ export const listEventLocations = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
-    const roomsQ = supabaseAdmin.from("rooms").select("id, name, venue_id, department_id").order("name");
-    const stagesQ = supabaseAdmin.from("stages").select("id, name, venue_id").order("name");
-    const venuesQ = supabaseAdmin.from("venues").select("id, name, department_id");
+    // Fetch ALL rooms/stages/venues, then filter by department on the server
+    // using BOTH the room's own department_id and its parent venue's
+    // department_id. Older rooms/stages may not have department_id set
+    // directly but belong to a venue that does — without the venue fallback
+    // those rooms wouldn't show up in the events dashboard dropdowns.
     const [rooms, stages, venues] = await Promise.all([
-      data.departmentId ? roomsQ.eq("department_id", data.departmentId) : roomsQ,
-      stagesQ,
-      data.departmentId ? venuesQ.eq("department_id", data.departmentId) : venuesQ,
+      supabaseAdmin.from("rooms").select("id, name, venue_id, department_id").order("name"),
+      supabaseAdmin.from("stages").select("id, name, venue_id").order("name"),
+      supabaseAdmin.from("venues").select("id, name, department_id"),
     ]);
     if (rooms.error) throw new Error(rooms.error.message);
     if (stages.error) throw new Error(stages.error.message);
     if (venues.error) throw new Error(venues.error.message);
     const venueName = new Map((venues.data ?? []).map((v: any) => [v.id, v.name]));
-    // When a department filter is active, restrict stages to venues in the same department.
-    const stageRows = data.departmentId
-      ? (stages.data ?? []).filter((s: any) => venueName.has(s.venue_id))
+    const venueDept = new Map((venues.data ?? []).map((v: any) => [v.id, v.department_id]));
+    const deptId = data.departmentId ?? null;
+    const roomRows = deptId
+      ? (rooms.data ?? []).filter(
+          (r: any) => r.department_id === deptId || venueDept.get(r.venue_id) === deptId,
+        )
+      : (rooms.data ?? []);
+    const stageRows = deptId
+      ? (stages.data ?? []).filter((s: any) => venueDept.get(s.venue_id) === deptId)
       : (stages.data ?? []);
     return {
-      rooms: (rooms.data ?? []).map((r: any) => ({
+      rooms: roomRows.map((r: any) => ({
         id: r.id,
         name: r.name,
         venue_name: venueName.get(r.venue_id) ?? null,
@@ -115,6 +123,7 @@ export const listEventLocations = createServerFn({ method: "GET" })
       })),
     };
   });
+
 
 /** Users assigned to a department via department_roles — used to pick a staff owner. */
 export const listDepartmentStaff = createServerFn({ method: "GET" })
