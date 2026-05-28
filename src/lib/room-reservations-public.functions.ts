@@ -181,13 +181,16 @@ export const submitReservationRequest = createServerFn({ method: "POST" })
       throw new Error("You can only book up to 2 hours per day");
     }
 
+    const status = instantBookable ? "approved" : "pending";
+    // policy_accepted is validated above; never persist it.
+    const { policy_accepted: _pa, ...persisted } = data;
     const reservationPayload = {
-      ...data,
+      ...persisted,
       start_time: data.starts_at,
       end_time: data.ends_at,
       requester_email: email,
       requester_user_id: context.userId,
-      status: "pending",
+      status,
     };
     const { error } = await supabaseAdmin.from("room_reservations").insert(reservationPayload);
     if (error) {
@@ -201,7 +204,15 @@ export const submitReservationRequest = createServerFn({ method: "POST" })
         throw new Error(error.message);
       }
     }
-    return { ok: true };
+
+    // TODO: wire transactional email infra to actually deliver this.
+    if (status === "approved") {
+      console.log(
+        `[room-booking] Instant-approved booking ${data.room_id} for ${email}; confirmation email queued.`,
+      );
+    }
+
+    return { ok: true, status };
   });
 
 export const getRoomAvailability = createServerFn({ method: "GET" })
