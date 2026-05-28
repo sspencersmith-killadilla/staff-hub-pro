@@ -1,8 +1,17 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { Home, LogOut } from "lucide-react";
+import { Home, LogOut, Building2, Check } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useModules } from "@/hooks/use-modules";
+import { useDepartment } from "@/contexts/department-context";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function SiteHeader() {
   const { me, isAuthenticated, isStaff, isAdmin, logout } = useAuth();
