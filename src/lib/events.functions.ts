@@ -216,10 +216,19 @@ export const updateEvent = createServerFn({ method: "POST" })
     }
     const patch = toSessionRow({ title: "x", ...data.patch } as SessionInput);
     if (!("title" in data.patch)) delete (patch as any).title;
+    if (!("event_type" in data.patch)) delete (patch as any).event_type;
+    if (!("featured_guest" in data.patch)) delete (patch as any).speaker_name;
     if (!("room_id" in data.patch)) delete (patch as any).room_id;
     if (!("stage_id" in data.patch)) delete (patch as any).stage_id;
+    if (!("start_time" in data.patch)) delete (patch as any).start_time;
+    if (!("end_time" in data.patch)) delete (patch as any).end_time;
+    if (!("image_url" in data.patch)) delete (patch as any).image_url;
     if (!("focal_x" in data.patch)) delete (patch as any).focal_x;
     if (!("focal_y" in data.patch)) delete (patch as any).focal_y;
+    if (!("open_to_vendors" in data.patch)) delete (patch as any).accepts_vendors;
+    if (!("department_id" in data.patch)) delete (patch as any).department_id;
+    if (!("staff_owner_id" in data.patch)) delete (patch as any).staff_owner_id;
+    if (!("staff_owner_name" in data.patch)) delete (patch as any).staff_owner_name;
     const { data: row, error } = await supabaseAdmin
       .from("sessions")
       .update(patch)
