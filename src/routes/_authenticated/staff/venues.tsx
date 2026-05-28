@@ -225,7 +225,8 @@ function VenueEditor({ venueId, onDeleted }: { venueId: number; onDeleted: () =>
       </div>
 
       <StagesPanel venueId={venueId} stages={data.stages} />
-      <RoomsPanel venueId={venueId} rooms={data.rooms} />
+      <RoomsPanel venueId={venueId} rooms={data.rooms} depts={depts as any[]} />
+
     </div>
   );
 }
