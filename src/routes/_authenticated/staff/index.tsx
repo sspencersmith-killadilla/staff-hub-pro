@@ -413,7 +413,7 @@ function EventsPage() {
                     <option value="">— Unassigned —</option>
                     {(deptStaff as any[]).map((s) => (
                       <option key={s.user_id} value={s.user_id}>
-                        {(s.full_name ?? s.email ?? s.user_id)}
+                        {s.email ?? s.full_name ?? s.user_id}
                         {s.roles?.length ? ` — ${s.roles.join(", ")}` : ""}
                       </option>
                     ))}
