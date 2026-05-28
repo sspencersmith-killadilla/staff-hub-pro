@@ -19,6 +19,10 @@ import {
   Building2,
   BookOpen,
   ChevronRight,
+  Network,
+  Repeat,
+  Palette,
+  FileText,
 } from "lucide-react";
 
 import homeImg from "@/assets/manual/home.png";
