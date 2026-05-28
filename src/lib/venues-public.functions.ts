@@ -6,7 +6,7 @@ const VENUE_COLS =
   "id, name, address, city, state, zip, capacity, stage_type, load_in_notes, rules, latitude, longitude, open_hours, closures";
 const STAGE_COLS = "id, name, venue_id, description, address";
 const ROOM_COLS =
-  "id, name, venue_id, building, capacity, is_publicly_bookable, linked_stage_id, image_url, description, tags, instant_bookable, department_id";
+  "id, name, venue_id, building, capacity, is_publicly_bookable, linked_stage_id, image_url, description, tags";
 
 export const listVenuesPublic = createServerFn({ method: "GET" }).handler(
   async () => {
