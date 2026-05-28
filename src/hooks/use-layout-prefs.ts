@@ -33,7 +33,7 @@ function read(scope: string, userId: string | undefined): LayoutPrefs {
  */
 export function useLayoutPrefs(scope: string, allIds: string[]) {
   const { me } = useAuth();
-  const userId = me?.id;
+  const userId = me?.userId;
   const [prefs, setPrefs] = useState<LayoutPrefs>(() => read(scope, userId));
 
   useEffect(() => {
