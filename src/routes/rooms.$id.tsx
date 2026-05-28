@@ -339,8 +339,12 @@ function RoomDetail() {
                   initialDate={selectedDate}
                   initialStartHour={selectedHour}
                   initialEndHour={selectedEnd}
+                  instantBookable={!!r.instant_bookable}
+                  departmentName={dept?.name ?? null}
+                  roomPolicyText={dept?.room_policy_text ?? null}
                   key={`${selectedDate}-${selectedHour}`}
                 />
+
               )}
             </div>
           </div>
