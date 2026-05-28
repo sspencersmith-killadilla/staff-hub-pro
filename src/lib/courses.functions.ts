@@ -261,7 +261,7 @@ export const enrollInSession = createServerFn({ method: "POST" })
       const res = await fetch(`${cfg.baseUrl}/transactions`, {
         method: "POST",
         headers: {
-          Authorization: buildAuthHeader(cfg),
+          Authorization: buildUsaepayAuthHeader(cfg),
           "Content-Type": "application/json",
           Accept: "application/json",
         },
