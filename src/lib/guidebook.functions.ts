@@ -240,7 +240,7 @@ export const previewGuidebookCounts = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { startIso, endIso } = rangeBounds(data.startDate, data.endDate);
-    const { events, gigs, sponsors } = await fetchData(
+    const { events, gigs, classes, sponsors } = await fetchData(
       startIso,
       endIso,
       data.departmentId ?? null,
@@ -248,6 +248,7 @@ export const previewGuidebookCounts = createServerFn({ method: "POST" })
     return {
       events: events.length,
       gigs: gigs.length,
+      classes: classes.length,
       sponsors: sponsors.length,
     };
   });
@@ -258,7 +259,7 @@ export const generateGuidebook = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { startIso, endIso } = rangeBounds(data.startDate, data.endDate);
-    const { events, gigs, sponsors } = await fetchData(
+    const { events, gigs, classes, sponsors } = await fetchData(
       startIso,
       endIso,
       data.departmentId ?? null,
@@ -285,6 +286,7 @@ export const generateGuidebook = createServerFn({ method: "POST" })
       title: "Community Program Guide",
       events,
       gigs,
+      classes,
       sponsors: sponsorsWithLogos,
     });
 
