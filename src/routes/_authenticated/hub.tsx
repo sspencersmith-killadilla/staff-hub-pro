@@ -108,14 +108,6 @@ function HubPage() {
 
   const manageActions: Action[] = [
     {
-      title: "My Schedule",
-      description: "Your personalized itinerary of saved events, artists, and places.",
-      to: "/my-schedule",
-      icon: CalendarHeart,
-      accent: "from-rose-500 to-pink-600",
-      cta: "View itinerary",
-    },
-    {
       title: "My Tickets",
       description: "Your purchased and reserved event tickets.",
       to: "/my-tickets",
@@ -123,6 +115,7 @@ function HubPage() {
       accent: "from-emerald-500 to-green-600",
       cta: "View tickets",
     },
+
     {
       title: "My Room Reservations",
       description: "Status of your room booking requests.",
@@ -172,6 +165,34 @@ function HubPage() {
             for as many programs (or as many acts / orgs) as you want.
           </p>
         </div>
+
+        <Link
+          to="/my-schedule"
+          className="group mb-10 flex items-center justify-between gap-6 overflow-hidden rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-fuchsia-600 p-6 text-white shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl sm:p-8"
+        >
+          <div className="flex items-center gap-5">
+            <div className="hidden h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-white/15 backdrop-blur sm:flex">
+              <CalendarHeart className="h-7 w-7" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/80">
+                Your festival, your way
+              </p>
+              <h2 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">
+                My Schedule
+              </h2>
+              <p className="mt-1 max-w-xl text-sm text-white/90">
+                Tap the heart on any event, artist, vendor, room, or venue —
+                everything you save lands here as a personalized itinerary.
+              </p>
+            </div>
+          </div>
+          <span className="hidden shrink-0 rounded-full bg-white/15 px-4 py-2 text-xs font-bold uppercase tracking-wider backdrop-blur group-hover:bg-white/25 md:inline-flex">
+            Open itinerary →
+          </span>
+        </Link>
+
+
 
         <Section title="Apply / Add a new role">
           <Grid actions={visible(applyActions)} />
