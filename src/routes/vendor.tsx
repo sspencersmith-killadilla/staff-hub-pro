@@ -797,6 +797,7 @@ function ApplyTab({
           contactName: String(fd.get("contactName") || ""),
           logoUrl: (fd.get("logoUrl") as string) || null,
           notes: (fd.get("notes") as string) || null,
+          adCopy: (fd.get("adCopy") as string) || null,
         },
       });
       alert(
@@ -984,6 +985,25 @@ function ApplyTab({
                   className="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-[#005ea2] outline-none resize-none"
                   required
                 />
+              </div>
+            )}
+
+            {appType === "sponsor" && (
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Promotional Text (Optional)
+                </label>
+                <textarea
+                  name="adCopy"
+                  rows={4}
+                  maxLength={2000}
+                  placeholder="Tagline or short ad copy that will appear in the printed Program Guidebook if you purchase the Guidebook Ad Space tier."
+                  className="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-[#a57914] outline-none resize-none"
+                />
+                <p className="text-[10px] text-gray-500 mt-1">
+                  Used in the official Program Guidebook ad slots when your
+                  sponsorship is approved. Up to 2000 characters.
+                </p>
               </div>
             )}
 

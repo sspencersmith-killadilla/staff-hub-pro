@@ -111,6 +111,7 @@ export const submitApplication = createServerFn({ method: "POST" })
           contact_name: data.contactName,
           contact_email: email,
           logo_url: data.logoUrl ?? null,
+          ad_copy: data.adCopy ?? null,
           session_id: data.sessionId,
           sponsorship_tier_id: data.tierId,
           status: "pending",
