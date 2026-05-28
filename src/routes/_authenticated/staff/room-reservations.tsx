@@ -111,9 +111,35 @@ function RoomReservationsPage() {
         <h1 className="text-4xl font-black tracking-tight text-slate-900 uppercase">
           Room Reservations
         </h1>
-        <NewReservationDialog />
+        <NewReservationDialog requesterDepartmentId={departmentId} />
       </div>
       <div className="h-px bg-slate-200 mb-6" />
+
+      <div className="flex gap-2 mb-4">
+        {(["inbound", "outbound"] as const).map((s) => (
+          <button
+            key={s}
+            onClick={() => setScope(s)}
+            className={`px-4 py-2 text-sm font-bold uppercase tracking-wider rounded-md border transition ${
+              scope === s
+                ? "border-slate-900 bg-slate-900 text-white"
+                : "border-slate-200 text-slate-600 hover:border-slate-400"
+            }`}
+          >
+            {s === "inbound" ? "Inbound Requests" : "Outbound Requests"}
+          </button>
+        ))}
+        {!departmentId && (
+          <p className="text-xs text-amber-700 self-center ml-2">
+            Pick an active department to scope inbound / outbound queues.
+          </p>
+        )}
+      </div>
+      <p className="text-xs text-slate-500 mb-4">
+        {scope === "inbound"
+          ? "Pending bookings against rooms owned by your active department."
+          : "Bookings your department has requested in other departments' rooms."}
+      </p>
 
       <div className="flex gap-1 mb-6 border-b border-slate-200">
         {TABS.map((t) => (
