@@ -22,6 +22,7 @@ const sessionInput = z.object({
   open_to_vendors: z.boolean().optional(),
   department_id: z.string().uuid().nullable().optional(),
   staff_owner_id: z.string().uuid().nullable().optional(),
+  staff_owner_name: z.string().trim().max(200).nullable().optional(),
 });
 
 type SessionInput = z.infer<typeof sessionInput>;
@@ -48,6 +49,7 @@ function toSessionRow(data: SessionInput) {
     accepts_vendors: data.open_to_vendors ?? false,
     department_id: data.department_id ?? null,
     staff_owner_id: data.staff_owner_id ?? null,
+    staff_owner_name: data.staff_owner_name ?? null,
   };
   return row;
 }
@@ -65,7 +67,9 @@ function fromSessionRow(row: any) {
 export const listEvents = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) =>
-    z.object({ departmentId: z.string().uuid().nullable().optional() }).parse(i ?? {}),
+    z
+      .object({ departmentId: z.string().uuid().nullable().optional(), includeAll: z.boolean().optional() })
+      .parse(i ?? {}),
   )
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
@@ -73,10 +77,22 @@ export const listEvents = createServerFn({ method: "GET" })
       .from("sessions")
       .select("*, stages(id,name), rooms(id,name)")
       .order("start_time", { ascending: true, nullsFirst: false });
-    if (data.departmentId) q = q.eq("department_id", data.departmentId);
+    if (data.departmentId && !data.includeAll) q = q.eq("department_id", data.departmentId);
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
     return (rows ?? []).map(fromSessionRow);
+  });
+
+export const listAllStaffProfiles = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context.userId);
+    const { data, error } = await supabaseAdmin
+      .from("profiles")
+      .select("id, full_name, email")
+      .order("full_name", { ascending: true, nullsFirst: false });
+    if (error) throw new Error(error.message);
+    return data ?? [];
   });
 
 export const listEventLocations = createServerFn({ method: "GET" })
