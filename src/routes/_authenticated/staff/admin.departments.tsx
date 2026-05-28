@@ -301,9 +301,12 @@ function DepartmentEditDialog({
               Brand CSS variables (JSON)
             </Label>
             <p className="text-xs text-muted-foreground mb-1">
-              Object of CSS variable names to values. Applied globally when this
-              department is active. Example:
-              <code className="ml-1">{'{ "--primary": "262 83% 58%" }'}</code>
+              Object of CSS variable names to full color values. Applied to
+              <code className="mx-1">:root</code> with <code>!important</code>
+              whenever this department is active. Use full <code>oklch()</code>
+              or <code>#hex</code> values — not raw HSL triplets — because this
+              theme's tokens are declared as complete colors. Example:
+              <code className="ml-1">{'{ "--primary": "oklch(0.55 0.22 264)", "--primary-foreground": "oklch(0.98 0 0)" }'}</code>
             </p>
             <textarea
               id="dept-brand"
