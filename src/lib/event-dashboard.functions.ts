@@ -47,6 +47,22 @@ export const getEventDashboard = createServerFn({ method: "GET" })
         .order("created_at", { ascending: true }),
     ]);
 
+    // Soft-fetch staff owner profile (migration 019: sessions.staff_owner_id).
+    let staffOwner: { id: string; full_name: string | null; email: string | null } | null = null;
+    try {
+      const ownerId = (sess.data as any)?.staff_owner_id;
+      if (ownerId) {
+        const { data: prof } = await supabaseAdmin
+          .from("profiles")
+          .select("id, full_name, email")
+          .eq("id", ownerId)
+          .maybeSingle();
+        if (prof) staffOwner = prof as any;
+      }
+    } catch {
+      /* column not present yet */
+    }
+
     return {
       session: sess.data ?? null,
       attendees: att.data ?? [],
@@ -60,6 +76,7 @@ export const getEventDashboard = createServerFn({ method: "GET" })
       gigs: gigs.data ?? [],
       stages: stages.data ?? [],
       waitlist: wait.data ?? [],
+      staffOwner,
     };
   });
 
