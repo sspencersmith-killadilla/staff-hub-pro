@@ -805,6 +805,7 @@ function EventDashboard() {
           <Suspense fallback={<div className="p-8 text-sm text-muted-foreground">Loading marketing hub…</div>}>
             <EventMarketingHub
               event={session}
+              brandCss={(data as any)?.department?.brand_css ?? null}
               sponsors={(sponsors as any[]).filter((s) => s.status === "approved" || s.status === "paid")}
               talent={talent as any[]}
             />
