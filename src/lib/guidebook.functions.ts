@@ -463,6 +463,7 @@ const MagazineBlockSchema = z.object({
   y: z.number(),
   w: z.number(),
   h: z.number(),
+  groupId: z.string().nullable().optional(),
   text: z.string().nullable().optional(),
   fontSize: z.number().nullable().optional(),
   bold: z.boolean().nullable().optional(),
@@ -474,6 +475,11 @@ const MagazineBlockSchema = z.object({
   padding: z.number().nullable().optional(),
   imageUrl: z.string().nullable().optional(),
   fit: z.enum(["cover", "contain"]).nullable().optional(),
+  frame: z.enum(["rect", "rounded", "circle", "hexagon"]).nullable().optional(),
+  shape: z
+    .enum(["rect", "circle", "ellipse", "triangle", "hexagon", "star", "line"])
+    .nullable()
+    .optional(),
   fill: z.string().nullable().optional(),
   borderColor: z.string().nullable().optional(),
   borderWidth: z.number().nullable().optional(),
