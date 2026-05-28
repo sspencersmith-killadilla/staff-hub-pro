@@ -51,6 +51,7 @@ import { Route as AuthenticatedStaffMapRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedStaffCommunityOrganizationsRouteImport } from './routes/_authenticated/staff/community-organizations'
 import { Route as AuthenticatedStaffCommunityMusicRouteImport } from './routes/_authenticated/staff/community-music'
 import { Route as AuthenticatedStaffCommunityEventsRouteImport } from './routes/_authenticated/staff/community-events'
+import { Route as AuthenticatedStaffClassesRouteImport } from './routes/_authenticated/staff/classes'
 import { Route as AuthenticatedStaffAttendeesRouteImport } from './routes/_authenticated/staff/attendees'
 import { Route as AuthenticatedStaffAdminRouteImport } from './routes/_authenticated/staff/admin'
 import { Route as AuthenticatedCommunityManageRouteImport } from './routes/_authenticated/community/manage'
@@ -280,6 +281,12 @@ const AuthenticatedStaffCommunityEventsRoute =
     path: '/community-events',
     getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
+const AuthenticatedStaffClassesRoute =
+  AuthenticatedStaffClassesRouteImport.update({
+    id: '/classes',
+    path: '/classes',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
 const AuthenticatedStaffAttendeesRoute =
   AuthenticatedStaffAttendeesRouteImport.update({
     id: '/attendees',
@@ -362,6 +369,7 @@ export interface FileRoutesByFullPath {
   '/community/manage': typeof AuthenticatedCommunityManageRoute
   '/staff/admin': typeof AuthenticatedStaffAdminRouteWithChildren
   '/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
+  '/staff/classes': typeof AuthenticatedStaffClassesRoute
   '/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
   '/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
@@ -412,6 +420,7 @@ export interface FileRoutesByTo {
   '/community/manage': typeof AuthenticatedCommunityManageRoute
   '/staff/admin': typeof AuthenticatedStaffAdminRouteWithChildren
   '/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
+  '/staff/classes': typeof AuthenticatedStaffClassesRoute
   '/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
   '/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
@@ -465,6 +474,7 @@ export interface FileRoutesById {
   '/_authenticated/community/manage': typeof AuthenticatedCommunityManageRoute
   '/_authenticated/staff/admin': typeof AuthenticatedStaffAdminRouteWithChildren
   '/_authenticated/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
+  '/_authenticated/staff/classes': typeof AuthenticatedStaffClassesRoute
   '/_authenticated/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
   '/_authenticated/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/_authenticated/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
@@ -518,6 +528,7 @@ export interface FileRouteTypes {
     | '/community/manage'
     | '/staff/admin'
     | '/staff/attendees'
+    | '/staff/classes'
     | '/staff/community-events'
     | '/staff/community-music'
     | '/staff/community-organizations'
@@ -568,6 +579,7 @@ export interface FileRouteTypes {
     | '/community/manage'
     | '/staff/admin'
     | '/staff/attendees'
+    | '/staff/classes'
     | '/staff/community-events'
     | '/staff/community-music'
     | '/staff/community-organizations'
@@ -620,6 +632,7 @@ export interface FileRouteTypes {
     | '/_authenticated/community/manage'
     | '/_authenticated/staff/admin'
     | '/_authenticated/staff/attendees'
+    | '/_authenticated/staff/classes'
     | '/_authenticated/staff/community-events'
     | '/_authenticated/staff/community-music'
     | '/_authenticated/staff/community-organizations'
@@ -960,6 +973,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffCommunityEventsRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
     }
+    '/_authenticated/staff/classes': {
+      id: '/_authenticated/staff/classes'
+      path: '/classes'
+      fullPath: '/staff/classes'
+      preLoaderRoute: typeof AuthenticatedStaffClassesRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
     '/_authenticated/staff/attendees': {
       id: '/_authenticated/staff/attendees'
       path: '/attendees'
@@ -1043,6 +1063,7 @@ const AuthenticatedStaffAdminRouteWithChildren =
 interface AuthenticatedStaffRouteChildren {
   AuthenticatedStaffAdminRoute: typeof AuthenticatedStaffAdminRouteWithChildren
   AuthenticatedStaffAttendeesRoute: typeof AuthenticatedStaffAttendeesRoute
+  AuthenticatedStaffClassesRoute: typeof AuthenticatedStaffClassesRoute
   AuthenticatedStaffCommunityEventsRoute: typeof AuthenticatedStaffCommunityEventsRoute
   AuthenticatedStaffCommunityMusicRoute: typeof AuthenticatedStaffCommunityMusicRoute
   AuthenticatedStaffCommunityOrganizationsRoute: typeof AuthenticatedStaffCommunityOrganizationsRoute
@@ -1059,6 +1080,7 @@ interface AuthenticatedStaffRouteChildren {
 const AuthenticatedStaffRouteChildren: AuthenticatedStaffRouteChildren = {
   AuthenticatedStaffAdminRoute: AuthenticatedStaffAdminRouteWithChildren,
   AuthenticatedStaffAttendeesRoute: AuthenticatedStaffAttendeesRoute,
+  AuthenticatedStaffClassesRoute: AuthenticatedStaffClassesRoute,
   AuthenticatedStaffCommunityEventsRoute:
     AuthenticatedStaffCommunityEventsRoute,
   AuthenticatedStaffCommunityMusicRoute: AuthenticatedStaffCommunityMusicRoute,
@@ -1156,3 +1178,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
