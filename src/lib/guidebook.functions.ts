@@ -253,7 +253,7 @@ export const previewGuidebookCounts = createServerFn({ method: "POST" })
     };
   });
 
-export const generateGuidebook = createServerFn({ method: "POST" })
+export const fetchGuidebookCanvasData = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => RangeInput.parse(i))
   .handler(async ({ data, context }) => {
@@ -264,8 +264,53 @@ export const generateGuidebook = createServerFn({ method: "POST" })
       endIso,
       data.departmentId ?? null,
     );
+    return {
+      startDate: data.startDate,
+      endDate: data.endDate,
+      events,
+      gigs,
+      classes,
+      sponsors: sponsors.map((s: any) => ({
+        id: s.id,
+        company_name: s.company_name,
+        ad_copy: s.ad_copy ?? null,
+        logo_url: s.logo_url ?? null,
+      })),
+    };
+  });
 
-    // Hydrate logos
+const LayoutItem = z.object({
+  id: z.string(),
+  kind: z.enum(["section", "event", "gig", "class", "ad"]),
+  refId: z.string().optional().nullable(),
+  label: z.string().optional().nullable(),
+  hidden: z.boolean().optional(),
+  overrides: z
+    .object({
+      title: z.string().optional().nullable(),
+      description: z.string().optional().nullable(),
+      adCopy: z.string().optional().nullable(),
+    })
+    .optional()
+    .nullable(),
+});
+
+const GenerateInput = RangeInput.extend({
+  layout: z.array(LayoutItem).optional().nullable(),
+});
+
+export const generateGuidebook = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => GenerateInput.parse(i))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { startIso, endIso } = rangeBounds(data.startDate, data.endDate);
+    const { events, gigs, classes, sponsors } = await fetchData(
+      startIso,
+      endIso,
+      data.departmentId ?? null,
+    );
+
     const sponsorsWithLogos = await Promise.all(
       sponsors.map(async (s: any) => {
         const { bytes, mime } = await fetchLogoBytes(s.logo_url);
@@ -279,8 +324,10 @@ export const generateGuidebook = createServerFn({ method: "POST" })
       }),
     );
 
-    const { buildGuidebookPdf } = await import("./guidebook-pdf.server");
-    const pdfBytes = await buildGuidebookPdf({
+    const { buildGuidebookPdf, buildGuidebookPdfFromLayout } = await import(
+      "./guidebook-pdf.server"
+    );
+    const baseInput = {
       startDate: data.startDate,
       endDate: data.endDate,
       title: "Community Program Guide",
@@ -288,9 +335,12 @@ export const generateGuidebook = createServerFn({ method: "POST" })
       gigs,
       classes,
       sponsors: sponsorsWithLogos,
-    });
+    };
+    const pdfBytes =
+      data.layout && data.layout.length
+        ? await buildGuidebookPdfFromLayout(baseInput, data.layout as any)
+        : await buildGuidebookPdf(baseInput);
 
-    // Convert to base64 for JSON transport
     let binary = "";
     const chunk = 0x8000;
     for (let i = 0; i < pdfBytes.length; i += chunk) {
@@ -300,6 +350,11 @@ export const generateGuidebook = createServerFn({ method: "POST" })
     return {
       filename: `program-guide-${data.startDate}_to_${data.endDate}.pdf`,
       base64,
-      counts: { events: events.length, gigs: gigs.length, sponsors: sponsors.length },
+      counts: {
+        events: events.length,
+        gigs: gigs.length,
+        classes: classes.length,
+        sponsors: sponsors.length,
+      },
     };
   });
