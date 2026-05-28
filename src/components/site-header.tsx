@@ -16,6 +16,7 @@ import {
 export function SiteHeader() {
   const { me, isAuthenticated, isStaff, isAdmin, logout } = useAuth();
   const { isEnabled } = useModules();
+  const { memberships, activeDepartment, setActiveDepartmentId } = useDepartment();
   const router = useRouter();
 
   const handleLogout = async () => {
