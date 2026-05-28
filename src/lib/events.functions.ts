@@ -225,14 +225,18 @@ export const updateEvent = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
-    // If either room_id or stage_id appears in the patch, enforce XOR with the
-    // existing row's other side.
+    // Fetch existing row for cross-dept guard + room/stage XOR check.
+    const { data: existing } = await supabaseAdmin
+      .from("sessions")
+      .select("room_id, stage_id, department_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    // Guard: caller must own the existing department AND, if reassigning, the target one too.
+    await assertCanManageDepartment(context.userId, existing?.department_id ?? null);
+    if ("department_id" in data.patch) {
+      await assertCanManageDepartment(context.userId, data.patch.department_id ?? null);
+    }
     if ("room_id" in data.patch || "stage_id" in data.patch) {
-      const { data: existing } = await supabaseAdmin
-        .from("sessions")
-        .select("room_id, stage_id")
-        .eq("id", data.id)
-        .maybeSingle();
       const merged = {
         room_id:
           "room_id" in data.patch ? data.patch.room_id ?? null : existing?.room_id ?? null,
