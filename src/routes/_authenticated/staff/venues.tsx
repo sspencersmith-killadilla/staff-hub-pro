@@ -168,7 +168,20 @@ function VenueEditor({ venueId, onDeleted }: { venueId: number; onDeleted: () =>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Field label="Name"><Input value={merged.name ?? ""} onChange={(e) => set("name", e.target.value)} /></Field>
+          <Field label="Department">
+            <select
+              className="w-full h-9 rounded-md border border-input bg-background px-2 text-sm"
+              value={merged.department_id ?? ""}
+              onChange={(e) => set("department_id", e.target.value || null)}
+            >
+              <option value="">— Unassigned —</option>
+              {(depts as any[]).map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+          </Field>
           <Field label="Stage Type"><Input value={merged.stage_type ?? ""} onChange={(e) => set("stage_type", e.target.value)} /></Field>
+
           <Field label="Address"><Input value={merged.address ?? ""} onChange={(e) => set("address", e.target.value)} /></Field>
           <Field label="Capacity">
             <Input type="number" value={merged.capacity ?? ""}
