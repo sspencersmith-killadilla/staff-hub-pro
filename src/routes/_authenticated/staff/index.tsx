@@ -148,16 +148,25 @@ function csvRowToInput(r: Record<string, string>) {
     const d = new Date(v);
     return isNaN(d.getTime()) ? v : d.toISOString();
   };
+  const toIntOrUndef = (v: string) => {
+    if (!v) return undefined;
+    const n = parseInt(v, 10);
+    return isNaN(n) ? undefined : Math.max(0, Math.min(100, n));
+  };
   return {
     id: r.id || undefined,
     title: r.title || "",
     event_type: r.event_type || null,
     featured_guest: r.featured_guest || null,
+    department_id: r.department_id || null,
+    staff_owner_id: r.staff_owner_id || null,
     room_id: r.room_id || null,
     stage_id: r.stage_id || null,
     start_time: toIso(r.start_time),
     end_time: toIso(r.end_time),
     image_url: r.image_url || null,
+    focal_x: toIntOrUndef(r.focal_x),
+    focal_y: toIntOrUndef(r.focal_y),
     open_to_vendors: /^(1|true|yes)$/i.test(r.open_to_vendors ?? ""),
   };
 }
