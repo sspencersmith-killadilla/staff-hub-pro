@@ -46,6 +46,7 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 import { requireModule } from "@/lib/require-module";
+import { useDepartment } from "@/contexts/department-context";
 
 export const Route = createFileRoute(
   "/_authenticated/staff/room-reservations",
