@@ -3,6 +3,7 @@ import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { Building2, CalendarDays, DoorOpen } from "lucide-react";
 import { getDepartmentHub } from "@/lib/departments.functions";
 import { SiteHeader } from "@/components/site-header";
+import { BrandThemeApplier } from "@/components/theme-provider";
 
 const hubQO = (id: string) =>
   queryOptions({
