@@ -277,6 +277,12 @@ export const deleteEvent = createServerFn({ method: "POST" })
   .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
+    const { data: existing } = await supabaseAdmin
+      .from("sessions")
+      .select("department_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    await assertCanManageDepartment(context.userId, existing?.department_id ?? null);
     const { error } = await supabaseAdmin.from("sessions").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
