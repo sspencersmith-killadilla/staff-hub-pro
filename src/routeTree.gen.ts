@@ -20,6 +20,7 @@ import { Route as ManualRouteImport } from './routes/manual'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as CommunityRouteImport } from './routes/community'
+import { Route as ClassesRouteImport } from './routes/classes'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RoomsIndexRouteImport } from './routes/rooms.index'
@@ -31,6 +32,7 @@ import { Route as GigsIdRouteImport } from './routes/gigs.$id'
 import { Route as EventsIdRouteImport } from './routes/events.$id'
 import { Route as DepartmentsIdRouteImport } from './routes/departments.$id'
 import { Route as CommunityEventsIdRouteImport } from './routes/community-events.$id'
+import { Route as ClassesIdRouteImport } from './routes/classes.$id'
 import { Route as ArtistsIdRouteImport } from './routes/artists.$id'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
 import { Route as AuthenticatedMyTicketsRouteImport } from './routes/_authenticated/my-tickets'
@@ -113,6 +115,11 @@ const CommunityRoute = CommunityRouteImport.update({
   path: '/community',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClassesRoute = ClassesRouteImport.update({
+  id: '/classes',
+  path: '/classes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -166,6 +173,11 @@ const CommunityEventsIdRoute = CommunityEventsIdRouteImport.update({
   id: '/community-events/$id',
   path: '/community-events/$id',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ClassesIdRoute = ClassesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ClassesRoute,
 } as any)
 const ArtistsIdRoute = ArtistsIdRouteImport.update({
   id: '/artists/$id',
@@ -318,6 +330,7 @@ const AuthenticatedStaffAdminDepartmentsRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/classes': typeof ClassesRouteWithChildren
   '/community': typeof CommunityRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -335,6 +348,7 @@ export interface FileRoutesByFullPath {
   '/my-tickets': typeof AuthenticatedMyTicketsRoute
   '/staff': typeof AuthenticatedStaffRouteWithChildren
   '/artists/$id': typeof ArtistsIdRoute
+  '/classes/$id': typeof ClassesIdRoute
   '/community-events/$id': typeof CommunityEventsIdRoute
   '/departments/$id': typeof DepartmentsIdRoute
   '/events/$id': typeof EventsIdRoute
@@ -367,6 +381,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/classes': typeof ClassesRouteWithChildren
   '/community': typeof CommunityRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -383,6 +398,7 @@ export interface FileRoutesByTo {
   '/my-schedule': typeof AuthenticatedMyScheduleRoute
   '/my-tickets': typeof AuthenticatedMyTicketsRoute
   '/artists/$id': typeof ArtistsIdRoute
+  '/classes/$id': typeof ClassesIdRoute
   '/community-events/$id': typeof CommunityEventsIdRoute
   '/departments/$id': typeof DepartmentsIdRoute
   '/events/$id': typeof EventsIdRoute
@@ -417,6 +433,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/classes': typeof ClassesRouteWithChildren
   '/community': typeof CommunityRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -434,6 +451,7 @@ export interface FileRoutesById {
   '/_authenticated/my-tickets': typeof AuthenticatedMyTicketsRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRouteWithChildren
   '/artists/$id': typeof ArtistsIdRoute
+  '/classes/$id': typeof ClassesIdRoute
   '/community-events/$id': typeof CommunityEventsIdRoute
   '/departments/$id': typeof DepartmentsIdRoute
   '/events/$id': typeof EventsIdRoute
@@ -468,6 +486,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/classes'
     | '/community'
     | '/forgot-password'
     | '/login'
@@ -485,6 +504,7 @@ export interface FileRouteTypes {
     | '/my-tickets'
     | '/staff'
     | '/artists/$id'
+    | '/classes/$id'
     | '/community-events/$id'
     | '/departments/$id'
     | '/events/$id'
@@ -517,6 +537,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/classes'
     | '/community'
     | '/forgot-password'
     | '/login'
@@ -533,6 +554,7 @@ export interface FileRouteTypes {
     | '/my-schedule'
     | '/my-tickets'
     | '/artists/$id'
+    | '/classes/$id'
     | '/community-events/$id'
     | '/departments/$id'
     | '/events/$id'
@@ -566,6 +588,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/classes'
     | '/community'
     | '/forgot-password'
     | '/login'
@@ -583,6 +606,7 @@ export interface FileRouteTypes {
     | '/_authenticated/my-tickets'
     | '/_authenticated/staff'
     | '/artists/$id'
+    | '/classes/$id'
     | '/community-events/$id'
     | '/departments/$id'
     | '/events/$id'
@@ -617,6 +641,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  ClassesRoute: typeof ClassesRouteWithChildren
   CommunityRoute: typeof CommunityRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
@@ -718,6 +743,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CommunityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/classes': {
+      id: '/classes'
+      path: '/classes'
+      fullPath: '/classes'
+      preLoaderRoute: typeof ClassesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -794,6 +826,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/community-events/$id'
       preLoaderRoute: typeof CommunityEventsIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/classes/$id': {
+      id: '/classes/$id'
+      path: '/$id'
+      fullPath: '/classes/$id'
+      preLoaderRoute: typeof ClassesIdRouteImport
+      parentRoute: typeof ClassesRoute
     }
     '/artists/$id': {
       id: '/artists/$id'
@@ -1067,6 +1106,17 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface ClassesRouteChildren {
+  ClassesIdRoute: typeof ClassesIdRoute
+}
+
+const ClassesRouteChildren: ClassesRouteChildren = {
+  ClassesIdRoute: ClassesIdRoute,
+}
+
+const ClassesRouteWithChildren =
+  ClassesRoute._addFileChildren(ClassesRouteChildren)
+
 interface VenuesRouteChildren {
   VenuesIdRoute: typeof VenuesIdRoute
 }
@@ -1081,6 +1131,7 @@ const VenuesRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  ClassesRoute: ClassesRouteWithChildren,
   CommunityRoute: CommunityRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,

@@ -162,8 +162,6 @@ function ClassDetail() {
                           setMsg(null);
                           setForm((f) => ({
                             ...f,
-                            full_name:
-                              me?.full_name ?? f.full_name,
                             email: me?.email ?? f.email,
                           }));
                           setOpenSessionId(s.id);
