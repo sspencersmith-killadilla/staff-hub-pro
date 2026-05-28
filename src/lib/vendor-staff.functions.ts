@@ -7,10 +7,6 @@ import { assertStaff } from "@/lib/staff-guard";
 const STATUSES = ["pending", "approved", "rejected", "paid", "cancelled"] as const;
 const StatusSchema = z.enum(STATUSES);
 
-const listInput = z
-  .object({ departmentId: z.string().uuid().nullable().optional() })
-  .parse;
-
 async function deptSessionIds(departmentId: string | null | undefined): Promise<string[] | null> {
   if (!departmentId) return null;
   const { data, error } = await supabaseAdmin
