@@ -208,6 +208,7 @@ export const createEvent = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
     assertRoomOrStage(data);
+    await assertCanManageDepartment(context.userId, data.department_id ?? null);
     const { data: row, error } = await supabaseAdmin
       .from("sessions")
       .insert(toSessionRow(data))
