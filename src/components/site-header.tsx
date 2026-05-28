@@ -33,11 +33,11 @@ export function SiteHeader() {
           <Link to="/" className="flex items-center gap-2 font-semibold">
             <Home className="h-4 w-4" /> Home
           </Link>
-          <Link to="/manual" className="flex items-center gap-2 font-semibold text-muted-foreground hover:text-foreground">
-          |  Help Manual
+          <Link to="/manual" className="text-sm text-muted-foreground hover:text-foreground">
+            Help Manual
           </Link>
-          <Link to="https://totaleventsystemsolutions.lovable.app/ReproductionInstruction.pdf" className="flex items-center gap-2 font-semibold text-muted-foreground hover:text-foreground">
-          |  Reproduction Instruction
+          <Link to="https://totaleventsystemsolutions.lovable.app/ReproductionInstruction.pdf" className="text-sm text-muted-foreground hover:text-foreground">
+            Reproduction Instructions
           </Link>
         </div>
 
