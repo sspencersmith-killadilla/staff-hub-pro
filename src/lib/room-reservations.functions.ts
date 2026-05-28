@@ -145,6 +145,7 @@ const upsertSchema = z.object({
   party_size: z.number().int().positive().max(10000).optional().nullable(),
   purpose: z.string().max(500).optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
+  requester_department_id: z.string().uuid().optional().nullable(),
 });
 
 async function validateBooking(input: z.infer<typeof upsertSchema>) {
