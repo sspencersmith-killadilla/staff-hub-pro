@@ -270,7 +270,10 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
     for (const s of slotRes.data ?? []) {
       const stage = (s as any).stage_id ? stagesById.get((s as any).stage_id) : null;
       const venue = stage?.venue_id ? venuesById.get(stage.venue_id) : null;
-      const busker = (s as any).busker_id ? buskersById.get((s as any).busker_id) : null;
+      const performer =
+        ((s as any).artist_id && artistsById.get((s as any).artist_id)) ||
+        ((s as any).busker_id && buskersById.get((s as any).busker_id)) ||
+        null;
       out.push({
         id: `slot-${(s as any).id}`,
         source: "music",
@@ -278,22 +281,23 @@ export const listPublicAllEvents = createServerFn({ method: "GET" })
         description: (s as any).description ?? null,
         starts_at: (s as any).start_time ?? null,
         ends_at: (s as any).end_time ?? null,
-        image_url: busker?.avatar_url ?? null,
+        image_url: performer?.avatar_url ?? null,
         venue_name: venue?.name ?? stage?.name ?? null,
         venue_city: venue?.city ?? null,
         sub_location_name: stage?.name ?? null,
         sub_location_type: stage ? "stage" : null,
-        org_name: busker?.full_name ?? null,
+        org_name: performer?.full_name ?? null,
         cost_text: "Free",
         ticketed: false,
         detail_href: `/gigs/${(s as any).id}`,
         sponsors: [],
-        focal_x: busker?.avatar_focal_x ?? 50,
-        focal_y: busker?.avatar_focal_y ?? 50,
+        focal_x: performer?.avatar_focal_x ?? 50,
+        focal_y: performer?.avatar_focal_y ?? 50,
         sold_out: false,
         waitlist_available: false,
       });
     }
+
 
     return out;
   });
