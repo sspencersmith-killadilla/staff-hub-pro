@@ -181,10 +181,12 @@ function EventsPage() {
   const { isAdmin } = useAuth();
   const deptId = activeDepartment?.id ?? null;
   const [form, setForm] = useState(emptyForm);
+  const [adminViewAll, setAdminViewAll] = useState(false);
   const selectedDepartmentId = form.department_id || deptId;
+  const includeAll = isAdmin && adminViewAll;
   const { data: events = [] } = useQuery({
-    queryKey: ["events", deptId, isAdmin],
-    queryFn: () => listEvents({ data: { departmentId: deptId, includeAll: isAdmin } }),
+    queryKey: ["events", deptId, includeAll],
+    queryFn: () => listEvents({ data: { departmentId: deptId, includeAll } }),
   });
   const { data: locations } = useQuery({
     queryKey: ["event-locations", selectedDepartmentId],
