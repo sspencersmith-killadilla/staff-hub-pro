@@ -382,6 +382,7 @@ export const getPublicCityEvent = createServerFn({ method: "GET" })
       stage,
       room,
       venue,
+      department,
       tiers,
       talent: talentRes.data ?? [],
       sponsors,
