@@ -1,101 +1,59 @@
-# Granular Staff Permissions
+# Program Guide Generator
 
-Add per-feature access control for staff users, with **global defaults** that apply across all events plus optional **per-event overrides** for finer control.
+A new admin tool that compiles approved events + StreetBeats performances within a date range into a print-ready PDF, with sponsor ad slots monetized through a new "Guidebook Ad Space" sponsorship tier.
 
-## Permission catalog
+## What gets built
 
-A fixed set of string keys, one per gated surface:
+### 1. New sponsorship tier: "Guidebook Ad Space"
+- Add a seeded tier row (name `Guidebook Ad Space`, configurable price, `placement = 'guidebook'`) to the existing `sponsorship_tiers` table — schema migration only if a `placement` column is missing.
+- Surface it in the public sponsor application form alongside existing tiers; sponsor uploads logo + promotional text (existing `logo_url`, new `ad_copy` text field on `sponsors`).
+- Approval/payment flow is unchanged — re-uses the existing `ApplicationManager` UI.
+- Only sponsors with `status in ('approved','paid')` and the guidebook tier appear in the PDF.
 
-**Sidebar pages** (global only — these aren't event-scoped):
-- `page.box_office`
-- `page.attendees`
-- `page.events_list`
-- `page.scanner`
-- `page.reports`
-- `page.settings`
+### 2. Server function: `generateGuidebook`
+- Lives in `src/lib/guidebook.functions.ts` (NOT a Supabase Edge Function — per project rules we use `createServerFn` on TanStack Start; the user's phrasing "Supabase Edge Function" is taken to mean "server-side function").
+- Guarded by admin role check (re-uses `staff-guard`).
+- Inputs: `startDate`, `endDate`, optional `departmentId` filter.
+- Queries (via `supabaseAdmin`):
+  - `sessions` where `status='approved'` and `start_time` in range, joined with venue/room/stage + department.
+  - StreetBeats `slots` in range joined with stage → venue → department, plus claimed artist.
+  - Approved guidebook sponsors with logo + ad copy.
+- Returns a PDF as a base64 string (or streams bytes) for the browser to download.
 
-**Event dashboard tabs** (can be global or per-event):
-- `event.overview`
-- `event.box_office`
-- `event.marketing`
-- `event.ticketing`
-- `event.vendors`
-- `event.volunteers`
-- `event.reports`
-- `event.attendees`
-- `event.waitlist`
-- `event.scanner`
-- `event.settings`
+### 3. PDF layout (print-ready)
+Generated server-side with `pdf-lib` (Worker-compatible, pure JS — `reportlab`/`puppeteer`/`sharp` are not usable in the Cloudflare Worker runtime).
+- **Cover page**: event window dates, organization branding, hero sponsor logo.
+- **Section headers** per day (and per department within each day).
+- **Event entries**: title, time, venue/room, short description.
+- **StreetBeats section**: grouped by stage, lists gigs with artist name + genre.
+- **Sponsor ad slots**: full-page ad after the cover, half-page ads interleaved every ~N pages, footer micro-ads on content pages. Sponsors are rotated round-robin so each gets fair placement.
+- Page numbers + footer.
 
-(Final list will mirror the actual tab keys in `events.$id.tsx` and pages in `event-ops-sidebar.tsx`.)
+### 4. Admin UI: "Generate Guidebook"
+- New route `src/routes/_authenticated/staff/admin.guidebook.tsx` (admin-only via `beforeLoad` role check, mirroring `staff/settings.tsx`).
+- Linked from the admin sidebar.
+- Form: date range picker, optional department filter, "Generate PDF" button.
+- On click → calls `generateGuidebook` server fn → triggers browser download of `program-guide-{start}-{end}.pdf`.
+- Shows count preview ("X events, Y gigs, Z sponsor ads") before generation.
 
-Admins implicitly have `*` (all permissions). Plain `staff` role gets nothing by default — permissions are additive grants.
+## Technical details
 
-## Schema
+**Files created**
+- `src/lib/guidebook.functions.ts` — `generateGuidebook` server fn + `previewGuidebookCounts` helper.
+- `src/lib/guidebook-pdf.server.ts` — pure PDF builder using `pdf-lib`.
+- `src/routes/_authenticated/staff/admin.guidebook.tsx` — admin UI.
+- `supabase-migrations/025_guidebook_sponsor_tier.sql` — seed `Guidebook Ad Space` tier, add `ad_copy text` to `sponsors`, add GRANTs.
 
-Two tables, both in a new migration:
+**Files edited**
+- `src/lib/vendor-portal.functions.ts` / sponsor application form — accept `ad_copy` field when the guidebook tier is selected.
+- `src/routes/_authenticated/staff/admin.tsx` (or sidebar) — add "Generate Guidebook" link.
+- `package.json` — add `pdf-lib` dependency.
 
-```text
-staff_permissions
-  id uuid pk
-  user_id uuid  -> auth.users
-  permission text          -- e.g. 'event.box_office'
-  unique (user_id, permission)
+**Out of scope** (can be follow-ups)
+- Emailing the PDF, archiving past guidebooks, multi-language layouts, sponsor self-service ad preview, paid ad-slot auction.
 
-staff_event_permissions
-  id uuid pk
-  user_id uuid  -> auth.users
-  event_id uuid -> events
-  permission text
-  granted boolean          -- true = grant override, false = revoke override
-  unique (user_id, event_id, permission)
-```
+## Open questions
 
-Resolution per (user, event, permission):
-1. Admin → allow
-2. Per-event row exists → use its `granted` value
-3. Global row exists → allow
-4. Otherwise → deny
-
-Both tables: RLS on, `service_role` full access, `authenticated` can `SELECT` only their own rows. All writes go through admin-only server functions using `supabaseAdmin`.
-
-## Server layer (`src/lib/staff-permissions.functions.ts`)
-
-- `getMyPermissions()` — returns `{ global: string[], perEvent: Record<eventId, { grant: string[], revoke: string[] }>, isAdmin: boolean }` for the current user.
-- `hasPermission(userId, permission, eventId?)` — server-side resolver used by other protected functions.
-- `listStaffWithPermissions()` (admin) — for the management UI.
-- `setGlobalPermissions(userId, permissions[])` (admin).
-- `setEventPermissions(userId, eventId, grants[], revokes[])` (admin).
-
-Extend `staff-guard.ts`: replace bare `assertStaff` calls in sensitive server fns with `assertPermission(permission, eventId?)` that throws 403 when the resolver denies.
-
-## Client layer
-
-- `usePermissions()` hook wrapping `getMyPermissions` via `useQuery` (cached, invalidated on auth change).
-- Helper `can(permission, eventId?)` exposed from the hook.
-- `src/components/event-ops-sidebar.tsx` — filter the nav list with `can('page.X')`.
-- `src/routes/_authenticated/staff/events.$id.tsx` — filter the tab list (and default selected tab) with `can('event.X', eventId)`.
-- Route-level guard: each protected staff route adds a `beforeLoad` (or inline check in the component) that redirects to a "No access" view if the relevant permission is missing, so deep links can't bypass the sidebar filter.
-
-## Admin UI
-
-New page `src/routes/_authenticated/staff/admin/permissions.tsx` (admin-only):
-
-- Table of staff users (from `user_roles` where role = 'staff').
-- Row click → drawer with two tabs:
-  - **Global** — checkbox grid of all permissions.
-  - **Per-event** — event picker + checkbox grid where each permission has three states: inherit (use global), grant, revoke.
-- Save calls `setGlobalPermissions` / `setEventPermissions`.
-
-## Migration order
-
-1. Create migration with both tables + RLS + grants.
-2. Add server functions and update `staff-guard`.
-3. Add hook and wire sidebar + event tabs.
-4. Add admin permissions page.
-5. Backfill: grant all existing staff users every permission globally, so current behavior is preserved until an admin tightens access.
-
-## Out of scope
-
-- Editing the permission catalog from the UI (it stays code-defined).
-- Time-bound or role-templated permissions (could come later as "permission groups").
+1. Should the guidebook respect the active department context (department admins generate just their section) or is it always all-departments for super admins only?
+2. Fixed price for the Guidebook Ad Space tier, or should the admin set it when seeding?
+3. Any branding assets (org logo, cover image) you want on the cover page, or should I use the platform default?
