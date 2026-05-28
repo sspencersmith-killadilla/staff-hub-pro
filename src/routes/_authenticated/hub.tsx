@@ -116,12 +116,6 @@ function HubPage() {
       cta: "View tickets",
     },
 
-      description: "Your purchased and reserved event tickets.",
-      to: "/my-tickets",
-      icon: Ticket,
-      accent: "from-emerald-500 to-green-600",
-      cta: "View tickets",
-    },
     {
       title: "My Room Reservations",
       description: "Status of your room booking requests.",
