@@ -155,11 +155,13 @@ export const listAllAttendees = createServerFn({ method: "GET" })
     });
     annotateSeats(attendees);
 
-    const { data: sessions } = await supabaseAdmin
+    let sessionsQ = supabaseAdmin
       .from("sessions")
       .select("id, title, start_time")
       .order("start_time", { ascending: false })
       .limit(500);
+    if (allowedSessionIds) sessionsQ = sessionsQ.in("id", Array.from(allowedSessionIds));
+    const { data: sessions } = await sessionsQ;
 
     let waitlist: any[] = [];
     if (data.session_id) {
