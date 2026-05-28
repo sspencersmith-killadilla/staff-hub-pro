@@ -109,6 +109,15 @@ export function SiteHeader() {
               Staff Portal
             </Link>
           )}
+          {activeDepartment && (
+            <Link
+              to="/departments/$id"
+              params={{ id: activeDepartment.id }}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Dept Hub
+            </Link>
+          )}
           {isAdmin && (
             <Link
               to="/staff/admin"

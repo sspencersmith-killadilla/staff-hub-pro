@@ -30,16 +30,25 @@ export const listStaff = createServerFn({ method: "GET" })
 
     const ids = Array.from(new Set((roles ?? []).map((r) => r.user_id)));
     const { data: users } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
-    const map = new Map(users.users.map((u) => [u.id, u]));
+    const userMap = new Map(users.users.map((u) => [u.id, u]));
+
+    const { data: profiles } = await supabaseAdmin
+      .from("profiles")
+      .select("id, full_name, phone")
+      .in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+    const profMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
 
     return ids.map((id) => {
-      const u = map.get(id);
+      const u = userMap.get(id);
+      const p: any = profMap.get(id) ?? {};
       const userRoles = (roles ?? [])
         .filter((r) => r.user_id === id)
         .map((r) => r.role as "admin" | "staff");
       return {
         userId: id,
         email: u?.email ?? "(unknown)",
+        full_name: (p.full_name as string | null) ?? null,
+        phone: (p.phone as string | null) ?? null,
         roles: userRoles,
         createdAt: u?.created_at,
       };
@@ -230,5 +239,64 @@ export const deleteStaff = createServerFn({ method: "POST" })
       throw new Error("This account is protected and cannot be deleted.");
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
     if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+async function assertAdmin(supabase: any, userId: string) {
+  const { data } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (!data) throw new Error("Forbidden: admin role required");
+}
+
+export const updateStaffProfile = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      userId: z.string().uuid(),
+      full_name: z.string().trim().max(120).nullable().optional(),
+      phone: z.string().trim().max(40).nullable().optional(),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const patch: Record<string, any> = { id: data.userId };
+    if (data.full_name !== undefined) patch.full_name = data.full_name || null;
+    if (data.phone !== undefined) patch.phone = data.phone || null;
+    const { error } = await supabaseAdmin
+      .from("profiles")
+      .upsert(patch, { onConflict: "id" });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const updateStaffEmail = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      userId: z.string().uuid(),
+      email: z.string().email(),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (await isSuperAdmin(data.userId) && data.userId !== context.userId) {
+      throw new Error("This account is protected and cannot be modified.");
+    }
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, {
+      email: data.email,
+      email_confirm: true,
+    });
+    if (error) throw new Error(error.message);
+    // mirror into profiles.email if column exists
+    await supabaseAdmin.from("profiles").upsert(
+      { id: data.userId, email: data.email },
+      { onConflict: "id" },
+    );
     return { ok: true };
   });
