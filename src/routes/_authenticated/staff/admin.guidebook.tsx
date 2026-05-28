@@ -59,7 +59,7 @@ function GuidebookPage() {
       a.remove();
       URL.revokeObjectURL(url);
       toast.success(
-        `Generated PDF with ${result.counts.events} events, ${result.counts.gigs} gigs, ${result.counts.sponsors} sponsor ads.`,
+        `Generated PDF with ${result.counts.events} events, ${result.counts.gigs} gigs, ${(result.counts as any).classes ?? 0} classes, ${result.counts.sponsors} sponsor ads.`,
       );
     },
     onError: (e: any) => toast.error(e?.message ?? "Failed to generate"),
@@ -140,6 +140,9 @@ function GuidebookPage() {
               </div>
               <div>
                 StreetBeats performances: <strong>{previewMut.data.gigs}</strong>
+              </div>
+              <div>
+                Classes: <strong>{(previewMut.data as any).classes ?? 0}</strong>
               </div>
               <div>
                 Guidebook sponsor ads: <strong>{previewMut.data.sponsors}</strong>

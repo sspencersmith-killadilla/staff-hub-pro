@@ -32,12 +32,25 @@ export type GuidebookSponsor = {
   logo_mime: string | null;
 };
 
+export type GuidebookClass = {
+  id: string;
+  course_title: string;
+  start_time: string | null;
+  end_time: string | null;
+  room_name: string | null;
+  venue_name: string | null;
+  department_name: string | null;
+  instructor_name: string | null;
+  price: number;
+};
+
 export type GuidebookInput = {
   startDate: string; // YYYY-MM-DD
   endDate: string;
   title: string;
   events: GuidebookEvent[];
   gigs: GuidebookGig[];
+  classes: GuidebookClass[];
   sponsors: GuidebookSponsor[];
 };
 
@@ -423,7 +436,7 @@ export async function buildGuidebookPdf(input: GuidebookInput): Promise<Uint8Arr
     color: NAVY,
   });
   ctx.page.drawText(
-    `${input.events.length} events · ${input.gigs.length} StreetBeats performances`,
+    `${input.events.length} events · ${input.gigs.length} performances · ${input.classes.length} classes`,
     {
       x: MARGIN,
       y: PAGE_H - 285,
@@ -523,6 +536,56 @@ export async function buildGuidebookPdf(input: GuidebookInput): Promise<Uint8Arr
         (a.start_time ?? "").localeCompare(b.start_time ?? ""),
       );
       for (const g of sorted) drawGig(ctx, g);
+      if (ctx.pagesSinceAd >= 2) await drawHalfPageAd(ctx);
+    }
+  }
+
+  // ── Classes section ──
+  if (input.classes.length) {
+    newPage(ctx);
+    drawSectionHeader(ctx, "Classes");
+    const classesByDay = new Map<string, GuidebookClass[]>();
+    for (const c of input.classes) {
+      const k = dateKey(c.start_time);
+      if (!classesByDay.has(k)) classesByDay.set(k, []);
+      classesByDay.get(k)!.push(c);
+    }
+    const days = Array.from(classesByDay.keys()).sort();
+    for (const day of days) {
+      drawSubHeader(ctx, fmtDayHeader(day));
+      const list = classesByDay.get(day)!.sort((a, b) =>
+        (a.start_time ?? "").localeCompare(b.start_time ?? ""),
+      );
+      for (const c of list) {
+        ensureSpace(ctx, 40);
+        ctx.page.drawText(
+          `${fmtTime(c.start_time)} — ${c.course_title}`,
+          { x: MARGIN, y: ctx.y, size: 11, font: bold, color: NAVY },
+        );
+        ctx.y -= 14;
+        const meta = [
+          c.venue_name && c.room_name
+            ? `${c.venue_name} · ${c.room_name}`
+            : c.room_name ?? c.venue_name ?? "",
+          c.instructor_name ? `Instructor: ${c.instructor_name}` : "",
+          c.department_name ?? "",
+          c.price > 0 ? `$${c.price.toFixed(2)}` : "Free",
+        ]
+          .filter(Boolean)
+          .join("  ·  ");
+        if (meta) {
+          ctx.page.drawText(meta, {
+            x: MARGIN,
+            y: ctx.y,
+            size: 9,
+            font,
+            color: MUTED,
+          });
+          ctx.y -= 16;
+        } else {
+          ctx.y -= 6;
+        }
+      }
       if (ctx.pagesSinceAd >= 2) await drawHalfPageAd(ctx);
     }
   }

@@ -20,6 +20,7 @@ import { Route as ManualRouteImport } from './routes/manual'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as CommunityRouteImport } from './routes/community'
+import { Route as ClassesRouteImport } from './routes/classes'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RoomsIndexRouteImport } from './routes/rooms.index'
@@ -31,6 +32,7 @@ import { Route as GigsIdRouteImport } from './routes/gigs.$id'
 import { Route as EventsIdRouteImport } from './routes/events.$id'
 import { Route as DepartmentsIdRouteImport } from './routes/departments.$id'
 import { Route as CommunityEventsIdRouteImport } from './routes/community-events.$id'
+import { Route as ClassesIdRouteImport } from './routes/classes.$id'
 import { Route as ArtistsIdRouteImport } from './routes/artists.$id'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
 import { Route as AuthenticatedMyTicketsRouteImport } from './routes/_authenticated/my-tickets'
@@ -49,6 +51,7 @@ import { Route as AuthenticatedStaffMapRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedStaffCommunityOrganizationsRouteImport } from './routes/_authenticated/staff/community-organizations'
 import { Route as AuthenticatedStaffCommunityMusicRouteImport } from './routes/_authenticated/staff/community-music'
 import { Route as AuthenticatedStaffCommunityEventsRouteImport } from './routes/_authenticated/staff/community-events'
+import { Route as AuthenticatedStaffClassesRouteImport } from './routes/_authenticated/staff/classes'
 import { Route as AuthenticatedStaffAttendeesRouteImport } from './routes/_authenticated/staff/attendees'
 import { Route as AuthenticatedStaffAdminRouteImport } from './routes/_authenticated/staff/admin'
 import { Route as AuthenticatedCommunityManageRouteImport } from './routes/_authenticated/community/manage'
@@ -113,6 +116,11 @@ const CommunityRoute = CommunityRouteImport.update({
   path: '/community',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClassesRoute = ClassesRouteImport.update({
+  id: '/classes',
+  path: '/classes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -166,6 +174,11 @@ const CommunityEventsIdRoute = CommunityEventsIdRouteImport.update({
   id: '/community-events/$id',
   path: '/community-events/$id',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ClassesIdRoute = ClassesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ClassesRoute,
 } as any)
 const ArtistsIdRoute = ArtistsIdRouteImport.update({
   id: '/artists/$id',
@@ -268,6 +281,12 @@ const AuthenticatedStaffCommunityEventsRoute =
     path: '/community-events',
     getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
+const AuthenticatedStaffClassesRoute =
+  AuthenticatedStaffClassesRouteImport.update({
+    id: '/classes',
+    path: '/classes',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
 const AuthenticatedStaffAttendeesRoute =
   AuthenticatedStaffAttendeesRouteImport.update({
     id: '/attendees',
@@ -318,6 +337,7 @@ const AuthenticatedStaffAdminDepartmentsRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/classes': typeof ClassesRouteWithChildren
   '/community': typeof CommunityRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -335,6 +355,7 @@ export interface FileRoutesByFullPath {
   '/my-tickets': typeof AuthenticatedMyTicketsRoute
   '/staff': typeof AuthenticatedStaffRouteWithChildren
   '/artists/$id': typeof ArtistsIdRoute
+  '/classes/$id': typeof ClassesIdRoute
   '/community-events/$id': typeof CommunityEventsIdRoute
   '/departments/$id': typeof DepartmentsIdRoute
   '/events/$id': typeof EventsIdRoute
@@ -348,6 +369,7 @@ export interface FileRoutesByFullPath {
   '/community/manage': typeof AuthenticatedCommunityManageRoute
   '/staff/admin': typeof AuthenticatedStaffAdminRouteWithChildren
   '/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
+  '/staff/classes': typeof AuthenticatedStaffClassesRoute
   '/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
   '/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
@@ -367,6 +389,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/classes': typeof ClassesRouteWithChildren
   '/community': typeof CommunityRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -383,6 +406,7 @@ export interface FileRoutesByTo {
   '/my-schedule': typeof AuthenticatedMyScheduleRoute
   '/my-tickets': typeof AuthenticatedMyTicketsRoute
   '/artists/$id': typeof ArtistsIdRoute
+  '/classes/$id': typeof ClassesIdRoute
   '/community-events/$id': typeof CommunityEventsIdRoute
   '/departments/$id': typeof DepartmentsIdRoute
   '/events/$id': typeof EventsIdRoute
@@ -396,6 +420,7 @@ export interface FileRoutesByTo {
   '/community/manage': typeof AuthenticatedCommunityManageRoute
   '/staff/admin': typeof AuthenticatedStaffAdminRouteWithChildren
   '/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
+  '/staff/classes': typeof AuthenticatedStaffClassesRoute
   '/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
   '/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
@@ -417,6 +442,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/classes': typeof ClassesRouteWithChildren
   '/community': typeof CommunityRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -434,6 +460,7 @@ export interface FileRoutesById {
   '/_authenticated/my-tickets': typeof AuthenticatedMyTicketsRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRouteWithChildren
   '/artists/$id': typeof ArtistsIdRoute
+  '/classes/$id': typeof ClassesIdRoute
   '/community-events/$id': typeof CommunityEventsIdRoute
   '/departments/$id': typeof DepartmentsIdRoute
   '/events/$id': typeof EventsIdRoute
@@ -447,6 +474,7 @@ export interface FileRoutesById {
   '/_authenticated/community/manage': typeof AuthenticatedCommunityManageRoute
   '/_authenticated/staff/admin': typeof AuthenticatedStaffAdminRouteWithChildren
   '/_authenticated/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
+  '/_authenticated/staff/classes': typeof AuthenticatedStaffClassesRoute
   '/_authenticated/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
   '/_authenticated/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/_authenticated/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
@@ -468,6 +496,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/classes'
     | '/community'
     | '/forgot-password'
     | '/login'
@@ -485,6 +514,7 @@ export interface FileRouteTypes {
     | '/my-tickets'
     | '/staff'
     | '/artists/$id'
+    | '/classes/$id'
     | '/community-events/$id'
     | '/departments/$id'
     | '/events/$id'
@@ -498,6 +528,7 @@ export interface FileRouteTypes {
     | '/community/manage'
     | '/staff/admin'
     | '/staff/attendees'
+    | '/staff/classes'
     | '/staff/community-events'
     | '/staff/community-music'
     | '/staff/community-organizations'
@@ -517,6 +548,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/classes'
     | '/community'
     | '/forgot-password'
     | '/login'
@@ -533,6 +565,7 @@ export interface FileRouteTypes {
     | '/my-schedule'
     | '/my-tickets'
     | '/artists/$id'
+    | '/classes/$id'
     | '/community-events/$id'
     | '/departments/$id'
     | '/events/$id'
@@ -546,6 +579,7 @@ export interface FileRouteTypes {
     | '/community/manage'
     | '/staff/admin'
     | '/staff/attendees'
+    | '/staff/classes'
     | '/staff/community-events'
     | '/staff/community-music'
     | '/staff/community-organizations'
@@ -566,6 +600,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/classes'
     | '/community'
     | '/forgot-password'
     | '/login'
@@ -583,6 +618,7 @@ export interface FileRouteTypes {
     | '/_authenticated/my-tickets'
     | '/_authenticated/staff'
     | '/artists/$id'
+    | '/classes/$id'
     | '/community-events/$id'
     | '/departments/$id'
     | '/events/$id'
@@ -596,6 +632,7 @@ export interface FileRouteTypes {
     | '/_authenticated/community/manage'
     | '/_authenticated/staff/admin'
     | '/_authenticated/staff/attendees'
+    | '/_authenticated/staff/classes'
     | '/_authenticated/staff/community-events'
     | '/_authenticated/staff/community-music'
     | '/_authenticated/staff/community-organizations'
@@ -617,6 +654,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  ClassesRoute: typeof ClassesRouteWithChildren
   CommunityRoute: typeof CommunityRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
@@ -718,6 +756,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CommunityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/classes': {
+      id: '/classes'
+      path: '/classes'
+      fullPath: '/classes'
+      preLoaderRoute: typeof ClassesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -794,6 +839,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/community-events/$id'
       preLoaderRoute: typeof CommunityEventsIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/classes/$id': {
+      id: '/classes/$id'
+      path: '/$id'
+      fullPath: '/classes/$id'
+      preLoaderRoute: typeof ClassesIdRouteImport
+      parentRoute: typeof ClassesRoute
     }
     '/artists/$id': {
       id: '/artists/$id'
@@ -921,6 +973,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffCommunityEventsRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
     }
+    '/_authenticated/staff/classes': {
+      id: '/_authenticated/staff/classes'
+      path: '/classes'
+      fullPath: '/staff/classes'
+      preLoaderRoute: typeof AuthenticatedStaffClassesRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
     '/_authenticated/staff/attendees': {
       id: '/_authenticated/staff/attendees'
       path: '/attendees'
@@ -1004,6 +1063,7 @@ const AuthenticatedStaffAdminRouteWithChildren =
 interface AuthenticatedStaffRouteChildren {
   AuthenticatedStaffAdminRoute: typeof AuthenticatedStaffAdminRouteWithChildren
   AuthenticatedStaffAttendeesRoute: typeof AuthenticatedStaffAttendeesRoute
+  AuthenticatedStaffClassesRoute: typeof AuthenticatedStaffClassesRoute
   AuthenticatedStaffCommunityEventsRoute: typeof AuthenticatedStaffCommunityEventsRoute
   AuthenticatedStaffCommunityMusicRoute: typeof AuthenticatedStaffCommunityMusicRoute
   AuthenticatedStaffCommunityOrganizationsRoute: typeof AuthenticatedStaffCommunityOrganizationsRoute
@@ -1020,6 +1080,7 @@ interface AuthenticatedStaffRouteChildren {
 const AuthenticatedStaffRouteChildren: AuthenticatedStaffRouteChildren = {
   AuthenticatedStaffAdminRoute: AuthenticatedStaffAdminRouteWithChildren,
   AuthenticatedStaffAttendeesRoute: AuthenticatedStaffAttendeesRoute,
+  AuthenticatedStaffClassesRoute: AuthenticatedStaffClassesRoute,
   AuthenticatedStaffCommunityEventsRoute:
     AuthenticatedStaffCommunityEventsRoute,
   AuthenticatedStaffCommunityMusicRoute: AuthenticatedStaffCommunityMusicRoute,
@@ -1067,6 +1128,17 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface ClassesRouteChildren {
+  ClassesIdRoute: typeof ClassesIdRoute
+}
+
+const ClassesRouteChildren: ClassesRouteChildren = {
+  ClassesIdRoute: ClassesIdRoute,
+}
+
+const ClassesRouteWithChildren =
+  ClassesRoute._addFileChildren(ClassesRouteChildren)
+
 interface VenuesRouteChildren {
   VenuesIdRoute: typeof VenuesIdRoute
 }
@@ -1081,6 +1153,7 @@ const VenuesRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  ClassesRoute: ClassesRouteWithChildren,
   CommunityRoute: CommunityRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,

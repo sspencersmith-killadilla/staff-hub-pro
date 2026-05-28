@@ -172,7 +172,51 @@ async function fetchData(
     };
   });
 
-  return { events, gigs, sponsors };
+  // Classes (course_sessions) in range
+  let classQ = supabaseAdmin
+    .from("course_sessions")
+    .select(
+      "id, start_time, end_time, instructor_name, room_id, course_id, courses(title, price, department_id), rooms(name, venue_id, venues(name))",
+    )
+    .gte("start_time", startIso)
+    .lte("start_time", endIso)
+    .order("start_time", { ascending: true });
+  const classRes = await classQ;
+  if (classRes.error) throw new Error(classRes.error.message);
+  let classRows = classRes.data ?? [];
+  if (departmentId) {
+    classRows = classRows.filter(
+      (c: any) => c.courses?.department_id === departmentId,
+    );
+  }
+  // Resolve extra dept names referenced by classes
+  const classDeptIds = Array.from(
+    new Set(classRows.map((c: any) => c.courses?.department_id).filter(Boolean)),
+  ).filter((id) => !deptsById.has(id as string));
+  if (classDeptIds.length) {
+    const r = await supabaseAdmin
+      .from("departments")
+      .select("id, name")
+      .in("id", classDeptIds as any);
+    if (!r.error) {
+      for (const d of r.data ?? []) deptsById.set(d.id, d);
+    }
+  }
+  const classes = classRows.map((c: any) => ({
+    id: c.id,
+    course_title: c.courses?.title ?? "Class",
+    start_time: c.start_time,
+    end_time: c.end_time,
+    room_name: c.rooms?.name ?? null,
+    venue_name: c.rooms?.venues?.name ?? null,
+    department_name: c.courses?.department_id
+      ? deptsById.get(c.courses.department_id)?.name ?? null
+      : null,
+    instructor_name: c.instructor_name ?? null,
+    price: Number(c.courses?.price ?? 0),
+  }));
+
+  return { events, gigs, classes, sponsors };
 }
 
 async function fetchLogoBytes(
@@ -196,7 +240,7 @@ export const previewGuidebookCounts = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { startIso, endIso } = rangeBounds(data.startDate, data.endDate);
-    const { events, gigs, sponsors } = await fetchData(
+    const { events, gigs, classes, sponsors } = await fetchData(
       startIso,
       endIso,
       data.departmentId ?? null,
@@ -204,6 +248,7 @@ export const previewGuidebookCounts = createServerFn({ method: "POST" })
     return {
       events: events.length,
       gigs: gigs.length,
+      classes: classes.length,
       sponsors: sponsors.length,
     };
   });
@@ -214,7 +259,7 @@ export const generateGuidebook = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { startIso, endIso } = rangeBounds(data.startDate, data.endDate);
-    const { events, gigs, sponsors } = await fetchData(
+    const { events, gigs, classes, sponsors } = await fetchData(
       startIso,
       endIso,
       data.departmentId ?? null,
@@ -241,6 +286,7 @@ export const generateGuidebook = createServerFn({ method: "POST" })
       title: "Community Program Guide",
       events,
       gigs,
+      classes,
       sponsors: sponsorsWithLogos,
     });
 
