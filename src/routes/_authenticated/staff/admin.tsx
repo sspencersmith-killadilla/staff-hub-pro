@@ -69,6 +69,7 @@ function AdminPage() {
   const [promoteEmail, setPromoteEmail] = useState("");
   const [promoteRole, setPromoteRole] = useState<"staff" | "admin">("staff");
   const [promoteMsg, setPromoteMsg] = useState<string | null>(null);
+  const [editingStaff, setEditingStaff] = useState<{ userId: string; email: string; full_name: string | null; phone: string | null } | null>(null);
 
   const promote = useMutation({
     mutationFn: () =>
