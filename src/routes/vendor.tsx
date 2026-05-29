@@ -783,6 +783,10 @@ function ApplyTab({
   const [appType, setAppType] = useState<Kind>("vendor");
   const [sessionId, setSessionId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sellingItems, setSellingItems] = useState(false);
+  const [isLicensed, setIsLicensed] = useState(false);
+  const [permitUrls, setPermitUrls] = useState<string[]>([]);
+  const [uploadingPermit, setUploadingPermit] = useState(false);
 
   const fetchSessions = useServerFn(listOpenSessions);
   const fetchTiers = useServerFn(listTiers);
