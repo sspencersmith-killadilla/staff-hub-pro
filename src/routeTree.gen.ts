@@ -42,7 +42,6 @@ import { Route as AuthenticatedMyPermitsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedHubRouteImport } from './routes/_authenticated/hub'
 import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff/index'
 import { Route as EventsPermitsApplyRouteImport } from './routes/events.permits.apply'
-import { Route as ApiPublicSeedRdRouteImport } from './routes/api/public/seed-rd'
 import { Route as AuthenticatedStreetbeatsMyGigsRouteImport } from './routes/_authenticated/streetbeats/my-gigs'
 import { Route as AuthenticatedStreetbeatsApplyRouteImport } from './routes/_authenticated/streetbeats/apply'
 import { Route as AuthenticatedStaffVenuesRouteImport } from './routes/_authenticated/staff/venues'
@@ -240,11 +239,6 @@ const AuthenticatedStaffIndexRoute = AuthenticatedStaffIndexRouteImport.update({
 const EventsPermitsApplyRoute = EventsPermitsApplyRouteImport.update({
   id: '/events/permits/apply',
   path: '/events/permits/apply',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicSeedRdRoute = ApiPublicSeedRdRouteImport.update({
-  id: '/api/public/seed-rd',
-  path: '/api/public/seed-rd',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedStreetbeatsMyGigsRoute =
@@ -491,7 +485,6 @@ export interface FileRoutesByFullPath {
   '/staff/venues': typeof AuthenticatedStaffVenuesRoute
   '/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
   '/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
-  '/api/public/seed-rd': typeof ApiPublicSeedRdRoute
   '/events/permits/apply': typeof EventsPermitsApplyRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
   '/staff/admin/analytics': typeof AuthenticatedStaffAdminAnalyticsRoute
@@ -558,7 +551,6 @@ export interface FileRoutesByTo {
   '/staff/venues': typeof AuthenticatedStaffVenuesRoute
   '/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
   '/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
-  '/api/public/seed-rd': typeof ApiPublicSeedRdRoute
   '/events/permits/apply': typeof EventsPermitsApplyRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
   '/staff/admin/analytics': typeof AuthenticatedStaffAdminAnalyticsRoute
@@ -628,7 +620,6 @@ export interface FileRoutesById {
   '/_authenticated/staff/venues': typeof AuthenticatedStaffVenuesRoute
   '/_authenticated/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
   '/_authenticated/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
-  '/api/public/seed-rd': typeof ApiPublicSeedRdRoute
   '/events/permits/apply': typeof EventsPermitsApplyRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
   '/_authenticated/staff/admin/analytics': typeof AuthenticatedStaffAdminAnalyticsRoute
@@ -698,7 +689,6 @@ export interface FileRouteTypes {
     | '/staff/venues'
     | '/streetbeats/apply'
     | '/streetbeats/my-gigs'
-    | '/api/public/seed-rd'
     | '/events/permits/apply'
     | '/staff/'
     | '/staff/admin/analytics'
@@ -765,7 +755,6 @@ export interface FileRouteTypes {
     | '/staff/venues'
     | '/streetbeats/apply'
     | '/streetbeats/my-gigs'
-    | '/api/public/seed-rd'
     | '/events/permits/apply'
     | '/staff'
     | '/staff/admin/analytics'
@@ -834,7 +823,6 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/venues'
     | '/_authenticated/streetbeats/apply'
     | '/_authenticated/streetbeats/my-gigs'
-    | '/api/public/seed-rd'
     | '/events/permits/apply'
     | '/_authenticated/staff/'
     | '/_authenticated/staff/admin/analytics'
@@ -880,7 +868,6 @@ export interface RootRouteChildren {
   StagesIdRoute: typeof StagesIdRoute
   EventsIndexRoute: typeof EventsIndexRoute
   RoomsIndexRoute: typeof RoomsIndexRoute
-  ApiPublicSeedRdRoute: typeof ApiPublicSeedRdRoute
   EventsPermitsApplyRoute: typeof EventsPermitsApplyRoute
   ApiPublicManifestWebmanifestRoute: typeof ApiPublicManifestWebmanifestRoute
   ApiPublicOauthLinkedinCallbackRoute: typeof ApiPublicOauthLinkedinCallbackRoute
@@ -1118,13 +1105,6 @@ declare module '@tanstack/react-router' {
       path: '/events/permits/apply'
       fullPath: '/events/permits/apply'
       preLoaderRoute: typeof EventsPermitsApplyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/seed-rd': {
-      id: '/api/public/seed-rd'
-      path: '/api/public/seed-rd'
-      fullPath: '/api/public/seed-rd'
-      preLoaderRoute: typeof ApiPublicSeedRdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/streetbeats/my-gigs': {
@@ -1536,7 +1516,6 @@ const rootRouteChildren: RootRouteChildren = {
   StagesIdRoute: StagesIdRoute,
   EventsIndexRoute: EventsIndexRoute,
   RoomsIndexRoute: RoomsIndexRoute,
-  ApiPublicSeedRdRoute: ApiPublicSeedRdRoute,
   EventsPermitsApplyRoute: EventsPermitsApplyRoute,
   ApiPublicManifestWebmanifestRoute: ApiPublicManifestWebmanifestRoute,
   ApiPublicOauthLinkedinCallbackRoute: ApiPublicOauthLinkedinCallbackRoute,
