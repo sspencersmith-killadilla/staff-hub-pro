@@ -7,7 +7,13 @@ export type ModuleKey =
   | "vendors_sponsors"
   | "streetbeats"
   | "community_orgs"
-  | "room_reservations";
+  | "room_reservations"
+  | "classes"
+  | "box_office"
+  | "venues"
+  | "social_command"
+  | "guidebook"
+  | "events";
 
 export type PlatformModule = {
   key: ModuleKey;
@@ -18,10 +24,16 @@ export type PlatformModule = {
 };
 
 const DEFAULT_MODULES: PlatformModule[] = [
+  { key: "events", label: "Events Calendar", description: "Public events listing, ticketing, and schedule pages.", enabled: true },
+  { key: "box_office", label: "Box Office", description: "Attendee management, check-in, and ticket sales tools.", enabled: true },
+  { key: "venues", label: "Venues & Stages", description: "Internal venue, stage, and room management.", enabled: true },
+  { key: "classes", label: "Classes & Sessions", description: "Course catalog, instructors, and multi-session class scheduling.", enabled: true },
   { key: "community_orgs", label: "Community Organizations Portal", description: "Allows HOAs, nonprofits, and schools to submit public events.", enabled: true },
   { key: "room_reservations", label: "Public Room Reservations", description: "Allows residents to book conference rooms and study pods.", enabled: true },
   { key: "streetbeats", label: "StreetBeats Music Portal", description: "Allows musicians to audition and claim public busking slots.", enabled: true },
   { key: "vendors_sponsors", label: "Vendors & Sponsors Portal", description: "Allows businesses to apply for booths and sponsorship packages.", enabled: true },
+  { key: "social_command", label: "Social Media Command Center", description: "Cross-platform social scheduling, planner, and integrations.", enabled: true },
+  { key: "guidebook", label: "Guidebook Publisher", description: "Magazine-style guidebook editor and PDF export.", enabled: true },
 ];
 
 function mergeWithDefaults(modules?: PlatformModule[] | null) {

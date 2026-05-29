@@ -10,6 +10,12 @@ const DEFAULTS: Record<ModuleKey, boolean> = {
   streetbeats: true,
   community_orgs: true,
   room_reservations: true,
+  classes: true,
+  box_office: true,
+  venues: true,
+  social_command: true,
+  guidebook: true,
+  events: true,
 };
 
 export function useModules() {
