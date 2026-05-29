@@ -345,7 +345,9 @@ function BrandingPage() {
                 <TabsTrigger value="colors">Colors</TabsTrigger>
                 <TabsTrigger value="typography">Typography</TabsTrigger>
                 <TabsTrigger value="assets">Assets</TabsTrigger>
+                <TabsTrigger value="presets">Presets</TabsTrigger>
                 <TabsTrigger value="history">History</TabsTrigger>
+
               </TabsList>
 
               <TabsContent value="identity">
