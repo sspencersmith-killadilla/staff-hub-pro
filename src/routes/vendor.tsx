@@ -157,7 +157,7 @@ function AuthGate() {
 }
 
 // ─── Authenticated dashboard ──────────────────────────────────────────
-type Tab = "dashboard" | "archive" | "apply";
+type Tab = "dashboard" | "archive" | "apply" | "guidebook";
 type Kind = "vendor" | "sponsor";
 
 function isPastApp(app: any): boolean {
