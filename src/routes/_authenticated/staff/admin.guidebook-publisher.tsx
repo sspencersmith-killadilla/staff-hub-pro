@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   ArrowDown,
@@ -569,7 +570,36 @@ function InspectorPanel({
 
       {/* Image */}
       {!isAd && (
-        <FieldInput label="Image URL" value={d.image_url} onChange={(v) => onUpdate({ image_url: v })} />
+        <div className="rounded-md border bg-muted/30 p-2 space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-[11px] font-semibold">Image</Label>
+            <label className="flex items-center gap-1.5 text-[11px] cursor-pointer">
+              <Switch
+                checked={d.show_image ?? true}
+                onCheckedChange={(v: boolean) => onUpdate({ show_image: v })}
+                disabled={!d.image_url}
+              />
+              <span>Show on card</span>
+            </label>
+          </div>
+          <FieldInput
+            label="Image URL (imported from source)"
+            value={d.image_url}
+            onChange={(v) => onUpdate({ image_url: v })}
+            placeholder="No image on source record"
+          />
+          {d.image_url ? (
+            <img
+              src={d.image_url}
+              alt=""
+              className="w-full h-20 object-cover rounded border"
+            />
+          ) : (
+            <p className="text-[10px] text-muted-foreground">
+              No image on the original record. Paste a URL above to add one.
+            </p>
+          )}
+        </div>
       )}
       {isAd && (
         <FieldInput label="Logo URL" value={d.logo_url} onChange={(v) => onUpdate({ logo_url: v })} />

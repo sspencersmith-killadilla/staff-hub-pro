@@ -106,6 +106,7 @@ const s = StyleSheet.create({
     textTransform: "uppercase",
   },
   image: { width: "100%", height: 110, objectFit: "cover", marginBottom: 10 },
+  imageSm: { width: "100%", height: 64, objectFit: "cover", marginBottom: 8 },
   imageLg: { width: "100%", height: 220, objectFit: "cover", marginBottom: 12 },
   sponsorTag: {
     position: "absolute",
@@ -212,6 +213,7 @@ export type EventCardData = {
   location_name?: string | null;
   description?: string | null;
   image_url?: string | null;
+  show_image?: boolean;
   department_name?: string | null;
   cta_label?: string | null;
   eyebrow_override?: string | null;
@@ -220,11 +222,12 @@ export type EventCardData = {
 
 export function EventCard({ data, size = "quarter" }: { data: EventCardData; size?: CardSize }) {
   const hero = size === "hero";
-  const showImg = data.image_url && size !== "quarter";
+  const showImg = !!data.image_url && (data.show_image ?? true);
+  const imgStyle = hero ? s.imageLg : size === "quarter" ? s.imageSm : s.image;
   return (
     <View style={s.card} wrap={false}>
       {showImg ? (
-        <Image src={data.image_url!} style={hero ? s.imageLg : s.image} />
+        <Image src={data.image_url!} style={imgStyle} />
       ) : null}
       <View style={s.accentRule} />
       <Text style={s.eyebrow}>
@@ -259,6 +262,7 @@ export type ClassCardData = {
   instructor_name?: string | null;
   price?: number | null;
   image_url?: string | null;
+  show_image?: boolean;
   description?: string | null;
   department_name?: string | null;
   cta_label?: string | null;
@@ -268,11 +272,12 @@ export type ClassCardData = {
 
 export function ClassCard({ data, size = "quarter" }: { data: ClassCardData; size?: CardSize }) {
   const hero = size === "hero";
-  const showImg = data.image_url && size !== "quarter";
+  const showImg = !!data.image_url && (data.show_image ?? true);
+  const imgStyle = hero ? s.imageLg : size === "quarter" ? s.imageSm : s.image;
   return (
     <View style={s.card} wrap={false}>
       {showImg ? (
-        <Image src={data.image_url!} style={hero ? s.imageLg : s.image} />
+        <Image src={data.image_url!} style={imgStyle} />
       ) : null}
       <View style={[s.accentRule, { backgroundColor: "#0E7C7B" }]} />
       <Text style={[s.eyebrow, { color: "#0E7C7B" }]}>
