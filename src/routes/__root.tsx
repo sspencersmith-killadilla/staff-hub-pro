@@ -10,6 +10,8 @@ import {
 import { Toaster } from "@/components/ui/sonner";
 import { DepartmentProvider } from "@/contexts/department-context";
 import { ThemeProvider } from "@/components/theme-provider";
+import { GlobalBrandProvider } from "@/contexts/global-brand-context";
+
 
 import appCss from "../styles.css?url";
 
