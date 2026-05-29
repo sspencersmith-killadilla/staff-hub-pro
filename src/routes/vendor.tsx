@@ -818,6 +818,17 @@ function ApplyTab({
           logoUrl: (fd.get("logoUrl") as string) || null,
           notes: (fd.get("notes") as string) || null,
           adCopy: (fd.get("adCopy") as string) || null,
+          sellingItems: appType === "vendor" ? sellingItems : undefined,
+          itemsDescription:
+            appType === "vendor" && sellingItems
+              ? ((fd.get("itemsDescription") as string) || null)
+              : null,
+          isLicensed: appType === "vendor" ? isLicensed : undefined,
+          permitUrls: appType === "vendor" ? permitUrls : undefined,
+          specialRequirements:
+            appType === "vendor"
+              ? ((fd.get("specialRequirements") as string) || null)
+              : null,
         },
       });
       alert(
@@ -828,6 +839,33 @@ function ApplyTab({
       alert("Error: " + err.message);
     }
     setLoading(false);
+  };
+
+  const handlePermitUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+    setUploadingPermit(true);
+    try {
+      const uploaded: string[] = [];
+      for (const file of files) {
+        const ext = file.name.split(".").pop() ?? "bin";
+        const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+        const { error } = await supabase.storage
+          .from("vendor-permits")
+          .upload(path, file, { upsert: false, contentType: file.type });
+        if (error) throw error;
+        const { data: pub } = supabase.storage
+          .from("vendor-permits")
+          .getPublicUrl(path);
+        uploaded.push(pub.publicUrl);
+      }
+      setPermitUrls((prev) => [...prev, ...uploaded]);
+    } catch (err: any) {
+      alert("Upload failed: " + err.message);
+    } finally {
+      setUploadingPermit(false);
+      e.target.value = "";
+    }
   };
 
   const tierList = tiers ?? [];
