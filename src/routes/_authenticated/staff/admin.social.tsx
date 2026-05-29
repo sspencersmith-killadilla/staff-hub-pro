@@ -56,7 +56,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { listEvents } from "@/lib/events.functions";
-import { listConnections, schedulePost } from "@/lib/social.functions";
+import { listConnections, schedulePost, listPosts } from "@/lib/social.functions";
 import { useDepartment } from "@/contexts/department-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Link } from "@tanstack/react-router";
