@@ -620,7 +620,7 @@ function InspectorPanel({
               src={d.image_url}
               x={d.focal_x ?? 50}
               y={d.focal_y ?? 50}
-              onChange={({ x, y }) => onUpdate({ focal_x: x, focal_y: y })}
+              onChange={({ x, y }: { x: number; y: number }) => onUpdate({ focal_x: x, focal_y: y })}
             />
           ) : (
             <p className="text-[10px] text-muted-foreground">
