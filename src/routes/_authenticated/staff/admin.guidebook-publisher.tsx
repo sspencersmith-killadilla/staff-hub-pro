@@ -576,7 +576,7 @@ function InspectorPanel({
             <label className="flex items-center gap-1.5 text-[11px] cursor-pointer">
               <Switch
                 checked={d.show_image ?? true}
-                onCheckedChange={(v) => onUpdate({ show_image: v })}
+                onCheckedChange={(v: boolean) => onUpdate({ show_image: v })}
                 disabled={!d.image_url}
               />
               <span>Show on card</span>
