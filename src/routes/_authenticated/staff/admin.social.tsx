@@ -499,7 +499,7 @@ function ComposerDialog({
   eventLibrary: EventLite[];
   accountByPlatform: Partial<Record<Platform, string>>;
   departmentName: string;
-  onSave: (p: ScheduledPost) => void;
+  onSave: (p: ScheduledPost & { times?: Partial<Record<Platform, string>> }) => void;
 }) {
   const [caption, setCaption] = useState(
     existing?.caption ?? (seedEvent ? draftFromEvent(seedEvent) : ""),
