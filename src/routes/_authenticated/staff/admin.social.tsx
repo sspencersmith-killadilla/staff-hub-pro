@@ -122,10 +122,19 @@ function draftFromEvent(ev: EventLite): string {
 
 function SocialCommandCenter() {
   const fetchEvents = useServerFn(listEvents);
+  const fetchConns = useServerFn(listConnections);
+  const schedule = useServerFn(schedulePost);
+  const { activeDepartment } = useDepartment();
   const { data: events = [] } = useQuery({
     queryKey: ["social-events"],
     queryFn: () => fetchEvents({ data: { includeAll: true } }),
   });
+  const { data: conns = [] } = useQuery({
+    queryKey: ["social-connections", activeDepartment?.id],
+    queryFn: () => fetchConns({ data: { departmentId: activeDepartment!.id } }),
+    enabled: !!activeDepartment?.id,
+  });
+  const connectedPlatforms = new Set(conns.map((c) => c.platform));
 
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
   const [posts, setPosts] = useState<ScheduledPost[]>([]);
@@ -164,20 +173,40 @@ function SocialCommandCenter() {
     setComposer({ date: dateKey, seedEvent: ev });
   }
 
-  function savePost(post: ScheduledPost) {
+  async function savePost(post: ScheduledPost) {
     setPosts((prev) => {
       const exists = prev.find((p) => p.id === post.id);
       if (exists) return prev.map((p) => (p.id === post.id ? post : p));
       return [...prev, post];
     });
-    // Mocked submission to unified social API
-    console.info("[SocialAPI mock] payload", post);
-    toast.success("Post scheduled", {
-      description: `Queued for ${Object.entries(post.platforms)
-        .filter(([, v]) => v)
-        .map(([k]) => PLATFORM_META[k as Platform].label)
-        .join(", ") || "no channels"}`,
-    });
+    if (!activeDepartment?.id) {
+      toast.error("Select an active department first");
+      return;
+    }
+    const platforms = (Object.entries(post.platforms) as [Platform, boolean][])
+      .filter(([k, v]) => v && k !== "x")
+      .map(([k]) => k) as ("facebook" | "instagram" | "linkedin")[];
+    if (platforms.length === 0) {
+      toast.error("Pick at least one connected platform (X must be posted manually).");
+      return;
+    }
+    try {
+      await schedule({
+        data: {
+          departmentId: activeDepartment.id,
+          scheduledFor: new Date(`${post.date}T12:00:00`).toISOString(),
+          caption: post.caption,
+          mediaUrl: post.mediaUrl ?? null,
+          eventId: post.eventId ?? null,
+          platforms,
+        },
+      });
+      toast.success("Post scheduled", {
+        description: platforms.map((p) => PLATFORM_META[p].label).join(", "),
+      });
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
   }
 
   return (
@@ -194,6 +223,12 @@ function SocialCommandCenter() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" asChild>
+              <Link to="/staff/admin/social/connections">
+                <Plug className="h-4 w-4 mr-1" />
+                {conns.length} connected
+              </Link>
+            </Button>
             <Button variant="outline" size="icon" onClick={() => setCursor(subMonths(cursor, 1))}>
               <ChevronLeft />
             </Button>
@@ -206,6 +241,21 @@ function SocialCommandCenter() {
             </Button>
           </div>
         </header>
+
+        {conns.length === 0 && (
+          <Card className="border-amber-300 bg-amber-50">
+            <CardContent className="p-4 text-sm text-amber-900">
+              No social accounts are connected for{" "}
+              <strong>{activeDepartment?.name ?? "this department"}</strong> yet.{" "}
+              <Link
+                to="/staff/admin/social/connections"
+                className="underline font-medium"
+              >
+                Connect Facebook, Instagram, or LinkedIn →
+              </Link>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
           {/* Event sidebar */}
