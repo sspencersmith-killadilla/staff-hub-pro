@@ -1,5 +1,5 @@
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { type ReactElement, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyRoles } from "@/lib/auth.functions";
@@ -197,19 +197,25 @@ function PublisherPage() {
   const dateError =
     startDate && endDate && startDate > endDate ? "End date must be after start date." : null;
 
-  // PDF preview (client-only)
-  const [PDFViewer, setPDFViewer] = useState<any>(null);
+  // PDF preview (client-only) — use BlobProvider + iframe (more robust than PDFViewer in Vite)
+  const [pdfMod, setPdfMod] = useState<any>(null);
   const [GuidebookDocument, setGuidebookDocument] = useState<any>(null);
+  const [pdfLoadError, setPdfLoadError] = useState<string | null>(null);
   useEffect(() => {
     if (!mounted) return;
     let alive = true;
-    Promise.all([import("@react-pdf/renderer"), import("@/lib/guidebook-publisher/document")]).then(
-      ([rp, doc]) => {
+    Promise.all([import("@react-pdf/renderer"), import("@/lib/guidebook-publisher/document")])
+      .then(([rp, doc]) => {
         if (!alive) return;
-        setPDFViewer(() => rp.PDFViewer);
+        setPdfMod(() => rp);
         setGuidebookDocument(() => doc.GuidebookDocument);
-      },
-    );
+      })
+      .catch((err) => {
+        if (!alive) return;
+        // eslint-disable-next-line no-console
+        console.error("Failed to load PDF preview modules", err);
+        setPdfLoadError(err?.message ?? String(err));
+      });
     return () => {
       alive = false;
     };
@@ -348,24 +354,32 @@ function PublisherPage() {
             <CardTitle className="text-sm">Live preview · US Letter</CardTitle>
           </CardHeader>
           <CardContent className="flex-1 min-h-0 p-0">
-            {!mounted || !PDFViewer || !GuidebookDocument ? (
+            {pdfLoadError ? (
+              <div className="flex flex-col items-center justify-center h-full text-destructive text-sm px-4 text-center gap-2">
+                <p>Couldn't load PDF preview engine.</p>
+                <p className="text-xs text-muted-foreground">{pdfLoadError}</p>
+              </div>
+            ) : !mounted || !pdfMod || !GuidebookDocument ? (
               <div className="flex items-center justify-center h-full text-muted-foreground text-sm">Loading preview…</div>
             ) : items.filter((i) => !i.hidden).length === 0 ? (
               <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
                 Load a date range to see the preview.
               </div>
             ) : (
-              <PDFViewer showToolbar style={{ width: "100%", height: "100%", border: "none" }}>
-                <GuidebookDocument
-                  title={title}
-                  startDate={startDate}
-                  endDate={endDate}
-                  items={items}
-                  preset={preset}
-                  coverImageUrl={coverImageUrl || null}
-                  coverSubtitle={coverSubtitle || null}
-                />
-              </PDFViewer>
+              <PdfPreview
+                pdfMod={pdfMod}
+                doc={
+                  <GuidebookDocument
+                    title={title}
+                    startDate={startDate}
+                    endDate={endDate}
+                    items={items}
+                    preset={preset}
+                    coverImageUrl={coverImageUrl || null}
+                    coverSubtitle={coverSubtitle || null}
+                  />
+                }
+              />
             )}
           </CardContent>
         </Card>
@@ -690,4 +704,38 @@ function fromLocalDt(v: string) {
   if (!v) return null;
   const d = new Date(v);
   return isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+// Renders a PDF document into an iframe via BlobProvider. More robust across
+// Vite/React 19 setups than @react-pdf/renderer's built-in <PDFViewer>.
+function PdfPreview({ pdfMod, doc }: { pdfMod: any; doc: ReactElement }) {
+  const { BlobProvider } = pdfMod;
+  return (
+    <BlobProvider document={doc}>
+      {({ url, loading, error }: { url: string | null; loading: boolean; error: Error | null }) => {
+        if (error) {
+          return (
+            <div className="flex flex-col items-center justify-center h-full text-destructive text-sm px-4 text-center gap-2">
+              <p>PDF render failed.</p>
+              <p className="text-xs text-muted-foreground">{error.message}</p>
+            </div>
+          );
+        }
+        if (loading || !url) {
+          return (
+            <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+              Rendering PDF…
+            </div>
+          );
+        }
+        return (
+          <iframe
+            src={url}
+            title="Guidebook PDF preview"
+            style={{ width: "100%", height: "100%", border: "none" }}
+          />
+        );
+      }}
+    </BlobProvider>
+  );
 }
