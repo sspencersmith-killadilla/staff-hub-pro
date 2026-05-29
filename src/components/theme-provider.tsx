@@ -116,15 +116,19 @@ export function normalizeBrandCss(brand: Record<string, unknown> | null | undefi
  * Apply a brand_css JSON object (e.g. { "--primary": "oklch(...)", "background": "#fff" })
  * as CSS variables on :root. Returns a cleanup that removes only the keys it set.
  */
-export function applyBrandCss(brand: Record<string, unknown> | null | undefined): () => void {
+export function applyBrandCss(
+  brand: Record<string, unknown> | null | undefined,
+  priority = 5,
+): () => void {
   const id = Symbol("brand-css");
-  setBrandLayer(id, brand, 5);
+  setBrandLayer(id, brand, priority);
   return () => {
     const index = brandLayers.findIndex((layer) => layer.id === id);
     if (index >= 0) brandLayers.splice(index, 1);
     refreshBrandCss();
   };
 }
+
 
 /** Apply brand_css from any source (public route loader, etc.) for the lifetime of the mount. */
 export function BrandThemeApplier({ brand }: { brand: Record<string, unknown> | null | undefined }) {
