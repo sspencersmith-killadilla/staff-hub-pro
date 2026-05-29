@@ -317,6 +317,8 @@ export type PerformanceCardData = {
   artist_name?: string | null;
   artist_genre?: string | null;
   description?: string | null;
+  image_url?: string | null;
+  show_image?: boolean;
   cta_label?: string | null;
   eyebrow_override?: string | null;
   sponsor?: SponsorRef | null;
@@ -330,8 +332,11 @@ export function PerformanceCard({
   size?: CardSize;
 }) {
   const hero = size === "hero";
+  const showImg = !!data.image_url && (data.show_image ?? true);
+  const imgStyle = hero ? s.imageLg : size === "quarter" ? s.imageSm : s.image;
   return (
     <View style={s.card} wrap={false}>
+      {showImg ? <Image src={data.image_url!} style={imgStyle} /> : null}
       <View style={[s.accentRule, { backgroundColor: "#9333EA" }]} />
       <Text style={[s.eyebrow, { color: "#9333EA" }]}>
         {data.eyebrow_override ??
