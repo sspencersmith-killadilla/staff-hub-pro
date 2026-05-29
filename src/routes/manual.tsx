@@ -116,10 +116,14 @@ const groups: { label: string; sectionIds: string[] }[] = [
       "admin-dept-roles",
       "admin-modules",
       "admin-permits",
+      "admin-branding",
+      "admin-tenants",
+      "admin-home",
       "admin-guidebook",
       "admin-social",
     ],
   },
+
 ];
 
 function Figure({
