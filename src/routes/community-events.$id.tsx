@@ -193,6 +193,7 @@ function CommunityEventFlyer() {
           </div>
         </article>
       </div>
+      </div>
     </div>
   );
 }
