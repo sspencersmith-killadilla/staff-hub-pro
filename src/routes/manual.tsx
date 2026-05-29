@@ -91,6 +91,8 @@ const groups: { label: string; sectionIds: string[] }[] = [
       "community-orgs",
       "vendor-apply",
       "sponsor",
+      "permits",
+      "my-permits",
       "venues",
     ],
   },
@@ -113,6 +115,7 @@ const groups: { label: string; sectionIds: string[] }[] = [
       "admin-departments",
       "admin-dept-roles",
       "admin-modules",
+      "admin-permits",
       "admin-guidebook",
       "admin-social",
     ],
@@ -580,27 +583,55 @@ const sections: Section[] = [
             Go to <code>/vendor</code> and create an account if needed.
           </Step>
           <Step n={2} title="Apply for events open to vendors">
-            Pick an event, choose a booth tier, and submit your application.
+            Pick an event, choose a booth tier, and submit your application
+            with your business profile.
           </Step>
-          <Step n={3} title="Wait for staff approval">
-            City staff review and approve your application before any payment
-            is collected.
+          <Step n={3} title="Tell us about your sales & licensing">
+            The application now asks four extra questions used by staff to
+            triage your booth:
+            <ul className="my-2 list-disc space-y-1 pl-6">
+              <li>
+                <strong>Will you be selling items?</strong> If yes, describe
+                the products or services (menu, merchandise, services
+                offered, price range).
+              </li>
+              <li>
+                <strong>Are you licensed to do business and sell items?</strong>
+                {" "}If yes, upload one or more proofs (sales-tax permit,
+                health/cottage-food permit, business license, food handler
+                cards, etc.) — multi-file upload is supported.
+              </li>
+              <li>
+                <strong>Special requirements</strong> — electrical needs,
+                water access, vehicle drop-off, allergens, accessibility,
+                anything staff should know before assigning your spot.
+              </li>
+            </ul>
           </Step>
-          <Step n={4} title="Review the contract and pay">
+          <Step n={4} title="Wait for staff approval">
+            City staff review your application and supporting documents
+            before any payment is collected.
+          </Step>
+          <Step n={5} title="Review the contract and pay">
             Once approved, an in-app payment panel opens showing your tier,
             the exact amount due, and the full <strong>Vendor Agreement</strong>{" "}
             (event rules, cancellation/refund policy, indemnification, and
             insurance requirements). You must tick{" "}
             <em>"I have read and agree to the contract terms"</em> before the{" "}
             <strong>Submit Payment</strong> button enables. Card details are
-            captured on the same screen and charged on submit; you'll receive a
-            confirmation with a transaction reference and invoice number.
+            captured on the same screen and charged on submit; you'll receive
+            a confirmation with a transaction reference and invoice number.
           </Step>
-          <Step n={5} title="Manage booth placement">
-            After payment clears, your booth assignment and event-day logistics
-            appear in the same vendor dashboard.
+          <Step n={6} title="Manage booth placement">
+            After payment clears, your booth assignment and event-day
+            logistics appear in the same vendor dashboard.
           </Step>
         </ol>
+        <Callout kind="tip">
+          Uploaded permits are stored privately in the{" "}
+          <code>vendor-permits</code> bucket and are only visible to you and
+          the reviewing staff.
+        </Callout>
       </>
     ),
   },
@@ -629,6 +660,91 @@ const sections: Section[] = [
           transaction reference and invoice number is issued immediately —
           your logo then appears on the event page and flyers.
         </p>
+      </>
+    ),
+  },
+  {
+    id: "permits",
+    title: "Special Event Permits",
+    icon: FileText,
+    audience: "community",
+    render: () => (
+      <>
+        <p>
+          Anyone planning a public event that needs city approval (parades,
+          festivals, runs, block parties, etc.) applies online at{" "}
+          <code>/events/permits/apply</code>. The form is a guided 5-step
+          wizard with dynamic pricing and in-app payment.
+        </p>
+        <ol className="my-6 space-y-4">
+          <Step n={1} title="Applicant & Event Basics">
+            Primary contact, organization, event name, estimated participants,
+            and event type. The event type is pulled from the city's current
+            fee schedule and contributes to your total.
+          </Step>
+          <Step n={2} title="Dates, Times & Logistics">
+            Setup, main, and teardown windows; whether you'll serve alcohol
+            (with TABC license number), have food vendors, need electrical
+            service, or are including a parade route.
+          </Step>
+          <Step n={3} title="Operations & Safety">
+            Narrative answers for traffic control, litter control, and how
+            you'll notify nearby residents and businesses.
+          </Step>
+          <Step n={4} title="Document Uploads">
+            Required: certificate of insurance, site plan, and traffic
+            management plan. Files are stored privately in the{" "}
+            <code>permit-docs</code> bucket and are only visible to you and
+            staff reviewers.
+          </Step>
+          <Step n={5} title="Fees, Signature & Payment">
+            The wizard adds the active base fee + your chosen route/trail
+            option fee in real time. After typing your name to certify, the
+            same USAePay checkout used for vendor booths opens. On a
+            successful charge the permit is marked <strong>paid</strong> and
+            sent to the staff review queue.
+          </Step>
+        </ol>
+        <Callout kind="tip">
+          Hit <strong>Save Draft</strong> at any time. Drafts are kept in
+          your account and can be resumed from <code>/my-permits</code> or
+          the <em>My Permits</em> card on your Hub.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "my-permits",
+    title: "My Permits",
+    icon: FileText,
+    audience: "community",
+    render: () => (
+      <>
+        <p>
+          The <code>/my-permits</code> page lists every Special Event Permit
+          you've started or submitted, along with its current status:
+        </p>
+        <ul className="my-4 list-disc space-y-2 pl-6 text-sm">
+          <li><strong>Draft</strong> — saved but not yet submitted. Click{" "}
+            <em>Resume</em> to reopen the wizard or the trash icon to delete.
+          </li>
+          <li><strong>Pending review</strong> — sent to staff; you can still
+            view your answers and the calculated fee.
+          </li>
+          <li><strong>Approved</strong> — staff have approved; the wizard
+            will let you complete payment.
+          </li>
+          <li><strong>Paid</strong> — payment captured; the city has your
+            certificate on file.
+          </li>
+          <li><strong>Rejected</strong> — see staff notes for why; start a
+            new application if needed.
+          </li>
+        </ul>
+        <Callout kind="note">
+          You can also reach this page from <em>My Permits</em> in the
+          "Manage your stuff" section of your Hub.
+        </Callout>
       </>
     ),
   },
@@ -667,8 +783,15 @@ const sections: Section[] = [
           <li><strong>Vendors / Sponsors</strong> — review applications and assign booths.</li>
           <li><strong>Community Music / Orgs / Events</strong> — approve and schedule.</li>
           <li><strong>Room Reservations</strong> — approve, decline, or reschedule requests.</li>
+          <li><strong>Classes</strong> — manage the class catalog and registrations.</li>
+          <li><strong>Social Command</strong> — multi-channel social publishing and connections.</li>
           <li><strong>Platform Settings</strong> — your profile and operational settings.</li>
         </ul>
+        <Callout kind="note">
+          Special Event Permits are reviewed by admins under{" "}
+          <em>Admin → Permit settings</em>; see the admin section for the
+          permit queue.
+        </Callout>
       </>
     ),
   },
@@ -828,14 +951,78 @@ const sections: Section[] = [
       <>
         <p>
           Turn entire features on or off across the platform from the
-          settings/modules area. Modules include StreetBeats, Community Orgs,
-          Room Reservations, and Vendors / Sponsors.
+          settings/modules area. Every major feature has its own toggle so
+          you can phase rollouts or pilot a single program. Current modules:
         </p>
         <ul className="my-4 list-disc space-y-2 pl-6 text-sm">
-          <li>Disabled modules disappear from public nav, the hub, and the staff sidebar.</li>
-          <li>Existing data is preserved — modules can be re-enabled at any time.</li>
-          <li>Use this to phase rollouts or pilot a single program.</li>
+          <li><strong>Events</strong> — the public events directory &amp; ticketing.</li>
+          <li><strong>Venues &amp; Stages</strong> — venue/stage directory and editor.</li>
+          <li><strong>Box Office</strong> — attendee management and check-in.</li>
+          <li><strong>Vendors / Sponsors</strong> — applications, contracts, payments.</li>
+          <li><strong>StreetBeats</strong> — musician roster and gig claiming.</li>
+          <li><strong>Community Orgs &amp; Events</strong> — HOA / nonprofit submissions.</li>
+          <li><strong>Room Reservations</strong> — booking flow and instant-book toggle.</li>
+          <li><strong>Classes</strong> — class catalog and registration.</li>
+          <li><strong>Social Command</strong> — multi-channel social publishing.</li>
+          <li><strong>Special Event Permits</strong> — the 5-step permit wizard,{" "}
+            <em>My Permits</em>, and the staff review queue.</li>
         </ul>
+        <Callout kind="note">
+          Disabling a module hides it from public nav, the Hub, and the staff
+          sidebar. Existing data is preserved — modules can be re-enabled at
+          any time without data loss.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "admin-permits",
+    title: "Permit Settings &amp; Fee Schedule",
+    icon: FileText,
+    audience: "admin",
+    render: () => (
+      <>
+        <p>
+          The <em>Permit settings</em> link on <code>/staff/admin</code>{" "}
+          opens the Special Event Permit configuration page at{" "}
+          <code>/staff/admin/permits</code>. Admins control two things here:
+        </p>
+        <ul className="my-4 list-disc space-y-2 pl-6 text-sm">
+          <li>
+            <strong>Fee schedule</strong> — manage three categories of
+            configurations:
+            <ul className="mt-1 list-disc space-y-1 pl-6">
+              <li>
+                <em>Event types</em> — the radio choices applicants pick in
+                step 1 (e.g., "5K Run", "Block Party", "Parade").
+              </li>
+              <li>
+                <em>Route / Trail fees</em> — the route or trail options
+                shown in step 5 (e.g., "River Walk Trail — $150").
+              </li>
+              <li>
+                <em>Base fees</em> — flat fees added to every permit (sum of
+                all active base fees, e.g., a $50 application fee).
+              </li>
+            </ul>
+            Each row has a label, cost, sort order, and an Active toggle.
+            Deactivating a fee hides it from the public wizard without
+            deleting historical data.
+          </li>
+          <li>
+            <strong>Permit review queue</strong> — every non-draft
+            application appears here with applicant, event details, calculated
+            fee, status, and uploaded documents. Staff can mark a permit{" "}
+            <em>Pending review → Approved / Rejected</em>, and attach internal
+            notes. Approving a permit unlocks the applicant's payment panel;
+            payment moves the status to <em>Paid</em>.
+          </li>
+        </ul>
+        <Callout kind="warn">
+          Changing the cost of an existing fee only affects{" "}
+          <strong>new</strong> applications. Submitted permits keep the
+          calculated fee that was active when they were submitted.
+        </Callout>
       </>
     ),
   },
