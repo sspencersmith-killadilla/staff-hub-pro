@@ -783,8 +783,15 @@ const sections: Section[] = [
           <li><strong>Vendors / Sponsors</strong> — review applications and assign booths.</li>
           <li><strong>Community Music / Orgs / Events</strong> — approve and schedule.</li>
           <li><strong>Room Reservations</strong> — approve, decline, or reschedule requests.</li>
+          <li><strong>Classes</strong> — manage the class catalog and registrations.</li>
+          <li><strong>Social Command</strong> — multi-channel social publishing and connections.</li>
           <li><strong>Platform Settings</strong> — your profile and operational settings.</li>
         </ul>
+        <Callout kind="note">
+          Special Event Permits are reviewed by admins under{" "}
+          <em>Admin → Permit settings</em>; see the admin section for the
+          permit queue.
+        </Callout>
       </>
     ),
   },
