@@ -364,6 +364,8 @@ function SocialCommandCenter() {
           existing={composer.post}
           seedEvent={composer.seedEvent}
           eventLibrary={events as EventLite[]}
+          accountByPlatform={accountByPlatform}
+          departmentName={activeDepartment?.name ?? "Your department"}
           onSave={(p) => {
             savePost(p);
             setComposer(null);
