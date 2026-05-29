@@ -222,32 +222,44 @@ function SocialCommandCenter() {
     setComposer({ date: dateKey, seedEvent: ev });
   }
 
-  async function savePost(post: ScheduledPost) {
+  async function savePost(post: ScheduledPost & { times?: Partial<Record<Platform, string>> }) {
     if (!activeDepartment?.id) {
       toast.error("Select an active department first");
       return;
     }
-    const platforms = (Object.entries(post.platforms) as [Platform, boolean][])
+    const enabled = (Object.entries(post.platforms) as [Platform, boolean][])
       .filter(([k, v]) => v && k !== "x")
       .map(([k]) => k) as ("facebook" | "instagram" | "linkedin")[];
-    if (platforms.length === 0) {
+    if (enabled.length === 0) {
       toast.error("Pick at least one connected platform (X must be posted manually).");
       return;
     }
+    // Group platforms by their scheduled time so each distinct time becomes one post.
+    const groups = new Map<string, ("facebook" | "instagram" | "linkedin")[]>();
+    for (const p of enabled) {
+      const t = post.times?.[p] || post.time || "12:00";
+      const arr = groups.get(t) ?? [];
+      arr.push(p);
+      groups.set(t, arr);
+    }
     try {
-      await schedule({
-        data: {
-          departmentId: activeDepartment.id,
-          scheduledFor: new Date(`${post.date}T${post.time || "12:00"}:00`).toISOString(),
-          caption: post.caption,
-          mediaUrl: post.mediaUrl ?? null,
-          eventId: post.eventId ?? null,
-          platforms,
-        },
-      });
+      for (const [t, platforms] of groups) {
+        await schedule({
+          data: {
+            departmentId: activeDepartment.id,
+            scheduledFor: new Date(`${post.date}T${t}:00`).toISOString(),
+            caption: post.caption,
+            mediaUrl: post.mediaUrl ?? null,
+            eventId: post.eventId ?? null,
+            platforms,
+          },
+        });
+      }
       await queryClient.invalidateQueries({ queryKey: postsQueryKey });
       toast.success("Post scheduled", {
-        description: platforms.map((p) => PLATFORM_META[p].label).join(", "),
+        description: Array.from(groups.entries())
+          .map(([t, ps]) => `${ps.map((p) => PLATFORM_META[p].label).join(", ")} @ ${t}`)
+          .join(" · "),
       });
     } catch (e) {
       toast.error((e as Error).message);
@@ -487,12 +499,19 @@ function ComposerDialog({
   eventLibrary: EventLite[];
   accountByPlatform: Partial<Record<Platform, string>>;
   departmentName: string;
-  onSave: (p: ScheduledPost) => void;
+  onSave: (p: ScheduledPost & { times?: Partial<Record<Platform, string>> }) => void;
 }) {
   const [caption, setCaption] = useState(
     existing?.caption ?? (seedEvent ? draftFromEvent(seedEvent) : ""),
   );
   const [time, setTime] = useState(existing?.time ?? "12:00");
+  const [perPlatformTime, setPerPlatformTime] = useState(false);
+  const [times, setTimes] = useState<Record<Platform, string>>({
+    facebook: existing?.time ?? "12:00",
+    instagram: existing?.time ?? "12:00",
+    linkedin: existing?.time ?? "12:00",
+    x: existing?.time ?? "12:00",
+  });
   const [mediaUrl, setMediaUrl] = useState<string | null>(
     existing?.mediaUrl ?? seedEvent?.image_url ?? null,
   );
@@ -532,7 +551,8 @@ function ComposerDialog({
       platforms,
       eventId: linkedEventId,
       eventTitle: ev?.title ?? null,
-    });
+      times: perPlatformTime ? times : undefined,
+    } as ScheduledPost & { times?: Partial<Record<Platform, string>> });
   }
 
   return (
@@ -565,13 +585,37 @@ function ComposerDialog({
             </div>
 
             <div className="space-y-2">
-              <Label>Post time</Label>
-              <Input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="w-40"
-              />
+              <div className="flex items-center justify-between">
+                <Label>Post time</Label>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="per-platform-time"
+                    checked={perPlatformTime}
+                    onCheckedChange={(v) => {
+                      setPerPlatformTime(v);
+                      if (v) {
+                        setTimes((s) => ({
+                          facebook: s.facebook || time,
+                          instagram: s.instagram || time,
+                          linkedin: s.linkedin || time,
+                          x: s.x || time,
+                        }));
+                      }
+                    }}
+                  />
+                  <Label htmlFor="per-platform-time" className="text-xs text-muted-foreground">
+                    Per-channel time
+                  </Label>
+                </div>
+              </div>
+              {!perPlatformTime && (
+                <Input
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  className="w-40"
+                />
+              )}
             </div>
 
             <div className="space-y-2">
@@ -620,18 +664,30 @@ function ComposerDialog({
                   return (
                     <div
                       key={p}
-                      className="flex items-center justify-between rounded-md border p-2.5"
+                      className="flex items-center justify-between rounded-md border p-2.5 gap-2"
                     >
-                      <div className="flex items-center gap-2">
-                        <div className={cn("h-7 w-7 rounded grid place-items-center text-white", meta.tint)}>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className={cn("h-7 w-7 rounded grid place-items-center text-white shrink-0", meta.tint)}>
                           <Icon className="h-3.5 w-3.5" />
                         </div>
-                        <span className="text-sm font-medium">{meta.label}</span>
+                        <span className="text-sm font-medium truncate">{meta.label}</span>
                       </div>
-                      <Switch
-                        checked={platforms[p]}
-                        onCheckedChange={(v) => setPlatforms((s) => ({ ...s, [p]: v }))}
-                      />
+                      <div className="flex items-center gap-2">
+                        {perPlatformTime && platforms[p] && (
+                          <Input
+                            type="time"
+                            value={times[p]}
+                            onChange={(e) =>
+                              setTimes((s) => ({ ...s, [p]: e.target.value }))
+                            }
+                            className="w-28 h-8"
+                          />
+                        )}
+                        <Switch
+                          checked={platforms[p]}
+                          onCheckedChange={(v) => setPlatforms((s) => ({ ...s, [p]: v }))}
+                        />
+                      </div>
                     </div>
                   );
                 })}
