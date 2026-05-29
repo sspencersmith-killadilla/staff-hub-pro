@@ -262,6 +262,7 @@ export type ClassCardData = {
   instructor_name?: string | null;
   price?: number | null;
   image_url?: string | null;
+  show_image?: boolean;
   description?: string | null;
   department_name?: string | null;
   cta_label?: string | null;
@@ -271,11 +272,12 @@ export type ClassCardData = {
 
 export function ClassCard({ data, size = "quarter" }: { data: ClassCardData; size?: CardSize }) {
   const hero = size === "hero";
-  const showImg = data.image_url && size !== "quarter";
+  const showImg = !!data.image_url && (data.show_image ?? true);
+  const imgStyle = hero ? s.imageLg : size === "quarter" ? s.imageSm : s.image;
   return (
     <View style={s.card} wrap={false}>
       {showImg ? (
-        <Image src={data.image_url!} style={hero ? s.imageLg : s.image} />
+        <Image src={data.image_url!} style={imgStyle} />
       ) : null}
       <View style={[s.accentRule, { backgroundColor: "#0E7C7B" }]} />
       <Text style={[s.eyebrow, { color: "#0E7C7B" }]}>
