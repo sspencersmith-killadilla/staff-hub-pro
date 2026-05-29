@@ -55,10 +55,28 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { listEvents } from "@/lib/events.functions";
+import { listConnections, schedulePost } from "@/lib/social.functions";
+import { useDepartment } from "@/contexts/department-context";
+import { usePermissions } from "@/hooks/use-permissions";
+import { Link } from "@tanstack/react-router";
+import { Plug } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/staff/admin/social")({
-  component: SocialCommandCenter,
+  component: SocialCommandCenterGate,
 });
+
+function SocialCommandCenterGate() {
+  const { can, loading } = usePermissions();
+  if (loading) return <div className="p-6 text-sm">Checking permissions…</div>;
+  if (!can("page.social_command"))
+    return (
+      <div className="p-6 text-sm">
+        You need the <strong>Social Command Center</strong> permission. Ask an admin
+        to grant it in Admin → Permissions.
+      </div>
+    );
+  return <SocialCommandCenter />;
+}
 
 type Platform = "facebook" | "instagram" | "linkedin" | "x";
 
