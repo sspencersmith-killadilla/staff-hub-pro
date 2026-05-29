@@ -287,12 +287,15 @@ export const listVenuesForGigs = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertStaff(context.userId);
-    const { data, error } = await supabaseAdmin
-      .from("venues")
-      .select("id, name")
-      .order("name");
+    let q = supabaseAdmin.from("venues").select("id, name, department_id").order("name");
+    if (!(await isAdmin(context.userId))) {
+      const deptIds = Array.from(await getUserDepartmentIds(context.userId));
+      if (deptIds.length === 0) return [];
+      q = q.in("department_id", deptIds);
+    }
+    const { data, error } = await q;
     if (error) throw new Error(error.message);
-    return data ?? [];
+    return (data ?? []).map((v: any) => ({ id: v.id, name: v.name }));
   });
 
 /** Returns stages with their parent venue so staff can pick a precise location. */
