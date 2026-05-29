@@ -28,6 +28,13 @@ export const upsertCourse = createServerFn({ method: "POST" })
   .inputValidator((i) => courseInput.parse(i))
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
+    // Enforce dept scoping for non-admins on both the existing row (if any)
+    // and the new department assignment.
+    if (data.id) {
+      const existingDept = await getCourseDepartmentId(data.id);
+      await assertCanManageDepartment(context.userId, existingDept);
+    }
+    await assertCanManageDepartment(context.userId, data.department_id ?? null);
     const payload = {
       title: data.title,
       description: data.description ?? null,
