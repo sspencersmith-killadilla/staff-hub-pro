@@ -241,10 +241,13 @@ export const deleteGig = createServerFn({ method: "POST" })
   .inputValidator((i) => z.object({ id: idInput }).parse(i))
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
+    const slotId = toSlotId(data.id);
+    const dept = await getSlotDepartmentId(slotId);
+    await assertCanManageDepartment(context.userId, dept);
     const { error } = await supabaseAdmin
       .from("slots")
       .delete()
-      .eq("id", toSlotId(data.id));
+      .eq("id", slotId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
