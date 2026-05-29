@@ -154,6 +154,8 @@ async function fetchData(
       venue_name: venue?.name ?? null,
       location_name: s.stages?.name ?? s.rooms?.name ?? null,
       image_url: s.image_url ?? null,
+      focal_x: s.focal_x ?? 50,
+      focal_y: s.focal_y ?? 50,
     };
   });
 
