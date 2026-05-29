@@ -212,10 +212,14 @@ export const updateGig = createServerFn({ method: "POST" })
   .inputValidator((i) => gigInput.extend({ id: idInput }).parse(i))
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
+    const slotId = toSlotId(data.id);
+    const existingDept = await getSlotDepartmentId(slotId);
+    await assertCanManageDepartment(context.userId, existingDept);
+    const newDept = data.stage_id ? await getStageDepartmentId(data.stage_id) : null;
+    await assertCanManageDepartment(context.userId, newDept);
     if (new Date(data.ends_at) <= new Date(data.starts_at)) {
       throw new Error("End must be after start");
     }
-    const slotId = toSlotId(data.id);
     const { error } = await supabaseAdmin
       .from("slots")
       .update({
