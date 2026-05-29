@@ -224,11 +224,6 @@ function SocialCommandCenter() {
   }
 
   async function savePost(post: ScheduledPost) {
-    setPosts((prev) => {
-      const exists = prev.find((p) => p.id === post.id);
-      if (exists) return prev.map((p) => (p.id === post.id ? post : p));
-      return [...prev, post];
-    });
     if (!activeDepartment?.id) {
       toast.error("Select an active department first");
       return;
@@ -244,13 +239,14 @@ function SocialCommandCenter() {
       await schedule({
         data: {
           departmentId: activeDepartment.id,
-          scheduledFor: new Date(`${post.date}T12:00:00`).toISOString(),
+          scheduledFor: new Date(`${post.date}T${post.time || "12:00"}:00`).toISOString(),
           caption: post.caption,
           mediaUrl: post.mediaUrl ?? null,
           eventId: post.eventId ?? null,
           platforms,
         },
       });
+      await queryClient.invalidateQueries({ queryKey: postsQueryKey });
       toast.success("Post scheduled", {
         description: platforms.map((p) => PLATFORM_META[p].label).join(", "),
       });
