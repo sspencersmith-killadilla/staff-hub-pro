@@ -48,49 +48,90 @@ grant select on public.vw_venue_utilization to authenticated, service_role;
 -- Unified monthly revenue by department + revenue stream (source).
 -- Sources: 'permits', 'vendors', 'tickets', 'classes'.
 drop view if exists public.vw_department_revenue cascade;
-create view public.vw_department_revenue as
--- Special event permits (paid)
-select
-  p.department_id,
-  date_trunc('month', coalesce(p.paid_at, p.updated_at))::date as month,
-  'permits'::text as source,
-  coalesce(p.calculated_fee, 0)::numeric(12,2) as amount
-from public.special_event_permits p
-where p.status = 'paid'
-union all
--- Vendor booth payments (vendors has no created_at column; fall back to tier created_at)
-select
-  s.department_id,
-  date_trunc('month', vt.created_at)::date as month,
-  'vendors'::text as source,
-  coalesce(vt.price, 0)::numeric(12,2) as amount
-from public.vendors v
-left join public.sessions s on s.id = v.session_id
-left join public.vendor_tiers vt on vt.id = v.vendor_tier_id
-where v.status = 'paid'
-union all
--- Ticket purchases (approved)
-select
-  s.department_id,
-  date_trunc('month', tp.created_at)::date as month,
-  'tickets'::text as source,
-  (tp.amount_cents::numeric / 100.0)::numeric(12,2) as amount
-from public.ticket_payments tp
-left join public.sessions s on s.id = tp.session_id
-where tp.status = 'approved'
-union all
--- Class enrollments (paid)
-select
-  c.department_id,
-  date_trunc('month', e.created_at)::date as month,
-  'classes'::text as source,
-  (coalesce(e.amount_cents, 0)::numeric / 100.0)::numeric(12,2) as amount
-from public.enrollments e
-left join public.course_sessions cs on cs.id = e.session_id
-left join public.courses c on c.id = cs.course_id
-where e.payment_status = 'paid';
+
+do $mig$
+declare
+  parts text[] := array[]::text[];
+  sql   text;
+begin
+  if to_regclass('public.special_event_permits') is not null then
+    parts := parts || $$
+      select
+        p.department_id,
+        date_trunc('month', coalesce(p.paid_at, p.updated_at))::date as month,
+        'permits'::text as source,
+        coalesce(p.calculated_fee, 0)::numeric(12,2) as amount
+      from public.special_event_permits p
+      where p.status = 'paid'
+    $$;
+  end if;
+
+  if to_regclass('public.vendors') is not null
+     and to_regclass('public.vendor_tiers') is not null
+     and to_regclass('public.sessions') is not null then
+    parts := parts || $$
+      select
+        s.department_id,
+        date_trunc('month', vt.created_at)::date as month,
+        'vendors'::text as source,
+        coalesce(vt.price, 0)::numeric(12,2) as amount
+      from public.vendors v
+      left join public.sessions s on s.id = v.session_id
+      left join public.vendor_tiers vt on vt.id = v.vendor_tier_id
+      where v.status = 'paid'
+    $$;
+  end if;
+
+  if to_regclass('public.ticket_payments') is not null
+     and to_regclass('public.sessions') is not null then
+    parts := parts || $$
+      select
+        s.department_id,
+        date_trunc('month', tp.created_at)::date as month,
+        'tickets'::text as source,
+        (tp.amount_cents::numeric / 100.0)::numeric(12,2) as amount
+      from public.ticket_payments tp
+      left join public.sessions s on s.id = tp.session_id
+      where tp.status = 'approved'
+    $$;
+  end if;
+
+  if to_regclass('public.enrollments') is not null
+     and to_regclass('public.course_sessions') is not null
+     and to_regclass('public.courses') is not null then
+    parts := parts || $$
+      select
+        c.department_id,
+        date_trunc('month', e.created_at)::date as month,
+        'classes'::text as source,
+        (coalesce(e.amount_cents, 0)::numeric / 100.0)::numeric(12,2) as amount
+      from public.enrollments e
+      left join public.course_sessions cs on cs.id = e.session_id
+      left join public.courses c on c.id = cs.course_id
+      where e.payment_status = 'paid'
+    $$;
+  end if;
+
+  if array_length(parts, 1) is null then
+    -- No source tables exist yet; create an empty-shaped view so dependents work.
+    sql := $$
+      select
+        null::uuid       as department_id,
+        null::date       as month,
+        null::text       as source,
+        null::numeric(12,2) as amount
+      where false
+    $$;
+  else
+    sql := array_to_string(parts, ' union all ');
+  end if;
+
+  execute 'create view public.vw_department_revenue as ' || sql;
+end
+$mig$;
 
 grant select on public.vw_department_revenue to authenticated, service_role;
+
 
 -- ─── calculate_economic_impact RPC ───────────────────────────────────
 create or replace function public.calculate_economic_impact(
