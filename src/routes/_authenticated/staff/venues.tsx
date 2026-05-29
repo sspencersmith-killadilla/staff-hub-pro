@@ -338,6 +338,7 @@ function RoomRow({ venueId, room, depts }: { venueId: number; room: any; depts: 
   const [building, setBuilding] = useState(room.building ?? "");
   const [capacity, setCapacity] = useState<string>(room.capacity != null ? String(room.capacity) : "");
   const [isPublic, setIsPublic] = useState<boolean>(!!room.is_publicly_bookable);
+  const [instantBookable, setInstantBookable] = useState<boolean>(!!room.instant_bookable);
   const [departmentId, setDepartmentId] = useState<string>(room.department_id ?? "");
 
   const capNum = capacity ? Number(capacity) : null;
@@ -346,6 +347,7 @@ function RoomRow({ venueId, room, depts }: { venueId: number; room: any; depts: 
     building !== (room.building ?? "") ||
     capNum !== (room.capacity ?? null) ||
     isPublic !== !!room.is_publicly_bookable ||
+    instantBookable !== !!room.instant_bookable ||
     (departmentId || null) !== (room.department_id ?? null);
 
   const save = useMutation({
@@ -358,6 +360,7 @@ function RoomRow({ venueId, room, depts }: { venueId: number; room: any; depts: 
             building,
             capacity: capNum,
             is_publicly_bookable: isPublic,
+            instant_bookable: instantBookable,
             department_id: departmentId || null,
           },
         },
@@ -386,6 +389,20 @@ function RoomRow({ venueId, room, depts }: { venueId: number; room: any; depts: 
           onClick={() => confirm(`Delete room "${room.name}"?`) && del.mutate()}>
           <Trash2 className="h-4 w-4" />
         </Button>
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-600">
+        <label className="flex items-center gap-2">
+          <Checkbox
+            checked={instantBookable}
+            onCheckedChange={(c) => setInstantBookable(c === true)}
+          />
+          <span>
+            <span className="font-semibold">Instant booking</span>{" "}
+            <span className="text-slate-500">
+              ({instantBookable ? "auto-approved" : "staff must approve requests"})
+            </span>
+          </span>
+        </label>
       </div>
       <div className="mt-2 flex items-center gap-2 text-xs text-slate-600">
         <span className="font-semibold uppercase tracking-wider">Department override:</span>
