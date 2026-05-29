@@ -158,27 +158,29 @@ export const listGigsStaff = createServerFn({ method: "GET" })
         },
       ]),
     );
-    return gigs.map((g: any) => {
-      const stage = g.stage_id ? stagesById.get(g.stage_id) : null;
-      const venue = stage?.venue_id ? venuesById.get(stage.venue_id) : null;
-      return {
-        id: String(g.id),
-        title: g.title ?? "Open slot",
-        description: g.description ?? g.notes ?? null,
-        venue_id: venue?.id ?? null,
-        stage_id: g.stage_id ?? null,
-        event_id: g.session_id ?? null,
-        location_label: stage?.name ?? null,
-        starts_at: g.start_time,
-        ends_at: g.end_time,
-        status: g.is_booked ? "claimed" : "open",
-        claimed_by_artist_id: g.artist_id ?? null,
-        claimed_at: g.booked_at ?? null,
-        created_at: g.created_at,
-        venue: venue ? { id: venue.id, name: venue.name } : null,
-        artist: g.artist_id ? artistsById.get(g.artist_id) ?? null : null,
-      };
-    });
+    return gigs
+      .filter((g: any) => isAllowed(g.stage_id))
+      .map((g: any) => {
+        const stage = g.stage_id ? stagesById.get(g.stage_id) : null;
+        const venue = stage?.venue_id ? venuesById.get(stage.venue_id) : null;
+        return {
+          id: String(g.id),
+          title: g.title ?? "Open slot",
+          description: g.description ?? g.notes ?? null,
+          venue_id: venue?.id ?? null,
+          stage_id: g.stage_id ?? null,
+          event_id: g.session_id ?? null,
+          location_label: stage?.name ?? null,
+          starts_at: g.start_time,
+          ends_at: g.end_time,
+          status: g.is_booked ? "claimed" : "open",
+          claimed_by_artist_id: g.artist_id ?? null,
+          claimed_at: g.booked_at ?? null,
+          created_at: g.created_at,
+          venue: venue ? { id: venue.id, name: venue.name } : null,
+          artist: g.artist_id ? artistsById.get(g.artist_id) ?? null : null,
+        };
+      });
   });
 
 export const createGig = createServerFn({ method: "POST" })
