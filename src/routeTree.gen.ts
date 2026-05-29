@@ -57,6 +57,7 @@ import { Route as AuthenticatedStaffAdminRouteImport } from './routes/_authentic
 import { Route as AuthenticatedCommunityManageRouteImport } from './routes/_authenticated/community/manage'
 import { Route as AuthenticatedCommunityApplyRouteImport } from './routes/_authenticated/community/apply'
 import { Route as AuthenticatedStaffEventsIdRouteImport } from './routes/_authenticated/staff/events.$id'
+import { Route as AuthenticatedStaffAdminSocialRouteImport } from './routes/_authenticated/staff/admin.social'
 import { Route as AuthenticatedStaffAdminPermissionsRouteImport } from './routes/_authenticated/staff/admin.permissions'
 import { Route as AuthenticatedStaffAdminGuidebookPublisherRouteImport } from './routes/_authenticated/staff/admin.guidebook-publisher'
 import { Route as AuthenticatedStaffAdminGuidebookCanvasRouteImport } from './routes/_authenticated/staff/admin.guidebook-canvas'
@@ -318,6 +319,12 @@ const AuthenticatedStaffEventsIdRoute =
     path: '/events/$id',
     getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
+const AuthenticatedStaffAdminSocialRoute =
+  AuthenticatedStaffAdminSocialRouteImport.update({
+    id: '/social',
+    path: '/social',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
 const AuthenticatedStaffAdminPermissionsRoute =
   AuthenticatedStaffAdminPermissionsRouteImport.update({
     id: '/permissions',
@@ -401,6 +408,7 @@ export interface FileRoutesByFullPath {
   '/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   '/staff/admin/guidebook-publisher': typeof AuthenticatedStaffAdminGuidebookPublisherRoute
   '/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
+  '/staff/admin/social': typeof AuthenticatedStaffAdminSocialRoute
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
 }
 export interface FileRoutesByTo {
@@ -454,6 +462,7 @@ export interface FileRoutesByTo {
   '/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   '/staff/admin/guidebook-publisher': typeof AuthenticatedStaffAdminGuidebookPublisherRoute
   '/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
+  '/staff/admin/social': typeof AuthenticatedStaffAdminSocialRoute
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
 }
 export interface FileRoutesById {
@@ -510,6 +519,7 @@ export interface FileRoutesById {
   '/_authenticated/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   '/_authenticated/staff/admin/guidebook-publisher': typeof AuthenticatedStaffAdminGuidebookPublisherRoute
   '/_authenticated/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
+  '/_authenticated/staff/admin/social': typeof AuthenticatedStaffAdminSocialRoute
   '/_authenticated/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
 }
 export interface FileRouteTypes {
@@ -566,6 +576,7 @@ export interface FileRouteTypes {
     | '/staff/admin/guidebook-canvas'
     | '/staff/admin/guidebook-publisher'
     | '/staff/admin/permissions'
+    | '/staff/admin/social'
     | '/staff/events/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -619,6 +630,7 @@ export interface FileRouteTypes {
     | '/staff/admin/guidebook-canvas'
     | '/staff/admin/guidebook-publisher'
     | '/staff/admin/permissions'
+    | '/staff/admin/social'
     | '/staff/events/$id'
   id:
     | '__root__'
@@ -674,6 +686,7 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/admin/guidebook-canvas'
     | '/_authenticated/staff/admin/guidebook-publisher'
     | '/_authenticated/staff/admin/permissions'
+    | '/_authenticated/staff/admin/social'
     | '/_authenticated/staff/events/$id'
   fileRoutesById: FileRoutesById
 }
@@ -1041,6 +1054,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffEventsIdRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
     }
+    '/_authenticated/staff/admin/social': {
+      id: '/_authenticated/staff/admin/social'
+      path: '/social'
+      fullPath: '/staff/admin/social'
+      preLoaderRoute: typeof AuthenticatedStaffAdminSocialRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
     '/_authenticated/staff/admin/permissions': {
       id: '/_authenticated/staff/admin/permissions'
       path: '/permissions'
@@ -1085,6 +1105,7 @@ interface AuthenticatedStaffAdminRouteChildren {
   AuthenticatedStaffAdminGuidebookCanvasRoute: typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   AuthenticatedStaffAdminGuidebookPublisherRoute: typeof AuthenticatedStaffAdminGuidebookPublisherRoute
   AuthenticatedStaffAdminPermissionsRoute: typeof AuthenticatedStaffAdminPermissionsRoute
+  AuthenticatedStaffAdminSocialRoute: typeof AuthenticatedStaffAdminSocialRoute
 }
 
 const AuthenticatedStaffAdminRouteChildren: AuthenticatedStaffAdminRouteChildren =
@@ -1099,6 +1120,7 @@ const AuthenticatedStaffAdminRouteChildren: AuthenticatedStaffAdminRouteChildren
       AuthenticatedStaffAdminGuidebookPublisherRoute,
     AuthenticatedStaffAdminPermissionsRoute:
       AuthenticatedStaffAdminPermissionsRoute,
+    AuthenticatedStaffAdminSocialRoute: AuthenticatedStaffAdminSocialRoute,
   }
 
 const AuthenticatedStaffAdminRouteWithChildren =
