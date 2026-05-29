@@ -160,15 +160,8 @@ function HomeEditorPage() {
       return { ...f, sections: s };
     });
   }
-  function moveSection(idx: number, dir: -1 | 1) {
-    setForm((f) => {
-      const s = [...f.sections];
-      const j = idx + dir;
-      if (j < 0 || j >= s.length) return f;
-      [s[idx], s[j]] = [s[j], s[idx]];
-      return { ...f, sections: s };
-    });
-  }
+  // section reordering handled by SortableList
+
   function removeSection(idx: number) {
     setForm((f) => ({ ...f, sections: f.sections.filter((_, i) => i !== idx) }));
   }
