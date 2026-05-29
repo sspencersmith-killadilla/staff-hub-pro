@@ -268,6 +268,15 @@ function PortalDashboard({ user }: { user: any }) {
             }}
           />
         )}
+
+        {activeTab === "guidebook" && (
+          <GuidebookSponsorshipTab
+            onSubmitted={() => {
+              refresh();
+              setActiveTab("dashboard");
+            }}
+          />
+        )}
       </div>
     </div>
   );
