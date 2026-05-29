@@ -1,11 +1,10 @@
 -- ============================================================
--- 029 — Ensure legacy NOT NULL start_time/end_time columns are gone
--- from room_reservations. Migration 006 should have handled this,
--- but some environments still have the legacy columns, which causes
--- inserts (e.g. course session blocks) to fail with:
---   null value in column "start_time" of relation "room_reservations"
+-- 029 — Drop legacy NOT NULL start_time/end_time columns from
+-- room_reservations and recreate the no_double_book exclusion
+-- constraint against the canonical starts_at/ends_at columns.
 -- ============================================================
 
+-- Backfill canonical columns from legacy ones if they still exist
 do $$
 begin
   if exists (
@@ -27,6 +26,21 @@ begin
   end if;
 end$$;
 
+-- Drop the dependent constraint (it references start_time/end_time)
+alter table public.room_reservations drop constraint if exists no_double_book;
+
+-- Now safe to drop the legacy columns
 alter table public.room_reservations
   drop column if exists start_time,
   drop column if exists end_time;
+
+-- Recreate the double-booking guard against canonical columns,
+-- scoped to approved reservations only.
+create extension if not exists btree_gist;
+
+alter table public.room_reservations
+  add constraint no_double_book
+  exclude using gist (
+    room_id with =,
+    tstzrange(starts_at, ends_at, '[)') with &&
+  ) where (status = 'approved');
