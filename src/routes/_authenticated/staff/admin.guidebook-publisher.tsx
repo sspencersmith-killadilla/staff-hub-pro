@@ -705,3 +705,37 @@ function fromLocalDt(v: string) {
   const d = new Date(v);
   return isNaN(d.getTime()) ? null : d.toISOString();
 }
+
+// Renders a PDF document into an iframe via BlobProvider. More robust across
+// Vite/React 19 setups than @react-pdf/renderer's built-in <PDFViewer>.
+function PdfPreview({ pdfMod, doc }: { pdfMod: any; doc: React.ReactElement }) {
+  const { BlobProvider } = pdfMod;
+  return (
+    <BlobProvider document={doc}>
+      {({ url, loading, error }: { url: string | null; loading: boolean; error: Error | null }) => {
+        if (error) {
+          return (
+            <div className="flex flex-col items-center justify-center h-full text-destructive text-sm px-4 text-center gap-2">
+              <p>PDF render failed.</p>
+              <p className="text-xs text-muted-foreground">{error.message}</p>
+            </div>
+          );
+        }
+        if (loading || !url) {
+          return (
+            <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+              Rendering PDF…
+            </div>
+          );
+        }
+        return (
+          <iframe
+            src={url}
+            title="Guidebook PDF preview"
+            style={{ width: "100%", height: "100%", border: "none" }}
+          />
+        );
+      }}
+    </BlobProvider>
+  );
+}
