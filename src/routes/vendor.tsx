@@ -1227,3 +1227,179 @@ function PaymentPanel({
     </div>
   );
 }
+
+// ─── Guidebook Sponsorship tab ───────────────────────────────────────
+function GuidebookSponsorshipTab({ onSubmitted }: { onSubmitted: () => void }) {
+  const applyFn = useServerFn(applyForGuidebookSponsorship);
+  const [companyName, setCompanyName] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
+  const [adCopy, setAdCopy] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!companyName.trim()) {
+      alert("Company name is required.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await applyFn({
+        data: {
+          companyName: companyName.trim(),
+          contactName: contactName.trim() || null,
+          contactEmail: contactEmail.trim() || null,
+          logoUrl: logoUrl.trim() || null,
+          adCopy: adCopy.trim() || null,
+        },
+      });
+      alert("Application submitted! Our team will review it shortly.");
+      setCompanyName("");
+      setContactName("");
+      setContactEmail("");
+      setLogoUrl("");
+      setAdCopy("");
+      onSubmitted();
+    } catch (err: any) {
+      let msg = err?.message ?? "Failed to submit application";
+      try {
+        const parsed = JSON.parse(msg);
+        if (Array.isArray(parsed) && parsed[0]?.message) {
+          msg = parsed
+            .map((p: any) => `${p.path?.join(".") ?? "field"}: ${p.message}`)
+            .join("; ");
+        }
+      } catch {}
+      alert(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="grid lg:grid-cols-2 gap-8">
+      {/* Opportunity outline */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+        <p className="text-[10px] font-bold text-[#a57914] uppercase tracking-widest mb-2">
+          Year-Round Visibility
+        </p>
+        <h2 className="text-3xl font-black text-[#112e51] tracking-tight mb-4">
+          Program Guidebook Sponsorship
+        </h2>
+        <p className="text-gray-700 leading-relaxed mb-6">
+          Reach every attendee, vendor, and performer through our printed and
+          digital Program Guidebook — distributed at every event, venue, and
+          info booth across the season.
+        </p>
+        <div className="border-l-4 border-[#e8c872] pl-4 mb-6">
+          <h3 className="font-bold text-[#112e51] text-sm uppercase tracking-wider mb-2">
+            What's included
+          </h3>
+          <ul className="text-sm text-gray-700 space-y-1.5">
+            <li>• Full-color ad placement in the Program Guidebook</li>
+            <li>• Logo featured on our public Community Partners page</li>
+            <li>• "Presented by" callouts on featured event listings</li>
+            <li>• Inclusion in the season-wide digital PDF download</li>
+            <li>• Social shout-out at season launch</li>
+          </ul>
+        </div>
+        <div className="bg-[#f4f6f9] rounded-lg p-4 text-sm text-gray-700">
+          <strong className="text-[#112e51]">How it works:</strong> Submit your
+          brand details on the right. Our team reviews and reaches out within
+          2 business days with placement options and pricing for the next
+          guidebook printing.
+        </div>
+        <p className="text-xs text-gray-500 mt-4">
+          Looking to sponsor a single event instead?{" "}
+          <span className="text-[#005ea2] font-bold">
+            Use the "Apply for Event" tab.
+          </span>
+        </p>
+      </div>
+
+      {/* Application form */}
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 space-y-4"
+      >
+        <h3 className="text-xl font-black text-[#112e51] mb-2">
+          Apply to be a Guidebook Sponsor
+        </h3>
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+            Company name *
+          </label>
+          <input
+            type="text"
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+            maxLength={200}
+            required
+            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#005ea2]"
+          />
+        </div>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+              Contact name
+            </label>
+            <input
+              type="text"
+              value={contactName}
+              onChange={(e) => setContactName(e.target.value)}
+              maxLength={200}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#005ea2]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+              Contact email
+            </label>
+            <input
+              type="email"
+              value={contactEmail}
+              onChange={(e) => setContactEmail(e.target.value)}
+              maxLength={200}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#005ea2]"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+            Logo URL
+          </label>
+          <input
+            type="url"
+            value={logoUrl}
+            onChange={(e) => setLogoUrl(e.target.value)}
+            maxLength={1000}
+            placeholder="https://…"
+            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#005ea2]"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+            Ad copy / tagline
+          </label>
+          <textarea
+            rows={4}
+            value={adCopy}
+            onChange={(e) => setAdCopy(e.target.value)}
+            maxLength={2000}
+            placeholder="The short message you'd like printed next to your logo in the Guidebook."
+            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#005ea2]"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={submitting || !companyName.trim()}
+          className="w-full bg-[#112e51] text-white font-bold py-3 rounded-md hover:bg-[#1a4480] transition-colors disabled:opacity-50"
+        >
+          {submitting ? "Submitting…" : "Submit Application"}
+        </button>
+      </form>
+    </div>
+  );
+}
