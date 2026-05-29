@@ -259,6 +259,15 @@ export function EventCard({ data, size = "quarter" }: { data: EventCardData; siz
   );
 }
 
+export type ClassSession = {
+  id?: string;
+  start_time: string | null;
+  end_time?: string | null;
+  room_name?: string | null;
+  venue_name?: string | null;
+  instructor_name?: string | null;
+};
+
 export type ClassCardData = {
   course_title: string;
   start_time: string;
@@ -276,7 +285,14 @@ export type ClassCardData = {
   cta_label?: string | null;
   eyebrow_override?: string | null;
   sponsor?: SponsorRef | null;
+  sessions?: ClassSession[];
 };
+
+function fmtSessionLine(sess: ClassSession) {
+  const range = fmtRange(sess.start_time, sess.end_time);
+  const where = [sess.room_name, sess.venue_name].filter(Boolean).join(" · ");
+  return where ? `${range} — ${where}` : range;
+}
 
 export function ClassCard({ data, size = "quarter" }: { data: ClassCardData; size?: CardSize }) {
   const hero = size === "hero";
