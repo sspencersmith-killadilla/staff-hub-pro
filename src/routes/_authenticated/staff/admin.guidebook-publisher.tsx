@@ -221,6 +221,36 @@ function PublisherPage() {
     });
   };
 
+  const insertCustomItem = (kind: "text" | "image") => {
+    const newItem: PublisherItem =
+      kind === "text"
+        ? {
+            id: `text-${Date.now()}`,
+            kind: "text",
+            data: {
+              heading: "New section",
+              body: "Add your custom copy here.",
+              eyebrow: null,
+              align: "left",
+              background: "paper",
+            },
+          }
+        : {
+            id: `image-${Date.now()}`,
+            kind: "image",
+            data: { image_url: "", caption: null, focal_x: 50, focal_y: 50 },
+          };
+    setItems((prev) => {
+      const next = [...prev];
+      const at = selectedIdx == null ? next.length : selectedIdx + 1;
+      next.splice(at, 0, newItem);
+      setSelectedIdx(at);
+      return next;
+    });
+    setRightTab("inspector");
+    toast.success(`Added ${kind === "text" ? "text" : "image"} section`);
+  };
+
   const dateError =
     startDate && endDate && startDate > endDate ? "End date must be after start date." : null;
 
