@@ -58,6 +58,7 @@ import { Route as AuthenticatedCommunityManageRouteImport } from './routes/_auth
 import { Route as AuthenticatedCommunityApplyRouteImport } from './routes/_authenticated/community/apply'
 import { Route as AuthenticatedStaffEventsIdRouteImport } from './routes/_authenticated/staff/events.$id'
 import { Route as AuthenticatedStaffAdminPermissionsRouteImport } from './routes/_authenticated/staff/admin.permissions'
+import { Route as AuthenticatedStaffAdminGuidebookPublisherRouteImport } from './routes/_authenticated/staff/admin.guidebook-publisher'
 import { Route as AuthenticatedStaffAdminGuidebookMagazineRouteImport } from './routes/_authenticated/staff/admin.guidebook-magazine'
 import { Route as AuthenticatedStaffAdminGuidebookCanvasRouteImport } from './routes/_authenticated/staff/admin.guidebook-canvas'
 import { Route as AuthenticatedStaffAdminGuidebookRouteImport } from './routes/_authenticated/staff/admin.guidebook'
@@ -324,6 +325,12 @@ const AuthenticatedStaffAdminPermissionsRoute =
     path: '/permissions',
     getParentRoute: () => AuthenticatedStaffAdminRoute,
   } as any)
+const AuthenticatedStaffAdminGuidebookPublisherRoute =
+  AuthenticatedStaffAdminGuidebookPublisherRouteImport.update({
+    id: '/guidebook-publisher',
+    path: '/guidebook-publisher',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
 const AuthenticatedStaffAdminGuidebookMagazineRoute =
   AuthenticatedStaffAdminGuidebookMagazineRouteImport.update({
     id: '/guidebook-magazine',
@@ -400,6 +407,7 @@ export interface FileRoutesByFullPath {
   '/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
   '/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   '/staff/admin/guidebook-magazine': typeof AuthenticatedStaffAdminGuidebookMagazineRoute
+  '/staff/admin/guidebook-publisher': typeof AuthenticatedStaffAdminGuidebookPublisherRoute
   '/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
 }
@@ -453,6 +461,7 @@ export interface FileRoutesByTo {
   '/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
   '/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   '/staff/admin/guidebook-magazine': typeof AuthenticatedStaffAdminGuidebookMagazineRoute
+  '/staff/admin/guidebook-publisher': typeof AuthenticatedStaffAdminGuidebookPublisherRoute
   '/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
 }
@@ -509,6 +518,7 @@ export interface FileRoutesById {
   '/_authenticated/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
   '/_authenticated/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   '/_authenticated/staff/admin/guidebook-magazine': typeof AuthenticatedStaffAdminGuidebookMagazineRoute
+  '/_authenticated/staff/admin/guidebook-publisher': typeof AuthenticatedStaffAdminGuidebookPublisherRoute
   '/_authenticated/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
   '/_authenticated/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
 }
@@ -565,6 +575,7 @@ export interface FileRouteTypes {
     | '/staff/admin/guidebook'
     | '/staff/admin/guidebook-canvas'
     | '/staff/admin/guidebook-magazine'
+    | '/staff/admin/guidebook-publisher'
     | '/staff/admin/permissions'
     | '/staff/events/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -618,6 +629,7 @@ export interface FileRouteTypes {
     | '/staff/admin/guidebook'
     | '/staff/admin/guidebook-canvas'
     | '/staff/admin/guidebook-magazine'
+    | '/staff/admin/guidebook-publisher'
     | '/staff/admin/permissions'
     | '/staff/events/$id'
   id:
@@ -673,6 +685,7 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/admin/guidebook'
     | '/_authenticated/staff/admin/guidebook-canvas'
     | '/_authenticated/staff/admin/guidebook-magazine'
+    | '/_authenticated/staff/admin/guidebook-publisher'
     | '/_authenticated/staff/admin/permissions'
     | '/_authenticated/staff/events/$id'
   fileRoutesById: FileRoutesById
@@ -1048,6 +1061,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffAdminPermissionsRouteImport
       parentRoute: typeof AuthenticatedStaffAdminRoute
     }
+    '/_authenticated/staff/admin/guidebook-publisher': {
+      id: '/_authenticated/staff/admin/guidebook-publisher'
+      path: '/guidebook-publisher'
+      fullPath: '/staff/admin/guidebook-publisher'
+      preLoaderRoute: typeof AuthenticatedStaffAdminGuidebookPublisherRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
     '/_authenticated/staff/admin/guidebook-magazine': {
       id: '/_authenticated/staff/admin/guidebook-magazine'
       path: '/guidebook-magazine'
@@ -1084,6 +1104,7 @@ interface AuthenticatedStaffAdminRouteChildren {
   AuthenticatedStaffAdminGuidebookRoute: typeof AuthenticatedStaffAdminGuidebookRoute
   AuthenticatedStaffAdminGuidebookCanvasRoute: typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   AuthenticatedStaffAdminGuidebookMagazineRoute: typeof AuthenticatedStaffAdminGuidebookMagazineRoute
+  AuthenticatedStaffAdminGuidebookPublisherRoute: typeof AuthenticatedStaffAdminGuidebookPublisherRoute
   AuthenticatedStaffAdminPermissionsRoute: typeof AuthenticatedStaffAdminPermissionsRoute
 }
 
@@ -1097,6 +1118,8 @@ const AuthenticatedStaffAdminRouteChildren: AuthenticatedStaffAdminRouteChildren
       AuthenticatedStaffAdminGuidebookCanvasRoute,
     AuthenticatedStaffAdminGuidebookMagazineRoute:
       AuthenticatedStaffAdminGuidebookMagazineRoute,
+    AuthenticatedStaffAdminGuidebookPublisherRoute:
+      AuthenticatedStaffAdminGuidebookPublisherRoute,
     AuthenticatedStaffAdminPermissionsRoute:
       AuthenticatedStaffAdminPermissionsRoute,
   }
