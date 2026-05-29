@@ -326,13 +326,13 @@ function AnalyticsPage() {
           <CardHeader>
             <CardTitle>Economic Impact Projector</CardTitle>
             <CardDescription>
-              Model the projected economic impact of a new event.
+              Model the projected economic impact of a new events.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
             <div>
               <div className="flex justify-between text-sm">
-                <Label>Expected Monthly Field Trips / Events</Label>
+                <Label>Expected Monthly New Events</Label>
                 <span className="font-semibold">{attendance}</span>
               </div>
               <Slider
