@@ -374,6 +374,9 @@ export const createStandaloneGuidebookSponsor = createServerFn({ method: "POST" 
       .single();
     if (error) throw new Error(error.message);
     return { id: row.id, company_name: row.company_name };
+  });
+
+
 
 // Public-facing: any signed-in user can apply to become a guidebook sponsor.
 // Creates a pending sponsor record under the Guidebook Ad Space tier;
