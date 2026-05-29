@@ -173,6 +173,8 @@ async function fetchData(
       artist_name: artist?.full_name ?? null,
       artist_genre: artist?.genre ?? null,
       image_url: artist?.avatar_url ?? null,
+      focal_x: artist?.avatar_focal_x ?? 50,
+      focal_y: artist?.avatar_focal_y ?? 50,
     };
   });
 
