@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { Input } from "@/components/ui/input";
 import {
   DndContext,
   PointerSensor,
@@ -55,7 +56,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { listEvents } from "@/lib/events.functions";
-import { listConnections, schedulePost } from "@/lib/social.functions";
+import { listConnections, schedulePost, listPosts } from "@/lib/social.functions";
 import { useDepartment } from "@/contexts/department-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Link } from "@tanstack/react-router";
@@ -83,11 +84,13 @@ type Platform = "facebook" | "instagram" | "linkedin" | "x";
 type ScheduledPost = {
   id: string;
   date: string; // YYYY-MM-DD
+  time: string; // HH:mm
   caption: string;
   mediaUrl: string | null;
   platforms: Record<Platform, boolean>;
   eventId?: string | null;
   eventTitle?: string | null;
+  status?: string;
 };
 
 type EventLite = {
@@ -123,7 +126,9 @@ function draftFromEvent(ev: EventLite): string {
 function SocialCommandCenter() {
   const fetchEvents = useServerFn(listEvents);
   const fetchConns = useServerFn(listConnections);
+  const fetchPosts = useServerFn(listPosts);
   const schedule = useServerFn(schedulePost);
+  const queryClient = useQueryClient();
   const { activeDepartment } = useDepartment();
   const { data: events = [] } = useQuery({
     queryKey: ["social-events"],
@@ -134,10 +139,54 @@ function SocialCommandCenter() {
     queryFn: () => fetchConns({ data: { departmentId: activeDepartment!.id } }),
     enabled: !!activeDepartment?.id,
   });
-  const connectedPlatforms = new Set(conns.map((c) => c.platform));
+  const accountByPlatform = useMemo(() => {
+    const m: Partial<Record<Platform, string>> = {};
+    for (const c of conns) m[c.platform as Platform] = c.account_name;
+    return m;
+  }, [conns]);
+
+  const postsQueryKey = ["social-posts", activeDepartment?.id] as const;
+  const { data: serverPosts = [] } = useQuery({
+    queryKey: postsQueryKey,
+    queryFn: () => fetchPosts({ data: { departmentId: activeDepartment!.id } }),
+    enabled: !!activeDepartment?.id,
+  });
+
+  const posts: ScheduledPost[] = useMemo(
+    () =>
+      (serverPosts as Array<{
+        id: string;
+        scheduled_for: string;
+        caption: string;
+        media_url: string | null;
+        event_id: string | null;
+        platforms: string[];
+        status: string;
+      }>).map((r) => {
+        const d = new Date(r.scheduled_for);
+        const plat: Record<Platform, boolean> = {
+          facebook: r.platforms.includes("facebook"),
+          instagram: r.platforms.includes("instagram"),
+          linkedin: r.platforms.includes("linkedin"),
+          x: false,
+        };
+        const ev = (events as EventLite[]).find((e) => e.id === r.event_id);
+        return {
+          id: r.id,
+          date: format(d, "yyyy-MM-dd"),
+          time: format(d, "HH:mm"),
+          caption: r.caption,
+          mediaUrl: r.media_url,
+          platforms: plat,
+          eventId: r.event_id,
+          eventTitle: ev?.title ?? null,
+          status: r.status,
+        };
+      }),
+    [serverPosts, events],
+  );
 
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
-  const [posts, setPosts] = useState<ScheduledPost[]>([]);
   const [composer, setComposer] = useState<{
     date: string;
     post?: ScheduledPost;
@@ -174,11 +223,6 @@ function SocialCommandCenter() {
   }
 
   async function savePost(post: ScheduledPost) {
-    setPosts((prev) => {
-      const exists = prev.find((p) => p.id === post.id);
-      if (exists) return prev.map((p) => (p.id === post.id ? post : p));
-      return [...prev, post];
-    });
     if (!activeDepartment?.id) {
       toast.error("Select an active department first");
       return;
@@ -194,13 +238,14 @@ function SocialCommandCenter() {
       await schedule({
         data: {
           departmentId: activeDepartment.id,
-          scheduledFor: new Date(`${post.date}T12:00:00`).toISOString(),
+          scheduledFor: new Date(`${post.date}T${post.time || "12:00"}:00`).toISOString(),
           caption: post.caption,
           mediaUrl: post.mediaUrl ?? null,
           eventId: post.eventId ?? null,
           platforms,
         },
       });
+      await queryClient.invalidateQueries({ queryKey: postsQueryKey });
       toast.success("Post scheduled", {
         description: platforms.map((p) => PLATFORM_META[p].label).join(", "),
       });
@@ -318,6 +363,8 @@ function SocialCommandCenter() {
           existing={composer.post}
           seedEvent={composer.seedEvent}
           eventLibrary={events as EventLite[]}
+          accountByPlatform={accountByPlatform}
+          departmentName={activeDepartment?.name ?? "Your department"}
           onSave={(p) => {
             savePost(p);
             setComposer(null);
@@ -428,6 +475,8 @@ function ComposerDialog({
   existing,
   seedEvent,
   eventLibrary,
+  accountByPlatform,
+  departmentName,
   onSave,
 }: {
   open: boolean;
@@ -436,11 +485,14 @@ function ComposerDialog({
   existing?: ScheduledPost;
   seedEvent?: EventLite;
   eventLibrary: EventLite[];
+  accountByPlatform: Partial<Record<Platform, string>>;
+  departmentName: string;
   onSave: (p: ScheduledPost) => void;
 }) {
   const [caption, setCaption] = useState(
     existing?.caption ?? (seedEvent ? draftFromEvent(seedEvent) : ""),
   );
+  const [time, setTime] = useState(existing?.time ?? "12:00");
   const [mediaUrl, setMediaUrl] = useState<string | null>(
     existing?.mediaUrl ?? seedEvent?.image_url ?? null,
   );
@@ -474,6 +526,7 @@ function ComposerDialog({
     onSave({
       id: existing?.id ?? crypto.randomUUID(),
       date: dateKey,
+      time,
       caption,
       mediaUrl,
       platforms,
@@ -509,6 +562,16 @@ function ComposerDialog({
                 placeholder="What's happening?"
               />
               <p className="text-xs text-muted-foreground">{caption.length} characters</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Post time</Label>
+              <Input
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="w-40"
+              />
             </div>
 
             <div className="space-y-2">
@@ -584,7 +647,14 @@ function ComposerDialog({
                 {(Object.keys(PLATFORM_META) as Platform[])
                   .filter((p) => platforms[p])
                   .map((p) => (
-                    <PreviewCard key={p} platform={p} caption={caption} mediaUrl={mediaUrl} />
+                    <PreviewCard
+                      key={p}
+                      platform={p}
+                      caption={caption}
+                      mediaUrl={mediaUrl}
+                      accountName={accountByPlatform[p]}
+                      departmentName={departmentName}
+                    />
                   ))}
                 {Object.values(platforms).every((v) => !v) && (
                   <p className="text-sm text-muted-foreground">
@@ -613,15 +683,20 @@ function PreviewCard({
   platform,
   caption,
   mediaUrl,
+  accountName,
+  departmentName,
 }: {
   platform: Platform;
   caption: string;
   mediaUrl: string | null;
+  accountName?: string;
+  departmentName: string;
 }) {
   const meta = PLATFORM_META[platform];
   const Icon = meta.icon;
   const truncated =
     platform === "x" && caption.length > 280 ? caption.slice(0, 277) + "..." : caption;
+  const displayName = accountName ?? `${departmentName} (not connected)`;
 
   return (
     <div className="rounded-lg border bg-card overflow-hidden">
@@ -629,12 +704,15 @@ function PreviewCard({
         <div className={cn("h-8 w-8 rounded-full grid place-items-center text-white", meta.tint)}>
           <Icon className="h-4 w-4" />
         </div>
-        <div className="flex-1">
-          <p className="text-sm font-semibold">Total Events System Solutions</p>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold truncate">{displayName}</p>
           <p className="text-xs text-muted-foreground">{meta.label} · scheduled</p>
         </div>
-        <Badge variant="outline" className="text-[10px]">
-          Preview
+        <Badge
+          variant={accountName ? "outline" : "destructive"}
+          className="text-[10px]"
+        >
+          {accountName ? "Preview" : "No account"}
         </Badge>
       </div>
       {platform === "instagram" && mediaUrl && (
