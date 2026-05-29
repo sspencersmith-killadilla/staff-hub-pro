@@ -48,17 +48,17 @@ type Item = {
 };
 
 const items: Item[] = [
-  { title: "Events", url: "/staff", icon: Calendar, exact: true, permission: "page.events" },
-  { title: "Venues & Stages", url: "/staff/venues", icon: Building2, permission: "page.venues" },
-  { title: "Box Office", url: "/staff/attendees", icon: Users, permission: "page.box_office" },
+  { title: "Events", url: "/staff", icon: Calendar, exact: true, module: "events", permission: "page.events" },
+  { title: "Venues & Stages", url: "/staff/venues", icon: Building2, module: "venues", permission: "page.venues" },
+  { title: "Box Office", url: "/staff/attendees", icon: Users, module: "box_office", permission: "page.box_office" },
   { title: "Vendors", url: "/staff/vendors", icon: Store, module: "vendors_sponsors", permission: "page.vendors" },
   { title: "Sponsors", url: "/staff/sponsors", icon: Sparkles, module: "vendors_sponsors", permission: "page.sponsors" },
   { title: "Community Music", url: "/staff/community-music", icon: Music, module: "streetbeats", permission: "page.community_music" },
   { title: "Community Orgs", url: "/staff/community-organizations", icon: HeartHandshake, module: "community_orgs", permission: "page.community_orgs" },
   { title: "Community Events", url: "/staff/community-events", icon: CalendarDays, module: "community_orgs", permission: "page.community_events" },
   { title: "Room Reservations", url: "/staff/room-reservations", icon: BedDouble, module: "room_reservations", permission: "page.room_reservations" },
-  { title: "Classes", url: "/staff/classes", icon: GraduationCap, permission: "page.classes" },
-  { title: "Social Command", url: "/staff/admin/social", icon: Share2, permission: "page.social_command" },
+  { title: "Classes", url: "/staff/classes", icon: GraduationCap, module: "classes", permission: "page.classes" },
+  { title: "Social Command", url: "/staff/admin/social", icon: Share2, module: "social_command", permission: "page.social_command" },
   { title: "Platform Settings", url: "/staff/settings", icon: Settings, permission: "page.settings" },
 ];
 
