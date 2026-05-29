@@ -187,6 +187,7 @@ const roomInput = z.object({
   building: z.string().optional().nullable(),
   capacity: z.number().int().nullable().optional(),
   is_publicly_bookable: z.boolean().optional(),
+  instant_bookable: z.boolean().optional(),
   linked_stage_id: z.string().uuid().nullable().optional(),
   department_id: z.string().uuid().nullable().optional(),
   image_url: z.string().url().nullable().optional().or(z.literal("")),
