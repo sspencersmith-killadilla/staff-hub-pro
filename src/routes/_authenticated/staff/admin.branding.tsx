@@ -528,7 +528,106 @@ function BrandingPage() {
                 </Card>
               </TabsContent>
 
+              <TabsContent value="presets">
+                <Card>
+                  <CardHeader><CardTitle>Brand Presets</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="rounded-md border p-3">
+                      <Label htmlFor="preset-name" className="font-medium">
+                        Save current branding as a preset
+                      </Label>
+                      <p className="mt-1 mb-2 text-xs text-muted-foreground">
+                        Snapshots the editor's current colors, fonts, radius,
+                        and logo URLs. Apply later from this list.
+                      </p>
+                      <div className="flex gap-2">
+                        <Input
+                          id="preset-name"
+                          placeholder="e.g. Summer Festival 2026"
+                          value={presetName}
+                          onChange={(e) => setPresetName(e.target.value)}
+                          className="max-w-xs"
+                        />
+                        <Button
+                          type="button"
+                          onClick={() => savePresetMut.mutate()}
+                          disabled={
+                            !presetName.trim() || savePresetMut.isPending
+                          }
+                        >
+                          {savePresetMut.isPending ? "Saving…" : "Save preset"}
+                        </Button>
+                      </div>
+                    </div>
+
+                    {presets.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        No presets yet.
+                      </p>
+                    ) : (
+                      <ul className="space-y-2">
+                        {presets.map((p) => {
+                          const t = (p.tokens ?? {}) as any;
+                          const swatches = [
+                            t.primary_color,
+                            t.accent_color,
+                            t.background_color,
+                            t.foreground_color,
+                          ].filter(Boolean) as string[];
+                          return (
+                            <li
+                              key={p.id}
+                              className="flex items-center justify-between gap-3 rounded border p-3"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="flex">
+                                  {swatches.map((c, i) => (
+                                    <span
+                                      key={i}
+                                      className="-ml-1 h-6 w-6 rounded-full border-2 border-background"
+                                      style={{ background: c }}
+                                    />
+                                  ))}
+                                </div>
+                                <div>
+                                  <div className="font-medium">{p.name}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {new Date(p.created_at).toLocaleString()}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => applyPreset(p)}
+                                >
+                                  Apply
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => {
+                                    if (confirm(`Delete preset "${p.name}"?`))
+                                      deletePresetMut.mutate(p.id);
+                                  }}
+                                >
+                                  Delete
+                                </Button>
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
               <TabsContent value="history">
+
                 <Card>
                   <CardHeader><CardTitle>Version History</CardTitle></CardHeader>
                   <CardContent>
