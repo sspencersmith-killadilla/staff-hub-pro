@@ -58,10 +58,10 @@ select
 from public.special_event_permits p
 where p.status = 'paid'
 union all
--- Vendor booth payments
+-- Vendor booth payments (vendors has no created_at column; fall back to tier created_at)
 select
   s.department_id,
-  date_trunc('month', v.created_at)::date as month,
+  date_trunc('month', vt.created_at)::date as month,
   'vendors'::text as source,
   coalesce(vt.price, 0)::numeric(12,2) as amount
 from public.vendors v
