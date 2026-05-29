@@ -81,6 +81,11 @@ const SubmitInput = z.object({
   logoUrl: z.string().max(1000).optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
   adCopy: z.string().max(2000).optional().nullable(),
+  sellingItems: z.boolean().optional(),
+  itemsDescription: z.string().max(2000).optional().nullable(),
+  isLicensed: z.boolean().optional(),
+  permitUrls: z.array(z.string().max(1000)).max(10).optional(),
+  specialRequirements: z.string().max(2000).optional().nullable(),
 });
 
 export const submitApplication = createServerFn({ method: "POST" })
