@@ -67,6 +67,8 @@ export const deleteCourse = createServerFn({ method: "POST" })
   .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
+    const dept = await getCourseDepartmentId(data.id);
+    await assertCanManageDepartment(context.userId, dept);
     const { error } = await supabaseAdmin
       .from("courses")
       .delete()
@@ -89,8 +91,12 @@ export const listCoursesAdmin = createServerFn({ method: "GET" })
       .from("courses")
       .select("id,title,description,price,department_id,image_url,created_at")
       .order("created_at", { ascending: false });
-    if (!admin && data.departmentId) q = q.eq("department_id", data.departmentId);
-    else if (data.departmentId) q = q.eq("department_id", data.departmentId);
+    if (data.departmentId) q = q.eq("department_id", data.departmentId);
+    if (!admin) {
+      const deptIds = Array.from(await getUserDepartmentIds(context.userId));
+      if (deptIds.length === 0) return [];
+      q = q.in("department_id", deptIds);
+    }
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
     return rows ?? [];
