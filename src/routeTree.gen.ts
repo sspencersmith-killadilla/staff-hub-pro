@@ -65,6 +65,7 @@ import { Route as AuthenticatedStaffAdminSocialIntegrationsRouteImport } from '.
 import { Route as AuthenticatedStaffAdminSocialRouteImport } from './routes/_authenticated/staff/admin.social'
 import { Route as AuthenticatedStaffAdminPermitsRouteImport } from './routes/_authenticated/staff/admin.permits'
 import { Route as AuthenticatedStaffAdminPermissionsRouteImport } from './routes/_authenticated/staff/admin.permissions'
+import { Route as AuthenticatedStaffAdminHomeRouteImport } from './routes/_authenticated/staff/admin.home'
 import { Route as AuthenticatedStaffAdminGuidebookPublisherRouteImport } from './routes/_authenticated/staff/admin.guidebook-publisher'
 import { Route as AuthenticatedStaffAdminGuidebookCanvasRouteImport } from './routes/_authenticated/staff/admin.guidebook-canvas'
 import { Route as AuthenticatedStaffAdminGuidebookRouteImport } from './routes/_authenticated/staff/admin.guidebook'
@@ -376,6 +377,12 @@ const AuthenticatedStaffAdminPermissionsRoute =
     path: '/permissions',
     getParentRoute: () => AuthenticatedStaffAdminRoute,
   } as any)
+const AuthenticatedStaffAdminHomeRoute =
+  AuthenticatedStaffAdminHomeRouteImport.update({
+    id: '/home',
+    path: '/home',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
 const AuthenticatedStaffAdminGuidebookPublisherRoute =
   AuthenticatedStaffAdminGuidebookPublisherRouteImport.update({
     id: '/guidebook-publisher',
@@ -486,6 +493,7 @@ export interface FileRoutesByFullPath {
   '/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
   '/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   '/staff/admin/guidebook-publisher': typeof AuthenticatedStaffAdminGuidebookPublisherRoute
+  '/staff/admin/home': typeof AuthenticatedStaffAdminHomeRoute
   '/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
   '/staff/admin/permits': typeof AuthenticatedStaffAdminPermitsRoute
   '/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
@@ -551,6 +559,7 @@ export interface FileRoutesByTo {
   '/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
   '/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   '/staff/admin/guidebook-publisher': typeof AuthenticatedStaffAdminGuidebookPublisherRoute
+  '/staff/admin/home': typeof AuthenticatedStaffAdminHomeRoute
   '/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
   '/staff/admin/permits': typeof AuthenticatedStaffAdminPermitsRoute
   '/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
@@ -619,6 +628,7 @@ export interface FileRoutesById {
   '/_authenticated/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
   '/_authenticated/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   '/_authenticated/staff/admin/guidebook-publisher': typeof AuthenticatedStaffAdminGuidebookPublisherRoute
+  '/_authenticated/staff/admin/home': typeof AuthenticatedStaffAdminHomeRoute
   '/_authenticated/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
   '/_authenticated/staff/admin/permits': typeof AuthenticatedStaffAdminPermitsRoute
   '/_authenticated/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
@@ -687,6 +697,7 @@ export interface FileRouteTypes {
     | '/staff/admin/guidebook'
     | '/staff/admin/guidebook-canvas'
     | '/staff/admin/guidebook-publisher'
+    | '/staff/admin/home'
     | '/staff/admin/permissions'
     | '/staff/admin/permits'
     | '/staff/admin/social'
@@ -752,6 +763,7 @@ export interface FileRouteTypes {
     | '/staff/admin/guidebook'
     | '/staff/admin/guidebook-canvas'
     | '/staff/admin/guidebook-publisher'
+    | '/staff/admin/home'
     | '/staff/admin/permissions'
     | '/staff/admin/permits'
     | '/staff/admin/social'
@@ -819,6 +831,7 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/admin/guidebook'
     | '/_authenticated/staff/admin/guidebook-canvas'
     | '/_authenticated/staff/admin/guidebook-publisher'
+    | '/_authenticated/staff/admin/home'
     | '/_authenticated/staff/admin/permissions'
     | '/_authenticated/staff/admin/permits'
     | '/_authenticated/staff/admin/social'
@@ -1255,6 +1268,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffAdminPermissionsRouteImport
       parentRoute: typeof AuthenticatedStaffAdminRoute
     }
+    '/_authenticated/staff/admin/home': {
+      id: '/_authenticated/staff/admin/home'
+      path: '/home'
+      fullPath: '/staff/admin/home'
+      preLoaderRoute: typeof AuthenticatedStaffAdminHomeRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
     '/_authenticated/staff/admin/guidebook-publisher': {
       id: '/_authenticated/staff/admin/guidebook-publisher'
       path: '/guidebook-publisher'
@@ -1343,6 +1363,7 @@ interface AuthenticatedStaffAdminRouteChildren {
   AuthenticatedStaffAdminGuidebookRoute: typeof AuthenticatedStaffAdminGuidebookRoute
   AuthenticatedStaffAdminGuidebookCanvasRoute: typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   AuthenticatedStaffAdminGuidebookPublisherRoute: typeof AuthenticatedStaffAdminGuidebookPublisherRoute
+  AuthenticatedStaffAdminHomeRoute: typeof AuthenticatedStaffAdminHomeRoute
   AuthenticatedStaffAdminPermissionsRoute: typeof AuthenticatedStaffAdminPermissionsRoute
   AuthenticatedStaffAdminPermitsRoute: typeof AuthenticatedStaffAdminPermitsRoute
   AuthenticatedStaffAdminSocialRoute: typeof AuthenticatedStaffAdminSocialRouteWithChildren
@@ -1363,6 +1384,7 @@ const AuthenticatedStaffAdminRouteChildren: AuthenticatedStaffAdminRouteChildren
       AuthenticatedStaffAdminGuidebookCanvasRoute,
     AuthenticatedStaffAdminGuidebookPublisherRoute:
       AuthenticatedStaffAdminGuidebookPublisherRoute,
+    AuthenticatedStaffAdminHomeRoute: AuthenticatedStaffAdminHomeRoute,
     AuthenticatedStaffAdminPermissionsRoute:
       AuthenticatedStaffAdminPermissionsRoute,
     AuthenticatedStaffAdminPermitsRoute: AuthenticatedStaffAdminPermitsRoute,
