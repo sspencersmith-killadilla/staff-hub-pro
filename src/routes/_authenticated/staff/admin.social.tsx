@@ -664,18 +664,30 @@ function ComposerDialog({
                   return (
                     <div
                       key={p}
-                      className="flex items-center justify-between rounded-md border p-2.5"
+                      className="flex items-center justify-between rounded-md border p-2.5 gap-2"
                     >
-                      <div className="flex items-center gap-2">
-                        <div className={cn("h-7 w-7 rounded grid place-items-center text-white", meta.tint)}>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className={cn("h-7 w-7 rounded grid place-items-center text-white shrink-0", meta.tint)}>
                           <Icon className="h-3.5 w-3.5" />
                         </div>
-                        <span className="text-sm font-medium">{meta.label}</span>
+                        <span className="text-sm font-medium truncate">{meta.label}</span>
                       </div>
-                      <Switch
-                        checked={platforms[p]}
-                        onCheckedChange={(v) => setPlatforms((s) => ({ ...s, [p]: v }))}
-                      />
+                      <div className="flex items-center gap-2">
+                        {perPlatformTime && platforms[p] && (
+                          <Input
+                            type="time"
+                            value={times[p]}
+                            onChange={(e) =>
+                              setTimes((s) => ({ ...s, [p]: e.target.value }))
+                            }
+                            className="w-28 h-8"
+                          />
+                        )}
+                        <Switch
+                          checked={platforms[p]}
+                          onCheckedChange={(v) => setPlatforms((s) => ({ ...s, [p]: v }))}
+                        />
+                      </div>
                     </div>
                   );
                 })}
