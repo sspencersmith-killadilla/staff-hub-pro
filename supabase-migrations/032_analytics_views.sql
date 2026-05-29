@@ -5,44 +5,70 @@
 -- Booked hours from approved room_reservations, per room/venue, for
 -- 30 / 90 / 365 day windows. Available hours = window_days * 24.
 drop view if exists public.vw_venue_utilization cascade;
-create view public.vw_venue_utilization as
-with bookings as (
-  select
-    r.id                as room_id,
-    r.name              as room_name,
-    r.venue_id          as venue_id,
-    r.department_id     as department_id,
-    rr.starts_at,
-    rr.ends_at
-  from public.rooms r
-  left join public.room_reservations rr
-    on rr.room_id = r.id
-   and rr.status in ('approved')
-)
-select
-  b.room_id,
-  b.room_name,
-  b.venue_id,
-  b.department_id,
-  coalesce(sum(case when b.starts_at >= now() - interval '30 days'
-                   then extract(epoch from (b.ends_at - b.starts_at)) / 3600 end), 0)::numeric(12,2)  as booked_hours_30d,
-  coalesce(sum(case when b.starts_at >= now() - interval '90 days'
-                   then extract(epoch from (b.ends_at - b.starts_at)) / 3600 end), 0)::numeric(12,2)  as booked_hours_90d,
-  coalesce(sum(case when b.starts_at >= now() - interval '365 days'
-                   then extract(epoch from (b.ends_at - b.starts_at)) / 3600 end), 0)::numeric(12,2)  as booked_hours_365d,
-  (30  * 24)::numeric as available_hours_30d,
-  (90  * 24)::numeric as available_hours_90d,
-  (365 * 24)::numeric as available_hours_365d,
-  least(100, coalesce(sum(case when b.starts_at >= now() - interval '30 days'
-                   then extract(epoch from (b.ends_at - b.starts_at)) / 3600 end), 0) / (30 * 24) * 100)::numeric(5,2) as utilization_pct_30d,
-  least(100, coalesce(sum(case when b.starts_at >= now() - interval '90 days'
-                   then extract(epoch from (b.ends_at - b.starts_at)) / 3600 end), 0) / (90 * 24) * 100)::numeric(5,2) as utilization_pct_90d,
-  least(100, coalesce(sum(case when b.starts_at >= now() - interval '365 days'
-                   then extract(epoch from (b.ends_at - b.starts_at)) / 3600 end), 0) / (365 * 24) * 100)::numeric(5,2) as utilization_pct_365d
-from bookings b
-group by b.room_id, b.room_name, b.venue_id, b.department_id;
+
+do $vu$
+begin
+  if to_regclass('public.rooms') is null then
+    execute $sql$
+      create view public.vw_venue_utilization as
+      select
+        null::uuid as room_id,
+        null::text as room_name,
+        null::uuid as venue_id,
+        null::uuid as department_id,
+        0::numeric(12,2) as booked_hours_30d,
+        0::numeric(12,2) as booked_hours_90d,
+        0::numeric(12,2) as booked_hours_365d,
+        (30*24)::numeric as available_hours_30d,
+        (90*24)::numeric as available_hours_90d,
+        (365*24)::numeric as available_hours_365d,
+        0::numeric(5,2) as utilization_pct_30d,
+        0::numeric(5,2) as utilization_pct_90d,
+        0::numeric(5,2) as utilization_pct_365d
+      where false
+    $sql$;
+  else
+    execute $sql$
+      create view public.vw_venue_utilization as
+      with bookings as (
+        select
+          r.id            as room_id,
+          r.name          as room_name,
+          r.venue_id      as venue_id,
+          r.department_id as department_id,
+          rr.starts_at,
+          rr.ends_at
+        from public.rooms r
+        left join public.room_reservations rr
+          on rr.room_id = r.id
+         and rr.status = 'approved'
+      )
+      select
+        b.room_id, b.room_name, b.venue_id, b.department_id,
+        coalesce(sum(case when b.starts_at >= now() - interval '30 days'
+          then extract(epoch from (b.ends_at - b.starts_at))/3600 end),0)::numeric(12,2)  as booked_hours_30d,
+        coalesce(sum(case when b.starts_at >= now() - interval '90 days'
+          then extract(epoch from (b.ends_at - b.starts_at))/3600 end),0)::numeric(12,2)  as booked_hours_90d,
+        coalesce(sum(case when b.starts_at >= now() - interval '365 days'
+          then extract(epoch from (b.ends_at - b.starts_at))/3600 end),0)::numeric(12,2)  as booked_hours_365d,
+        (30*24)::numeric  as available_hours_30d,
+        (90*24)::numeric  as available_hours_90d,
+        (365*24)::numeric as available_hours_365d,
+        least(100, coalesce(sum(case when b.starts_at >= now() - interval '30 days'
+          then extract(epoch from (b.ends_at - b.starts_at))/3600 end),0)/(30*24)*100)::numeric(5,2)  as utilization_pct_30d,
+        least(100, coalesce(sum(case when b.starts_at >= now() - interval '90 days'
+          then extract(epoch from (b.ends_at - b.starts_at))/3600 end),0)/(90*24)*100)::numeric(5,2)  as utilization_pct_90d,
+        least(100, coalesce(sum(case when b.starts_at >= now() - interval '365 days'
+          then extract(epoch from (b.ends_at - b.starts_at))/3600 end),0)/(365*24)*100)::numeric(5,2) as utilization_pct_365d
+      from bookings b
+      group by b.room_id, b.room_name, b.venue_id, b.department_id
+    $sql$;
+  end if;
+end
+$vu$;
 
 grant select on public.vw_venue_utilization to authenticated, service_role;
+
 
 -- ─── vw_department_revenue ───────────────────────────────────────────
 -- Unified monthly revenue by department + revenue stream (source).
