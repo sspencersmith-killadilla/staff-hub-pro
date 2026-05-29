@@ -1,112 +1,129 @@
+## Goals
 
-## Goal
+Evolve the current 2-color global branding into a real white-label engine with three theming layers (tenant → global → department), a complete token system, a polished admin editor with live preview and accessibility checks, a proper logo/favicon asset pipeline, and a versioned publish workflow.
 
-Replace the mocked social publishing with real per-org OAuth connections to Meta (Facebook Page + Instagram Business) and LinkedIn (Company Page), gated by a new `page.social_command` staff permission, and document everything in the in-app manual.
+## 1. Data model changes
 
-## What gets built
+New migration `034_branding_engine.sql`.
 
-### 1. New staff permission
+`global_settings` — extend (additive, all nullable with sensible defaults):
+- `accent_color`, `background_color`, `foreground_color`, `muted_color`, `destructive_color`
+- `dark_primary_color`, `dark_background_color`, `dark_foreground_color`, `dark_accent_color`
+- `radius` (text, e.g. `0.625rem`)
+- `heading_font` (text), `body_font` (text, replaces `font_family` — keep `font_family` as a back-compat read)
+- `logo_light_url`, `logo_dark_url`, `logo_icon_url`, `wordmark_url`, `og_image_url`
+- `favicon_svg_url`, `favicon_32_url`, `favicon_180_url`, `favicon_512_url`, `manifest_url`
+- `published_at` (timestamptz, nullable) — only published rows feed the public site
+- `draft_of` (uuid, nullable, self-FK) — drafts attached to the live row
 
-Add to `src/lib/staff-permissions.ts`:
-- `page.social_command` — "Social Command Center"
+New tables:
+- `brand_presets(id, name, tokens jsonb, logo_urls jsonb, created_by, created_at)` — named presets the admin can apply.
+- `brand_versions(id, scope text check in ('tenant','global','department'), scope_id uuid null, snapshot jsonb, published_at, published_by, label text)` — every publish writes a snapshot for rollback.
+- `tenants(id, slug unique, name, host text null, settings jsonb, created_at)` — new top layer for multi-tenant white-label. `host` lets a domain auto-resolve a tenant; `slug` is the fallback (e.g. `/t/cityname`).
+- Department `brand_css` already exists; extend the typed columns alongside it so the editor can use the same widgets.
 
-Backfill grant to existing staff/admin in a new migration so nothing breaks for current users. Wire it into the `_authenticated/staff/admin/social` route and the sidebar link (`event-ops-sidebar.tsx`) so it only shows when granted.
+RLS: public `SELECT` on the live `global_settings` row, tenants, and presets. `INSERT/UPDATE/DELETE` gated by `has_role(auth.uid(),'admin')`. Versions: select for admins only.
 
-### 2. Database (one migration: `028_social_connections.sql`)
+Storage: keep the `branding` bucket; add per-tenant prefixes (`tenants/<id>/...`) so uploads don't collide.
 
-```text
-social_connections
-  id uuid pk
-  department_id uuid fk -> departments (per-org scoping)
-  platform text check in ('facebook','instagram','linkedin')
-  account_id text         -- FB page id / IG business id / LinkedIn org URN
-  account_name text       -- display label
-  access_token text       -- encrypted at rest via pgsodium (or stored as-is + RLS-locked)
-  refresh_token text null
-  token_expires_at timestamptz null
-  scopes text[]
-  connected_by uuid fk -> auth.users
-  connected_at timestamptz default now()
-  unique (department_id, platform, account_id)
+## 2. Theming hierarchy (resolver)
 
-social_posts
-  id uuid pk
-  department_id uuid fk
-  scheduled_for timestamptz
-  caption text
-  media_url text null
-  event_id uuid null fk -> sessions
-  platforms text[]        -- ['facebook','instagram','linkedin']
-  status text             -- 'scheduled' | 'publishing' | 'published' | 'failed'
-  results jsonb           -- per-platform { platform, post_id?, error? }
-  created_by uuid fk -> auth.users
-  created_at timestamptz
-```
-
-RLS: only staff with `page.social_command` (or admin) in the same department can read/write. Service role bypass for the publish worker. Standard `GRANT`s.
-
-### 3. OAuth flows (server routes)
-
-Three public OAuth callback routes + matching "start" server functions. All use stable `project--{id}.lovable.app` URLs as the redirect URI.
+A single `useResolvedBrand()` hook composes the layers in order of increasing priority — later layers override earlier ones per token:
 
 ```text
-src/routes/api/public/oauth/meta/callback.ts       -- handles FB + IG (shared)
-src/routes/api/public/oauth/linkedin/callback.ts
+Tailwind defaults  →  tenant (resolved from host or /t/<slug>)  →  global  →  active department
 ```
 
-Plus server functions in `src/lib/social-connections.functions.ts`:
-- `startMetaOAuth({ departmentId })` → returns authorize URL with `state` (signed JWT of department+user)
-- `startLinkedInOAuth({ departmentId })` → same
-- `listConnections({ departmentId })`
-- `disconnect({ connectionId })`
-- `publishPost({ postId })` — server-side fan-out to each platform
+Implementation: `applyBrandCss(brand, priority)` already supports priority; reserve:
+- tenant: `-20`
+- global: `-10`
+- department layout: `0`
+- per-route override: `10`
 
-### 4. Secrets the user must add
+A `TenantBrandProvider` mounts above `GlobalBrandProvider` in `__root.tsx` and reads tenant by `window.location.host` (with `/t/<slug>` fallback for previews). On the server, head meta uses the same lookup so titles/OG render correctly without flicker.
 
-Six secrets via `secrets--add_secret`:
-- `META_APP_ID`, `META_APP_SECRET`
-- `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET`
-- `OAUTH_STATE_SECRET` (HMAC signing key)
-- *(X dropped from real publishing for now — UI keeps it as "manual copy" since X API v2 posting requires a paid tier; flagged in manual.)*
+## 3. Token system & color derivation
 
-### 5. UI changes
+Centralize a `BrandTokens` type and a `deriveTokens(input)` utility that, given the admin's chosen colors, fills the rest:
+- `--primary-foreground` auto-derived for AA contrast against `--primary` (pick white or near-black based on luminance).
+- Hover/active shades via OKLCH lightness shifts (no new dependency — small util).
+- Dark-mode variants auto-derived if the admin doesn't set explicit dark values.
 
-- **`/staff/admin/social/connections`** (new route): list connected accounts per department, "Connect Facebook Page", "Connect Instagram", "Connect LinkedIn" buttons that open the OAuth popup. Disconnect button per account.
-- **`/staff/admin/social`** (existing): replace mocked `savePost` with real `publishPost` call. Show only platforms the current department has connected. Persist posts to `social_posts`. Add a "Manage connections" link in header.
-- Sidebar: add `Social Command` under a `page.social_command` guard (already there, just gate it).
+This keeps the editor simple (admin only has to pick primary/secondary/accent), while shadcn's full token set stays consistent.
 
-### 6. Manual update (`src/routes/manual.tsx`)
+## 4. Admin editor: live preview + a11y
 
-Add a new section "Social Media Command Center" covering:
-- What it does (calendar, drag-to-schedule, composer, live preview)
-- How to grant access (new `page.social_command` permission)
-- How to connect Facebook / Instagram / LinkedIn (step-by-step, including what to set up in Meta Developer Console and LinkedIn Developer Portal: app creation, required scopes, redirect URI to paste)
-- X note (manual copy/paste workflow, paid API tier required for automation)
-- Per-department scoping (each department connects its own accounts)
-- Image focal-point picker on guidebook cards (recent change)
-- Guidebook sponsorship tier on vendor portal (recent change)
+New layout for `/staff/admin/branding`:
 
-## Technical details
+```text
+┌──────────────── editor (left, sticky) ────────────────┬──── live preview (right) ────┐
+│ Tabs: Identity · Colors · Typography · Assets · Tenant│ Sample page renders inside an│
+│ Color pickers (primary, secondary, accent, bg, fg)    │ iframe-like sandbox using a  │
+│ Radius slider, dark-mode toggle                       │ scoped CSS-var container so  │
+│ Font picker (see §5)                                  │ edits apply instantly without│
+│ Logo/favicon uploaders (see §6)                       │ touching the real :root.     │
+│ A11y panel: contrast ratios + WCAG AA/AAA badges      │ Header, hero, button, card,  │
+│ Draft/Publish controls, version history list          │ form, alert, table examples. │
+└────────────────────────────────────────────────────────┴───────────────────────────────┘
+```
 
-- **Meta scopes**: `pages_show_list`, `pages_manage_posts`, `pages_read_engagement`, `instagram_basic`, `instagram_content_publish`, `business_management`. IG publish requires the Page→IG Business linkage.
-- **LinkedIn scopes**: `w_organization_social`, `r_organization_social`, `rw_organization_admin`.
-- **Token storage**: tokens go in `social_connections.access_token` as text. RLS locks the column to admin/service-role reads; client code never selects it (only server fns do). Long-lived FB tokens (~60 days) refreshed lazily on publish.
-- **Publish worker**: synchronous on "Schedule" click for now (no cron). A follow-up can add pg_cron hitting `/api/public/social/publish-due`.
-- **State param**: HMAC(department_id|user_id|nonce|expiry) signed with `OAUTH_STATE_SECRET` to prevent CSRF.
+A11y checks (computed client-side, no new dep):
+- `primary` vs `primary-foreground`
+- `background` vs `foreground`
+- `accent` vs `accent-foreground`
+- `destructive` vs `destructive-foreground`
+Show ratio + AA/AAA pass/fail per pair. Block "Publish" (with override) if any pair is below 3:1.
 
-## Out of scope (call out in chat after)
+## 5. Curated font picker
 
-- X/Twitter automated publishing (paid API)
-- TikTok, YouTube, Threads
-- Auto token refresh background job
-- Post analytics fetch-back
-- Approval workflow before publish
+`src/lib/branding/font-pairs.ts` — vetted list (reuse the curated pairs already documented in this project's design knowledge: `space-grotesk-dm-sans`, `syne-plus-jakarta`, `outfit-figtree`, `sora-manrope`, `instrument-serif-work-sans`, `dm-serif-display-fira-sans`, `cormorant-karla`, `libre-baskerville-ibm-plex`, `lora-nunito-sans`, `bebas-neue-barlow`, `archivo-black-hind`, `abril-fatface-cabin`, `jetbrains-mono-work-sans`, `space-mono-rubik`).
 
-## Order of operations
+UI: a `<RadioGroup>` of cards. Each card renders its heading font name in itself and a paragraph in the body font. Selecting a pair stores `heading_font` + `body_font`. The provider injects a Google Fonts `<link>` for both, plus CSS variables `--font-heading` and `--font-sans`.
 
-1. Migration + permission + sidebar gate (smallest, unblocks UI work)
-2. Secret prompts via `secrets--add_secret`
-3. `social-connections.functions.ts` + OAuth callback routes
-4. `/staff/admin/social/connections` page
-5. Wire real publish into existing `/staff/admin/social`
-6. Manual rewrite
+## 6. Logo & favicon pipeline
+
+Upload widgets accept PNG/SVG/WebP. For the favicon, generate the multi-size set in the browser via a `<canvas>` resize (16, 32, 48, 180, 192, 512), upload each to storage, and persist all URLs.
+
+Auto-build `manifest.webmanifest` content from the admin inputs (name, short_name, theme_color, icons[]) and either store it as JSON in `global_settings.manifest_url` (uploaded as a file) or serve it from `src/routes/api/public/manifest.webmanifest.ts` reading from the DB.
+
+`<head>` adds:
+- `<link rel="icon" type="image/svg+xml" href={favicon_svg_url}>`
+- `<link rel="icon" sizes="32x32" href={favicon_32_url}>`
+- `<link rel="apple-touch-icon" sizes="180x180" href={favicon_180_url}>`
+- `<link rel="manifest" href="/manifest.webmanifest">`
+- `<meta name="theme-color" content={primary_color}>`
+- `og:image` from `og_image_url` (a real share image, distinct from the wordmark).
+
+`SiteHeader` picks logo_dark_url when the active department/tenant theme is dark, falling back to `logo_light_url`.
+
+## 7. Presets, versioning, publish workflow
+
+Editor changes are always written to a **draft** row tied to the live row. The live row only changes on **Publish**:
+
+- "Save draft" → upserts the draft, no public effect.
+- "Publish" → copies draft tokens onto the live row, sets `published_at`, writes a `brand_versions` snapshot.
+- "Version history" panel lists previous snapshots with `Restore` (creates a new draft from that snapshot) and `Revert` (publishes that snapshot directly).
+- "Save as preset" → captures current draft tokens into `brand_presets`. "Apply preset" loads tokens into the draft.
+
+## 8. Tenant layer
+
+- `tenants` table + a `useTenant()` resolver: by `host` first, then `/t/<slug>` prefix in the URL, then null.
+- `TenantBrandProvider` injects tenant tokens at priority `-20`.
+- Admin gets a new `/staff/admin/tenants` page (list + create + per-tenant branding editor that reuses the same widgets, scoped to the tenant row).
+- Document title becomes `${activeDepartment?.name ?? tenant?.name ?? global.city_name} — …`.
+
+## 9. Backward compatibility
+
+- `font_family` stays readable; the resolver returns `body_font ?? font_family ?? 'Inter'`.
+- Existing single-row `global_settings` is migrated in place; new columns are nullable so nothing breaks.
+- Existing department `brand_css` JSON keeps overriding global at priority `0`.
+
+## Out of scope (call out for later)
+
+- Theme A/B testing, scheduled brand changes, brand approval roles, exporting tokens as a downloadable `tokens.json` / Style Dictionary bundle. Easy to add later on top of `brand_versions`.
+
+## Technical notes
+
+- New files: `src/contexts/tenant-brand-context.tsx`, `src/lib/branding/{tokens.ts,derive.ts,contrast.ts,font-pairs.ts}.ts`, `src/components/admin/branding/{LivePreview,ColorEditor,FontPicker,LogoUploader,FaviconPipeline,VersionHistory,PresetPicker,ContrastReport}.tsx`, `src/routes/_authenticated/staff/admin.tenants.tsx`, `src/routes/api/public/manifest.webmanifest.ts`.
+- Updated files: `supabase-migrations/034_branding_engine.sql`, `src/lib/global-settings.functions.ts` (add draft/publish/version/preset RPCs), `src/contexts/global-brand-context.tsx` (consume token system), `src/components/theme-provider.tsx` (reserve priority slots), `src/components/site-header.tsx` (light/dark logo), `src/routes/__root.tsx` (mount TenantBrandProvider, add favicon/manifest/theme-color/og links via head()), `src/routes/_authenticated/staff/admin.branding.tsx` (full rewrite with tabs + preview).
+- No new heavyweight deps required. Color math via tiny inline OKLCH helpers; favicon generation via canvas; font previews via Google Fonts links.
