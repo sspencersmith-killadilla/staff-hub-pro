@@ -58,6 +58,7 @@ const items: Item[] = [
   { title: "Community Events", url: "/staff/community-events", icon: CalendarDays, module: "community_orgs", permission: "page.community_events" },
   { title: "Room Reservations", url: "/staff/room-reservations", icon: BedDouble, module: "room_reservations", permission: "page.room_reservations" },
   { title: "Classes", url: "/staff/classes", icon: GraduationCap, permission: "page.classes" },
+  { title: "Social Command", url: "/staff/admin/social", icon: Share2 },
   { title: "Platform Settings", url: "/staff/settings", icon: Settings, permission: "page.settings" },
 ];
 
