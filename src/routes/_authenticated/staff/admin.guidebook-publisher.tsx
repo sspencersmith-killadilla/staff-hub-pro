@@ -101,6 +101,7 @@ function PublisherPage() {
   const [title, setTitle] = useState("Community Program Guide");
   const [coverImageUrl, setCoverImageUrl] = useState("");
   const [coverSubtitle, setCoverSubtitle] = useState("");
+  const [departmentId, setDepartmentId] = useState<string>("__all");
   const [items, setItems] = useState<PublisherItem[]>([]);
   const [mounted, setMounted] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
