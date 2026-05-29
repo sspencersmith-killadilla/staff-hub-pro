@@ -154,20 +154,21 @@ export const updateApplication = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const uid = context.userId;
     if (data.kind === "vendor") {
+      const update: Record<string, unknown> = {
+        business_name: data.business_name,
+        contact_name: data.contact_name,
+        logo_url: data.logo_url ?? null,
+        application_notes: data.application_notes ?? null,
+        photo_urls: data.photo_urls ?? [],
+      };
+      if (data.selling_items !== undefined) update.selling_items = data.selling_items;
+      if (data.items_description !== undefined) update.items_description = data.items_description;
+      if (data.is_licensed !== undefined) update.is_licensed = data.is_licensed;
+      if (data.permit_urls !== undefined) update.permit_urls = data.permit_urls;
+      if (data.special_requirements !== undefined) update.special_requirements = data.special_requirements;
       const { error } = await supabaseAdmin
         .from("vendors")
-        .update({
-          business_name: data.business_name,
-          contact_name: data.contact_name,
-          logo_url: data.logo_url ?? null,
-          application_notes: data.application_notes ?? null,
-          photo_urls: data.photo_urls ?? [],
-          selling_items: data.selling_items ?? false,
-          items_description: data.items_description ?? null,
-          is_licensed: data.is_licensed ?? false,
-          permit_urls: data.permit_urls ?? [],
-          special_requirements: data.special_requirements ?? null,
-        })
+        .update(update)
         .eq("id", data.id)
         .eq("user_id", uid);
       if (error) throw new Error(error.message);
