@@ -38,6 +38,7 @@ import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedMyTicketsRouteImport } from './routes/_authenticated/my-tickets'
 import { Route as AuthenticatedMyScheduleRouteImport } from './routes/_authenticated/my-schedule'
 import { Route as AuthenticatedMyReservationsRouteImport } from './routes/_authenticated/my-reservations'
+import { Route as AuthenticatedMyPermitsRouteImport } from './routes/_authenticated/my-permits'
 import { Route as AuthenticatedHubRouteImport } from './routes/_authenticated/hub'
 import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff/index'
 import { Route as EventsPermitsApplyRouteImport } from './routes/events.permits.apply'
@@ -215,6 +216,11 @@ const AuthenticatedMyReservationsRoute =
     path: '/my-reservations',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedMyPermitsRoute = AuthenticatedMyPermitsRouteImport.update({
+  id: '/my-permits',
+  path: '/my-permits',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedHubRoute = AuthenticatedHubRouteImport.update({
   id: '/hub',
   path: '/hub',
@@ -412,6 +418,7 @@ export interface FileRoutesByFullPath {
   '/vendor': typeof VendorRoute
   '/venues': typeof VenuesRouteWithChildren
   '/hub': typeof AuthenticatedHubRoute
+  '/my-permits': typeof AuthenticatedMyPermitsRoute
   '/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/my-schedule': typeof AuthenticatedMyScheduleRoute
   '/my-tickets': typeof AuthenticatedMyTicketsRoute
@@ -473,6 +480,7 @@ export interface FileRoutesByTo {
   '/vendor': typeof VendorRoute
   '/venues': typeof VenuesRouteWithChildren
   '/hub': typeof AuthenticatedHubRoute
+  '/my-permits': typeof AuthenticatedMyPermitsRoute
   '/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/my-schedule': typeof AuthenticatedMyScheduleRoute
   '/my-tickets': typeof AuthenticatedMyTicketsRoute
@@ -535,6 +543,7 @@ export interface FileRoutesById {
   '/vendor': typeof VendorRoute
   '/venues': typeof VenuesRouteWithChildren
   '/_authenticated/hub': typeof AuthenticatedHubRoute
+  '/_authenticated/my-permits': typeof AuthenticatedMyPermitsRoute
   '/_authenticated/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/_authenticated/my-schedule': typeof AuthenticatedMyScheduleRoute
   '/_authenticated/my-tickets': typeof AuthenticatedMyTicketsRoute
@@ -598,6 +607,7 @@ export interface FileRouteTypes {
     | '/vendor'
     | '/venues'
     | '/hub'
+    | '/my-permits'
     | '/my-reservations'
     | '/my-schedule'
     | '/my-tickets'
@@ -659,6 +669,7 @@ export interface FileRouteTypes {
     | '/vendor'
     | '/venues'
     | '/hub'
+    | '/my-permits'
     | '/my-reservations'
     | '/my-schedule'
     | '/my-tickets'
@@ -720,6 +731,7 @@ export interface FileRouteTypes {
     | '/vendor'
     | '/venues'
     | '/_authenticated/hub'
+    | '/_authenticated/my-permits'
     | '/_authenticated/my-reservations'
     | '/_authenticated/my-schedule'
     | '/_authenticated/my-tickets'
@@ -999,6 +1011,13 @@ declare module '@tanstack/react-router' {
       path: '/my-reservations'
       fullPath: '/my-reservations'
       preLoaderRoute: typeof AuthenticatedMyReservationsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/my-permits': {
+      id: '/_authenticated/my-permits'
+      path: '/my-permits'
+      fullPath: '/my-permits'
+      preLoaderRoute: typeof AuthenticatedMyPermitsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/hub': {
@@ -1313,6 +1332,7 @@ const AuthenticatedStaffRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedHubRoute: typeof AuthenticatedHubRoute
+  AuthenticatedMyPermitsRoute: typeof AuthenticatedMyPermitsRoute
   AuthenticatedMyReservationsRoute: typeof AuthenticatedMyReservationsRoute
   AuthenticatedMyScheduleRoute: typeof AuthenticatedMyScheduleRoute
   AuthenticatedMyTicketsRoute: typeof AuthenticatedMyTicketsRoute
@@ -1325,6 +1345,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHubRoute: AuthenticatedHubRoute,
+  AuthenticatedMyPermitsRoute: AuthenticatedMyPermitsRoute,
   AuthenticatedMyReservationsRoute: AuthenticatedMyReservationsRoute,
   AuthenticatedMyScheduleRoute: AuthenticatedMyScheduleRoute,
   AuthenticatedMyTicketsRoute: AuthenticatedMyTicketsRoute,

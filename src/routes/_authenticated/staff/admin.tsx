@@ -155,6 +155,12 @@ function AdminPage() {
           >
             Social integrations →
           </Link>
+          <Link
+            to="/staff/admin/permits"
+            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
+          >
+            Permit settings →
+          </Link>
         </div>
       </div>
 

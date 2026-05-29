@@ -15,6 +15,7 @@ import {
   Sparkles,
   Shield,
   CalendarHeart,
+  FileText,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/hub")({
@@ -107,6 +108,15 @@ function HubPage() {
       accent: "from-emerald-500 to-teal-600",
       cta: "Browse events",
     },
+    {
+      title: "Special Event Permit",
+      description:
+        "Apply for a city Special Event Permit — five-step wizard with fees and online payment.",
+      to: "/events/permits/apply",
+      icon: FileText,
+      accent: "from-blue-500 to-indigo-600",
+      cta: "Start application",
+    },
   ];
 
   const manageActions: Action[] = [
@@ -145,6 +155,14 @@ function HubPage() {
       accent: "from-green-500 to-emerald-700",
       module: "community_orgs",
       cta: "Manage orgs",
+    },
+    {
+      title: "My Permits",
+      description: "Resume drafts and track Special Event Permit applications.",
+      to: "/my-permits",
+      icon: FileText,
+      accent: "from-blue-500 to-indigo-700",
+      cta: "View permits",
     },
   ];
 
