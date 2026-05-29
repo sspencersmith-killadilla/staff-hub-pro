@@ -347,16 +347,21 @@ function HomeEditorPage() {
                       No sections yet. Use "Add section" above.
                     </p>
                   )}
-                  {form.sections.map((section, idx) => (
-                    <SectionEditor
-                      key={section.id ?? idx}
-                      section={section}
-                      onChange={(next) => updateSection(idx, next)}
-                      onMoveUp={() => moveSection(idx, -1)}
-                      onMoveDown={() => moveSection(idx, 1)}
-                      onRemove={() => removeSection(idx)}
-                    />
-                  ))}
+                  <SortableList
+                    items={form.sections}
+                    onReorder={(next) => setForm((f) => ({ ...f, sections: next }))}
+                    getId={(s, i) => s.id ?? `section-${i}`}
+                  >
+                    {(section, idx, handle) => (
+                      <SectionEditor
+                        section={section}
+                        dragHandle={handle}
+                        onChange={(next) => updateSection(idx, next)}
+                        onRemove={() => removeSection(idx)}
+                      />
+                    )}
+                  </SortableList>
+
                 </CardContent>
               </Card>
             </TabsContent>
