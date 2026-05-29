@@ -127,7 +127,7 @@ export const listGigsStaff = createServerFn({ method: "GET" })
     const venueIds = Array.from(new Set(stages.map((s: any) => s.venue_id).filter(Boolean)));
     const [venuesRes, artistsRes] = await Promise.all([
       venueIds.length
-        ? supabaseAdmin.from("venues").select("id, name").in("id", venueIds)
+        ? supabaseAdmin.from("venues").select("id, name, department_id").in("id", venueIds)
         : Promise.resolve({ data: [] as any[] }),
       artistIds.length
         ? supabaseAdmin
@@ -138,6 +138,17 @@ export const listGigsStaff = createServerFn({ method: "GET" })
     ]);
     const stagesById = new Map(stages.map((s: any) => [s.id, s]));
     const venuesById = new Map((venuesRes.data ?? []).map((v: any) => [v.id, v]));
+
+    // Restrict non-admins to gigs whose venue belongs to one of their depts.
+    const admin = await isAdmin(context.userId);
+    const allowedDepts = admin ? null : await getUserDepartmentIds(context.userId);
+    const isAllowed = (stageId: string | null) => {
+      if (admin) return true;
+      const stage = stageId ? stagesById.get(stageId) : null;
+      const venue = stage?.venue_id ? venuesById.get(stage.venue_id) : null;
+      const dept = venue?.department_id ?? null;
+      return !!dept && allowedDepts!.has(dept);
+    };
     const artistsById = new Map(
       (artistsRes.data ?? []).map((a: any) => [
         a.id,
