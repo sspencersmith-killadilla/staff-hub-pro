@@ -585,13 +585,37 @@ function ComposerDialog({
             </div>
 
             <div className="space-y-2">
-              <Label>Post time</Label>
-              <Input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="w-40"
-              />
+              <div className="flex items-center justify-between">
+                <Label>Post time</Label>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="per-platform-time"
+                    checked={perPlatformTime}
+                    onCheckedChange={(v) => {
+                      setPerPlatformTime(v);
+                      if (v) {
+                        setTimes((s) => ({
+                          facebook: s.facebook || time,
+                          instagram: s.instagram || time,
+                          linkedin: s.linkedin || time,
+                          x: s.x || time,
+                        }));
+                      }
+                    }}
+                  />
+                  <Label htmlFor="per-platform-time" className="text-xs text-muted-foreground">
+                    Per-channel time
+                  </Label>
+                </div>
+              </div>
+              {!perPlatformTime && (
+                <Input
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  className="w-40"
+                />
+              )}
             </div>
 
             <div className="space-y-2">
