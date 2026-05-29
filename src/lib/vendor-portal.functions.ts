@@ -141,6 +141,11 @@ const UpdateInput = z.object({
   logo_url: z.string().max(1000).optional().nullable(),
   application_notes: z.string().max(2000).optional().nullable(),
   photo_urls: z.array(z.string().max(1000)).max(20).optional(),
+  selling_items: z.boolean().optional(),
+  items_description: z.string().max(2000).optional().nullable(),
+  is_licensed: z.boolean().optional(),
+  permit_urls: z.array(z.string().max(1000)).max(10).optional(),
+  special_requirements: z.string().max(2000).optional().nullable(),
 });
 
 export const updateApplication = createServerFn({ method: "POST" })
@@ -157,6 +162,11 @@ export const updateApplication = createServerFn({ method: "POST" })
           logo_url: data.logo_url ?? null,
           application_notes: data.application_notes ?? null,
           photo_urls: data.photo_urls ?? [],
+          selling_items: data.selling_items ?? false,
+          items_description: data.items_description ?? null,
+          is_licensed: data.is_licensed ?? false,
+          permit_urls: data.permit_urls ?? [],
+          special_requirements: data.special_requirements ?? null,
         })
         .eq("id", data.id)
         .eq("user_id", uid);
