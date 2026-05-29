@@ -206,10 +206,30 @@ function HomeEditorPage() {
             keep working, or publish to make changes live.
           </p>
         </div>
-        <Link to="/staff/admin" className="text-sm font-medium text-primary hover:underline">
-          ← Back to admin
-        </Link>
+        <div className="flex items-center gap-3">
+          <div className="w-64">
+            <Label className="text-xs text-muted-foreground">Editing scope</Label>
+            <Select
+              value={tenantId ?? "__global"}
+              onValueChange={(v) => setTenantId(v === "__global" ? null : v)}
+            >
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__global">Global default (all sites)</SelectItem>
+                {tenants.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    Tenant: {t.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Link to="/staff/admin" className="text-sm font-medium text-primary hover:underline">
+            ← Back to admin
+          </Link>
+        </div>
       </div>
+
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_560px]">
         <div className="space-y-6 min-w-0">
