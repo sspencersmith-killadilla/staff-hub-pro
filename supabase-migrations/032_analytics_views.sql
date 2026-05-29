@@ -55,7 +55,7 @@ declare
   sql   text;
 begin
   if to_regclass('public.special_event_permits') is not null then
-    parts := parts || $$
+    parts := parts || ARRAY[$$
       select
         p.department_id,
         date_trunc('month', coalesce(p.paid_at, p.updated_at))::date as month,
@@ -63,13 +63,13 @@ begin
         coalesce(p.calculated_fee, 0)::numeric(12,2) as amount
       from public.special_event_permits p
       where p.status = 'paid'
-    $$;
+    $$];
   end if;
 
   if to_regclass('public.vendors') is not null
      and to_regclass('public.vendor_tiers') is not null
      and to_regclass('public.sessions') is not null then
-    parts := parts || $$
+    parts := parts || ARRAY[$$
       select
         s.department_id,
         date_trunc('month', vt.created_at)::date as month,
@@ -79,12 +79,12 @@ begin
       left join public.sessions s on s.id = v.session_id
       left join public.vendor_tiers vt on vt.id = v.vendor_tier_id
       where v.status = 'paid'
-    $$;
+    $$];
   end if;
 
   if to_regclass('public.ticket_payments') is not null
      and to_regclass('public.sessions') is not null then
-    parts := parts || $$
+    parts := parts || ARRAY[$$
       select
         s.department_id,
         date_trunc('month', tp.created_at)::date as month,
@@ -93,13 +93,13 @@ begin
       from public.ticket_payments tp
       left join public.sessions s on s.id = tp.session_id
       where tp.status = 'approved'
-    $$;
+    $$];
   end if;
 
   if to_regclass('public.enrollments') is not null
      and to_regclass('public.course_sessions') is not null
      and to_regclass('public.courses') is not null then
-    parts := parts || $$
+    parts := parts || ARRAY[$$
       select
         c.department_id,
         date_trunc('month', e.created_at)::date as month,
@@ -109,7 +109,7 @@ begin
       left join public.course_sessions cs on cs.id = e.session_id
       left join public.courses c on c.id = cs.course_id
       where e.payment_status = 'paid'
-    $$;
+    $$];
   end if;
 
   if array_length(parts, 1) is null then
