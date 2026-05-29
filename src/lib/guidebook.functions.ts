@@ -30,7 +30,7 @@ async function fetchData(
   let sessQ = supabaseAdmin
     .from("sessions")
     .select(
-      "id, title, speaker_name, start_time, end_time, department_id, stage_id, room_id, image_url, stages(id, name, venue_id), rooms(id, name, venue_id)",
+      "id, title, speaker_name, start_time, end_time, department_id, stage_id, room_id, image_url, focal_x, focal_y, stages(id, name, venue_id), rooms(id, name, venue_id)",
     )
     .gte("start_time", startIso)
     .lte("start_time", endIso)
