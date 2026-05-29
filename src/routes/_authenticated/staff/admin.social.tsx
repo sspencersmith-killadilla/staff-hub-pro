@@ -126,7 +126,9 @@ function draftFromEvent(ev: EventLite): string {
 function SocialCommandCenter() {
   const fetchEvents = useServerFn(listEvents);
   const fetchConns = useServerFn(listConnections);
+  const fetchPosts = useServerFn(listPosts);
   const schedule = useServerFn(schedulePost);
+  const queryClient = useQueryClient();
   const { activeDepartment } = useDepartment();
   const { data: events = [] } = useQuery({
     queryKey: ["social-events"],
@@ -138,9 +140,54 @@ function SocialCommandCenter() {
     enabled: !!activeDepartment?.id,
   });
   const connectedPlatforms = new Set(conns.map((c) => c.platform));
+  const accountByPlatform = useMemo(() => {
+    const m: Partial<Record<Platform, string>> = {};
+    for (const c of conns) m[c.platform as Platform] = c.account_name;
+    return m;
+  }, [conns]);
+
+  const postsQueryKey = ["social-posts", activeDepartment?.id] as const;
+  const { data: serverPosts = [] } = useQuery({
+    queryKey: postsQueryKey,
+    queryFn: () => fetchPosts({ data: { departmentId: activeDepartment!.id } }),
+    enabled: !!activeDepartment?.id,
+  });
+
+  const posts: ScheduledPost[] = useMemo(
+    () =>
+      (serverPosts as Array<{
+        id: string;
+        scheduled_for: string;
+        caption: string;
+        media_url: string | null;
+        event_id: string | null;
+        platforms: string[];
+        status: string;
+      }>).map((r) => {
+        const d = new Date(r.scheduled_for);
+        const plat: Record<Platform, boolean> = {
+          facebook: r.platforms.includes("facebook"),
+          instagram: r.platforms.includes("instagram"),
+          linkedin: r.platforms.includes("linkedin"),
+          x: false,
+        };
+        const ev = (events as EventLite[]).find((e) => e.id === r.event_id);
+        return {
+          id: r.id,
+          date: format(d, "yyyy-MM-dd"),
+          time: format(d, "HH:mm"),
+          caption: r.caption,
+          mediaUrl: r.media_url,
+          platforms: plat,
+          eventId: r.event_id,
+          eventTitle: ev?.title ?? null,
+          status: r.status,
+        };
+      }),
+    [serverPosts, events],
+  );
 
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
-  const [posts, setPosts] = useState<ScheduledPost[]>([]);
   const [composer, setComposer] = useState<{
     date: string;
     post?: ScheduledPost;
