@@ -105,6 +105,11 @@ export const submitApplication = createServerFn({ method: "POST" })
           session_id: data.sessionId,
           vendor_tier_id: data.tierId,
           status: "pending",
+          selling_items: data.sellingItems ?? false,
+          items_description: data.itemsDescription ?? null,
+          is_licensed: data.isLicensed ?? false,
+          permit_urls: data.permitUrls ?? [],
+          special_requirements: data.specialRequirements ?? null,
         },
       ]);
       if (error) throw new Error(error.message);
