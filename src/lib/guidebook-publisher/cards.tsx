@@ -1,23 +1,22 @@
 // Magazine card components built with @react-pdf/renderer primitives.
 // These render BOTH the live <PDFViewer> preview and the final downloaded PDF —
 // guaranteeing pixel-perfect parity.
-import { Page, View, Text, Image, StyleSheet, Font } from "@react-pdf/renderer";
+import { View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 
 // ─── Design tokens ──────────────────────────────────────────────────────
-// Card design follows a refined editorial style: thick top accent rule,
-// generous padding, restrained type pairing, single saturated CTA chip.
 export const TOKENS = {
-  page: { w: 612, h: 792, margin: 36, gutter: 12 },
+  page: { w: 612, h: 792, margin: 36, gutter: 12, headerH: 30 },
   color: {
     ink: "#0F172A",
     muted: "#475569",
     line: "#E2E8F0",
     paper: "#FFFFFF",
-    accent: "#C2410C", // brick-orange accent rule
+    accent: "#C2410C",
     accentSoft: "#FEF3EC",
     cta: "#0F172A",
     ctaInk: "#FFFFFF",
     sponsor: "#1E3A5F",
+    sponsorBg: "#EEF4FB",
   },
   type: {
     eyebrow: 8,
@@ -37,6 +36,8 @@ const s = StyleSheet.create({
     padding: 14,
     flexDirection: "column",
     overflow: "hidden",
+    height: "100%",
+    width: "100%",
   },
   accentRule: {
     height: 3,
@@ -106,7 +107,6 @@ const s = StyleSheet.create({
   },
   image: { width: "100%", height: 110, objectFit: "cover", marginBottom: 10 },
   imageLg: { width: "100%", height: 220, objectFit: "cover", marginBottom: 12 },
-  divider: { height: 0.5, backgroundColor: TOKENS.color.line, marginVertical: 6 },
   sponsorTag: {
     position: "absolute",
     top: 10,
@@ -116,6 +116,23 @@ const s = StyleSheet.create({
     fontFamily: "Helvetica-Bold",
     letterSpacing: 1.2,
     textTransform: "uppercase",
+  },
+  sponsorCallout: {
+    marginTop: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: TOKENS.color.sponsor,
+    backgroundColor: TOKENS.color.sponsorBg,
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  sponsorCalloutText: {
+    fontSize: 8,
+    color: TOKENS.color.sponsor,
+    fontFamily: "Helvetica-Bold",
+    letterSpacing: 0.6,
   },
 });
 
@@ -144,8 +161,14 @@ function fmtRange(start?: string | null, end?: string | null) {
   return `${startDate} · ${timeRange}`;
 }
 
-// ─── Card components ────────────────────────────────────────────────────
+// ─── Card types ─────────────────────────────────────────────────────────
 type CardSize = "hero" | "half" | "quarter";
+
+export type SponsorRef = {
+  company_name: string;
+  logo_url?: string | null;
+  tagline?: string | null;
+};
 
 function MetaRow({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null;
@@ -153,6 +176,30 @@ function MetaRow({ label, value }: { label: string; value?: string | null }) {
     <View style={s.metaRow}>
       <Text style={s.metaLabel}>{label}</Text>
       <Text style={s.metaValue}>{value}</Text>
+    </View>
+  );
+}
+
+function SponsorCallout({ sponsor }: { sponsor?: SponsorRef | null }) {
+  if (!sponsor) return null;
+  return (
+    <View style={s.sponsorCallout} wrap={false}>
+      {sponsor.logo_url ? (
+        <Image
+          src={sponsor.logo_url}
+          style={{ width: 22, height: 14, objectFit: "contain" }}
+        />
+      ) : null}
+      <View style={{ flex: 1 }}>
+        <Text style={s.sponsorCalloutText}>
+          PRESENTED BY {sponsor.company_name.toUpperCase()}
+        </Text>
+        {sponsor.tagline ? (
+          <Text style={{ fontSize: 7, color: TOKENS.color.muted, marginTop: 1 }}>
+            {sponsor.tagline}
+          </Text>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -166,19 +213,23 @@ export type EventCardData = {
   description?: string | null;
   image_url?: string | null;
   department_name?: string | null;
+  cta_label?: string | null;
+  eyebrow_override?: string | null;
+  sponsor?: SponsorRef | null;
 };
 
 export function EventCard({ data, size = "quarter" }: { data: EventCardData; size?: CardSize }) {
   const hero = size === "hero";
   const showImg = data.image_url && size !== "quarter";
   return (
-    <View style={[s.card, { flex: 1 }]} wrap={false}>
+    <View style={s.card} wrap={false}>
       {showImg ? (
         <Image src={data.image_url!} style={hero ? s.imageLg : s.image} />
       ) : null}
       <View style={s.accentRule} />
       <Text style={s.eyebrow}>
-        {data.department_name ? `${data.department_name} · Event` : "Event"}
+        {data.eyebrow_override ??
+          (data.department_name ? `${data.department_name} · Event` : "Event")}
       </Text>
       <Text style={hero ? s.titleLg : s.title}>{data.title}</Text>
       <View style={{ marginTop: 4 }}>
@@ -193,7 +244,8 @@ export function EventCard({ data, size = "quarter" }: { data: EventCardData; siz
           {data.description}
         </Text>
       ) : null}
-      <Text style={s.cta}>Learn More</Text>
+      <SponsorCallout sponsor={data.sponsor} />
+      <Text style={s.cta}>{data.cta_label ?? "Learn More"}</Text>
     </View>
   );
 }
@@ -209,19 +261,23 @@ export type ClassCardData = {
   image_url?: string | null;
   description?: string | null;
   department_name?: string | null;
+  cta_label?: string | null;
+  eyebrow_override?: string | null;
+  sponsor?: SponsorRef | null;
 };
 
 export function ClassCard({ data, size = "quarter" }: { data: ClassCardData; size?: CardSize }) {
   const hero = size === "hero";
   const showImg = data.image_url && size !== "quarter";
   return (
-    <View style={[s.card, { flex: 1 }]} wrap={false}>
+    <View style={s.card} wrap={false}>
       {showImg ? (
         <Image src={data.image_url!} style={hero ? s.imageLg : s.image} />
       ) : null}
       <View style={[s.accentRule, { backgroundColor: "#0E7C7B" }]} />
       <Text style={[s.eyebrow, { color: "#0E7C7B" }]}>
-        {data.department_name ? `${data.department_name} · Class` : "Class"}
+        {data.eyebrow_override ??
+          (data.department_name ? `${data.department_name} · Class` : "Class")}
       </Text>
       <Text style={hero ? s.titleLg : s.title}>{data.course_title}</Text>
       <View style={{ marginTop: 4 }}>
@@ -241,7 +297,8 @@ export function ClassCard({ data, size = "quarter" }: { data: ClassCardData; siz
           {data.description}
         </Text>
       ) : null}
-      <Text style={[s.cta, { backgroundColor: "#0E7C7B" }]}>Register</Text>
+      <SponsorCallout sponsor={data.sponsor} />
+      <Text style={[s.cta, { backgroundColor: "#0E7C7B" }]}>{data.cta_label ?? "Register"}</Text>
     </View>
   );
 }
@@ -254,6 +311,10 @@ export type PerformanceCardData = {
   venue_name?: string | null;
   artist_name?: string | null;
   artist_genre?: string | null;
+  description?: string | null;
+  cta_label?: string | null;
+  eyebrow_override?: string | null;
+  sponsor?: SponsorRef | null;
 };
 
 export function PerformanceCard({
@@ -265,10 +326,11 @@ export function PerformanceCard({
 }) {
   const hero = size === "hero";
   return (
-    <View style={[s.card, { flex: 1 }]} wrap={false}>
+    <View style={s.card} wrap={false}>
       <View style={[s.accentRule, { backgroundColor: "#9333EA" }]} />
       <Text style={[s.eyebrow, { color: "#9333EA" }]}>
-        {data.artist_genre ? `Live · ${data.artist_genre}` : "Live Performance"}
+        {data.eyebrow_override ??
+          (data.artist_genre ? `Live · ${data.artist_genre}` : "Live Performance")}
       </Text>
       <Text style={hero ? s.titleLg : s.title}>
         {data.artist_name ?? data.title}
@@ -283,7 +345,13 @@ export function PerformanceCard({
           value={[data.stage_name, data.venue_name].filter(Boolean).join(" · ")}
         />
       </View>
-      <Text style={[s.cta, { backgroundColor: "#9333EA" }]}>RSVP</Text>
+      {data.description ? (
+        <Text style={s.body} wrap>
+          {data.description}
+        </Text>
+      ) : null}
+      <SponsorCallout sponsor={data.sponsor} />
+      <Text style={[s.cta, { backgroundColor: "#9333EA" }]}>{data.cta_label ?? "RSVP"}</Text>
     </View>
   );
 }
@@ -307,7 +375,6 @@ export function SponsorAdCard({
       style={[
         s.card,
         {
-          flex: 1,
           backgroundColor: TOKENS.color.accentSoft,
           borderColor: TOKENS.color.accent,
           alignItems: "center",
@@ -338,10 +405,7 @@ export function SponsorAdCard({
         {data.company_name}
       </Text>
       {data.ad_copy ? (
-        <Text
-          style={[s.body, { textAlign: "center", marginTop: 0 }]}
-          wrap
-        >
+        <Text style={[s.body, { textAlign: "center", marginTop: 0 }]} wrap>
           {data.ad_copy}
         </Text>
       ) : null}
@@ -353,50 +417,83 @@ export function CoverCard({
   title,
   startDate,
   endDate,
+  coverImageUrl,
+  subtitle,
 }: {
   title: string;
   startDate: string;
   endDate: string;
+  coverImageUrl?: string | null;
+  subtitle?: string | null;
 }) {
   return (
     <View
       style={[
         s.card,
         {
-          flex: 1,
-          padding: 36,
-          justifyContent: "flex-end",
+          padding: 0,
           backgroundColor: TOKENS.color.ink,
+          borderWidth: 0,
         },
       ]}
     >
-      <View style={[s.accentRule, { width: 60, height: 4 }]} />
-      <Text
+      {coverImageUrl ? (
+        <Image
+          src={coverImageUrl}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            opacity: 0.55,
+          }}
+        />
+      ) : null}
+      <View
         style={{
-          fontSize: 11,
-          color: TOKENS.color.accent,
-          letterSpacing: 2,
-          textTransform: "uppercase",
-          fontFamily: "Helvetica-Bold",
-          marginBottom: 10,
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          padding: 36,
+          backgroundColor: "rgba(15,23,42,0.65)",
         }}
       >
-        Program Guide
-      </Text>
-      <Text
-        style={{
-          fontSize: 44,
-          color: "#FFFFFF",
-          fontFamily: "Helvetica-Bold",
-          lineHeight: 1.05,
-          marginBottom: 16,
-        }}
-      >
-        {title}
-      </Text>
-      <Text style={{ fontSize: 12, color: "#94A3B8", fontFamily: "Helvetica" }}>
-        {fmtDate(startDate)} — {fmtDate(endDate)}
-      </Text>
+        <View style={[s.accentRule, { width: 60, height: 4 }]} />
+        <Text
+          style={{
+            fontSize: 11,
+            color: TOKENS.color.accent,
+            letterSpacing: 2,
+            textTransform: "uppercase",
+            fontFamily: "Helvetica-Bold",
+            marginBottom: 10,
+          }}
+        >
+          Program Guide
+        </Text>
+        <Text
+          style={{
+            fontSize: 44,
+            color: "#FFFFFF",
+            fontFamily: "Helvetica-Bold",
+            lineHeight: 1.05,
+            marginBottom: 12,
+          }}
+        >
+          {title}
+        </Text>
+        {subtitle ? (
+          <Text style={{ fontSize: 13, color: "#E2E8F0", marginBottom: 12 }}>
+            {subtitle}
+          </Text>
+        ) : null}
+        <Text style={{ fontSize: 12, color: "#94A3B8", fontFamily: "Helvetica" }}>
+          {fmtDate(startDate)} — {fmtDate(endDate)}
+        </Text>
+      </View>
     </View>
   );
 }
