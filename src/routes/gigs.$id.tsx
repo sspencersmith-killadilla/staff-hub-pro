@@ -267,6 +267,15 @@ function GigFlyerPage() {
             <p className="text-sm text-gray-700 leading-relaxed">{artist.bio}</p>
           </div>
         )}
+
+        <div className="pt-2 pb-6 text-center">
+          <Link
+            to="/streetbeats"
+            className="text-xs text-gray-400 hover:text-gray-600 underline-offset-4 hover:underline"
+          >
+            ← Back to Streetbeats
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { FavoriteButton } from "@/components/favorite-button";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { CalendarDays, MapPin, Mail, Globe, ArrowLeft } from "lucide-react";
 import { getPublicCommunityEvent } from "@/lib/community-public.functions";
+import { SiteHeader } from "@/components/site-header";
 
 const eventQuery = (id: string) =>
   queryOptions({
@@ -87,7 +88,9 @@ function CommunityEventFlyer() {
       : event.location?.name ?? null;
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] py-10 px-4 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-screen bg-[#f8f9fa] font-sans">
+      <SiteHeader />
+      <div className="py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         <Link
           to="/events"
@@ -189,6 +192,7 @@ function CommunityEventFlyer() {
             )}
           </div>
         </article>
+      </div>
       </div>
     </div>
   );
