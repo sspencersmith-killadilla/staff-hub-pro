@@ -411,15 +411,18 @@ function ScheduleDialog({
                   setF({
                     ...f,
                     instructor_id: v === "none" ? "" : v,
-                    instructor_name: sel?.full_name ?? sel?.email ?? "",
+                    instructor_name:
+                      v === "none"
+                        ? f.instructor_name
+                        : sel?.full_name ?? sel?.email ?? "",
                   });
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="(optional)" />
+                  <SelectValue placeholder="Pick a staff instructor (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="none">None / external</SelectItem>
                   {(instructors.data ?? []).map((u: any) => (
                     <SelectItem key={u.id} value={u.id}>
                       {u.full_name ?? u.email}
@@ -427,6 +430,14 @@ function ScheduleDialog({
                   ))}
                 </SelectContent>
               </Select>
+              <Input
+                className="mt-2"
+                placeholder="Or type instructor name"
+                value={f.instructor_name}
+                onChange={(e) =>
+                  setF({ ...f, instructor_name: e.target.value })
+                }
+              />
             </div>
           </div>
           {err && <p className="text-sm text-red-600">{err}</p>}
