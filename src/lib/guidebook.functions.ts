@@ -80,7 +80,7 @@ async function fetchData(
     artistIds.length
       ? supabaseAdmin
           .from("artists")
-          .select("id, full_name, genre")
+          .select("id, full_name, genre, avatar_url")
           .in("id", artistIds as any)
       : Promise.resolve({ data: [] as any[], error: null }),
     Promise.resolve({ data: [] as any[], error: null }),
