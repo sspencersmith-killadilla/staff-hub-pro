@@ -222,32 +222,44 @@ function SocialCommandCenter() {
     setComposer({ date: dateKey, seedEvent: ev });
   }
 
-  async function savePost(post: ScheduledPost) {
+  async function savePost(post: ScheduledPost & { times?: Partial<Record<Platform, string>> }) {
     if (!activeDepartment?.id) {
       toast.error("Select an active department first");
       return;
     }
-    const platforms = (Object.entries(post.platforms) as [Platform, boolean][])
+    const enabled = (Object.entries(post.platforms) as [Platform, boolean][])
       .filter(([k, v]) => v && k !== "x")
       .map(([k]) => k) as ("facebook" | "instagram" | "linkedin")[];
-    if (platforms.length === 0) {
+    if (enabled.length === 0) {
       toast.error("Pick at least one connected platform (X must be posted manually).");
       return;
     }
+    // Group platforms by their scheduled time so each distinct time becomes one post.
+    const groups = new Map<string, ("facebook" | "instagram" | "linkedin")[]>();
+    for (const p of enabled) {
+      const t = post.times?.[p] || post.time || "12:00";
+      const arr = groups.get(t) ?? [];
+      arr.push(p);
+      groups.set(t, arr);
+    }
     try {
-      await schedule({
-        data: {
-          departmentId: activeDepartment.id,
-          scheduledFor: new Date(`${post.date}T${post.time || "12:00"}:00`).toISOString(),
-          caption: post.caption,
-          mediaUrl: post.mediaUrl ?? null,
-          eventId: post.eventId ?? null,
-          platforms,
-        },
-      });
+      for (const [t, platforms] of groups) {
+        await schedule({
+          data: {
+            departmentId: activeDepartment.id,
+            scheduledFor: new Date(`${post.date}T${t}:00`).toISOString(),
+            caption: post.caption,
+            mediaUrl: post.mediaUrl ?? null,
+            eventId: post.eventId ?? null,
+            platforms,
+          },
+        });
+      }
       await queryClient.invalidateQueries({ queryKey: postsQueryKey });
       toast.success("Post scheduled", {
-        description: platforms.map((p) => PLATFORM_META[p].label).join(", "),
+        description: Array.from(groups.entries())
+          .map(([t, ps]) => `${ps.map((p) => PLATFORM_META[p].label).join(", ")} @ ${t}`)
+          .join(" · "),
       });
     } catch (e) {
       toast.error((e as Error).message);
