@@ -566,6 +566,16 @@ function ComposerDialog({
             </div>
 
             <div className="space-y-2">
+              <Label>Post time</Label>
+              <Input
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="w-40"
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <ImageIcon className="h-4 w-4" /> Media picker
               </Label>
