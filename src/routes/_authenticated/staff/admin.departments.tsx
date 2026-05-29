@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import type { User } from "@supabase/supabase-js";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   listDepartmentsAdmin,
@@ -26,9 +27,11 @@ export const Route = createFileRoute("/_authenticated/staff/admin/departments")(
 
 function DepartmentsPage() {
   const qc = useQueryClient();
+  const { isReady, user } = useAuthReady();
   const { data: rows = [], isLoading } = useQuery({
-    queryKey: ["admin-departments"],
+    queryKey: ["admin-departments", user?.id],
     queryFn: () => listDepartmentsAdmin(),
+    enabled: isReady && !!user,
   });
 
   const [editing, setEditing] = useState<AdminDepartment | null>(null);
@@ -62,8 +65,10 @@ function DepartmentsPage() {
           <CardTitle>All departments</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          {isLoading ? (
+          {!isReady || isLoading ? (
             <p className="p-4 text-sm text-muted-foreground">Loading…</p>
+          ) : !user ? (
+            <p className="p-4 text-sm text-muted-foreground">Please sign in to manage departments.</p>
           ) : rows.length === 0 ? (
             <p className="p-4 text-sm text-muted-foreground">
               No departments yet.
@@ -158,6 +163,35 @@ function DepartmentsPage() {
       )}
     </div>
   );
+}
+
+function useAuthReady() {
+  const [isReady, setIsReady] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      setUser(data.session?.user ?? null);
+      setIsReady(true);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setIsReady(true);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  return { isReady, user };
 }
 
 function DepartmentEditDialog({
