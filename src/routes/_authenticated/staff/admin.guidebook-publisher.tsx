@@ -207,7 +207,16 @@ function PublisherPage() {
   useEffect(() => {
     if (!mounted) return;
     let alive = true;
-    Promise.all([import("@react-pdf/renderer"), import("@/lib/guidebook-publisher/document")])
+    // @react-pdf/renderer's image fetcher uses Node's Buffer in the browser.
+    // Polyfill it before importing so fetchImage doesn't throw "Buffer is not defined".
+    import("buffer")
+      .then(({ Buffer }) => {
+        if (!(globalThis as any).Buffer) (globalThis as any).Buffer = Buffer;
+        return Promise.all([
+          import("@react-pdf/renderer"),
+          import("@/lib/guidebook-publisher/document"),
+        ]);
+      })
       .then(([rp, doc]) => {
         if (!alive) return;
         setPdfMod(() => rp);
