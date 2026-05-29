@@ -505,6 +505,13 @@ function ComposerDialog({
     existing?.caption ?? (seedEvent ? draftFromEvent(seedEvent) : ""),
   );
   const [time, setTime] = useState(existing?.time ?? "12:00");
+  const [perPlatformTime, setPerPlatformTime] = useState(false);
+  const [times, setTimes] = useState<Record<Platform, string>>({
+    facebook: existing?.time ?? "12:00",
+    instagram: existing?.time ?? "12:00",
+    linkedin: existing?.time ?? "12:00",
+    x: existing?.time ?? "12:00",
+  });
   const [mediaUrl, setMediaUrl] = useState<string | null>(
     existing?.mediaUrl ?? seedEvent?.image_url ?? null,
   );
