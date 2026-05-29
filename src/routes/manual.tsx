@@ -944,14 +944,78 @@ const sections: Section[] = [
       <>
         <p>
           Turn entire features on or off across the platform from the
-          settings/modules area. Modules include StreetBeats, Community Orgs,
-          Room Reservations, and Vendors / Sponsors.
+          settings/modules area. Every major feature has its own toggle so
+          you can phase rollouts or pilot a single program. Current modules:
         </p>
         <ul className="my-4 list-disc space-y-2 pl-6 text-sm">
-          <li>Disabled modules disappear from public nav, the hub, and the staff sidebar.</li>
-          <li>Existing data is preserved — modules can be re-enabled at any time.</li>
-          <li>Use this to phase rollouts or pilot a single program.</li>
+          <li><strong>Events</strong> — the public events directory &amp; ticketing.</li>
+          <li><strong>Venues &amp; Stages</strong> — venue/stage directory and editor.</li>
+          <li><strong>Box Office</strong> — attendee management and check-in.</li>
+          <li><strong>Vendors / Sponsors</strong> — applications, contracts, payments.</li>
+          <li><strong>StreetBeats</strong> — musician roster and gig claiming.</li>
+          <li><strong>Community Orgs &amp; Events</strong> — HOA / nonprofit submissions.</li>
+          <li><strong>Room Reservations</strong> — booking flow and instant-book toggle.</li>
+          <li><strong>Classes</strong> — class catalog and registration.</li>
+          <li><strong>Social Command</strong> — multi-channel social publishing.</li>
+          <li><strong>Special Event Permits</strong> — the 5-step permit wizard,{" "}
+            <em>My Permits</em>, and the staff review queue.</li>
         </ul>
+        <Callout kind="note">
+          Disabling a module hides it from public nav, the Hub, and the staff
+          sidebar. Existing data is preserved — modules can be re-enabled at
+          any time without data loss.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "admin-permits",
+    title: "Permit Settings &amp; Fee Schedule",
+    icon: FileText,
+    audience: "admin",
+    render: () => (
+      <>
+        <p>
+          The <em>Permit settings</em> link on <code>/staff/admin</code>{" "}
+          opens the Special Event Permit configuration page at{" "}
+          <code>/staff/admin/permits</code>. Admins control two things here:
+        </p>
+        <ul className="my-4 list-disc space-y-2 pl-6 text-sm">
+          <li>
+            <strong>Fee schedule</strong> — manage three categories of
+            configurations:
+            <ul className="mt-1 list-disc space-y-1 pl-6">
+              <li>
+                <em>Event types</em> — the radio choices applicants pick in
+                step 1 (e.g., "5K Run", "Block Party", "Parade").
+              </li>
+              <li>
+                <em>Route / Trail fees</em> — the route or trail options
+                shown in step 5 (e.g., "River Walk Trail — $150").
+              </li>
+              <li>
+                <em>Base fees</em> — flat fees added to every permit (sum of
+                all active base fees, e.g., a $50 application fee).
+              </li>
+            </ul>
+            Each row has a label, cost, sort order, and an Active toggle.
+            Deactivating a fee hides it from the public wizard without
+            deleting historical data.
+          </li>
+          <li>
+            <strong>Permit review queue</strong> — every non-draft
+            application appears here with applicant, event details, calculated
+            fee, status, and uploaded documents. Staff can mark a permit{" "}
+            <em>Pending review → Approved / Rejected</em>, and attach internal
+            notes. Approving a permit unlocks the applicant's payment panel;
+            payment moves the status to <em>Paid</em>.
+          </li>
+        </ul>
+        <Callout kind="warn">
+          Changing the cost of an existing fee only affects{" "}
+          <strong>new</strong> applications. Submitted permits keep the
+          calculated fee that was active when they were submitted.
+        </Callout>
       </>
     ),
   },
