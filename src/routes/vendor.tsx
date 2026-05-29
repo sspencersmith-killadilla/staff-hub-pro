@@ -232,6 +232,12 @@ function PortalDashboard({ user }: { user: any }) {
           >
             Apply for Event
           </TabButton>
+          <TabButton
+            active={activeTab === "guidebook"}
+            onClick={() => setActiveTab("guidebook")}
+          >
+            Guidebook Sponsorship
+          </TabButton>
         </div>
 
         {activeTab === "dashboard" && (
