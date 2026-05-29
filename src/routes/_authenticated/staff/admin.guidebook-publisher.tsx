@@ -65,6 +65,8 @@ const KIND_LABEL: Record<PublisherItem["kind"], string> = {
   class: "Class",
   performance: "Performance",
   ad: "Sponsor Ad",
+  text: "Text",
+  image: "Image",
 };
 
 const KIND_COLOR: Record<PublisherItem["kind"], string> = {
@@ -72,6 +74,8 @@ const KIND_COLOR: Record<PublisherItem["kind"], string> = {
   class: "bg-teal-100 text-teal-900 border-teal-300",
   performance: "bg-purple-100 text-purple-900 border-purple-300",
   ad: "bg-amber-100 text-amber-900 border-amber-300",
+  text: "bg-slate-100 text-slate-900 border-slate-300",
+  image: "bg-blue-100 text-blue-900 border-blue-300",
 };
 
 const SPAN_OPTIONS: { id: string; label: string; span: GridSpan }[] = [
