@@ -41,6 +41,7 @@ import {
   type PublisherItem,
   type GridSpan,
 } from "@/lib/guidebook-publisher/document";
+import { ImageFocalPicker } from "@/components/image-focal-picker";
 
 export const Route = createFileRoute("/_authenticated/staff/admin/guidebook-publisher")({
   beforeLoad: async () => {
@@ -615,10 +616,11 @@ function InspectorPanel({
             placeholder="No image on source record"
           />
           {d.image_url ? (
-            <img
+            <ImageFocalPicker
               src={d.image_url}
-              alt=""
-              className="w-full h-20 object-cover rounded border"
+              x={d.focal_x ?? 50}
+              y={d.focal_y ?? 50}
+              onChange={({ x, y }: { x: number; y: number }) => onUpdate({ focal_x: x, focal_y: y })}
             />
           ) : (
             <p className="text-[10px] text-muted-foreground">
