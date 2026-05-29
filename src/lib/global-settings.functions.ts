@@ -62,12 +62,13 @@ export type BrandPreset = {
 
 export type BrandVersion = {
   id: string;
-  scope: "global" | "tenant" | "department";
+  scope: "global" | "tenant" | "department" | "home";
   scope_id: string | null;
   snapshot: any;
   label: string | null;
   published_at: string;
 };
+
 
 async function ensureAdmin(ctx: { supabase: any; userId: string }) {
   const { data: roles } = await ctx.supabase
@@ -321,9 +322,10 @@ export const deletePreset = createServerFn({ method: "POST" })
 // ---------- Versions ----------
 
 const versionListSchema = z.object({
-  scope: z.enum(["global", "tenant", "department"]),
+  scope: z.enum(["global", "tenant", "department", "home"]),
   scope_id: z.string().uuid().nullable().optional(),
 });
+
 
 export const listBrandVersions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
