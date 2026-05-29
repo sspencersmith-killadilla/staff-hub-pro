@@ -149,6 +149,12 @@ function AdminPage() {
           >
             Generate guidebook →
           </Link>
+          <Link
+            to="/staff/admin/social-integrations"
+            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
+          >
+            Social integrations →
+          </Link>
         </div>
       </div>
 
