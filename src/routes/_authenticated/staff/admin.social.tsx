@@ -527,6 +527,7 @@ function ComposerDialog({
     onSave({
       id: existing?.id ?? crypto.randomUUID(),
       date: dateKey,
+      time,
       caption,
       mediaUrl,
       platforms,
