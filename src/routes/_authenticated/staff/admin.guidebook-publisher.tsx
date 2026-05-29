@@ -37,7 +37,6 @@ import {
   Pencil,
   Type as TypeIcon,
   Image as ImageIcon,
-  Plus,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
