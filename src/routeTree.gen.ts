@@ -40,6 +40,7 @@ import { Route as AuthenticatedMyScheduleRouteImport } from './routes/_authentic
 import { Route as AuthenticatedMyReservationsRouteImport } from './routes/_authenticated/my-reservations'
 import { Route as AuthenticatedHubRouteImport } from './routes/_authenticated/hub'
 import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff/index'
+import { Route as EventsPermitsApplyRouteImport } from './routes/events.permits.apply'
 import { Route as AuthenticatedStreetbeatsMyGigsRouteImport } from './routes/_authenticated/streetbeats/my-gigs'
 import { Route as AuthenticatedStreetbeatsApplyRouteImport } from './routes/_authenticated/streetbeats/apply'
 import { Route as AuthenticatedStaffVenuesRouteImport } from './routes/_authenticated/staff/venues'
@@ -223,6 +224,11 @@ const AuthenticatedStaffIndexRoute = AuthenticatedStaffIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedStaffRoute,
+} as any)
+const EventsPermitsApplyRoute = EventsPermitsApplyRouteImport.update({
+  id: '/events/permits/apply',
+  path: '/events/permits/apply',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedStreetbeatsMyGigsRoute =
   AuthenticatedStreetbeatsMyGigsRouteImport.update({
@@ -437,6 +443,7 @@ export interface FileRoutesByFullPath {
   '/staff/venues': typeof AuthenticatedStaffVenuesRoute
   '/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
   '/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
+  '/events/permits/apply': typeof EventsPermitsApplyRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
   '/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
   '/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
@@ -496,6 +503,7 @@ export interface FileRoutesByTo {
   '/staff/venues': typeof AuthenticatedStaffVenuesRoute
   '/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
   '/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
+  '/events/permits/apply': typeof EventsPermitsApplyRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
   '/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
   '/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
@@ -558,6 +566,7 @@ export interface FileRoutesById {
   '/_authenticated/staff/venues': typeof AuthenticatedStaffVenuesRoute
   '/_authenticated/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
   '/_authenticated/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
+  '/events/permits/apply': typeof EventsPermitsApplyRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
   '/_authenticated/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
   '/_authenticated/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
@@ -620,6 +629,7 @@ export interface FileRouteTypes {
     | '/staff/venues'
     | '/streetbeats/apply'
     | '/streetbeats/my-gigs'
+    | '/events/permits/apply'
     | '/staff/'
     | '/staff/admin/departments'
     | '/staff/admin/guidebook'
@@ -679,6 +689,7 @@ export interface FileRouteTypes {
     | '/staff/venues'
     | '/streetbeats/apply'
     | '/streetbeats/my-gigs'
+    | '/events/permits/apply'
     | '/staff'
     | '/staff/admin/departments'
     | '/staff/admin/guidebook'
@@ -740,6 +751,7 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/venues'
     | '/_authenticated/streetbeats/apply'
     | '/_authenticated/streetbeats/my-gigs'
+    | '/events/permits/apply'
     | '/_authenticated/staff/'
     | '/_authenticated/staff/admin/departments'
     | '/_authenticated/staff/admin/guidebook'
@@ -779,6 +791,7 @@ export interface RootRouteChildren {
   StagesIdRoute: typeof StagesIdRoute
   EventsIndexRoute: typeof EventsIndexRoute
   RoomsIndexRoute: typeof RoomsIndexRoute
+  EventsPermitsApplyRoute: typeof EventsPermitsApplyRoute
   ApiPublicOauthLinkedinCallbackRoute: typeof ApiPublicOauthLinkedinCallbackRoute
   ApiPublicOauthMetaCallbackRoute: typeof ApiPublicOauthMetaCallbackRoute
 }
@@ -1001,6 +1014,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/staff/'
       preLoaderRoute: typeof AuthenticatedStaffIndexRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/events/permits/apply': {
+      id: '/events/permits/apply'
+      path: '/events/permits/apply'
+      fullPath: '/events/permits/apply'
+      preLoaderRoute: typeof EventsPermitsApplyRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/streetbeats/my-gigs': {
       id: '/_authenticated/streetbeats/my-gigs'
@@ -1365,6 +1385,7 @@ const rootRouteChildren: RootRouteChildren = {
   StagesIdRoute: StagesIdRoute,
   EventsIndexRoute: EventsIndexRoute,
   RoomsIndexRoute: RoomsIndexRoute,
+  EventsPermitsApplyRoute: EventsPermitsApplyRoute,
   ApiPublicOauthLinkedinCallbackRoute: ApiPublicOauthLinkedinCallbackRoute,
   ApiPublicOauthMetaCallbackRoute: ApiPublicOauthMetaCallbackRoute,
 }
