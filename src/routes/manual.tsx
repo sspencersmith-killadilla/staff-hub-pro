@@ -116,10 +116,14 @@ const groups: { label: string; sectionIds: string[] }[] = [
       "admin-dept-roles",
       "admin-modules",
       "admin-permits",
+      "admin-branding",
+      "admin-tenants",
+      "admin-home",
       "admin-guidebook",
       "admin-social",
     ],
   },
+
 ];
 
 function Figure({
@@ -1026,6 +1030,140 @@ const sections: Section[] = [
       </>
     ),
   },
+  {
+    id: "admin-branding",
+    title: "Branding Engine",
+    icon: Palette,
+    audience: "admin",
+    render: () => (
+      <>
+        <p>
+          The Branding engine at <code>/staff/admin/branding</code> is the
+          single source of truth for how the platform looks. It controls the
+          full design-token set — not just two colors — and powers a live
+          preview, accessibility checks, a logo/favicon pipeline, and a
+          Draft → Publish workflow with version history.
+        </p>
+        <ul className="my-4 list-disc space-y-2 pl-6 text-sm">
+          <li>
+            <strong>Full token system</strong> — primary, secondary, accent,
+            surface, foreground, border, radius, typography pair, and more.
+            Edits apply instantly in the live preview pane.
+          </li>
+          <li>
+            <strong>Accessibility checks</strong> — every color pair is
+            scored against WCAG contrast. Failing combinations are flagged
+            before you can publish.
+          </li>
+          <li>
+            <strong>Logo variants &amp; favicons</strong> — upload a master
+            logo; the favicon pipeline auto-generates the 32 px, 180 px (Apple
+            touch), and 512 px (PWA) versions in a single click.
+          </li>
+          <li>
+            <strong>Curated font picker</strong> — choose from a curated set
+            of heading/body pairs with previews; the chosen pair flows into
+            CSS variables consumed by every page.
+          </li>
+          <li>
+            <strong>Presets, versions &amp; drafts</strong> — save reusable
+            presets, work in a draft without affecting the live site, then
+            publish. Every publish snapshots the previous state so you can
+            roll back from <em>Version history</em>.
+          </li>
+        </ul>
+        <Callout kind="note">
+          Branding tokens cascade: global → tenant → department. A tenant or
+          department can override any subset of tokens; everything else
+          inherits from the global theme.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "admin-tenants",
+    title: "Tenants (Multi-Site)",
+    icon: Building2,
+    audience: "admin",
+    render: () => (
+      <>
+        <p>
+          Tenants let the platform serve multiple branded sites from one
+          installation. Manage them at <code>/staff/admin/tenants</code>.
+        </p>
+        <ul className="my-4 list-disc space-y-2 pl-6 text-sm">
+          <li>
+            <strong>Create a tenant</strong> with a slug, display name, and
+            optional custom host (e.g. <code>events.cityname.gov</code>).
+          </li>
+          <li>
+            <strong>Tenant-level branding</strong> — each tenant has its own
+            token overrides, logos, and favicon, layered on top of the
+            global design system.
+          </li>
+          <li>
+            <strong>Resolution</strong> — when a request comes in, the
+            platform matches by host first, then by <code>/t/&lt;slug&gt;</code>
+            path, and falls back to the global default.
+          </li>
+        </ul>
+        <Callout kind="tip">
+          Tenants pair with the Home Page editor: each tenant can publish
+          its own home page that automatically replaces the global one for
+          visitors on that host.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "admin-home",
+    title: "No-Code Home Page Editor",
+    icon: Home,
+    audience: "admin",
+    render: () => (
+      <>
+        <p>
+          The landing page at <code>/</code> is fully editable — no code
+          required. Open <code>/staff/admin/home</code> for a side-by-side
+          editor with a live preview on the right.
+        </p>
+        <ul className="my-4 list-disc space-y-2 pl-6 text-sm">
+          <li>
+            <strong>Hero</strong> — badge, title, subtitle, sign-in copy,
+            and a list of secondary CTA buttons (each can be gated to a
+            specific module).
+          </li>
+          <li>
+            <strong>Sections</strong> — drag-and-drop ordered blocks:
+            <em> portal cards</em>, <em>explainer cards</em>, <em>rich text</em>,
+            <em> image banner</em> (with built-in uploader), and
+            <em> CTA band</em>. Cards pick from a curated icon set and a
+            fixed color-theme palette.
+          </li>
+          <li>
+            <strong>Footer</strong> — tagline, body copy, and copyright
+            line.
+          </li>
+          <li>
+            <strong>Editing scope</strong> — toggle between the global
+            default and any tenant. Tenant rows seed from the global one on
+            first edit, so you only customize what's different.
+          </li>
+          <li>
+            <strong>Draft &amp; Publish</strong> — save drafts while you
+            iterate; publishing snapshots the previous live version into
+            history so you can revert with one click.
+          </li>
+        </ul>
+        <Callout kind="warn">
+          Items inside cards can declare a <code>requires_module</code> — if
+          that module is disabled, the card is hidden automatically. Use
+          this to safely advertise features still rolling out.
+        </Callout>
+      </>
+    ),
+  },
+
   {
     id: "departments-overview",
     title: "Departments &amp; Active Context",
