@@ -115,6 +115,7 @@ function PublisherPage() {
 
   const fetchData = useServerFn(fetchGuidebookCanvasData);
   const listSponsorsFn = useServerFn(listGuidebookSponsors);
+  const listDeptsFn = useServerFn(listGuidebookDepartments);
 
   const sponsorsQ = useQuery({
     queryKey: ["publisher-sponsors"],
@@ -122,8 +123,21 @@ function PublisherPage() {
     enabled: sessionReady,
   });
 
+  const deptsQ = useQuery({
+    queryKey: ["publisher-departments"],
+    queryFn: () => listDeptsFn(),
+    enabled: sessionReady,
+  });
+
   const loadMut = useMutation({
-    mutationFn: () => fetchData({ data: { startDate, endDate } }),
+    mutationFn: () =>
+      fetchData({
+        data: {
+          startDate,
+          endDate,
+          departmentId: departmentId === "__all" ? null : departmentId,
+        },
+      }),
     onSuccess: (d) => {
       const next: PublisherItem[] = [
         ...d.events.map((e: any) => ({ id: `event-${e.id}`, kind: "event" as const, data: e })),
