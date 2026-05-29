@@ -121,7 +121,7 @@ begin
         null::text       as source,
         null::numeric(12,2) as amount
       where false
-    $$];
+    $$;
   else
     sql := array_to_string(parts, ' union all ');
   end if;
