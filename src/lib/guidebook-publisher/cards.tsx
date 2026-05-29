@@ -213,6 +213,7 @@ export type EventCardData = {
   location_name?: string | null;
   description?: string | null;
   image_url?: string | null;
+  show_image?: boolean;
   department_name?: string | null;
   cta_label?: string | null;
   eyebrow_override?: string | null;
@@ -221,11 +222,12 @@ export type EventCardData = {
 
 export function EventCard({ data, size = "quarter" }: { data: EventCardData; size?: CardSize }) {
   const hero = size === "hero";
-  const showImg = data.image_url && size !== "quarter";
+  const showImg = !!data.image_url && (data.show_image ?? true);
+  const imgStyle = hero ? s.imageLg : size === "quarter" ? s.imageSm : s.image;
   return (
     <View style={s.card} wrap={false}>
       {showImg ? (
-        <Image src={data.image_url!} style={hero ? s.imageLg : s.image} />
+        <Image src={data.image_url!} style={imgStyle} />
       ) : null}
       <View style={s.accentRule} />
       <Text style={s.eyebrow}>
