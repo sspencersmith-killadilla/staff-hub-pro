@@ -58,6 +58,7 @@ import { Route as AuthenticatedStaffAttendeesRouteImport } from './routes/_authe
 import { Route as AuthenticatedStaffAdminRouteImport } from './routes/_authenticated/staff/admin'
 import { Route as AuthenticatedCommunityManageRouteImport } from './routes/_authenticated/community/manage'
 import { Route as AuthenticatedCommunityApplyRouteImport } from './routes/_authenticated/community/apply'
+import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
 import { Route as AuthenticatedStaffEventsIdRouteImport } from './routes/_authenticated/staff/events.$id'
 import { Route as AuthenticatedStaffAdminSocialIntegrationsRouteImport } from './routes/_authenticated/staff/admin.social-integrations'
 import { Route as AuthenticatedStaffAdminSocialRouteImport } from './routes/_authenticated/staff/admin.social'
@@ -332,6 +333,12 @@ const AuthenticatedCommunityApplyRoute =
     path: '/community/apply',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const ApiPublicManifestWebmanifestRoute =
+  ApiPublicManifestWebmanifestRouteImport.update({
+    id: '/api/public/manifest/webmanifest',
+    path: '/api/public/manifest/webmanifest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedStaffEventsIdRoute =
   AuthenticatedStaffEventsIdRouteImport.update({
     id: '/events/$id',
@@ -477,6 +484,7 @@ export interface FileRoutesByFullPath {
   '/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
   '/staff/admin/social-integrations': typeof AuthenticatedStaffAdminSocialIntegrationsRoute
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
+  '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
   '/staff/admin/social/connections': typeof AuthenticatedStaffAdminSocialConnectionsRoute
   '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
@@ -540,6 +548,7 @@ export interface FileRoutesByTo {
   '/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
   '/staff/admin/social-integrations': typeof AuthenticatedStaffAdminSocialIntegrationsRoute
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
+  '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
   '/staff/admin/social/connections': typeof AuthenticatedStaffAdminSocialConnectionsRoute
   '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
@@ -606,6 +615,7 @@ export interface FileRoutesById {
   '/_authenticated/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
   '/_authenticated/staff/admin/social-integrations': typeof AuthenticatedStaffAdminSocialIntegrationsRoute
   '/_authenticated/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
+  '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
   '/_authenticated/staff/admin/social/connections': typeof AuthenticatedStaffAdminSocialConnectionsRoute
   '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
@@ -672,6 +682,7 @@ export interface FileRouteTypes {
     | '/staff/admin/social'
     | '/staff/admin/social-integrations'
     | '/staff/events/$id'
+    | '/api/public/manifest/webmanifest'
     | '/staff/admin/social/connections'
     | '/api/public/oauth/linkedin/callback'
     | '/api/public/oauth/meta/callback'
@@ -735,6 +746,7 @@ export interface FileRouteTypes {
     | '/staff/admin/social'
     | '/staff/admin/social-integrations'
     | '/staff/events/$id'
+    | '/api/public/manifest/webmanifest'
     | '/staff/admin/social/connections'
     | '/api/public/oauth/linkedin/callback'
     | '/api/public/oauth/meta/callback'
@@ -800,6 +812,7 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/admin/social'
     | '/_authenticated/staff/admin/social-integrations'
     | '/_authenticated/staff/events/$id'
+    | '/api/public/manifest/webmanifest'
     | '/_authenticated/staff/admin/social/connections'
     | '/api/public/oauth/linkedin/callback'
     | '/api/public/oauth/meta/callback'
@@ -830,6 +843,7 @@ export interface RootRouteChildren {
   EventsIndexRoute: typeof EventsIndexRoute
   RoomsIndexRoute: typeof RoomsIndexRoute
   EventsPermitsApplyRoute: typeof EventsPermitsApplyRoute
+  ApiPublicManifestWebmanifestRoute: typeof ApiPublicManifestWebmanifestRoute
   ApiPublicOauthLinkedinCallbackRoute: typeof ApiPublicOauthLinkedinCallbackRoute
   ApiPublicOauthMetaCallbackRoute: typeof ApiPublicOauthMetaCallbackRoute
 }
@@ -1179,6 +1193,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommunityApplyRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/public/manifest/webmanifest': {
+      id: '/api/public/manifest/webmanifest'
+      path: '/api/public/manifest/webmanifest'
+      fullPath: '/api/public/manifest/webmanifest'
+      preLoaderRoute: typeof ApiPublicManifestWebmanifestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/staff/events/$id': {
       id: '/_authenticated/staff/events/$id'
       path: '/events/$id'
@@ -1452,6 +1473,7 @@ const rootRouteChildren: RootRouteChildren = {
   EventsIndexRoute: EventsIndexRoute,
   RoomsIndexRoute: RoomsIndexRoute,
   EventsPermitsApplyRoute: EventsPermitsApplyRoute,
+  ApiPublicManifestWebmanifestRoute: ApiPublicManifestWebmanifestRoute,
   ApiPublicOauthLinkedinCallbackRoute: ApiPublicOauthLinkedinCallbackRoute,
   ApiPublicOauthMetaCallbackRoute: ApiPublicOauthMetaCallbackRoute,
 }

@@ -11,6 +11,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { DepartmentProvider } from "@/contexts/department-context";
 import { ThemeProvider } from "@/components/theme-provider";
 import { GlobalBrandProvider } from "@/contexts/global-brand-context";
+import { TenantBrandProvider } from "@/contexts/tenant-brand-context";
+
 
 
 import appCss from "../styles.css?url";
@@ -122,15 +124,18 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <GlobalBrandProvider>
-        <DepartmentProvider>
-          <ThemeProvider>
-            <Outlet />
-            <Toaster richColors position="top-center" />
-          </ThemeProvider>
-        </DepartmentProvider>
-      </GlobalBrandProvider>
+      <TenantBrandProvider>
+        <GlobalBrandProvider>
+          <DepartmentProvider>
+            <ThemeProvider>
+              <Outlet />
+              <Toaster richColors position="top-center" />
+            </ThemeProvider>
+          </DepartmentProvider>
+        </GlobalBrandProvider>
+      </TenantBrandProvider>
     </QueryClientProvider>
+
 
   );
 }
