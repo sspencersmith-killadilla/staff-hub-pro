@@ -326,7 +326,7 @@ function AnalyticsPage() {
           <CardHeader>
             <CardTitle>Economic Impact Projector</CardTitle>
             <CardDescription>
-              Model the projected ROI of new capital investments.
+              Model the projected economic impact of a new event.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
