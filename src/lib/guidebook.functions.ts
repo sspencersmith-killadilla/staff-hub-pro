@@ -455,71 +455,7 @@ export const generateGuidebook = createServerFn({ method: "POST" })
     };
   });
 
-// ─── Magazine-style page+block guidebook ──────────────────────────────
-const MagazineBlockSchema = z.object({
-  id: z.string(),
-  type: z.enum(["text", "image", "rect"]),
-  x: z.number(),
-  y: z.number(),
-  w: z.number(),
-  h: z.number(),
-  groupId: z.string().nullable().optional(),
-  text: z.string().nullable().optional(),
-  fontSize: z.number().nullable().optional(),
-  bold: z.boolean().nullable().optional(),
-  italic: z.boolean().nullable().optional(),
-  color: z.string().nullable().optional(),
-  bgColor: z.string().nullable().optional(),
-  align: z.enum(["left", "center", "right"]).nullable().optional(),
-  lineHeight: z.number().nullable().optional(),
-  padding: z.number().nullable().optional(),
-  imageUrl: z.string().nullable().optional(),
-  fit: z.enum(["cover", "contain"]).nullable().optional(),
-  frame: z.enum(["rect", "rounded", "circle", "hexagon"]).nullable().optional(),
-  shape: z
-    .enum(["rect", "circle", "ellipse", "triangle", "hexagon", "star", "line"])
-    .nullable()
-    .optional(),
-  fill: z.string().nullable().optional(),
-  borderColor: z.string().nullable().optional(),
-  borderWidth: z.number().nullable().optional(),
-  radius: z.number().nullable().optional(),
-});
+// (Legacy magazine-style server fn removed — see the client-side Guidebook
+// Publisher at /staff/admin/guidebook-publisher which generates PDFs via
+// @react-pdf/renderer for true WYSIWYG output.)
 
-const MagazineInputSchema = z.object({
-  title: z.string().max(200).default("Program Guide"),
-  pages: z
-    .array(
-      z.object({
-        id: z.string(),
-        bgColor: z.string().nullable().optional(),
-        blocks: z.array(MagazineBlockSchema).max(800),
-      }),
-    )
-    .min(1)
-    .max(80),
-});
-
-export const generateMagazineGuidebook = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((i) => MagazineInputSchema.parse(i))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
-    const { buildMagazinePdf } = await import("./guidebook-magazine-pdf.server");
-    const pdfBytes = await buildMagazinePdf({
-      title: data.title,
-      pages: data.pages,
-    });
-    let binary = "";
-    const chunk = 0x8000;
-    for (let i = 0; i < pdfBytes.length; i += chunk) {
-      binary += String.fromCharCode(...pdfBytes.subarray(i, i + chunk));
-    }
-    const base64 = btoa(binary);
-    const stamp = new Date().toISOString().slice(0, 10);
-    return {
-      filename: `program-guide-magazine-${stamp}.pdf`,
-      base64,
-      pageCount: data.pages.length,
-    };
-  });
