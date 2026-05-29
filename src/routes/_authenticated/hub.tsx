@@ -156,6 +156,14 @@ function HubPage() {
       module: "community_orgs",
       cta: "Manage orgs",
     },
+    {
+      title: "My Permits",
+      description: "Resume drafts and track Special Event Permit applications.",
+      to: "/my-permits",
+      icon: FileText,
+      accent: "from-blue-500 to-indigo-700",
+      cta: "View permits",
+    },
   ];
 
   const visible = (list: Action[]) =>
