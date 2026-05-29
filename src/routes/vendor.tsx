@@ -13,6 +13,7 @@ import {
   cancelApplication,
   payForApplication,
 } from "@/lib/vendor-portal.functions";
+import { applyForGuidebookSponsorship } from "@/lib/guidebook.functions";
 
 const RobustMap = lazy(() => import("@/components/RobustMap"));
 
