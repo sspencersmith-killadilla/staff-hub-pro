@@ -317,14 +317,18 @@ export const listStagesForGigs = createServerFn({ method: "GET" })
           .in("id", venueIds as any)
       : { data: [] as any[] };
     const venuesById = new Map((venuesRes.data ?? []).map((v: any) => [v.id, v]));
-    return stages.map((s: any) => {
-      const venue = s.venue_id ? venuesById.get(s.venue_id) : null;
-      return {
-        id: s.id as string,
-        name: s.name as string,
-        venue_id: s.venue_id ?? null,
-        venue_name: venue?.name ?? null,
-        department_id: venue?.department_id ?? null,
-      };
-    });
+    const admin = await isAdmin(context.userId);
+    const allowed = admin ? null : await getUserDepartmentIds(context.userId);
+    return stages
+      .map((s: any) => {
+        const venue = s.venue_id ? venuesById.get(s.venue_id) : null;
+        return {
+          id: s.id as string,
+          name: s.name as string,
+          venue_id: s.venue_id ?? null,
+          venue_name: venue?.name ?? null,
+          department_id: venue?.department_id ?? null,
+        };
+      })
+      .filter((s) => admin || (s.department_id && allowed!.has(s.department_id)));
   });
