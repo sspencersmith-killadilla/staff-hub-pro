@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { verifyState, completeMetaOAuth } from "@/lib/social.functions";
+import { verifyState, completeMetaOAuth } from "@/lib/social.server";
 
 export const Route = createFileRoute("/api/public/oauth/meta/callback")({
   server: {

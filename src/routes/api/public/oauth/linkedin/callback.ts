@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { verifyState, completeLinkedInOAuth } from "@/lib/social.functions";
+import { verifyState, completeLinkedInOAuth } from "@/lib/social.server";
 
 export const Route = createFileRoute("/api/public/oauth/linkedin/callback")({
   server: {
