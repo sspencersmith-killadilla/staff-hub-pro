@@ -41,6 +41,7 @@ import {
   type PublisherItem,
   type GridSpan,
 } from "@/lib/guidebook-publisher/document";
+import { ImageFocalPicker } from "@/components/image-focal-picker";
 
 export const Route = createFileRoute("/_authenticated/staff/admin/guidebook-publisher")({
   beforeLoad: async () => {
