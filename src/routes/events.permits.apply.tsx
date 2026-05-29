@@ -158,7 +158,8 @@ function PermitWizard({
   });
 
   const form = useForm<PermitForm>({
-    resolver: zodResolver(PermitSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(PermitSchema) as any,
     mode: "onBlur",
     defaultValues: {
       applicant_info: {
