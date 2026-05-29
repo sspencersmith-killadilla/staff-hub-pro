@@ -2,7 +2,14 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { assertStaff, isAdmin } from "./staff-guard";
+import {
+  assertStaff,
+  isAdmin,
+  assertCanManageDepartment,
+  getUserDepartmentIds,
+  getCourseDepartmentId,
+  getCourseSessionDepartmentId,
+} from "./staff-guard";
 import { loadUsaepayConfig, buildUsaepayAuthHeader } from "./usaepay.server";
 
 // ─── COURSES ────────────────────────────────────────────────────────────
@@ -21,6 +28,13 @@ export const upsertCourse = createServerFn({ method: "POST" })
   .inputValidator((i) => courseInput.parse(i))
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
+    // Enforce dept scoping for non-admins on both the existing row (if any)
+    // and the new department assignment.
+    if (data.id) {
+      const existingDept = await getCourseDepartmentId(data.id);
+      await assertCanManageDepartment(context.userId, existingDept);
+    }
+    await assertCanManageDepartment(context.userId, data.department_id ?? null);
     const payload = {
       title: data.title,
       description: data.description ?? null,
@@ -53,6 +67,8 @@ export const deleteCourse = createServerFn({ method: "POST" })
   .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
+    const dept = await getCourseDepartmentId(data.id);
+    await assertCanManageDepartment(context.userId, dept);
     const { error } = await supabaseAdmin
       .from("courses")
       .delete()
@@ -75,8 +91,12 @@ export const listCoursesAdmin = createServerFn({ method: "GET" })
       .from("courses")
       .select("id,title,description,price,department_id,image_url,created_at")
       .order("created_at", { ascending: false });
-    if (!admin && data.departmentId) q = q.eq("department_id", data.departmentId);
-    else if (data.departmentId) q = q.eq("department_id", data.departmentId);
+    if (data.departmentId) q = q.eq("department_id", data.departmentId);
+    if (!admin) {
+      const deptIds = Array.from(await getUserDepartmentIds(context.userId));
+      if (deptIds.length === 0) return [];
+      q = q.in("department_id", deptIds);
+    }
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
     return rows ?? [];
@@ -99,6 +119,8 @@ export const scheduleCourseSession = createServerFn({ method: "POST" })
   .inputValidator((i) => scheduleInput.parse(i))
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
+    const courseDept = await getCourseDepartmentId(data.course_id);
+    await assertCanManageDepartment(context.userId, courseDept);
     if (new Date(data.end_time) <= new Date(data.start_time)) {
       throw new Error("End must be after start");
     }
@@ -163,6 +185,8 @@ export const deleteCourseSession = createServerFn({ method: "POST" })
   .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
+    const dept = await getCourseSessionDepartmentId(data.id);
+    await assertCanManageDepartment(context.userId, dept);
     // ON DELETE CASCADE on room_reservations.course_session_id clears the block
     const { error } = await supabaseAdmin
       .from("course_sessions")

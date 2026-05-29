@@ -50,3 +50,49 @@ export async function assertCanManageDepartment(
     throw new Error("Forbidden: this item belongs to another department");
   }
 }
+
+/** Resolve the department a course belongs to (or null). */
+export async function getCourseDepartmentId(courseId: string): Promise<string | null> {
+  const { data } = await supabaseAdmin
+    .from("courses")
+    .select("department_id")
+    .eq("id", courseId)
+    .maybeSingle();
+  return (data as any)?.department_id ?? null;
+}
+
+/** Resolve the department that owns a stage (via its venue). */
+export async function getStageDepartmentId(stageId: string): Promise<string | null> {
+  const { data } = await supabaseAdmin
+    .from("stages")
+    .select("venues:venue_id(department_id)")
+    .eq("id", stageId)
+    .maybeSingle();
+  const v = (data as any)?.venues;
+  if (Array.isArray(v)) return v[0]?.department_id ?? null;
+  return v?.department_id ?? null;
+}
+
+/** Resolve the department that owns a slot (via stage → venue). */
+export async function getSlotDepartmentId(slotId: number): Promise<string | null> {
+  const { data } = await supabaseAdmin
+    .from("slots")
+    .select("stage_id")
+    .eq("id", slotId)
+    .maybeSingle();
+  const stageId = (data as any)?.stage_id;
+  if (!stageId) return null;
+  return getStageDepartmentId(stageId);
+}
+
+/** Resolve the department a course session belongs to (via course). */
+export async function getCourseSessionDepartmentId(sessionId: string): Promise<string | null> {
+  const { data } = await supabaseAdmin
+    .from("course_sessions")
+    .select("course_id")
+    .eq("id", sessionId)
+    .maybeSingle();
+  const courseId = (data as any)?.course_id;
+  if (!courseId) return null;
+  return getCourseDepartmentId(courseId);
+}

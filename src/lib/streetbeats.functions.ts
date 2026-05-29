@@ -2,7 +2,14 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { assertStaff } from "./staff-guard";
+import {
+  assertStaff,
+  isAdmin,
+  assertCanManageDepartment,
+  getUserDepartmentIds,
+  getStageDepartmentId,
+  getSlotDepartmentId,
+} from "./staff-guard";
 
 // Streetbeats staff functions — operate on the artists table (multi-profile).
 
@@ -120,7 +127,7 @@ export const listGigsStaff = createServerFn({ method: "GET" })
     const venueIds = Array.from(new Set(stages.map((s: any) => s.venue_id).filter(Boolean)));
     const [venuesRes, artistsRes] = await Promise.all([
       venueIds.length
-        ? supabaseAdmin.from("venues").select("id, name").in("id", venueIds)
+        ? supabaseAdmin.from("venues").select("id, name, department_id").in("id", venueIds)
         : Promise.resolve({ data: [] as any[] }),
       artistIds.length
         ? supabaseAdmin
@@ -131,6 +138,17 @@ export const listGigsStaff = createServerFn({ method: "GET" })
     ]);
     const stagesById = new Map(stages.map((s: any) => [s.id, s]));
     const venuesById = new Map((venuesRes.data ?? []).map((v: any) => [v.id, v]));
+
+    // Restrict non-admins to gigs whose venue belongs to one of their depts.
+    const admin = await isAdmin(context.userId);
+    const allowedDepts = admin ? null : await getUserDepartmentIds(context.userId);
+    const isAllowed = (stageId: string | null) => {
+      if (admin) return true;
+      const stage = stageId ? stagesById.get(stageId) : null;
+      const venue = stage?.venue_id ? venuesById.get(stage.venue_id) : null;
+      const dept = venue?.department_id ?? null;
+      return !!dept && allowedDepts!.has(dept);
+    };
     const artistsById = new Map(
       (artistsRes.data ?? []).map((a: any) => [
         a.id,
@@ -140,27 +158,29 @@ export const listGigsStaff = createServerFn({ method: "GET" })
         },
       ]),
     );
-    return gigs.map((g: any) => {
-      const stage = g.stage_id ? stagesById.get(g.stage_id) : null;
-      const venue = stage?.venue_id ? venuesById.get(stage.venue_id) : null;
-      return {
-        id: String(g.id),
-        title: g.title ?? "Open slot",
-        description: g.description ?? g.notes ?? null,
-        venue_id: venue?.id ?? null,
-        stage_id: g.stage_id ?? null,
-        event_id: g.session_id ?? null,
-        location_label: stage?.name ?? null,
-        starts_at: g.start_time,
-        ends_at: g.end_time,
-        status: g.is_booked ? "claimed" : "open",
-        claimed_by_artist_id: g.artist_id ?? null,
-        claimed_at: g.booked_at ?? null,
-        created_at: g.created_at,
-        venue: venue ? { id: venue.id, name: venue.name } : null,
-        artist: g.artist_id ? artistsById.get(g.artist_id) ?? null : null,
-      };
-    });
+    return gigs
+      .filter((g: any) => isAllowed(g.stage_id))
+      .map((g: any) => {
+        const stage = g.stage_id ? stagesById.get(g.stage_id) : null;
+        const venue = stage?.venue_id ? venuesById.get(stage.venue_id) : null;
+        return {
+          id: String(g.id),
+          title: g.title ?? "Open slot",
+          description: g.description ?? g.notes ?? null,
+          venue_id: venue?.id ?? null,
+          stage_id: g.stage_id ?? null,
+          event_id: g.session_id ?? null,
+          location_label: stage?.name ?? null,
+          starts_at: g.start_time,
+          ends_at: g.end_time,
+          status: g.is_booked ? "claimed" : "open",
+          claimed_by_artist_id: g.artist_id ?? null,
+          claimed_at: g.booked_at ?? null,
+          created_at: g.created_at,
+          venue: venue ? { id: venue.id, name: venue.name } : null,
+          artist: g.artist_id ? artistsById.get(g.artist_id) ?? null : null,
+        };
+      });
   });
 
 export const createGig = createServerFn({ method: "POST" })
@@ -168,6 +188,8 @@ export const createGig = createServerFn({ method: "POST" })
   .inputValidator((i) => gigInput.parse(i))
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
+    const stageDept = data.stage_id ? await getStageDepartmentId(data.stage_id) : null;
+    await assertCanManageDepartment(context.userId, stageDept);
     if (new Date(data.ends_at) <= new Date(data.starts_at)) {
       throw new Error("End must be after start");
     }
@@ -190,10 +212,14 @@ export const updateGig = createServerFn({ method: "POST" })
   .inputValidator((i) => gigInput.extend({ id: idInput }).parse(i))
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
+    const slotId = toSlotId(data.id);
+    const existingDept = await getSlotDepartmentId(slotId);
+    await assertCanManageDepartment(context.userId, existingDept);
+    const newDept = data.stage_id ? await getStageDepartmentId(data.stage_id) : null;
+    await assertCanManageDepartment(context.userId, newDept);
     if (new Date(data.ends_at) <= new Date(data.starts_at)) {
       throw new Error("End must be after start");
     }
-    const slotId = toSlotId(data.id);
     const { error } = await supabaseAdmin
       .from("slots")
       .update({
@@ -215,10 +241,13 @@ export const deleteGig = createServerFn({ method: "POST" })
   .inputValidator((i) => z.object({ id: idInput }).parse(i))
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
+    const slotId = toSlotId(data.id);
+    const dept = await getSlotDepartmentId(slotId);
+    await assertCanManageDepartment(context.userId, dept);
     const { error } = await supabaseAdmin
       .from("slots")
       .delete()
-      .eq("id", toSlotId(data.id));
+      .eq("id", slotId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -236,6 +265,8 @@ export const setGigStatus = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
     const slotId = toSlotId(data.id);
+    const dept = await getSlotDepartmentId(slotId);
+    await assertCanManageDepartment(context.userId, dept);
     if (data.status === "open") {
       const { error } = await supabaseAdmin
         .from("slots")
@@ -256,12 +287,15 @@ export const listVenuesForGigs = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertStaff(context.userId);
-    const { data, error } = await supabaseAdmin
-      .from("venues")
-      .select("id, name")
-      .order("name");
+    let q = supabaseAdmin.from("venues").select("id, name, department_id").order("name");
+    if (!(await isAdmin(context.userId))) {
+      const deptIds = Array.from(await getUserDepartmentIds(context.userId));
+      if (deptIds.length === 0) return [];
+      q = q.in("department_id", deptIds);
+    }
+    const { data, error } = await q;
     if (error) throw new Error(error.message);
-    return data ?? [];
+    return (data ?? []).map((v: any) => ({ id: v.id, name: v.name }));
   });
 
 /** Returns stages with their parent venue so staff can pick a precise location. */
@@ -283,14 +317,18 @@ export const listStagesForGigs = createServerFn({ method: "GET" })
           .in("id", venueIds as any)
       : { data: [] as any[] };
     const venuesById = new Map((venuesRes.data ?? []).map((v: any) => [v.id, v]));
-    return stages.map((s: any) => {
-      const venue = s.venue_id ? venuesById.get(s.venue_id) : null;
-      return {
-        id: s.id as string,
-        name: s.name as string,
-        venue_id: s.venue_id ?? null,
-        venue_name: venue?.name ?? null,
-        department_id: venue?.department_id ?? null,
-      };
-    });
+    const admin = await isAdmin(context.userId);
+    const allowed = admin ? null : await getUserDepartmentIds(context.userId);
+    return stages
+      .map((s: any) => {
+        const venue = s.venue_id ? venuesById.get(s.venue_id) : null;
+        return {
+          id: s.id as string,
+          name: s.name as string,
+          venue_id: s.venue_id ?? null,
+          venue_name: venue?.name ?? null,
+          department_id: venue?.department_id ?? null,
+        };
+      })
+      .filter((s) => admin || (s.department_id && allowed!.has(s.department_id)));
   });
