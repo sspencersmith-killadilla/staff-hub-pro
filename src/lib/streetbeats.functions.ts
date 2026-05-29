@@ -2,7 +2,14 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { assertStaff } from "./staff-guard";
+import {
+  assertStaff,
+  isAdmin,
+  assertCanManageDepartment,
+  getUserDepartmentIds,
+  getStageDepartmentId,
+  getSlotDepartmentId,
+} from "./staff-guard";
 
 // Streetbeats staff functions — operate on the artists table (multi-profile).
 
