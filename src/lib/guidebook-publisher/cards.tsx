@@ -214,11 +214,17 @@ export type EventCardData = {
   description?: string | null;
   image_url?: string | null;
   show_image?: boolean;
+  focal_x?: number | null;
+  focal_y?: number | null;
   department_name?: string | null;
   cta_label?: string | null;
   eyebrow_override?: string | null;
   sponsor?: SponsorRef | null;
 };
+
+function focalStyle(x?: number | null, y?: number | null) {
+  return { objectPosition: `${x ?? 50}% ${y ?? 50}%` } as const;
+}
 
 export function EventCard({ data, size = "quarter" }: { data: EventCardData; size?: CardSize }) {
   const hero = size === "hero";
@@ -227,7 +233,7 @@ export function EventCard({ data, size = "quarter" }: { data: EventCardData; siz
   return (
     <View style={s.card} wrap={false}>
       {showImg ? (
-        <Image src={data.image_url!} style={imgStyle} />
+        <Image src={data.image_url!} style={[imgStyle, focalStyle(data.focal_x, data.focal_y)]} />
       ) : null}
       <View style={s.accentRule} />
       <Text style={s.eyebrow}>
@@ -263,6 +269,8 @@ export type ClassCardData = {
   price?: number | null;
   image_url?: string | null;
   show_image?: boolean;
+  focal_x?: number | null;
+  focal_y?: number | null;
   description?: string | null;
   department_name?: string | null;
   cta_label?: string | null;
@@ -277,7 +285,7 @@ export function ClassCard({ data, size = "quarter" }: { data: ClassCardData; siz
   return (
     <View style={s.card} wrap={false}>
       {showImg ? (
-        <Image src={data.image_url!} style={imgStyle} />
+        <Image src={data.image_url!} style={[imgStyle, focalStyle(data.focal_x, data.focal_y)]} />
       ) : null}
       <View style={[s.accentRule, { backgroundColor: "#0E7C7B" }]} />
       <Text style={[s.eyebrow, { color: "#0E7C7B" }]}>
@@ -319,6 +327,8 @@ export type PerformanceCardData = {
   description?: string | null;
   image_url?: string | null;
   show_image?: boolean;
+  focal_x?: number | null;
+  focal_y?: number | null;
   cta_label?: string | null;
   eyebrow_override?: string | null;
   sponsor?: SponsorRef | null;
@@ -336,7 +346,7 @@ export function PerformanceCard({
   const imgStyle = hero ? s.imageLg : size === "quarter" ? s.imageSm : s.image;
   return (
     <View style={s.card} wrap={false}>
-      {showImg ? <Image src={data.image_url!} style={imgStyle} /> : null}
+      {showImg ? <Image src={data.image_url!} style={[imgStyle, focalStyle(data.focal_x, data.focal_y)]} /> : null}
       <View style={[s.accentRule, { backgroundColor: "#9333EA" }]} />
       <Text style={[s.eyebrow, { color: "#9333EA" }]}>
         {data.eyebrow_override ??

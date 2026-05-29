@@ -30,7 +30,7 @@ async function fetchData(
   let sessQ = supabaseAdmin
     .from("sessions")
     .select(
-      "id, title, speaker_name, start_time, end_time, department_id, stage_id, room_id, image_url, stages(id, name, venue_id), rooms(id, name, venue_id)",
+      "id, title, speaker_name, start_time, end_time, department_id, stage_id, room_id, image_url, focal_x, focal_y, stages(id, name, venue_id), rooms(id, name, venue_id)",
     )
     .gte("start_time", startIso)
     .lte("start_time", endIso)
@@ -80,7 +80,7 @@ async function fetchData(
     artistIds.length
       ? supabaseAdmin
           .from("artists")
-          .select("id, full_name, genre, avatar_url")
+          .select("id, full_name, genre, avatar_url, avatar_focal_x, avatar_focal_y")
           .in("id", artistIds as any)
       : Promise.resolve({ data: [] as any[], error: null }),
     Promise.resolve({ data: [] as any[], error: null }),
@@ -154,6 +154,8 @@ async function fetchData(
       venue_name: venue?.name ?? null,
       location_name: s.stages?.name ?? s.rooms?.name ?? null,
       image_url: s.image_url ?? null,
+      focal_x: s.focal_x ?? 50,
+      focal_y: s.focal_y ?? 50,
     };
   });
 
@@ -171,6 +173,8 @@ async function fetchData(
       artist_name: artist?.full_name ?? null,
       artist_genre: artist?.genre ?? null,
       image_url: artist?.avatar_url ?? null,
+      focal_x: artist?.avatar_focal_x ?? 50,
+      focal_y: artist?.avatar_focal_y ?? 50,
     };
   });
 
