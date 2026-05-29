@@ -476,6 +476,8 @@ function ComposerDialog({
   existing,
   seedEvent,
   eventLibrary,
+  accountByPlatform,
+  departmentName,
   onSave,
 }: {
   open: boolean;
@@ -484,11 +486,14 @@ function ComposerDialog({
   existing?: ScheduledPost;
   seedEvent?: EventLite;
   eventLibrary: EventLite[];
+  accountByPlatform: Partial<Record<Platform, string>>;
+  departmentName: string;
   onSave: (p: ScheduledPost) => void;
 }) {
   const [caption, setCaption] = useState(
     existing?.caption ?? (seedEvent ? draftFromEvent(seedEvent) : ""),
   );
+  const [time, setTime] = useState(existing?.time ?? "12:00");
   const [mediaUrl, setMediaUrl] = useState<string | null>(
     existing?.mediaUrl ?? seedEvent?.image_url ?? null,
   );
