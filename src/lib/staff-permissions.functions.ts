@@ -28,11 +28,15 @@ export const getMyPermissions = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const admin = await isAdmin(userId);
 
-    const [{ data: globalRows }, { data: eventRows }] = await Promise.all([
+    const [{ data: globalRows }, { data: eventRows }, { data: deptRoles }] = await Promise.all([
       supabase.from("staff_permissions").select("permission").eq("user_id", userId),
       supabase
         .from("staff_event_permissions")
         .select("event_id, permission, granted")
+        .eq("user_id", userId),
+      supabase
+        .from("department_roles")
+        .select("role")
         .eq("user_id", userId),
     ]);
 
@@ -43,9 +47,22 @@ export const getMyPermissions = createServerFn({ method: "GET" })
       else bucket.revoke.push(r.permission as PermissionKey);
     }
 
+    const global = new Set<PermissionKey>(
+      (globalRows ?? []).map((r) => r.permission as PermissionKey),
+    );
+
+    // Department admins/staff get all page-level permissions by default
+    // (data is still scoped to their department via RLS).
+    const hasDeptRole = (deptRoles ?? []).some(
+      (r) => r.role === "dept_admin" || r.role === "staff" || r.role === "super_admin",
+    );
+    if (hasDeptRole) {
+      for (const p of ALL_PERMISSIONS) global.add(p);
+    }
+
     return {
       isAdmin: admin,
-      global: (globalRows ?? []).map((r) => r.permission as PermissionKey),
+      global: Array.from(global),
       perEvent,
     };
   });
