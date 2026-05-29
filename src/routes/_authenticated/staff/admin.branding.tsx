@@ -87,6 +87,9 @@ function BrandingPage() {
   const publishFn = useServerFn(publishGlobalSettings);
   const draftFn = useServerFn(saveGlobalDraft);
   const versionsFn = useServerFn(listBrandVersions);
+  const presetsFn = useServerFn(listPresets);
+  const savePresetFn = useServerFn(savePreset);
+  const deletePresetFn = useServerFn(deletePreset);
   const { refresh } = useGlobalBrand();
 
   const { data, isLoading } = useQuery({
@@ -97,6 +100,11 @@ function BrandingPage() {
     queryKey: ["brand-versions", "global"],
     queryFn: () => versionsFn({ data: { scope: "global" as const } }),
   });
+  const { data: presets = [] } = useQuery({
+    queryKey: ["brand-presets"],
+    queryFn: () => presetsFn(),
+  });
+
 
   const [form, setForm] = useState<FormState>(toForm(null));
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
