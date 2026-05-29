@@ -98,10 +98,18 @@ function HomeEditorPage() {
   const draftFn = useServerFn(saveHomeDraft);
   const publishFn = useServerFn(publishHomeContent);
   const versionsFn = useServerFn(listBrandVersions);
+  const tenantsFn = useServerFn(listTenants);
+
+  const [tenantId, setTenantId] = useState<string | null>(null);
+
+  const { data: tenants = [] } = useQuery({
+    queryKey: ["tenants"],
+    queryFn: () => tenantsFn(),
+  });
 
   const { data, isLoading } = useQuery({
-    queryKey: ["admin-home-content"],
-    queryFn: () => fetchFn(),
+    queryKey: ["admin-home-content", tenantId],
+    queryFn: () => fetchFn({ data: { tenantId } }),
   });
   const { data: versions = [] } = useQuery({
     queryKey: ["brand-versions", "home"],
@@ -114,11 +122,13 @@ function HomeEditorPage() {
 
   useEffect(() => {
     if (data) {
-      // Prefer draft if present so admins can resume editing
       const live = toPatch(data);
       setForm(data.draft ? { ...live, ...data.draft } : live);
+    } else {
+      // No row for this tenant yet — start from global defaults
+      setForm(toPatch(DEFAULT_HOME_CONTENT));
     }
-  }, [data]);
+  }, [data, tenantId]);
 
   const previewContent: HomeContent = useMemo(
     () => ({ ...DEFAULT_HOME_CONTENT, ...form, id: "preview" }),
@@ -126,13 +136,13 @@ function HomeEditorPage() {
   );
 
   const saveDraft = useMutation({
-    mutationFn: () => draftFn({ data: { content: form } }),
+    mutationFn: () => draftFn({ data: { content: form, tenantId } }),
     onSuccess: () => toast.success("Draft saved."),
     onError: (e) => toast.error((e as Error).message),
   });
 
   const publish = useMutation({
-    mutationFn: () => publishFn({ data: { content: form } }),
+    mutationFn: () => publishFn({ data: { content: form, tenantId } }),
     onSuccess: () => {
       toast.success("Home page published.");
       qc.invalidateQueries({ queryKey: ["admin-home-content"] });
@@ -141,6 +151,7 @@ function HomeEditorPage() {
     },
     onError: (e) => toast.error((e as Error).message),
   });
+
 
   function updateSection(idx: number, next: HomeSection) {
     setForm((f) => {
