@@ -119,6 +119,8 @@ export const scheduleCourseSession = createServerFn({ method: "POST" })
   .inputValidator((i) => scheduleInput.parse(i))
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
+    const courseDept = await getCourseDepartmentId(data.course_id);
+    await assertCanManageDepartment(context.userId, courseDept);
     if (new Date(data.end_time) <= new Date(data.start_time)) {
       throw new Error("End must be after start");
     }
