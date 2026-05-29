@@ -11,11 +11,16 @@ import {
   publishGlobalSettings,
   saveGlobalDraft,
   listBrandVersions,
+  listPresets,
+  savePreset,
+  deletePreset,
   type GlobalSettings,
 } from "@/lib/global-settings.functions";
 import { useGlobalBrand } from "@/contexts/global-brand-context";
 import { FONT_PAIRS, googleFontsUrl } from "@/lib/branding/font-pairs";
 import { contrastRatio, tokensToCssVars } from "@/lib/branding/derive";
+import { generateFaviconSet } from "@/lib/branding/favicon-pipeline";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -82,6 +87,9 @@ function BrandingPage() {
   const publishFn = useServerFn(publishGlobalSettings);
   const draftFn = useServerFn(saveGlobalDraft);
   const versionsFn = useServerFn(listBrandVersions);
+  const presetsFn = useServerFn(listPresets);
+  const savePresetFn = useServerFn(savePreset);
+  const deletePresetFn = useServerFn(deletePreset);
   const { refresh } = useGlobalBrand();
 
   const { data, isLoading } = useQuery({
@@ -92,6 +100,11 @@ function BrandingPage() {
     queryKey: ["brand-versions", "global"],
     queryFn: () => versionsFn({ data: { scope: "global" as const } }),
   });
+  const { data: presets = [] } = useQuery({
+    queryKey: ["brand-presets"],
+    queryFn: () => presetsFn(),
+  });
+
 
   const [form, setForm] = useState<FormState>(toForm(null));
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
@@ -210,6 +223,98 @@ function BrandingPage() {
     };
   }
 
+  async function uploadBlob(blob: Blob, kind: string, ext = "png"): Promise<string | null> {
+    const path = `${kind}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage
+      .from("branding")
+      .upload(path, blob, { upsert: true, contentType: blob.type || "image/png" });
+    if (error) {
+      toast.error(error.message);
+      return null;
+    }
+    const { data: pub } = supabase.storage.from("branding").getPublicUrl(path);
+    return pub.publicUrl;
+  }
+
+  async function handleFaviconAutoResize(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingKey("favicon_auto");
+    try {
+      const set = await generateFaviconSet(file);
+      const [u32, u180, u512] = await Promise.all([
+        uploadBlob(set[32], "favicon-32"),
+        uploadBlob(set[180], "favicon-180"),
+        uploadBlob(set[512], "favicon-512"),
+      ]);
+      setForm((f) => ({
+        ...f,
+        favicon_url: u32 ?? f.favicon_url,
+        favicon_180_url: u180 ?? f.favicon_180_url,
+        favicon_512_url: u512 ?? f.favicon_512_url,
+      }));
+      toast.success("Generated 32, 180, and 512 px favicons.");
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setUploadingKey(null);
+    }
+  }
+
+  // ---------- Presets ----------
+  const [presetName, setPresetName] = useState("");
+  const savePresetMut = useMutation({
+    mutationFn: () =>
+      savePresetFn({
+        data: {
+          name: presetName.trim(),
+          tokens: buildPatch() as any,
+          logo_urls: {
+            light: form.primary_logo_url || null,
+            dark: form.logo_dark_url || null,
+            favicon: form.favicon_url || null,
+          },
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Preset saved.");
+      setPresetName("");
+      qc.invalidateQueries({ queryKey: ["brand-presets"] });
+    },
+    onError: (e) => toast.error((e as Error).message),
+  });
+  const deletePresetMut = useMutation({
+    mutationFn: (id: string) => deletePresetFn({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Preset deleted.");
+      qc.invalidateQueries({ queryKey: ["brand-presets"] });
+    },
+    onError: (e) => toast.error((e as Error).message),
+  });
+  function applyPreset(preset: { tokens: any; logo_urls: any }) {
+    const t = preset.tokens ?? {};
+    const l = preset.logo_urls ?? {};
+    setForm((f) => ({
+      ...f,
+      city_name: t.city_name ?? f.city_name,
+      primary_color: t.primary_color ?? f.primary_color,
+      secondary_color: t.secondary_color ?? f.secondary_color,
+      accent_color: t.accent_color ?? f.accent_color,
+      background_color: t.background_color ?? f.background_color,
+      foreground_color: t.foreground_color ?? f.foreground_color,
+      muted_color: t.muted_color ?? f.muted_color,
+      destructive_color: t.destructive_color ?? f.destructive_color,
+      radius: t.radius ?? f.radius,
+      heading_font: t.heading_font ?? f.heading_font,
+      body_font: t.body_font ?? f.body_font,
+      primary_logo_url: l.light ?? t.primary_logo_url ?? f.primary_logo_url,
+      logo_dark_url: l.dark ?? t.logo_dark_url ?? f.logo_dark_url,
+      favicon_url: l.favicon ?? t.favicon_url ?? f.favicon_url,
+    }));
+    toast.info("Preset applied. Click Publish to make it live.");
+  }
+
+
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     publish.mutate();
@@ -240,7 +345,9 @@ function BrandingPage() {
                 <TabsTrigger value="colors">Colors</TabsTrigger>
                 <TabsTrigger value="typography">Typography</TabsTrigger>
                 <TabsTrigger value="assets">Assets</TabsTrigger>
+                <TabsTrigger value="presets">Presets</TabsTrigger>
                 <TabsTrigger value="history">History</TabsTrigger>
+
               </TabsList>
 
               <TabsContent value="identity">
@@ -370,7 +477,30 @@ function BrandingPage() {
                       uploading={uploadingKey === "logo_dark_url"}
                       onChange={makeUploader("logo_dark_url", "logo-dark")}
                     />
+                    <div className="rounded-md border border-dashed p-4">
+                      <Label className="font-medium">
+                        Favicon auto-resize pipeline
+                      </Label>
+                      <p className="mt-1 mb-2 text-xs text-muted-foreground">
+                        Upload one square source image (≥512×512 PNG/SVG). We
+                        generate and upload 32, 180, and 512 px versions
+                        automatically.
+                      </p>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        disabled={uploadingKey === "favicon_auto"}
+                        onChange={handleFaviconAutoResize}
+                        className="max-w-xs"
+                      />
+                      {uploadingKey === "favicon_auto" && (
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          Resizing and uploading…
+                        </p>
+                      )}
+                    </div>
                     <AssetUploader
+
                       label="Favicon (32×32)"
                       value={form.favicon_url}
                       uploading={uploadingKey === "favicon_url"}
@@ -398,7 +528,106 @@ function BrandingPage() {
                 </Card>
               </TabsContent>
 
+              <TabsContent value="presets">
+                <Card>
+                  <CardHeader><CardTitle>Brand Presets</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="rounded-md border p-3">
+                      <Label htmlFor="preset-name" className="font-medium">
+                        Save current branding as a preset
+                      </Label>
+                      <p className="mt-1 mb-2 text-xs text-muted-foreground">
+                        Snapshots the editor's current colors, fonts, radius,
+                        and logo URLs. Apply later from this list.
+                      </p>
+                      <div className="flex gap-2">
+                        <Input
+                          id="preset-name"
+                          placeholder="e.g. Summer Festival 2026"
+                          value={presetName}
+                          onChange={(e) => setPresetName(e.target.value)}
+                          className="max-w-xs"
+                        />
+                        <Button
+                          type="button"
+                          onClick={() => savePresetMut.mutate()}
+                          disabled={
+                            !presetName.trim() || savePresetMut.isPending
+                          }
+                        >
+                          {savePresetMut.isPending ? "Saving…" : "Save preset"}
+                        </Button>
+                      </div>
+                    </div>
+
+                    {presets.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        No presets yet.
+                      </p>
+                    ) : (
+                      <ul className="space-y-2">
+                        {presets.map((p) => {
+                          const t = (p.tokens ?? {}) as any;
+                          const swatches = [
+                            t.primary_color,
+                            t.accent_color,
+                            t.background_color,
+                            t.foreground_color,
+                          ].filter(Boolean) as string[];
+                          return (
+                            <li
+                              key={p.id}
+                              className="flex items-center justify-between gap-3 rounded border p-3"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="flex">
+                                  {swatches.map((c, i) => (
+                                    <span
+                                      key={i}
+                                      className="-ml-1 h-6 w-6 rounded-full border-2 border-background"
+                                      style={{ background: c }}
+                                    />
+                                  ))}
+                                </div>
+                                <div>
+                                  <div className="font-medium">{p.name}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {new Date(p.created_at).toLocaleString()}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => applyPreset(p)}
+                                >
+                                  Apply
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => {
+                                    if (confirm(`Delete preset "${p.name}"?`))
+                                      deletePresetMut.mutate(p.id);
+                                  }}
+                                >
+                                  Delete
+                                </Button>
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
               <TabsContent value="history">
+
                 <Card>
                   <CardHeader><CardTitle>Version History</CardTitle></CardHeader>
                   <CardContent>
