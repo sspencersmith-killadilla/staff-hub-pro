@@ -204,6 +204,15 @@ function ArtistProfilePage() {
             </div>
           )}
         </div>
+
+        <div className="pt-2 pb-8 text-center">
+          <Link
+            to="/streetbeats"
+            className="text-xs text-gray-400 hover:text-gray-600 underline-offset-4 hover:underline"
+          >
+            ← Back to Streetbeats
+          </Link>
+        </div>
       </div>
     </div>
   );
