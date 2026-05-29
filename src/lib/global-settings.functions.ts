@@ -34,7 +34,7 @@ export type GlobalSettings = {
   favicon_180_url: string | null;
   favicon_512_url: string | null;
   manifest_url: string | null;
-  draft_tokens: Record<string, unknown> | null;
+  draft_tokens: any | null;
   published_at: string | null;
   updated_at: string;
 };
@@ -44,7 +44,7 @@ export type Tenant = {
   slug: string;
   name: string;
   host: string | null;
-  tokens: Record<string, unknown>;
+  tokens: any;
   logo_light_url: string | null;
   logo_dark_url: string | null;
   favicon_url: string | null;
@@ -55,8 +55,8 @@ export type Tenant = {
 export type BrandPreset = {
   id: string;
   name: string;
-  tokens: Record<string, unknown>;
-  logo_urls: Record<string, unknown>;
+  tokens: any;
+  logo_urls: any;
   created_at: string;
 };
 
@@ -64,7 +64,7 @@ export type BrandVersion = {
   id: string;
   scope: "global" | "tenant" | "department";
   scope_id: string | null;
-  snapshot: Record<string, unknown>;
+  snapshot: any;
   label: string | null;
   published_at: string;
 };
