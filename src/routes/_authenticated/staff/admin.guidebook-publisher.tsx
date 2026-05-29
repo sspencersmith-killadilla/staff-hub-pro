@@ -7,6 +7,7 @@ import { waitForSupabaseSession } from "@/integrations/supabase/auth-ready";
 import {
   fetchGuidebookCanvasData,
   listGuidebookSponsors,
+  listGuidebookDepartments,
 } from "@/lib/guidebook.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
