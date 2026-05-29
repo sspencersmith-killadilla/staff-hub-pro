@@ -97,8 +97,10 @@ function PublisherPage() {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [rightTab, setRightTab] = useState("inspector");
 
+  const [sessionReady, setSessionReady] = useState(false);
   useEffect(() => {
     setMounted(true);
+    waitForSupabaseSession().then((s) => setSessionReady(!!s?.user));
   }, []);
 
   const fetchData = useServerFn(fetchGuidebookCanvasData);
@@ -107,6 +109,7 @@ function PublisherPage() {
   const sponsorsQ = useQuery({
     queryKey: ["publisher-sponsors"],
     queryFn: () => listSponsorsFn(),
+    enabled: sessionReady,
   });
 
   const loadMut = useMutation({
