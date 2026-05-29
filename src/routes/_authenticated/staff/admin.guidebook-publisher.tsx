@@ -769,6 +769,31 @@ function InspectorPanel({
               onChange={(e) => onUpdate({ price: e.target.value === "" ? null : Number(e.target.value) })}
             />
           </div>
+          {Array.isArray(d.sessions) && d.sessions.length > 0 && (
+            <div className="rounded-md border bg-muted/30 p-2 space-y-1">
+              <Label className="text-[11px] font-semibold">
+                Sessions ({d.sessions.length})
+              </Label>
+              <ul className="space-y-0.5 max-h-40 overflow-auto">
+                {d.sessions.map((sess: any, i: number) => (
+                  <li key={sess.id ?? i} className="text-[10px] text-muted-foreground">
+                    {sess.start_time
+                      ? new Date(sess.start_time).toLocaleString([], {
+                          month: "short",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })
+                      : "—"}
+                    {sess.room_name ? ` · ${sess.room_name}` : ""}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-[10px] text-muted-foreground italic">
+                All sessions for this class render in a single card.
+              </p>
+            </div>
+          )}
         </>
       )}
       {item.kind === "performance" && (
