@@ -170,6 +170,7 @@ async function fetchData(
       department_name: deptsById.get(venue?.department_id)?.name ?? null,
       artist_name: artist?.full_name ?? null,
       artist_genre: artist?.genre ?? null,
+      image_url: artist?.avatar_url ?? null,
     };
   });
 
