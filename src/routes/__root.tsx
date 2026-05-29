@@ -122,12 +122,15 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <DepartmentProvider>
-        <ThemeProvider>
-          <Outlet />
-          <Toaster richColors position="top-center" />
-        </ThemeProvider>
-      </DepartmentProvider>
+      <GlobalBrandProvider>
+        <DepartmentProvider>
+          <ThemeProvider>
+            <Outlet />
+            <Toaster richColors position="top-center" />
+          </ThemeProvider>
+        </DepartmentProvider>
+      </GlobalBrandProvider>
     </QueryClientProvider>
+
   );
 }
