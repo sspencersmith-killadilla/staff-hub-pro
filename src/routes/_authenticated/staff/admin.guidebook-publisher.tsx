@@ -339,10 +339,30 @@ function PublisherPage() {
             </SelectContent>
           </Select>
         </div>
+        <div>
+          <Label className="text-xs">Department</Label>
+          <Select value={departmentId} onValueChange={setDepartmentId}>
+            <SelectTrigger className="h-9 w-48"><SelectValue placeholder="All departments" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all">All departments</SelectItem>
+              {(deptsQ.data?.departments ?? []).map((d) => (
+                <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <Button type="button" onClick={() => loadMut.mutate()} disabled={!!dateError || loadMut.isPending} className="gap-2">
           {loadMut.isPending ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Calendar className="h-4 w-4" />}
           {loadMut.isPending ? "Loading…" : "Load date range"}
         </Button>
+        <div className="flex items-end gap-1">
+          <Button type="button" variant="outline" size="sm" className="h-9 gap-1" onClick={() => insertCustomItem("text")}>
+            <TypeIcon className="h-3.5 w-3.5" /> Text
+          </Button>
+          <Button type="button" variant="outline" size="sm" className="h-9 gap-1" onClick={() => insertCustomItem("image")}>
+            <ImageIcon className="h-3.5 w-3.5" /> Image
+          </Button>
+        </div>
         {dateError && <span className="text-sm text-destructive">{dateError}</span>}
         <div className="ml-auto text-xs text-muted-foreground">
           {items.filter((i) => !i.hidden).length} visible · {items.length} total
