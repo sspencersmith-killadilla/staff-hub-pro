@@ -58,6 +58,7 @@ export const PAGE_PERMISSIONS = [
   { key: "page.room_reservations", label: "Room Reservations" },
   { key: "page.classes", label: "Class Management" },
   { key: "page.settings", label: "Platform Settings" },
+  { key: "page.social_command", label: "Social Command Center" },
 ] as const;
 
 export const EVENT_PERMISSIONS = [

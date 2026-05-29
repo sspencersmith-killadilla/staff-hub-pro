@@ -23,6 +23,7 @@ import {
   Repeat,
   Palette,
   FileText,
+  Share2,
 } from "lucide-react";
 
 import homeImg from "@/assets/manual/home.png";
@@ -113,6 +114,7 @@ const groups: { label: string; sectionIds: string[] }[] = [
       "admin-dept-roles",
       "admin-modules",
       "admin-guidebook",
+      "admin-social",
     ],
   },
 ];
@@ -1151,6 +1153,7 @@ const sections: Section[] = [
           <li><strong>Drag</strong> any row to reorder it within the print edition.</li>
           <li><strong>Hide / show</strong> items that don't fit the visual flow.</li>
           <li><strong>Edit print copy</strong> to override a title or description just for this edition — the underlying database record is not touched.</li>
+          <li><strong>Reframe the card image</strong> — click and drag on any card's image to set its focal point. The PDF crops around that point so faces and signage stay in frame.</li>
           <li><strong>Insert ad slot</strong> drops a sponsor's bought ad block exactly between any two listings.</li>
           <li>Click <strong>Export PDF</strong> to render the final layout.</li>
         </ul>
@@ -1182,6 +1185,110 @@ const sections: Section[] = [
           Sponsors who applied through the public sponsor portal and chose the
           Guidebook tier still flow in automatically — you only need the form
           above for sponsors you want to add manually without an event.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "admin-social",
+    title: "Social Media Command Center",
+    icon: Share2,
+    audience: "admin",
+    render: () => (
+      <>
+        <p>
+          The Social Media Command Center turns a monthly calendar into a
+          drag-and-drop publishing tool for Facebook Pages, Instagram Business
+          accounts, and LinkedIn — scoped to whichever department is active in
+          the top-left switcher. Open it from{" "}
+          <em>Event Ops sidebar → Social Command</em>.
+        </p>
+
+        <h4 className="mt-6 font-semibold text-[#002f49]">Permission</h4>
+        <p>
+          Access is gated by the new <strong>Social Command Center</strong>{" "}
+          staff permission (<code>page.social_command</code>). Grant it under{" "}
+          <em>Admin → Permissions</em>. Existing staff and admins received it
+          automatically when the feature shipped.
+        </p>
+
+        <h4 className="mt-6 font-semibold text-[#002f49]">One-time platform setup (admin)</h4>
+        <p>
+          Before any department can connect accounts, an admin pastes OAuth
+          credentials at <em>Admin → Social integrations</em>:
+        </p>
+        <ol className="my-3 space-y-3">
+          <Step n={1} title="Create a Meta app">
+            At <a className="text-primary underline" href="https://developers.facebook.com/" target="_blank" rel="noreferrer">developers.facebook.com</a>{" "}
+            create a Business app. Add the <em>Facebook Login</em> and{" "}
+            <em>Instagram Graph API</em> products. Copy the App ID and App
+            Secret into the Meta card on the integrations page, then paste the{" "}
+            <em>Redirect URI</em> shown there into Meta's allowed redirect URL
+            list.
+          </Step>
+          <Step n={2} title="Create a LinkedIn app">
+            At <a className="text-primary underline" href="https://www.linkedin.com/developers/" target="_blank" rel="noreferrer">linkedin.com/developers</a>{" "}
+            create an app, enable <em>Sign In with LinkedIn using OpenID Connect</em>,{" "}
+            <em>Share on LinkedIn</em>, and any organization products you have
+            access to. Copy the Client ID and Secret into the LinkedIn card and
+            paste the redirect URL into the Auth tab.
+          </Step>
+          <Step n={3} title="Hit Save on each card">
+            Credentials live in <code>social_integration_secrets</code> and are
+            only readable by admins. Until both cards are saved, the per-department
+            Connect buttons will show "{`{platform}`} OAuth is not configured".
+          </Step>
+        </ol>
+
+        <h4 className="mt-6 font-semibold text-[#002f49]">Per-department: connect accounts</h4>
+        <p>
+          Each department connects its own accounts so cross-department staff
+          can't accidentally post to the wrong page. From the Social Command
+          page, click <em>Connect</em> (top-right) or open{" "}
+          <em>Social → Connections</em>:
+        </p>
+        <ol className="my-3 space-y-3">
+          <Step n={1} title="Connect Meta">
+            One sign-in connects every Facebook Page the signed-in user
+            administers plus any Instagram Business accounts linked to those
+            Pages.
+          </Step>
+          <Step n={2} title="Connect LinkedIn">
+            Posts go out as the connecting member. Use a service account if you
+            want a stable author across staff turnover.
+          </Step>
+          <Step n={3} title="Disconnect anytime">
+            The trash icon next to a connected account immediately revokes
+            posting from this app — tokens stay in the platform's account
+            settings until you fully revoke them there.
+          </Step>
+        </ol>
+
+        <h4 className="mt-6 font-semibold text-[#002f49]">Schedule a post</h4>
+        <ol className="my-3 space-y-3">
+          <Step n={1} title="Drag an event onto a day">
+            The composer opens pre-filled with a draft caption from the event
+            title, date, and speaker. Or click an empty day to compose from
+            scratch.
+          </Step>
+          <Step n={2} title="Pick channels">
+            Only platforms with connected accounts will actually publish.
+            Instagram requires an image URL. X stays in the UI as a manual
+            copy/paste workflow because X's automated posting API is paid-tier
+            only and not wired up.
+          </Step>
+          <Step n={3} title="Schedule">
+            Posts within 1 minute of "now" publish immediately. Future posts
+            land in the calendar with status <em>scheduled</em>; results are
+            recorded per platform on <code>social_posts.results</code>.
+          </Step>
+        </ol>
+
+        <Callout kind="note">
+          Tokens for connected accounts never leave the server — the client
+          only sees account names and connection status. Publishing happens
+          entirely through TanStack server functions using each department's
+          stored access token.
         </Callout>
       </>
     ),
