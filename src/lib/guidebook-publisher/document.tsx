@@ -7,11 +7,15 @@ import {
   ClassCard,
   PerformanceCard,
   SponsorAdCard,
+  TextCard,
+  ImageCard,
   TOKENS,
   type EventCardData,
   type ClassCardData,
   type PerformanceCardData,
   type SponsorAdCardData,
+  type TextCardData,
+  type ImageCardData,
 } from "./cards";
 
 // ─── Item model ─────────────────────────────────────────────────────────
