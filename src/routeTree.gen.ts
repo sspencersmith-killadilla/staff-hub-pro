@@ -57,12 +57,16 @@ import { Route as AuthenticatedStaffAdminRouteImport } from './routes/_authentic
 import { Route as AuthenticatedCommunityManageRouteImport } from './routes/_authenticated/community/manage'
 import { Route as AuthenticatedCommunityApplyRouteImport } from './routes/_authenticated/community/apply'
 import { Route as AuthenticatedStaffEventsIdRouteImport } from './routes/_authenticated/staff/events.$id'
+import { Route as AuthenticatedStaffAdminSocialIntegrationsRouteImport } from './routes/_authenticated/staff/admin.social-integrations'
 import { Route as AuthenticatedStaffAdminSocialRouteImport } from './routes/_authenticated/staff/admin.social'
 import { Route as AuthenticatedStaffAdminPermissionsRouteImport } from './routes/_authenticated/staff/admin.permissions'
 import { Route as AuthenticatedStaffAdminGuidebookPublisherRouteImport } from './routes/_authenticated/staff/admin.guidebook-publisher'
 import { Route as AuthenticatedStaffAdminGuidebookCanvasRouteImport } from './routes/_authenticated/staff/admin.guidebook-canvas'
 import { Route as AuthenticatedStaffAdminGuidebookRouteImport } from './routes/_authenticated/staff/admin.guidebook'
 import { Route as AuthenticatedStaffAdminDepartmentsRouteImport } from './routes/_authenticated/staff/admin.departments'
+import { Route as ApiPublicOauthMetaCallbackRouteImport } from './routes/api/public/oauth/meta/callback'
+import { Route as ApiPublicOauthLinkedinCallbackRouteImport } from './routes/api/public/oauth/linkedin/callback'
+import { Route as AuthenticatedStaffAdminSocialConnectionsRouteImport } from './routes/_authenticated/staff/admin.social.connections'
 
 const VenuesRoute = VenuesRouteImport.update({
   id: '/venues',
@@ -319,6 +323,12 @@ const AuthenticatedStaffEventsIdRoute =
     path: '/events/$id',
     getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
+const AuthenticatedStaffAdminSocialIntegrationsRoute =
+  AuthenticatedStaffAdminSocialIntegrationsRouteImport.update({
+    id: '/social-integrations',
+    path: '/social-integrations',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
 const AuthenticatedStaffAdminSocialRoute =
   AuthenticatedStaffAdminSocialRouteImport.update({
     id: '/social',
@@ -354,6 +364,24 @@ const AuthenticatedStaffAdminDepartmentsRoute =
     id: '/departments',
     path: '/departments',
     getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
+const ApiPublicOauthMetaCallbackRoute =
+  ApiPublicOauthMetaCallbackRouteImport.update({
+    id: '/api/public/oauth/meta/callback',
+    path: '/api/public/oauth/meta/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicOauthLinkedinCallbackRoute =
+  ApiPublicOauthLinkedinCallbackRouteImport.update({
+    id: '/api/public/oauth/linkedin/callback',
+    path: '/api/public/oauth/linkedin/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedStaffAdminSocialConnectionsRoute =
+  AuthenticatedStaffAdminSocialConnectionsRouteImport.update({
+    id: '/connections',
+    path: '/connections',
+    getParentRoute: () => AuthenticatedStaffAdminSocialRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -408,8 +436,12 @@ export interface FileRoutesByFullPath {
   '/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   '/staff/admin/guidebook-publisher': typeof AuthenticatedStaffAdminGuidebookPublisherRoute
   '/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
-  '/staff/admin/social': typeof AuthenticatedStaffAdminSocialRoute
+  '/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
+  '/staff/admin/social-integrations': typeof AuthenticatedStaffAdminSocialIntegrationsRoute
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
+  '/staff/admin/social/connections': typeof AuthenticatedStaffAdminSocialConnectionsRoute
+  '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
+  '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -462,8 +494,12 @@ export interface FileRoutesByTo {
   '/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   '/staff/admin/guidebook-publisher': typeof AuthenticatedStaffAdminGuidebookPublisherRoute
   '/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
-  '/staff/admin/social': typeof AuthenticatedStaffAdminSocialRoute
+  '/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
+  '/staff/admin/social-integrations': typeof AuthenticatedStaffAdminSocialIntegrationsRoute
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
+  '/staff/admin/social/connections': typeof AuthenticatedStaffAdminSocialConnectionsRoute
+  '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
+  '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -519,8 +555,12 @@ export interface FileRoutesById {
   '/_authenticated/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   '/_authenticated/staff/admin/guidebook-publisher': typeof AuthenticatedStaffAdminGuidebookPublisherRoute
   '/_authenticated/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
-  '/_authenticated/staff/admin/social': typeof AuthenticatedStaffAdminSocialRoute
+  '/_authenticated/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
+  '/_authenticated/staff/admin/social-integrations': typeof AuthenticatedStaffAdminSocialIntegrationsRoute
   '/_authenticated/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
+  '/_authenticated/staff/admin/social/connections': typeof AuthenticatedStaffAdminSocialConnectionsRoute
+  '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
+  '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -577,7 +617,11 @@ export interface FileRouteTypes {
     | '/staff/admin/guidebook-publisher'
     | '/staff/admin/permissions'
     | '/staff/admin/social'
+    | '/staff/admin/social-integrations'
     | '/staff/events/$id'
+    | '/staff/admin/social/connections'
+    | '/api/public/oauth/linkedin/callback'
+    | '/api/public/oauth/meta/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -631,7 +675,11 @@ export interface FileRouteTypes {
     | '/staff/admin/guidebook-publisher'
     | '/staff/admin/permissions'
     | '/staff/admin/social'
+    | '/staff/admin/social-integrations'
     | '/staff/events/$id'
+    | '/staff/admin/social/connections'
+    | '/api/public/oauth/linkedin/callback'
+    | '/api/public/oauth/meta/callback'
   id:
     | '__root__'
     | '/'
@@ -687,7 +735,11 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/admin/guidebook-publisher'
     | '/_authenticated/staff/admin/permissions'
     | '/_authenticated/staff/admin/social'
+    | '/_authenticated/staff/admin/social-integrations'
     | '/_authenticated/staff/events/$id'
+    | '/_authenticated/staff/admin/social/connections'
+    | '/api/public/oauth/linkedin/callback'
+    | '/api/public/oauth/meta/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -714,6 +766,8 @@ export interface RootRouteChildren {
   StagesIdRoute: typeof StagesIdRoute
   EventsIndexRoute: typeof EventsIndexRoute
   RoomsIndexRoute: typeof RoomsIndexRoute
+  ApiPublicOauthLinkedinCallbackRoute: typeof ApiPublicOauthLinkedinCallbackRoute
+  ApiPublicOauthMetaCallbackRoute: typeof ApiPublicOauthMetaCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1054,6 +1108,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffEventsIdRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
     }
+    '/_authenticated/staff/admin/social-integrations': {
+      id: '/_authenticated/staff/admin/social-integrations'
+      path: '/social-integrations'
+      fullPath: '/staff/admin/social-integrations'
+      preLoaderRoute: typeof AuthenticatedStaffAdminSocialIntegrationsRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
     '/_authenticated/staff/admin/social': {
       id: '/_authenticated/staff/admin/social'
       path: '/social'
@@ -1096,8 +1157,44 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffAdminDepartmentsRouteImport
       parentRoute: typeof AuthenticatedStaffAdminRoute
     }
+    '/api/public/oauth/meta/callback': {
+      id: '/api/public/oauth/meta/callback'
+      path: '/api/public/oauth/meta/callback'
+      fullPath: '/api/public/oauth/meta/callback'
+      preLoaderRoute: typeof ApiPublicOauthMetaCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/oauth/linkedin/callback': {
+      id: '/api/public/oauth/linkedin/callback'
+      path: '/api/public/oauth/linkedin/callback'
+      fullPath: '/api/public/oauth/linkedin/callback'
+      preLoaderRoute: typeof ApiPublicOauthLinkedinCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/staff/admin/social/connections': {
+      id: '/_authenticated/staff/admin/social/connections'
+      path: '/connections'
+      fullPath: '/staff/admin/social/connections'
+      preLoaderRoute: typeof AuthenticatedStaffAdminSocialConnectionsRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminSocialRoute
+    }
   }
 }
+
+interface AuthenticatedStaffAdminSocialRouteChildren {
+  AuthenticatedStaffAdminSocialConnectionsRoute: typeof AuthenticatedStaffAdminSocialConnectionsRoute
+}
+
+const AuthenticatedStaffAdminSocialRouteChildren: AuthenticatedStaffAdminSocialRouteChildren =
+  {
+    AuthenticatedStaffAdminSocialConnectionsRoute:
+      AuthenticatedStaffAdminSocialConnectionsRoute,
+  }
+
+const AuthenticatedStaffAdminSocialRouteWithChildren =
+  AuthenticatedStaffAdminSocialRoute._addFileChildren(
+    AuthenticatedStaffAdminSocialRouteChildren,
+  )
 
 interface AuthenticatedStaffAdminRouteChildren {
   AuthenticatedStaffAdminDepartmentsRoute: typeof AuthenticatedStaffAdminDepartmentsRoute
@@ -1105,7 +1202,8 @@ interface AuthenticatedStaffAdminRouteChildren {
   AuthenticatedStaffAdminGuidebookCanvasRoute: typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   AuthenticatedStaffAdminGuidebookPublisherRoute: typeof AuthenticatedStaffAdminGuidebookPublisherRoute
   AuthenticatedStaffAdminPermissionsRoute: typeof AuthenticatedStaffAdminPermissionsRoute
-  AuthenticatedStaffAdminSocialRoute: typeof AuthenticatedStaffAdminSocialRoute
+  AuthenticatedStaffAdminSocialRoute: typeof AuthenticatedStaffAdminSocialRouteWithChildren
+  AuthenticatedStaffAdminSocialIntegrationsRoute: typeof AuthenticatedStaffAdminSocialIntegrationsRoute
 }
 
 const AuthenticatedStaffAdminRouteChildren: AuthenticatedStaffAdminRouteChildren =
@@ -1120,7 +1218,10 @@ const AuthenticatedStaffAdminRouteChildren: AuthenticatedStaffAdminRouteChildren
       AuthenticatedStaffAdminGuidebookPublisherRoute,
     AuthenticatedStaffAdminPermissionsRoute:
       AuthenticatedStaffAdminPermissionsRoute,
-    AuthenticatedStaffAdminSocialRoute: AuthenticatedStaffAdminSocialRoute,
+    AuthenticatedStaffAdminSocialRoute:
+      AuthenticatedStaffAdminSocialRouteWithChildren,
+    AuthenticatedStaffAdminSocialIntegrationsRoute:
+      AuthenticatedStaffAdminSocialIntegrationsRoute,
   }
 
 const AuthenticatedStaffAdminRouteWithChildren =
@@ -1242,6 +1343,8 @@ const rootRouteChildren: RootRouteChildren = {
   StagesIdRoute: StagesIdRoute,
   EventsIndexRoute: EventsIndexRoute,
   RoomsIndexRoute: RoomsIndexRoute,
+  ApiPublicOauthLinkedinCallbackRoute: ApiPublicOauthLinkedinCallbackRoute,
+  ApiPublicOauthMetaCallbackRoute: ApiPublicOauthMetaCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
