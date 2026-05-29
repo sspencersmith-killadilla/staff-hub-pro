@@ -31,7 +31,9 @@ export type PublisherItem =
   | (PublisherItemBase & { kind: "event"; data: EventCardData })
   | (PublisherItemBase & { kind: "class"; data: ClassCardData })
   | (PublisherItemBase & { kind: "performance"; data: PerformanceCardData })
-  | (PublisherItemBase & { kind: "ad"; data: SponsorAdCardData });
+  | (PublisherItemBase & { kind: "ad"; data: SponsorAdCardData })
+  | (PublisherItemBase & { kind: "text"; data: TextCardData })
+  | (PublisherItemBase & { kind: "image"; data: ImageCardData });
 
 // ─── Snap grid presets ──────────────────────────────────────────────────
 export type GridPreset = {
