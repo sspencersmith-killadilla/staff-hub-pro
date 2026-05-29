@@ -354,24 +354,32 @@ function PublisherPage() {
             <CardTitle className="text-sm">Live preview · US Letter</CardTitle>
           </CardHeader>
           <CardContent className="flex-1 min-h-0 p-0">
-            {!mounted || !PDFViewer || !GuidebookDocument ? (
+            {pdfLoadError ? (
+              <div className="flex flex-col items-center justify-center h-full text-destructive text-sm px-4 text-center gap-2">
+                <p>Couldn't load PDF preview engine.</p>
+                <p className="text-xs text-muted-foreground">{pdfLoadError}</p>
+              </div>
+            ) : !mounted || !pdfMod || !GuidebookDocument ? (
               <div className="flex items-center justify-center h-full text-muted-foreground text-sm">Loading preview…</div>
             ) : items.filter((i) => !i.hidden).length === 0 ? (
               <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
                 Load a date range to see the preview.
               </div>
             ) : (
-              <PDFViewer showToolbar style={{ width: "100%", height: "100%", border: "none" }}>
-                <GuidebookDocument
-                  title={title}
-                  startDate={startDate}
-                  endDate={endDate}
-                  items={items}
-                  preset={preset}
-                  coverImageUrl={coverImageUrl || null}
-                  coverSubtitle={coverSubtitle || null}
-                />
-              </PDFViewer>
+              <PdfPreview
+                pdfMod={pdfMod}
+                doc={
+                  <GuidebookDocument
+                    title={title}
+                    startDate={startDate}
+                    endDate={endDate}
+                    items={items}
+                    preset={preset}
+                    coverImageUrl={coverImageUrl || null}
+                    coverSubtitle={coverSubtitle || null}
+                  />
+                }
+              />
             )}
           </CardContent>
         </Card>
