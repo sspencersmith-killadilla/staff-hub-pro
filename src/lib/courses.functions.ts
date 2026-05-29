@@ -2,7 +2,14 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { assertStaff, isAdmin } from "./staff-guard";
+import {
+  assertStaff,
+  isAdmin,
+  assertCanManageDepartment,
+  getUserDepartmentIds,
+  getCourseDepartmentId,
+  getCourseSessionDepartmentId,
+} from "./staff-guard";
 import { loadUsaepayConfig, buildUsaepayAuthHeader } from "./usaepay.server";
 
 // ─── COURSES ────────────────────────────────────────────────────────────
