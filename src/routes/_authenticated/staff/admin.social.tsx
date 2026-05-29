@@ -139,7 +139,8 @@ function SocialCommandCenter() {
     queryFn: () => fetchConns({ data: { departmentId: activeDepartment!.id } }),
     enabled: !!activeDepartment?.id,
   });
-  const connectedPlatforms = new Set(conns.map((c) => c.platform));
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _connectedPlatforms = new Set(conns.map((c) => c.platform));
   const accountByPlatform = useMemo(() => {
     const m: Partial<Record<Platform, string>> = {};
     for (const c of conns) m[c.platform as Platform] = c.account_name;
