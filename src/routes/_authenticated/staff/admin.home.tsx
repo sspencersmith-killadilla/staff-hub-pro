@@ -859,9 +859,12 @@ function ImageBannerEditor({
   onChange: (s: HomeSection) => void;
 }) {
   return (
-    <div className="space-y-2">
-      <Field label="Image URL" value={section.image_url}
-        onChange={(v) => onChange({ ...section, image_url: v })} />
+    <div className="space-y-3">
+      <ImageUploader
+        label="Banner image"
+        value={section.image_url}
+        onChange={(v) => onChange({ ...section, image_url: v })}
+      />
       <Field label="Alt text" value={section.alt}
         onChange={(v) => onChange({ ...section, alt: v })} />
       <Field label="Caption (optional)" value={section.caption ?? ""}
