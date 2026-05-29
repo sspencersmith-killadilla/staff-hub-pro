@@ -684,15 +684,20 @@ function PreviewCard({
   platform,
   caption,
   mediaUrl,
+  accountName,
+  departmentName,
 }: {
   platform: Platform;
   caption: string;
   mediaUrl: string | null;
+  accountName?: string;
+  departmentName: string;
 }) {
   const meta = PLATFORM_META[platform];
   const Icon = meta.icon;
   const truncated =
     platform === "x" && caption.length > 280 ? caption.slice(0, 277) + "..." : caption;
+  const displayName = accountName ?? `${departmentName} (not connected)`;
 
   return (
     <div className="rounded-lg border bg-card overflow-hidden">
@@ -700,12 +705,15 @@ function PreviewCard({
         <div className={cn("h-8 w-8 rounded-full grid place-items-center text-white", meta.tint)}>
           <Icon className="h-4 w-4" />
         </div>
-        <div className="flex-1">
-          <p className="text-sm font-semibold">Total Events System Solutions</p>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold truncate">{displayName}</p>
           <p className="text-xs text-muted-foreground">{meta.label} · scheduled</p>
         </div>
-        <Badge variant="outline" className="text-[10px]">
-          Preview
+        <Badge
+          variant={accountName ? "outline" : "destructive"}
+          className="text-[10px]"
+        >
+          {accountName ? "Preview" : "No account"}
         </Badge>
       </div>
       {platform === "instagram" && mediaUrl && (
