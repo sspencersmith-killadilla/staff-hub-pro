@@ -310,11 +310,27 @@ export function ClassCard({ data, size = "quarter" }: { data: ClassCardData; siz
       </Text>
       <Text style={hero ? s.titleLg : s.title}>{data.course_title}</Text>
       <View style={{ marginTop: 4 }}>
-        <MetaRow label="WHEN" value={fmtRange(data.start_time, data.end_time)} />
-        <MetaRow
-          label="WHERE"
-          value={[data.room_name, data.venue_name].filter(Boolean).join(" · ")}
-        />
+        {data.sessions && data.sessions.length > 1 ? (
+          <View style={{ marginBottom: 4 }}>
+            <Text style={[s.metaLabel, { width: "auto", marginBottom: 2 }]}>SESSIONS</Text>
+            {data.sessions.slice(0, hero ? 12 : size === "half" ? 8 : 5).map((sess, i) => (
+              <Text key={i} style={s.metaValue}>• {fmtSessionLine(sess)}</Text>
+            ))}
+            {data.sessions.length > (hero ? 12 : size === "half" ? 8 : 5) ? (
+              <Text style={[s.metaValue, { fontStyle: "italic" }]}>
+                +{data.sessions.length - (hero ? 12 : size === "half" ? 8 : 5)} more
+              </Text>
+            ) : null}
+          </View>
+        ) : (
+          <>
+            <MetaRow label="WHEN" value={fmtRange(data.start_time, data.end_time)} />
+            <MetaRow
+              label="WHERE"
+              value={[data.room_name, data.venue_name].filter(Boolean).join(" · ")}
+            />
+          </>
+        )}
         <MetaRow label="WITH" value={data.instructor_name ?? undefined} />
         <MetaRow
           label="PRICE"
