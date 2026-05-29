@@ -3,6 +3,7 @@ import { FavoriteButton } from "@/components/favorite-button";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { CalendarDays, MapPin, Mail, Globe, ArrowLeft } from "lucide-react";
 import { getPublicCommunityEvent } from "@/lib/community-public.functions";
+import { SiteHeader } from "@/components/site-header";
 
 const eventQuery = (id: string) =>
   queryOptions({
