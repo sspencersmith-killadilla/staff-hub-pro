@@ -188,40 +188,95 @@ async function ensureAdmin(ctx: { supabase: any; userId: string }) {
 
 // ---------- Server functions ----------
 
-export const getHomeContent = createServerFn({ method: "GET" }).handler(
-  async (): Promise<HomeContent | null> => {
-    const { data, error } = await supabaseAdmin
-      .from("home_page_content")
-      .select("*")
-      .eq("singleton", true)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    return data as HomeContent | null;
-  },
-);
+async function fetchRowByTenant(tenantId: string | null) {
+  let q = supabaseAdmin.from("home_page_content").select("*");
+  q = tenantId ? q.eq("tenant_id", tenantId) : q.is("tenant_id", null);
+  const { data, error } = await q.maybeSingle();
+  if (error) throw new Error(error.message);
+  return data as HomeContent | null;
+}
+
+async function resolveHostTenantId(host?: string | null): Promise<string | null> {
+  if (!host) return null;
+  const { data } = await supabaseAdmin
+    .from("tenants")
+    .select("id")
+    .eq("host", host)
+    .maybeSingle();
+  return (data as { id: string } | null)?.id ?? null;
+}
+
+export const getHomeContent = createServerFn({ method: "GET" })
+  .inputValidator((input) =>
+    z.object({ host: z.string().max(255).optional() }).optional().parse(input),
+  )
+  .handler(async ({ data }): Promise<HomeContent | null> => {
+    const tenantId = await resolveHostTenantId(data?.host ?? null);
+    if (tenantId) {
+      const tenantRow = await fetchRowByTenant(tenantId);
+      if (tenantRow) return tenantRow;
+    }
+    return await fetchRowByTenant(null);
+  });
 
 export const getHomeContentAdmin = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<HomeContent | null> => {
+  .inputValidator((input) =>
+    z.object({ tenantId: z.string().uuid().nullable().optional() }).optional().parse(input),
+  )
+  .handler(async ({ data, context }): Promise<HomeContent | null> => {
     await ensureAdmin(context);
-    const { data, error } = await supabaseAdmin
-      .from("home_page_content")
-      .select("*")
-      .eq("singleton", true)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    return data as HomeContent | null;
+    return await fetchRowByTenant(data?.tenantId ?? null);
   });
+
+async function ensureRow(tenantId: string | null): Promise<HomeContent> {
+  const existing = await fetchRowByTenant(tenantId);
+  if (existing) return existing;
+  const seed = tenantId ? await fetchRowByTenant(null) : null;
+  const base = seed
+    ? {
+        hero_badge: seed.hero_badge,
+        hero_title: seed.hero_title,
+        hero_subtitle: seed.hero_subtitle,
+        hero_authed_message: seed.hero_authed_message,
+        hero_signup_cta_label: seed.hero_signup_cta_label,
+        hero_login_cta_label: seed.hero_login_cta_label,
+        hero_primary_cta_label: seed.hero_primary_cta_label,
+        hero_primary_cta_href: seed.hero_primary_cta_href,
+        hero_secondary_ctas: seed.hero_secondary_ctas,
+        sections: seed.sections,
+        footer_tagline: seed.footer_tagline,
+        footer_body: seed.footer_body,
+        footer_copyright: seed.footer_copyright,
+      }
+    : { hero_title: "Welcome", hero_secondary_ctas: [], sections: [] };
+  const { data: inserted, error } = await supabaseAdmin
+    .from("home_page_content")
+    .insert({ ...base, tenant_id: tenantId, singleton: tenantId ? null : true })
+    .select("*")
+    .single();
+  if (error) throw new Error(error.message);
+  return inserted as HomeContent;
+}
 
 export const saveHomeDraft = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ content: contentSchema }).parse(input))
+  .inputValidator((input) =>
+    z
+      .object({
+        content: contentSchema,
+        tenantId: z.string().uuid().nullable().optional(),
+      })
+      .parse(input),
+  )
   .handler(async ({ data, context }) => {
     await ensureAdmin(context);
+    const tenantId = data.tenantId ?? null;
+    const row = await ensureRow(tenantId);
     const { error } = await supabaseAdmin
       .from("home_page_content")
       .update({ draft: data.content, updated_at: new Date().toISOString() })
-      .eq("singleton", true);
+      .eq("id", row.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -230,25 +285,24 @@ export const publishHomeContent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
     z
-      .object({ content: contentSchema, label: z.string().max(120).optional() })
+      .object({
+        content: contentSchema,
+        label: z.string().max(120).optional(),
+        tenantId: z.string().uuid().nullable().optional(),
+      })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<HomeContent> => {
     await ensureAdmin(context);
-    const { data: current } = await supabaseAdmin
-      .from("home_page_content")
-      .select("*")
-      .eq("singleton", true)
-      .single();
-    if (current) {
-      await supabaseAdmin.from("brand_versions").insert({
-        scope: "home",
-        scope_id: null,
-        snapshot: current,
-        label: data.label ?? "Pre-publish snapshot",
-        published_by: context.userId,
-      });
-    }
+    const tenantId = data.tenantId ?? null;
+    const row = await ensureRow(tenantId);
+    await supabaseAdmin.from("brand_versions").insert({
+      scope: "home",
+      scope_id: tenantId,
+      snapshot: row,
+      label: data.label ?? "Pre-publish snapshot",
+      published_by: context.userId,
+    });
     const { data: updated, error } = await supabaseAdmin
       .from("home_page_content")
       .update({
@@ -257,9 +311,10 @@ export const publishHomeContent = createServerFn({ method: "POST" })
         published_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
-      .eq("singleton", true)
+      .eq("id", row.id)
       .select("*")
       .single();
     if (error) throw new Error(error.message);
     return updated as HomeContent;
   });
+

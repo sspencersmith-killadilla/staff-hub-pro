@@ -16,13 +16,15 @@ import {
   type ExplainerItem,
   type HeroSecondaryCta,
 } from "@/lib/home-content.functions";
-import { listBrandVersions } from "@/lib/global-settings.functions";
+import { listBrandVersions, listTenants } from "@/lib/global-settings.functions";
 import { DEFAULT_HOME_CONTENT } from "@/lib/home-content-defaults";
 import { HomePageView } from "@/components/home/HomePageView";
 import {
   ICON_KEYS,
   COLOR_THEMES,
 } from "@/components/home/icon-registry";
+import { SortableList } from "@/components/admin/SortableList";
+import { ImageUploader } from "@/components/admin/ImageUploader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,6 +45,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronUp, ChevronDown, Trash2, Plus } from "lucide-react";
+
 
 export const Route = createFileRoute("/_authenticated/staff/admin/home")({
   beforeLoad: async () => {
@@ -95,10 +98,18 @@ function HomeEditorPage() {
   const draftFn = useServerFn(saveHomeDraft);
   const publishFn = useServerFn(publishHomeContent);
   const versionsFn = useServerFn(listBrandVersions);
+  const tenantsFn = useServerFn(listTenants);
+
+  const [tenantId, setTenantId] = useState<string | null>(null);
+
+  const { data: tenants = [] } = useQuery({
+    queryKey: ["tenants"],
+    queryFn: () => tenantsFn(),
+  });
 
   const { data, isLoading } = useQuery({
-    queryKey: ["admin-home-content"],
-    queryFn: () => fetchFn(),
+    queryKey: ["admin-home-content", tenantId],
+    queryFn: () => fetchFn({ data: { tenantId } }),
   });
   const { data: versions = [] } = useQuery({
     queryKey: ["brand-versions", "home"],
@@ -111,11 +122,13 @@ function HomeEditorPage() {
 
   useEffect(() => {
     if (data) {
-      // Prefer draft if present so admins can resume editing
       const live = toPatch(data);
       setForm(data.draft ? { ...live, ...data.draft } : live);
+    } else {
+      // No row for this tenant yet — start from global defaults
+      setForm(toPatch(DEFAULT_HOME_CONTENT));
     }
-  }, [data]);
+  }, [data, tenantId]);
 
   const previewContent: HomeContent = useMemo(
     () => ({ ...DEFAULT_HOME_CONTENT, ...form, id: "preview" }),
@@ -123,13 +136,13 @@ function HomeEditorPage() {
   );
 
   const saveDraft = useMutation({
-    mutationFn: () => draftFn({ data: { content: form } }),
+    mutationFn: () => draftFn({ data: { content: form, tenantId } }),
     onSuccess: () => toast.success("Draft saved."),
     onError: (e) => toast.error((e as Error).message),
   });
 
   const publish = useMutation({
-    mutationFn: () => publishFn({ data: { content: form } }),
+    mutationFn: () => publishFn({ data: { content: form, tenantId } }),
     onSuccess: () => {
       toast.success("Home page published.");
       qc.invalidateQueries({ queryKey: ["admin-home-content"] });
@@ -139,6 +152,7 @@ function HomeEditorPage() {
     onError: (e) => toast.error((e as Error).message),
   });
 
+
   function updateSection(idx: number, next: HomeSection) {
     setForm((f) => {
       const s = [...f.sections];
@@ -146,15 +160,8 @@ function HomeEditorPage() {
       return { ...f, sections: s };
     });
   }
-  function moveSection(idx: number, dir: -1 | 1) {
-    setForm((f) => {
-      const s = [...f.sections];
-      const j = idx + dir;
-      if (j < 0 || j >= s.length) return f;
-      [s[idx], s[j]] = [s[j], s[idx]];
-      return { ...f, sections: s };
-    });
-  }
+  // section reordering handled by SortableList
+
   function removeSection(idx: number) {
     setForm((f) => ({ ...f, sections: f.sections.filter((_, i) => i !== idx) }));
   }
@@ -192,10 +199,30 @@ function HomeEditorPage() {
             keep working, or publish to make changes live.
           </p>
         </div>
-        <Link to="/staff/admin" className="text-sm font-medium text-primary hover:underline">
-          ← Back to admin
-        </Link>
+        <div className="flex items-center gap-3">
+          <div className="w-64">
+            <Label className="text-xs text-muted-foreground">Editing scope</Label>
+            <Select
+              value={tenantId ?? "__global"}
+              onValueChange={(v) => setTenantId(v === "__global" ? null : v)}
+            >
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__global">Global default (all sites)</SelectItem>
+                {tenants.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    Tenant: {t.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Link to="/staff/admin" className="text-sm font-medium text-primary hover:underline">
+            ← Back to admin
+          </Link>
+        </div>
       </div>
+
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_560px]">
         <div className="space-y-6 min-w-0">
@@ -313,16 +340,21 @@ function HomeEditorPage() {
                       No sections yet. Use "Add section" above.
                     </p>
                   )}
-                  {form.sections.map((section, idx) => (
-                    <SectionEditor
-                      key={section.id ?? idx}
-                      section={section}
-                      onChange={(next) => updateSection(idx, next)}
-                      onMoveUp={() => moveSection(idx, -1)}
-                      onMoveDown={() => moveSection(idx, 1)}
-                      onRemove={() => removeSection(idx)}
-                    />
-                  ))}
+                  <SortableList
+                    items={form.sections}
+                    onReorder={(next) => setForm((f) => ({ ...f, sections: next }))}
+                    getId={(s, i) => s.id ?? `section-${i}`}
+                  >
+                    {(section, idx, handle) => (
+                      <SectionEditor
+                        section={section}
+                        dragHandle={handle}
+                        onChange={(next) => updateSection(idx, next)}
+                        onRemove={() => removeSection(idx)}
+                      />
+                    )}
+                  </SortableList>
+
                 </CardContent>
               </Card>
             </TabsContent>
@@ -547,27 +579,28 @@ function RowActions({
 function SectionEditor({
   section,
   onChange,
-  onMoveUp,
-  onMoveDown,
   onRemove,
+  dragHandle,
 }: {
   section: HomeSection;
   onChange: (s: HomeSection) => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
   onRemove: () => void;
+  dragHandle?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-md border p-4 space-y-3">
+    <div className="rounded-md border p-4 space-y-3 bg-background">
       <div className="flex items-center justify-between">
-        <div className="text-sm font-semibold capitalize">
-          {section.type.replace("_", " ")}
+        <div className="flex items-center gap-2">
+          {dragHandle}
+          <div className="text-sm font-semibold capitalize">
+            {section.type.replace("_", " ")}
+          </div>
         </div>
-        <RowActions
-          onMove={(d) => (d === -1 ? onMoveUp() : onMoveDown())}
-          onRemove={onRemove}
-        />
+        <Button type="button" size="icon" variant="ghost" onClick={onRemove}>
+          <Trash2 className="h-4 w-4 text-destructive" />
+        </Button>
       </div>
+
       {section.type === "portal_cards" && (
         <PortalCardsEditor section={section} onChange={onChange} />
       )}
@@ -819,9 +852,12 @@ function ImageBannerEditor({
   onChange: (s: HomeSection) => void;
 }) {
   return (
-    <div className="space-y-2">
-      <Field label="Image URL" value={section.image_url}
-        onChange={(v) => onChange({ ...section, image_url: v })} />
+    <div className="space-y-3">
+      <ImageUploader
+        label="Banner image"
+        value={section.image_url}
+        onChange={(v) => onChange({ ...section, image_url: v })}
+      />
       <Field label="Alt text" value={section.alt}
         onChange={(v) => onChange({ ...section, alt: v })} />
       <Field label="Caption (optional)" value={section.caption ?? ""}
