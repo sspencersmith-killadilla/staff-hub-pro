@@ -179,6 +179,14 @@ function AdminPage() {
           >
             Manage tenants →
           </Link>
+          <Link
+            to="/staff/admin/home"
+            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
+          >
+            Edit home page →
+          </Link>
+
+
 
 
 
