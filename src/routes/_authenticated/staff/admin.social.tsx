@@ -551,7 +551,8 @@ function ComposerDialog({
       platforms,
       eventId: linkedEventId,
       eventTitle: ev?.title ?? null,
-    });
+      times: perPlatformTime ? times : undefined,
+    } as ScheduledPost & { times?: Partial<Record<Platform, string>> });
   }
 
   return (
