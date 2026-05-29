@@ -84,11 +84,13 @@ type Platform = "facebook" | "instagram" | "linkedin" | "x";
 type ScheduledPost = {
   id: string;
   date: string; // YYYY-MM-DD
+  time: string; // HH:mm
   caption: string;
   mediaUrl: string | null;
   platforms: Record<Platform, boolean>;
   eventId?: string | null;
   eventTitle?: string | null;
+  status?: string;
 };
 
 type EventLite = {
