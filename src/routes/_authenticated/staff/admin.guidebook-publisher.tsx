@@ -7,6 +7,7 @@ import { waitForSupabaseSession } from "@/integrations/supabase/auth-ready";
 import {
   fetchGuidebookCanvasData,
   listGuidebookSponsors,
+  listGuidebookDepartments,
 } from "@/lib/guidebook.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +35,8 @@ import {
   RefreshCw,
   Trash2,
   Pencil,
+  Type as TypeIcon,
+  Image as ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -65,6 +68,8 @@ const KIND_LABEL: Record<PublisherItem["kind"], string> = {
   class: "Class",
   performance: "Performance",
   ad: "Sponsor Ad",
+  text: "Text",
+  image: "Image",
 };
 
 const KIND_COLOR: Record<PublisherItem["kind"], string> = {
@@ -72,6 +77,8 @@ const KIND_COLOR: Record<PublisherItem["kind"], string> = {
   class: "bg-teal-100 text-teal-900 border-teal-300",
   performance: "bg-purple-100 text-purple-900 border-purple-300",
   ad: "bg-amber-100 text-amber-900 border-amber-300",
+  text: "bg-slate-100 text-slate-900 border-slate-300",
+  image: "bg-blue-100 text-blue-900 border-blue-300",
 };
 
 const SPAN_OPTIONS: { id: string; label: string; span: GridSpan }[] = [
@@ -93,6 +100,7 @@ function PublisherPage() {
   const [title, setTitle] = useState("Community Program Guide");
   const [coverImageUrl, setCoverImageUrl] = useState("");
   const [coverSubtitle, setCoverSubtitle] = useState("");
+  const [departmentId, setDepartmentId] = useState<string>("__all");
   const [items, setItems] = useState<PublisherItem[]>([]);
   const [mounted, setMounted] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
@@ -106,6 +114,7 @@ function PublisherPage() {
 
   const fetchData = useServerFn(fetchGuidebookCanvasData);
   const listSponsorsFn = useServerFn(listGuidebookSponsors);
+  const listDeptsFn = useServerFn(listGuidebookDepartments);
 
   const sponsorsQ = useQuery({
     queryKey: ["publisher-sponsors"],
@@ -113,8 +122,21 @@ function PublisherPage() {
     enabled: sessionReady,
   });
 
+  const deptsQ = useQuery({
+    queryKey: ["publisher-departments"],
+    queryFn: () => listDeptsFn(),
+    enabled: sessionReady,
+  });
+
   const loadMut = useMutation({
-    mutationFn: () => fetchData({ data: { startDate, endDate } }),
+    mutationFn: () =>
+      fetchData({
+        data: {
+          startDate,
+          endDate,
+          departmentId: departmentId === "__all" ? null : departmentId,
+        },
+      }),
     onSuccess: (d) => {
       const next: PublisherItem[] = [
         ...d.events.map((e: any) => ({ id: `event-${e.id}`, kind: "event" as const, data: e })),
@@ -196,6 +218,36 @@ function PublisherPage() {
         ? { company_name: sp.company_name, logo_url: sp.logo_url ?? null, tagline: sp.ad_copy ?? null }
         : null,
     });
+  };
+
+  const insertCustomItem = (kind: "text" | "image") => {
+    const newItem: PublisherItem =
+      kind === "text"
+        ? {
+            id: `text-${Date.now()}`,
+            kind: "text",
+            data: {
+              heading: "New section",
+              body: "Add your custom copy here.",
+              eyebrow: null,
+              align: "left",
+              background: "paper",
+            },
+          }
+        : {
+            id: `image-${Date.now()}`,
+            kind: "image",
+            data: { image_url: "", caption: null, focal_x: 50, focal_y: 50 },
+          };
+    setItems((prev) => {
+      const next = [...prev];
+      const at = selectedIdx == null ? next.length : selectedIdx + 1;
+      next.splice(at, 0, newItem);
+      setSelectedIdx(at);
+      return next;
+    });
+    setRightTab("inspector");
+    toast.success(`Added ${kind === "text" ? "text" : "image"} section`);
   };
 
   const dateError =
@@ -286,10 +338,30 @@ function PublisherPage() {
             </SelectContent>
           </Select>
         </div>
+        <div>
+          <Label className="text-xs">Department</Label>
+          <Select value={departmentId} onValueChange={setDepartmentId}>
+            <SelectTrigger className="h-9 w-48"><SelectValue placeholder="All departments" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all">All departments</SelectItem>
+              {(deptsQ.data?.departments ?? []).map((d) => (
+                <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <Button type="button" onClick={() => loadMut.mutate()} disabled={!!dateError || loadMut.isPending} className="gap-2">
           {loadMut.isPending ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Calendar className="h-4 w-4" />}
           {loadMut.isPending ? "Loading…" : "Load date range"}
         </Button>
+        <div className="flex items-end gap-1">
+          <Button type="button" variant="outline" size="sm" className="h-9 gap-1" onClick={() => insertCustomItem("text")}>
+            <TypeIcon className="h-3.5 w-3.5" /> Text
+          </Button>
+          <Button type="button" variant="outline" size="sm" className="h-9 gap-1" onClick={() => insertCustomItem("image")}>
+            <ImageIcon className="h-3.5 w-3.5" /> Image
+          </Button>
+        </div>
         {dateError && <span className="text-sm text-destructive">{dateError}</span>}
         <div className="ml-auto text-xs text-muted-foreground">
           {items.filter((i) => !i.hidden).length} visible · {items.length} total
@@ -490,7 +562,120 @@ function InspectorPanel({
 }) {
   const d: any = item.data;
   const isAd = item.kind === "ad";
+  const isText = item.kind === "text";
+  const isImage = item.kind === "image";
+  const isCustom = isText || isImage;
   const titleField = item.kind === "class" ? "course_title" : "title";
+
+  // Custom (text/image) sections get a dedicated inspector
+  if (isCustom) {
+    return (
+      <div className="space-y-3 p-1 text-xs">
+        <div>
+          <Label className="text-[11px]">Card type</Label>
+          <div className="text-xs font-medium">{KIND_LABEL[item.kind]}</div>
+        </div>
+        <div>
+          <Label className="text-[11px]">Grid span</Label>
+          <Select
+            value={spanId(item.span)}
+            onValueChange={(v) => {
+              const opt = SPAN_OPTIONS.find((o) => o.id === v);
+              if (opt) onSpan(opt.span);
+            }}
+          >
+            <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {SPAN_OPTIONS.map((o) => (
+                <SelectItem key={o.id} value={o.id}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {isText && (
+          <>
+            <FieldInput
+              label="Eyebrow (optional)"
+              value={d.eyebrow}
+              onChange={(v) => onUpdate({ eyebrow: v })}
+              placeholder="e.g. WELCOME"
+            />
+            <FieldInput
+              label="Heading"
+              value={d.heading}
+              onChange={(v) => onUpdate({ heading: v })}
+            />
+            <div>
+              <Label className="text-[11px]">Body</Label>
+              <Textarea
+                className="min-h-[120px] text-xs"
+                value={d.body ?? ""}
+                onChange={(e) => onUpdate({ body: e.target.value || null })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-[11px]">Align</Label>
+                <Select value={d.align ?? "left"} onValueChange={(v) => onUpdate({ align: v })}>
+                  <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="left">Left</SelectItem>
+                    <SelectItem value="center">Center</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-[11px]">Background</Label>
+                <Select
+                  value={d.background ?? "paper"}
+                  onValueChange={(v) => onUpdate({ background: v })}
+                >
+                  <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="paper">Paper</SelectItem>
+                    <SelectItem value="accent">Accent</SelectItem>
+                    <SelectItem value="ink">Ink (dark)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </>
+        )}
+
+        {isImage && (
+          <>
+            <FieldInput
+              label="Image URL"
+              value={d.image_url}
+              onChange={(v) => onUpdate({ image_url: v ?? "" })}
+              placeholder="https://…"
+            />
+            {d.image_url ? (
+              <ImageFocalPicker
+                src={d.image_url}
+                x={d.focal_x ?? 50}
+                y={d.focal_y ?? 50}
+                onChange={({ x, y }: { x: number; y: number }) =>
+                  onUpdate({ focal_x: x, focal_y: y })
+                }
+              />
+            ) : (
+              <p className="text-[10px] text-muted-foreground">
+                Paste an image URL above to position it.
+              </p>
+            )}
+            <FieldInput
+              label="Caption (optional)"
+              value={d.caption}
+              onChange={(v) => onUpdate({ caption: v })}
+            />
+          </>
+        )}
+      </div>
+    );
+  }
+
 
   return (
     <div className="space-y-3 p-1 text-xs">
@@ -584,6 +769,31 @@ function InspectorPanel({
               onChange={(e) => onUpdate({ price: e.target.value === "" ? null : Number(e.target.value) })}
             />
           </div>
+          {Array.isArray(d.sessions) && d.sessions.length > 0 && (
+            <div className="rounded-md border bg-muted/30 p-2 space-y-1">
+              <Label className="text-[11px] font-semibold">
+                Sessions ({d.sessions.length})
+              </Label>
+              <ul className="space-y-0.5 max-h-40 overflow-auto">
+                {d.sessions.map((sess: any, i: number) => (
+                  <li key={sess.id ?? i} className="text-[10px] text-muted-foreground">
+                    {sess.start_time
+                      ? new Date(sess.start_time).toLocaleString([], {
+                          month: "short",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })
+                      : "—"}
+                    {sess.room_name ? ` · ${sess.room_name}` : ""}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-[10px] text-muted-foreground italic">
+                All sessions for this class render in a single card.
+              </p>
+            </div>
+          )}
         </>
       )}
       {item.kind === "performance" && (

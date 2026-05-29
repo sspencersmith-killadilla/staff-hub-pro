@@ -7,11 +7,15 @@ import {
   ClassCard,
   PerformanceCard,
   SponsorAdCard,
+  TextCard,
+  ImageCard,
   TOKENS,
   type EventCardData,
   type ClassCardData,
   type PerformanceCardData,
   type SponsorAdCardData,
+  type TextCardData,
+  type ImageCardData,
 } from "./cards";
 
 // ─── Item model ─────────────────────────────────────────────────────────
@@ -27,7 +31,9 @@ export type PublisherItem =
   | (PublisherItemBase & { kind: "event"; data: EventCardData })
   | (PublisherItemBase & { kind: "class"; data: ClassCardData })
   | (PublisherItemBase & { kind: "performance"; data: PerformanceCardData })
-  | (PublisherItemBase & { kind: "ad"; data: SponsorAdCardData });
+  | (PublisherItemBase & { kind: "ad"; data: SponsorAdCardData })
+  | (PublisherItemBase & { kind: "text"; data: TextCardData })
+  | (PublisherItemBase & { kind: "image"; data: ImageCardData });
 
 // ─── Snap grid presets ──────────────────────────────────────────────────
 export type GridPreset = {
@@ -141,7 +147,9 @@ function renderCard(item: PublisherItem, sizeHint: "hero" | "half" | "quarter") 
   if (item.kind === "class") return <ClassCard data={item.data} size={sizeHint} />;
   if (item.kind === "performance")
     return <PerformanceCard data={item.data} size={sizeHint} />;
-  return <SponsorAdCard data={item.data} size={sizeHint} />;
+  if (item.kind === "ad") return <SponsorAdCard data={item.data} size={sizeHint} />;
+  if (item.kind === "text") return <TextCard data={item.data} size={sizeHint} />;
+  return <ImageCard data={item.data} size={sizeHint} />;
 }
 
 function sizeHintFor(cells: number, totalCells: number): "hero" | "half" | "quarter" {

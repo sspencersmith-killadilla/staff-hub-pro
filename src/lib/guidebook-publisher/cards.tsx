@@ -259,6 +259,15 @@ export function EventCard({ data, size = "quarter" }: { data: EventCardData; siz
   );
 }
 
+export type ClassSession = {
+  id?: string;
+  start_time: string | null;
+  end_time?: string | null;
+  room_name?: string | null;
+  venue_name?: string | null;
+  instructor_name?: string | null;
+};
+
 export type ClassCardData = {
   course_title: string;
   start_time: string;
@@ -276,7 +285,14 @@ export type ClassCardData = {
   cta_label?: string | null;
   eyebrow_override?: string | null;
   sponsor?: SponsorRef | null;
+  sessions?: ClassSession[];
 };
+
+function fmtSessionLine(sess: ClassSession) {
+  const range = fmtRange(sess.start_time, sess.end_time);
+  const where = [sess.room_name, sess.venue_name].filter(Boolean).join(" · ");
+  return where ? `${range} — ${where}` : range;
+}
 
 export function ClassCard({ data, size = "quarter" }: { data: ClassCardData; size?: CardSize }) {
   const hero = size === "hero";
@@ -294,11 +310,27 @@ export function ClassCard({ data, size = "quarter" }: { data: ClassCardData; siz
       </Text>
       <Text style={hero ? s.titleLg : s.title}>{data.course_title}</Text>
       <View style={{ marginTop: 4 }}>
-        <MetaRow label="WHEN" value={fmtRange(data.start_time, data.end_time)} />
-        <MetaRow
-          label="WHERE"
-          value={[data.room_name, data.venue_name].filter(Boolean).join(" · ")}
-        />
+        {data.sessions && data.sessions.length > 1 ? (
+          <View style={{ marginBottom: 4 }}>
+            <Text style={[s.metaLabel, { width: "auto", marginBottom: 2 }]}>SESSIONS</Text>
+            {data.sessions.slice(0, hero ? 12 : size === "half" ? 8 : 5).map((sess, i) => (
+              <Text key={i} style={s.metaValue}>• {fmtSessionLine(sess)}</Text>
+            ))}
+            {data.sessions.length > (hero ? 12 : size === "half" ? 8 : 5) ? (
+              <Text style={[s.metaValue, { fontStyle: "italic" }]}>
+                +{data.sessions.length - (hero ? 12 : size === "half" ? 8 : 5)} more
+              </Text>
+            ) : null}
+          </View>
+        ) : (
+          <>
+            <MetaRow label="WHEN" value={fmtRange(data.start_time, data.end_time)} />
+            <MetaRow
+              label="WHERE"
+              value={[data.room_name, data.venue_name].filter(Boolean).join(" · ")}
+            />
+          </>
+        )}
         <MetaRow label="WITH" value={data.instructor_name ?? undefined} />
         <MetaRow
           label="PRICE"
@@ -428,6 +460,106 @@ export function SponsorAdCard({
         <Text style={[s.body, { textAlign: "center", marginTop: 0 }]} wrap>
           {data.ad_copy}
         </Text>
+      ) : null}
+    </View>
+  );
+}
+
+// ─── Custom Text Card ─────────────────────────────────────────────────
+export type TextCardData = {
+  heading?: string | null;
+  body?: string | null;
+  eyebrow?: string | null;
+  align?: "left" | "center";
+  background?: "paper" | "accent" | "ink";
+};
+
+export function TextCard({ data, size = "quarter" }: { data: TextCardData; size?: CardSize }) {
+  const hero = size === "hero";
+  const bg =
+    data.background === "accent"
+      ? TOKENS.color.accentSoft
+      : data.background === "ink"
+        ? TOKENS.color.ink
+        : TOKENS.color.paper;
+  const ink = data.background === "ink" ? "#FFFFFF" : TOKENS.color.ink;
+  const muted = data.background === "ink" ? "#CBD5E1" : TOKENS.color.muted;
+  return (
+    <View
+      style={[
+        s.card,
+        {
+          backgroundColor: bg,
+          alignItems: data.align === "center" ? "center" : "flex-start",
+          justifyContent: "center",
+          padding: 18,
+        },
+      ]}
+      wrap={false}
+    >
+      {data.eyebrow ? (
+        <Text style={[s.eyebrow, { color: TOKENS.color.accent }]}>{data.eyebrow}</Text>
+      ) : null}
+      {data.heading ? (
+        <Text
+          style={[
+            hero ? s.titleLg : s.title,
+            { color: ink, textAlign: data.align ?? "left", marginBottom: 6 },
+          ]}
+        >
+          {data.heading}
+        </Text>
+      ) : null}
+      {data.body ? (
+        <Text
+          style={[s.body, { color: muted, textAlign: data.align ?? "left", marginTop: 0 }]}
+          wrap
+        >
+          {data.body}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
+// ─── Custom Image Card ────────────────────────────────────────────────
+export type ImageCardData = {
+  image_url: string;
+  caption?: string | null;
+  focal_x?: number | null;
+  focal_y?: number | null;
+};
+
+export function ImageCard({ data }: { data: ImageCardData; size?: CardSize }) {
+  return (
+    <View style={[s.card, { padding: 0, overflow: "hidden" }]} wrap={false}>
+      {data.image_url ? (
+        <Image
+          src={data.image_url}
+          style={[
+            { width: "100%", height: data.caption ? "85%" : "100%", objectFit: "cover" },
+            focalStyle(data.focal_x, data.focal_y),
+          ]}
+        />
+      ) : (
+        <View
+          style={{
+            width: "100%",
+            height: "100%",
+            backgroundColor: TOKENS.color.line,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text style={{ fontSize: 10, color: TOKENS.color.muted }}>No image</Text>
+        </View>
+      )}
+      {data.caption ? (
+        <View style={{ padding: 8 }}>
+          <Text style={{ fontSize: 9, color: TOKENS.color.muted, fontFamily: "Helvetica" }}>
+            {data.caption}
+          </Text>
+        </View>
       ) : null}
     </View>
   );

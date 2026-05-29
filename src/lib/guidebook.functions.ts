@@ -208,21 +208,53 @@ async function fetchData(
       for (const d of r.data ?? []) deptsById.set(d.id, d);
     }
   }
-  const classes = classRows.map((c: any) => ({
-    id: c.id,
-    course_title: c.courses?.title ?? "Class",
-    start_time: c.start_time,
-    end_time: c.end_time,
-    room_name: c.rooms?.name ?? null,
-    venue_name: c.rooms?.venues?.name ?? null,
-    department_name: c.courses?.department_id
-      ? deptsById.get(c.courses.department_id)?.name ?? null
-      : null,
-    instructor_name: c.instructor_name ?? null,
-    price: Number(c.courses?.price ?? 0),
-    image_url: c.courses?.image_url ?? null,
-    description: c.courses?.description ?? null,
-  }));
+  // Group course_sessions by course_id so each class renders as ONE card
+  // with multiple session times listed inside.
+  const classesByCourse = new Map<string, any>();
+  for (const c of classRows as any[]) {
+    const courseId = c.course_id ?? c.id;
+    const session = {
+      id: c.id,
+      start_time: c.start_time,
+      end_time: c.end_time,
+      room_name: c.rooms?.name ?? null,
+      venue_name: c.rooms?.venues?.name ?? null,
+      instructor_name: c.instructor_name ?? null,
+    };
+    const existing = classesByCourse.get(courseId);
+    if (existing) {
+      existing.sessions.push(session);
+    } else {
+      classesByCourse.set(courseId, {
+        id: courseId,
+        course_title: c.courses?.title ?? "Class",
+        start_time: c.start_time,
+        end_time: c.end_time,
+        room_name: c.rooms?.name ?? null,
+        venue_name: c.rooms?.venues?.name ?? null,
+        department_name: c.courses?.department_id
+          ? deptsById.get(c.courses.department_id)?.name ?? null
+          : null,
+        instructor_name: c.instructor_name ?? null,
+        price: Number(c.courses?.price ?? 0),
+        image_url: c.courses?.image_url ?? null,
+        description: c.courses?.description ?? null,
+        sessions: [session],
+      });
+    }
+  }
+  const classes = Array.from(classesByCourse.values()).map((c: any) => {
+    const sortedSessions = [...c.sessions].sort((a: any, b: any) =>
+      (a.start_time ?? "").localeCompare(b.start_time ?? ""),
+    );
+    const first = sortedSessions[0] ?? {};
+    return {
+      ...c,
+      start_time: first.start_time ?? c.start_time,
+      end_time: first.end_time ?? c.end_time,
+      sessions: sortedSessions,
+    };
+  });
 
   return { events, gigs, classes, sponsors };
 }
@@ -405,6 +437,18 @@ export const applyForGuidebookSponsorship = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
     return { id: row.id, company_name: row.company_name };
+  });
+
+export const listGuidebookDepartments = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.userId);
+    const { data, error } = await supabaseAdmin
+      .from("departments")
+      .select("id, name")
+      .order("name", { ascending: true });
+    if (error) throw new Error(error.message);
+    return { departments: (data ?? []) as { id: string; name: string }[] };
   });
 
 export const listGuidebookSponsors = createServerFn({ method: "POST" })
