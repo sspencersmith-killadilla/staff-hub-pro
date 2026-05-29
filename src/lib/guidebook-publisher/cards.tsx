@@ -465,6 +465,106 @@ export function SponsorAdCard({
   );
 }
 
+// ─── Custom Text Card ─────────────────────────────────────────────────
+export type TextCardData = {
+  heading?: string | null;
+  body?: string | null;
+  eyebrow?: string | null;
+  align?: "left" | "center";
+  background?: "paper" | "accent" | "ink";
+};
+
+export function TextCard({ data, size = "quarter" }: { data: TextCardData; size?: CardSize }) {
+  const hero = size === "hero";
+  const bg =
+    data.background === "accent"
+      ? TOKENS.color.accentSoft
+      : data.background === "ink"
+        ? TOKENS.color.ink
+        : TOKENS.color.paper;
+  const ink = data.background === "ink" ? "#FFFFFF" : TOKENS.color.ink;
+  const muted = data.background === "ink" ? "#CBD5E1" : TOKENS.color.muted;
+  return (
+    <View
+      style={[
+        s.card,
+        {
+          backgroundColor: bg,
+          alignItems: data.align === "center" ? "center" : "flex-start",
+          justifyContent: "center",
+          padding: 18,
+        },
+      ]}
+      wrap={false}
+    >
+      {data.eyebrow ? (
+        <Text style={[s.eyebrow, { color: TOKENS.color.accent }]}>{data.eyebrow}</Text>
+      ) : null}
+      {data.heading ? (
+        <Text
+          style={[
+            hero ? s.titleLg : s.title,
+            { color: ink, textAlign: data.align ?? "left", marginBottom: 6 },
+          ]}
+        >
+          {data.heading}
+        </Text>
+      ) : null}
+      {data.body ? (
+        <Text
+          style={[s.body, { color: muted, textAlign: data.align ?? "left", marginTop: 0 }]}
+          wrap
+        >
+          {data.body}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
+// ─── Custom Image Card ────────────────────────────────────────────────
+export type ImageCardData = {
+  image_url: string;
+  caption?: string | null;
+  focal_x?: number | null;
+  focal_y?: number | null;
+};
+
+export function ImageCard({ data }: { data: ImageCardData; size?: CardSize }) {
+  return (
+    <View style={[s.card, { padding: 0, overflow: "hidden" }]} wrap={false}>
+      {data.image_url ? (
+        <Image
+          src={data.image_url}
+          style={[
+            { width: "100%", height: data.caption ? "85%" : "100%", objectFit: "cover" },
+            focalStyle(data.focal_x, data.focal_y),
+          ]}
+        />
+      ) : (
+        <View
+          style={{
+            width: "100%",
+            height: "100%",
+            backgroundColor: TOKENS.color.line,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text style={{ fontSize: 10, color: TOKENS.color.muted }}>No image</Text>
+        </View>
+      )}
+      {data.caption ? (
+        <View style={{ padding: 8 }}>
+          <Text style={{ fontSize: 9, color: TOKENS.color.muted, fontFamily: "Helvetica" }}>
+            {data.caption}
+          </Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 export function CoverCard({
   title,
   startDate,
