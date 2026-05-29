@@ -288,12 +288,45 @@ export const fetchGuidebookCanvasData = createServerFn({ method: "POST" })
   });
 
 // ─── Standalone guidebook sponsor management (no event required) ─────
+const optionalEmail = z.preprocess(
+  (v) => {
+    if (typeof v !== "string") return v;
+    const t = v.trim();
+    return t === "" ? null : t;
+  },
+  z.string().email().max(200).nullable().optional(),
+);
+const optionalShortString = z.preprocess(
+  (v) => {
+    if (typeof v !== "string") return v;
+    const t = v.trim();
+    return t === "" ? null : t;
+  },
+  z.string().max(200).nullable().optional(),
+);
+const optionalLongString = z.preprocess(
+  (v) => {
+    if (typeof v !== "string") return v;
+    const t = v.trim();
+    return t === "" ? null : t;
+  },
+  z.string().max(2000).nullable().optional(),
+);
+const optionalUrl = z.preprocess(
+  (v) => {
+    if (typeof v !== "string") return v;
+    const t = v.trim();
+    return t === "" ? null : t;
+  },
+  z.string().max(1000).nullable().optional(),
+);
+
 const StandaloneSponsorInput = z.object({
-  companyName: z.string().min(1).max(200),
-  contactName: z.string().min(1).max(200).optional().nullable(),
-  contactEmail: z.string().email().max(200).optional().nullable(),
-  logoUrl: z.string().max(1000).optional().nullable(),
-  adCopy: z.string().max(2000).optional().nullable(),
+  companyName: z.string().trim().min(1).max(200),
+  contactName: optionalShortString,
+  contactEmail: optionalEmail,
+  logoUrl: optionalUrl,
+  adCopy: optionalLongString,
 });
 
 async function getOrCreateGuidebookTierId(): Promise<string> {
