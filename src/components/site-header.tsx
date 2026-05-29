@@ -34,17 +34,24 @@ export function SiteHeader() {
         {/* Left Side: Brand & Quick Links */}
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2 font-semibold">
-            {globalBrand?.primary_logo_url ? (
-              <img
-                src={globalBrand.primary_logo_url}
-                alt={`${globalBrand.city_name ?? "City"} logo`}
-                className="h-6 w-auto"
-              />
-            ) : (
-              <Home className="h-4 w-4" />
-            )}
+            {(() => {
+              const logo =
+                globalBrand?.logo_light_url ??
+                globalBrand?.primary_logo_url ??
+                null;
+              return logo ? (
+                <img
+                  src={logo}
+                  alt={`${globalBrand?.city_name ?? "City"} logo`}
+                  className="h-6 w-auto"
+                />
+              ) : (
+                <Home className="h-4 w-4" />
+              );
+            })()}
             <span>{globalBrand?.city_name ?? "Home"}</span>
           </Link>
+
 
           <Link to="/manual" className="text-sm text-muted-foreground hover:text-foreground">
             Help Manual
