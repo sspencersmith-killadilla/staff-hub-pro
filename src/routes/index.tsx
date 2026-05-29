@@ -4,10 +4,12 @@ import { HomePageView } from "@/components/home/HomePageView";
 import { getHomeContent, type HomeContent } from "@/lib/home-content.functions";
 import { DEFAULT_HOME_CONTENT } from "@/lib/home-content-defaults";
 
-const homeQueryOptions = queryOptions({
-  queryKey: ["home-content"],
-  queryFn: () => getHomeContent(),
-});
+function homeQueryOptions(host: string) {
+  return queryOptions({
+    queryKey: ["home-content", host],
+    queryFn: () => getHomeContent({ data: { host } }),
+  });
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -21,7 +23,10 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Community Event & Partnership Portal" },
     ],
   }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(homeQueryOptions),
+  loader: ({ context }) => {
+    const host = typeof window !== "undefined" ? window.location.host : "";
+    return context.queryClient.ensureQueryData(homeQueryOptions(host));
+  },
   component: Home,
   errorComponent: ({ error }) => (
     <div className="p-8 text-sm text-destructive">
@@ -31,7 +36,8 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
-  const { data } = useSuspenseQuery(homeQueryOptions);
+  const host = typeof window !== "undefined" ? window.location.host : "";
+  const { data } = useSuspenseQuery(homeQueryOptions(host));
   const content: HomeContent = (data as HomeContent | null) ?? DEFAULT_HOME_CONTENT;
   return <HomePageView content={content} />;
 }
