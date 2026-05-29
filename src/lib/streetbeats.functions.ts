@@ -265,6 +265,8 @@ export const setGigStatus = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
     const slotId = toSlotId(data.id);
+    const dept = await getSlotDepartmentId(slotId);
+    await assertCanManageDepartment(context.userId, dept);
     if (data.status === "open") {
       const { error } = await supabaseAdmin
         .from("slots")
