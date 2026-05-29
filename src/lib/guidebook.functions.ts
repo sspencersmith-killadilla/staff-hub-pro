@@ -374,6 +374,34 @@ export const createStandaloneGuidebookSponsor = createServerFn({ method: "POST" 
       .single();
     if (error) throw new Error(error.message);
     return { id: row.id, company_name: row.company_name };
+
+// Public-facing: any signed-in user can apply to become a guidebook sponsor.
+// Creates a pending sponsor record under the Guidebook Ad Space tier;
+// admins approve it via the existing guidebook sponsor management UI.
+export const applyForGuidebookSponsorship = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => StandaloneSponsorInput.parse(i))
+  .handler(async ({ data, context }) => {
+    const tierId = await getOrCreateGuidebookTierId();
+    const { data: row, error } = await supabaseAdmin
+      .from("sponsors")
+      .insert([
+        {
+          user_id: context.userId,
+          company_name: data.companyName,
+          contact_name: data.contactName ?? null,
+          contact_email: data.contactEmail ?? context.claims?.email ?? null,
+          logo_url: data.logoUrl ?? null,
+          ad_copy: data.adCopy ?? null,
+          session_id: null,
+          sponsorship_tier_id: tierId,
+          status: "pending",
+        },
+      ])
+      .select("id, company_name")
+      .single();
+    if (error) throw new Error(error.message);
+    return { id: row.id, company_name: row.company_name };
   });
 
 export const listGuidebookSponsors = createServerFn({ method: "POST" })
