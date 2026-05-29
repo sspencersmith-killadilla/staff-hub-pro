@@ -167,6 +167,13 @@ function AdminPage() {
           >
             Executive analytics →
           </Link>
+          <Link
+            to="/staff/admin/branding"
+            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
+          >
+            Global branding →
+          </Link>
+
         </div>
       </div>
 

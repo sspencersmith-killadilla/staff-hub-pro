@@ -3,6 +3,7 @@ import { Home, LogOut, Building2, Check } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useModules } from "@/hooks/use-modules";
 import { useDepartment } from "@/contexts/department-context";
+import { useGlobalBrand } from "@/contexts/global-brand-context";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,7 +18,9 @@ export function SiteHeader() {
   const { me, isAuthenticated, isStaff, isAdmin, logout } = useAuth();
   const { isEnabled } = useModules();
   const { memberships, activeDepartment, setActiveDepartmentId } = useDepartment();
+  const { settings: globalBrand } = useGlobalBrand();
   const router = useRouter();
+
 
   const handleLogout = async () => {
     await logout();
@@ -31,8 +34,18 @@ export function SiteHeader() {
         {/* Left Side: Brand & Quick Links */}
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2 font-semibold">
-            <Home className="h-4 w-4" /> Home
+            {globalBrand?.primary_logo_url ? (
+              <img
+                src={globalBrand.primary_logo_url}
+                alt={`${globalBrand.city_name ?? "City"} logo`}
+                className="h-6 w-auto"
+              />
+            ) : (
+              <Home className="h-4 w-4" />
+            )}
+            <span>{globalBrand?.city_name ?? "Home"}</span>
           </Link>
+
           <Link to="/manual" className="text-sm text-muted-foreground hover:text-foreground">
             Help Manual
           </Link>

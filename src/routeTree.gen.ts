@@ -67,6 +67,7 @@ import { Route as AuthenticatedStaffAdminGuidebookPublisherRouteImport } from '.
 import { Route as AuthenticatedStaffAdminGuidebookCanvasRouteImport } from './routes/_authenticated/staff/admin.guidebook-canvas'
 import { Route as AuthenticatedStaffAdminGuidebookRouteImport } from './routes/_authenticated/staff/admin.guidebook'
 import { Route as AuthenticatedStaffAdminDepartmentsRouteImport } from './routes/_authenticated/staff/admin.departments'
+import { Route as AuthenticatedStaffAdminBrandingRouteImport } from './routes/_authenticated/staff/admin.branding'
 import { Route as AuthenticatedStaffAdminAnalyticsRouteImport } from './routes/_authenticated/staff/admin.analytics'
 import { Route as ApiPublicOauthMetaCallbackRouteImport } from './routes/api/public/oauth/meta/callback'
 import { Route as ApiPublicOauthLinkedinCallbackRouteImport } from './routes/api/public/oauth/linkedin/callback'
@@ -385,6 +386,12 @@ const AuthenticatedStaffAdminDepartmentsRoute =
     path: '/departments',
     getParentRoute: () => AuthenticatedStaffAdminRoute,
   } as any)
+const AuthenticatedStaffAdminBrandingRoute =
+  AuthenticatedStaffAdminBrandingRouteImport.update({
+    id: '/branding',
+    path: '/branding',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
 const AuthenticatedStaffAdminAnalyticsRoute =
   AuthenticatedStaffAdminAnalyticsRouteImport.update({
     id: '/analytics',
@@ -460,6 +467,7 @@ export interface FileRoutesByFullPath {
   '/events/permits/apply': typeof EventsPermitsApplyRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
   '/staff/admin/analytics': typeof AuthenticatedStaffAdminAnalyticsRoute
+  '/staff/admin/branding': typeof AuthenticatedStaffAdminBrandingRoute
   '/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
   '/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
   '/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
@@ -522,6 +530,7 @@ export interface FileRoutesByTo {
   '/events/permits/apply': typeof EventsPermitsApplyRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
   '/staff/admin/analytics': typeof AuthenticatedStaffAdminAnalyticsRoute
+  '/staff/admin/branding': typeof AuthenticatedStaffAdminBrandingRoute
   '/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
   '/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
   '/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
@@ -587,6 +596,7 @@ export interface FileRoutesById {
   '/events/permits/apply': typeof EventsPermitsApplyRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
   '/_authenticated/staff/admin/analytics': typeof AuthenticatedStaffAdminAnalyticsRoute
+  '/_authenticated/staff/admin/branding': typeof AuthenticatedStaffAdminBrandingRoute
   '/_authenticated/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
   '/_authenticated/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
   '/_authenticated/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
@@ -652,6 +662,7 @@ export interface FileRouteTypes {
     | '/events/permits/apply'
     | '/staff/'
     | '/staff/admin/analytics'
+    | '/staff/admin/branding'
     | '/staff/admin/departments'
     | '/staff/admin/guidebook'
     | '/staff/admin/guidebook-canvas'
@@ -714,6 +725,7 @@ export interface FileRouteTypes {
     | '/events/permits/apply'
     | '/staff'
     | '/staff/admin/analytics'
+    | '/staff/admin/branding'
     | '/staff/admin/departments'
     | '/staff/admin/guidebook'
     | '/staff/admin/guidebook-canvas'
@@ -778,6 +790,7 @@ export interface FileRouteTypes {
     | '/events/permits/apply'
     | '/_authenticated/staff/'
     | '/_authenticated/staff/admin/analytics'
+    | '/_authenticated/staff/admin/branding'
     | '/_authenticated/staff/admin/departments'
     | '/_authenticated/staff/admin/guidebook'
     | '/_authenticated/staff/admin/guidebook-canvas'
@@ -1229,6 +1242,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffAdminDepartmentsRouteImport
       parentRoute: typeof AuthenticatedStaffAdminRoute
     }
+    '/_authenticated/staff/admin/branding': {
+      id: '/_authenticated/staff/admin/branding'
+      path: '/branding'
+      fullPath: '/staff/admin/branding'
+      preLoaderRoute: typeof AuthenticatedStaffAdminBrandingRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
     '/_authenticated/staff/admin/analytics': {
       id: '/_authenticated/staff/admin/analytics'
       path: '/analytics'
@@ -1277,6 +1297,7 @@ const AuthenticatedStaffAdminSocialRouteWithChildren =
 
 interface AuthenticatedStaffAdminRouteChildren {
   AuthenticatedStaffAdminAnalyticsRoute: typeof AuthenticatedStaffAdminAnalyticsRoute
+  AuthenticatedStaffAdminBrandingRoute: typeof AuthenticatedStaffAdminBrandingRoute
   AuthenticatedStaffAdminDepartmentsRoute: typeof AuthenticatedStaffAdminDepartmentsRoute
   AuthenticatedStaffAdminGuidebookRoute: typeof AuthenticatedStaffAdminGuidebookRoute
   AuthenticatedStaffAdminGuidebookCanvasRoute: typeof AuthenticatedStaffAdminGuidebookCanvasRoute
@@ -1291,6 +1312,7 @@ const AuthenticatedStaffAdminRouteChildren: AuthenticatedStaffAdminRouteChildren
   {
     AuthenticatedStaffAdminAnalyticsRoute:
       AuthenticatedStaffAdminAnalyticsRoute,
+    AuthenticatedStaffAdminBrandingRoute: AuthenticatedStaffAdminBrandingRoute,
     AuthenticatedStaffAdminDepartmentsRoute:
       AuthenticatedStaffAdminDepartmentsRoute,
     AuthenticatedStaffAdminGuidebookRoute:
