@@ -238,7 +238,16 @@ function GuidebookSponsorsCard() {
       setAdCopy("");
       qc.invalidateQueries({ queryKey: ["guidebook-sponsors"] });
     },
-    onError: (e: any) => toast.error(e?.message ?? "Failed to add sponsor"),
+    onError: (e: any) => {
+      let msg = e?.message ?? "Failed to add sponsor";
+      try {
+        const parsed = JSON.parse(msg);
+        if (Array.isArray(parsed) && parsed[0]?.message) {
+          msg = parsed.map((p: any) => `${p.path?.join(".") ?? "field"}: ${p.message}`).join("; ");
+        }
+      } catch {}
+      toast.error(msg);
+    },
   });
 
   const deleteMut = useMutation({
