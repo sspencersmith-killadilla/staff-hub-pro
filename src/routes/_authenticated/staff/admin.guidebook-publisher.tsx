@@ -708,7 +708,7 @@ function fromLocalDt(v: string) {
 
 // Renders a PDF document into an iframe via BlobProvider. More robust across
 // Vite/React 19 setups than @react-pdf/renderer's built-in <PDFViewer>.
-function PdfPreview({ pdfMod, doc }: { pdfMod: any; doc: React.ReactElement }) {
+function PdfPreview({ pdfMod, doc }: { pdfMod: any; doc: ReactElement }) {
   const { BlobProvider } = pdfMod;
   return (
     <BlobProvider document={doc}>
