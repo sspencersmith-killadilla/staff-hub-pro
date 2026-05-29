@@ -88,7 +88,9 @@ function CommunityEventFlyer() {
       : event.location?.name ?? null;
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] py-10 px-4 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-screen bg-[#f8f9fa] font-sans">
+      <SiteHeader />
+      <div className="py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         <Link
           to="/events"
