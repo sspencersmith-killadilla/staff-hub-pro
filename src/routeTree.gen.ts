@@ -67,6 +67,7 @@ import { Route as AuthenticatedStaffAdminGuidebookPublisherRouteImport } from '.
 import { Route as AuthenticatedStaffAdminGuidebookCanvasRouteImport } from './routes/_authenticated/staff/admin.guidebook-canvas'
 import { Route as AuthenticatedStaffAdminGuidebookRouteImport } from './routes/_authenticated/staff/admin.guidebook'
 import { Route as AuthenticatedStaffAdminDepartmentsRouteImport } from './routes/_authenticated/staff/admin.departments'
+import { Route as AuthenticatedStaffAdminAnalyticsRouteImport } from './routes/_authenticated/staff/admin.analytics'
 import { Route as ApiPublicOauthMetaCallbackRouteImport } from './routes/api/public/oauth/meta/callback'
 import { Route as ApiPublicOauthLinkedinCallbackRouteImport } from './routes/api/public/oauth/linkedin/callback'
 import { Route as AuthenticatedStaffAdminSocialConnectionsRouteImport } from './routes/_authenticated/staff/admin.social.connections'
@@ -384,6 +385,12 @@ const AuthenticatedStaffAdminDepartmentsRoute =
     path: '/departments',
     getParentRoute: () => AuthenticatedStaffAdminRoute,
   } as any)
+const AuthenticatedStaffAdminAnalyticsRoute =
+  AuthenticatedStaffAdminAnalyticsRouteImport.update({
+    id: '/analytics',
+    path: '/analytics',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
 const ApiPublicOauthMetaCallbackRoute =
   ApiPublicOauthMetaCallbackRouteImport.update({
     id: '/api/public/oauth/meta/callback',
@@ -452,6 +459,7 @@ export interface FileRoutesByFullPath {
   '/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
   '/events/permits/apply': typeof EventsPermitsApplyRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
+  '/staff/admin/analytics': typeof AuthenticatedStaffAdminAnalyticsRoute
   '/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
   '/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
   '/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
@@ -513,6 +521,7 @@ export interface FileRoutesByTo {
   '/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
   '/events/permits/apply': typeof EventsPermitsApplyRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
+  '/staff/admin/analytics': typeof AuthenticatedStaffAdminAnalyticsRoute
   '/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
   '/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
   '/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
@@ -577,6 +586,7 @@ export interface FileRoutesById {
   '/_authenticated/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
   '/events/permits/apply': typeof EventsPermitsApplyRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
+  '/_authenticated/staff/admin/analytics': typeof AuthenticatedStaffAdminAnalyticsRoute
   '/_authenticated/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
   '/_authenticated/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
   '/_authenticated/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
@@ -641,6 +651,7 @@ export interface FileRouteTypes {
     | '/streetbeats/my-gigs'
     | '/events/permits/apply'
     | '/staff/'
+    | '/staff/admin/analytics'
     | '/staff/admin/departments'
     | '/staff/admin/guidebook'
     | '/staff/admin/guidebook-canvas'
@@ -702,6 +713,7 @@ export interface FileRouteTypes {
     | '/streetbeats/my-gigs'
     | '/events/permits/apply'
     | '/staff'
+    | '/staff/admin/analytics'
     | '/staff/admin/departments'
     | '/staff/admin/guidebook'
     | '/staff/admin/guidebook-canvas'
@@ -765,6 +777,7 @@ export interface FileRouteTypes {
     | '/_authenticated/streetbeats/my-gigs'
     | '/events/permits/apply'
     | '/_authenticated/staff/'
+    | '/_authenticated/staff/admin/analytics'
     | '/_authenticated/staff/admin/departments'
     | '/_authenticated/staff/admin/guidebook'
     | '/_authenticated/staff/admin/guidebook-canvas'
@@ -1216,6 +1229,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffAdminDepartmentsRouteImport
       parentRoute: typeof AuthenticatedStaffAdminRoute
     }
+    '/_authenticated/staff/admin/analytics': {
+      id: '/_authenticated/staff/admin/analytics'
+      path: '/analytics'
+      fullPath: '/staff/admin/analytics'
+      preLoaderRoute: typeof AuthenticatedStaffAdminAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
     '/api/public/oauth/meta/callback': {
       id: '/api/public/oauth/meta/callback'
       path: '/api/public/oauth/meta/callback'
@@ -1256,6 +1276,7 @@ const AuthenticatedStaffAdminSocialRouteWithChildren =
   )
 
 interface AuthenticatedStaffAdminRouteChildren {
+  AuthenticatedStaffAdminAnalyticsRoute: typeof AuthenticatedStaffAdminAnalyticsRoute
   AuthenticatedStaffAdminDepartmentsRoute: typeof AuthenticatedStaffAdminDepartmentsRoute
   AuthenticatedStaffAdminGuidebookRoute: typeof AuthenticatedStaffAdminGuidebookRoute
   AuthenticatedStaffAdminGuidebookCanvasRoute: typeof AuthenticatedStaffAdminGuidebookCanvasRoute
@@ -1268,6 +1289,8 @@ interface AuthenticatedStaffAdminRouteChildren {
 
 const AuthenticatedStaffAdminRouteChildren: AuthenticatedStaffAdminRouteChildren =
   {
+    AuthenticatedStaffAdminAnalyticsRoute:
+      AuthenticatedStaffAdminAnalyticsRoute,
     AuthenticatedStaffAdminDepartmentsRoute:
       AuthenticatedStaffAdminDepartmentsRoute,
     AuthenticatedStaffAdminGuidebookRoute:

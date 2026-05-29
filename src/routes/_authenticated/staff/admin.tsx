@@ -161,6 +161,12 @@ function AdminPage() {
           >
             Permit settings →
           </Link>
+          <Link
+            to="/staff/admin/analytics"
+            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
+          >
+            Executive analytics →
+          </Link>
         </div>
       </div>
 
