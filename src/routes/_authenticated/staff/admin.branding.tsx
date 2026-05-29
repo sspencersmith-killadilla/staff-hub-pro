@@ -223,6 +223,98 @@ function BrandingPage() {
     };
   }
 
+  async function uploadBlob(blob: Blob, kind: string, ext = "png"): Promise<string | null> {
+    const path = `${kind}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage
+      .from("branding")
+      .upload(path, blob, { upsert: true, contentType: blob.type || "image/png" });
+    if (error) {
+      toast.error(error.message);
+      return null;
+    }
+    const { data: pub } = supabase.storage.from("branding").getPublicUrl(path);
+    return pub.publicUrl;
+  }
+
+  async function handleFaviconAutoResize(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingKey("favicon_auto");
+    try {
+      const set = await generateFaviconSet(file);
+      const [u32, u180, u512] = await Promise.all([
+        uploadBlob(set[32], "favicon-32"),
+        uploadBlob(set[180], "favicon-180"),
+        uploadBlob(set[512], "favicon-512"),
+      ]);
+      setForm((f) => ({
+        ...f,
+        favicon_url: u32 ?? f.favicon_url,
+        favicon_180_url: u180 ?? f.favicon_180_url,
+        favicon_512_url: u512 ?? f.favicon_512_url,
+      }));
+      toast.success("Generated 32, 180, and 512 px favicons.");
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setUploadingKey(null);
+    }
+  }
+
+  // ---------- Presets ----------
+  const [presetName, setPresetName] = useState("");
+  const savePresetMut = useMutation({
+    mutationFn: () =>
+      savePresetFn({
+        data: {
+          name: presetName.trim(),
+          tokens: buildPatch() as any,
+          logo_urls: {
+            light: form.primary_logo_url || null,
+            dark: form.logo_dark_url || null,
+            favicon: form.favicon_url || null,
+          },
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Preset saved.");
+      setPresetName("");
+      qc.invalidateQueries({ queryKey: ["brand-presets"] });
+    },
+    onError: (e) => toast.error((e as Error).message),
+  });
+  const deletePresetMut = useMutation({
+    mutationFn: (id: string) => deletePresetFn({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Preset deleted.");
+      qc.invalidateQueries({ queryKey: ["brand-presets"] });
+    },
+    onError: (e) => toast.error((e as Error).message),
+  });
+  function applyPreset(preset: { tokens: any; logo_urls: any }) {
+    const t = preset.tokens ?? {};
+    const l = preset.logo_urls ?? {};
+    setForm((f) => ({
+      ...f,
+      city_name: t.city_name ?? f.city_name,
+      primary_color: t.primary_color ?? f.primary_color,
+      secondary_color: t.secondary_color ?? f.secondary_color,
+      accent_color: t.accent_color ?? f.accent_color,
+      background_color: t.background_color ?? f.background_color,
+      foreground_color: t.foreground_color ?? f.foreground_color,
+      muted_color: t.muted_color ?? f.muted_color,
+      destructive_color: t.destructive_color ?? f.destructive_color,
+      radius: t.radius ?? f.radius,
+      heading_font: t.heading_font ?? f.heading_font,
+      body_font: t.body_font ?? f.body_font,
+      primary_logo_url: l.light ?? t.primary_logo_url ?? f.primary_logo_url,
+      logo_dark_url: l.dark ?? t.logo_dark_url ?? f.logo_dark_url,
+      favicon_url: l.favicon ?? t.favicon_url ?? f.favicon_url,
+    }));
+    toast.info("Preset applied. Click Publish to make it live.");
+  }
+
+
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     publish.mutate();
