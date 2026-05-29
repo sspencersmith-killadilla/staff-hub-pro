@@ -197,19 +197,25 @@ function PublisherPage() {
   const dateError =
     startDate && endDate && startDate > endDate ? "End date must be after start date." : null;
 
-  // PDF preview (client-only)
-  const [PDFViewer, setPDFViewer] = useState<any>(null);
+  // PDF preview (client-only) — use BlobProvider + iframe (more robust than PDFViewer in Vite)
+  const [pdfMod, setPdfMod] = useState<any>(null);
   const [GuidebookDocument, setGuidebookDocument] = useState<any>(null);
+  const [pdfLoadError, setPdfLoadError] = useState<string | null>(null);
   useEffect(() => {
     if (!mounted) return;
     let alive = true;
-    Promise.all([import("@react-pdf/renderer"), import("@/lib/guidebook-publisher/document")]).then(
-      ([rp, doc]) => {
+    Promise.all([import("@react-pdf/renderer"), import("@/lib/guidebook-publisher/document")])
+      .then(([rp, doc]) => {
         if (!alive) return;
-        setPDFViewer(() => rp.PDFViewer);
+        setPdfMod(() => rp);
         setGuidebookDocument(() => doc.GuidebookDocument);
-      },
-    );
+      })
+      .catch((err) => {
+        if (!alive) return;
+        // eslint-disable-next-line no-console
+        console.error("Failed to load PDF preview modules", err);
+        setPdfLoadError(err?.message ?? String(err));
+      });
     return () => {
       alive = false;
     };
