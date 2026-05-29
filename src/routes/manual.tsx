@@ -1153,6 +1153,7 @@ const sections: Section[] = [
           <li><strong>Drag</strong> any row to reorder it within the print edition.</li>
           <li><strong>Hide / show</strong> items that don't fit the visual flow.</li>
           <li><strong>Edit print copy</strong> to override a title or description just for this edition — the underlying database record is not touched.</li>
+          <li><strong>Reframe the card image</strong> — click and drag on any card's image to set its focal point. The PDF crops around that point so faces and signage stay in frame.</li>
           <li><strong>Insert ad slot</strong> drops a sponsor's bought ad block exactly between any two listings.</li>
           <li>Click <strong>Export PDF</strong> to render the final layout.</li>
         </ul>
