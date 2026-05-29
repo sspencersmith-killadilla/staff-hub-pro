@@ -106,6 +106,7 @@ const s = StyleSheet.create({
     textTransform: "uppercase",
   },
   image: { width: "100%", height: 110, objectFit: "cover", marginBottom: 10 },
+  imageSm: { width: "100%", height: 64, objectFit: "cover", marginBottom: 8 },
   imageLg: { width: "100%", height: 220, objectFit: "cover", marginBottom: 12 },
   sponsorTag: {
     position: "absolute",
