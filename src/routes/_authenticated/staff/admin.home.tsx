@@ -586,27 +586,28 @@ function RowActions({
 function SectionEditor({
   section,
   onChange,
-  onMoveUp,
-  onMoveDown,
   onRemove,
+  dragHandle,
 }: {
   section: HomeSection;
   onChange: (s: HomeSection) => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
   onRemove: () => void;
+  dragHandle?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-md border p-4 space-y-3">
+    <div className="rounded-md border p-4 space-y-3 bg-background">
       <div className="flex items-center justify-between">
-        <div className="text-sm font-semibold capitalize">
-          {section.type.replace("_", " ")}
+        <div className="flex items-center gap-2">
+          {dragHandle}
+          <div className="text-sm font-semibold capitalize">
+            {section.type.replace("_", " ")}
+          </div>
         </div>
-        <RowActions
-          onMove={(d) => (d === -1 ? onMoveUp() : onMoveDown())}
-          onRemove={onRemove}
-        />
+        <Button type="button" size="icon" variant="ghost" onClick={onRemove}>
+          <Trash2 className="h-4 w-4 text-destructive" />
+        </Button>
       </div>
+
       {section.type === "portal_cards" && (
         <PortalCardsEditor section={section} onChange={onChange} />
       )}
