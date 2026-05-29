@@ -185,6 +185,8 @@ export const deleteCourseSession = createServerFn({ method: "POST" })
   .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
+    const dept = await getCourseSessionDepartmentId(data.id);
+    await assertCanManageDepartment(context.userId, dept);
     // ON DELETE CASCADE on room_reservations.course_session_id clears the block
     const { error } = await supabaseAdmin
       .from("course_sessions")
