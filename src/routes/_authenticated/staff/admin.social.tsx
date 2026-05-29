@@ -648,7 +648,14 @@ function ComposerDialog({
                 {(Object.keys(PLATFORM_META) as Platform[])
                   .filter((p) => platforms[p])
                   .map((p) => (
-                    <PreviewCard key={p} platform={p} caption={caption} mediaUrl={mediaUrl} />
+                    <PreviewCard
+                      key={p}
+                      platform={p}
+                      caption={caption}
+                      mediaUrl={mediaUrl}
+                      accountName={accountByPlatform[p]}
+                      departmentName={departmentName}
+                    />
                   ))}
                 {Object.values(platforms).every((v) => !v) && (
                   <p className="text-sm text-muted-foreground">
