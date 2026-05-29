@@ -16,13 +16,15 @@ import {
   type ExplainerItem,
   type HeroSecondaryCta,
 } from "@/lib/home-content.functions";
-import { listBrandVersions } from "@/lib/global-settings.functions";
+import { listBrandVersions, listTenants } from "@/lib/global-settings.functions";
 import { DEFAULT_HOME_CONTENT } from "@/lib/home-content-defaults";
 import { HomePageView } from "@/components/home/HomePageView";
 import {
   ICON_KEYS,
   COLOR_THEMES,
 } from "@/components/home/icon-registry";
+import { SortableList } from "@/components/admin/SortableList";
+import { ImageUploader } from "@/components/admin/ImageUploader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,7 +44,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronUp, ChevronDown, Trash2, Plus } from "lucide-react";
+import { Trash2, Plus } from "lucide-react";
+
 
 export const Route = createFileRoute("/_authenticated/staff/admin/home")({
   beforeLoad: async () => {
