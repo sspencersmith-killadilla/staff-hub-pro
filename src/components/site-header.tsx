@@ -3,6 +3,7 @@ import { Home, LogOut, Building2, Check } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useModules } from "@/hooks/use-modules";
 import { useDepartment } from "@/contexts/department-context";
+import { useGlobalBrand } from "@/contexts/global-brand-context";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,7 +18,9 @@ export function SiteHeader() {
   const { me, isAuthenticated, isStaff, isAdmin, logout } = useAuth();
   const { isEnabled } = useModules();
   const { memberships, activeDepartment, setActiveDepartmentId } = useDepartment();
+  const { settings: globalBrand } = useGlobalBrand();
   const router = useRouter();
+
 
   const handleLogout = async () => {
     await logout();
