@@ -173,6 +173,14 @@ function AdminPage() {
           >
             Global branding →
           </Link>
+          <Link
+            to="/staff/admin/tenants"
+            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
+          >
+            Manage tenants →
+          </Link>
+
+
 
         </div>
       </div>

@@ -60,6 +60,7 @@ import { Route as AuthenticatedCommunityManageRouteImport } from './routes/_auth
 import { Route as AuthenticatedCommunityApplyRouteImport } from './routes/_authenticated/community/apply'
 import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
 import { Route as AuthenticatedStaffEventsIdRouteImport } from './routes/_authenticated/staff/events.$id'
+import { Route as AuthenticatedStaffAdminTenantsRouteImport } from './routes/_authenticated/staff/admin.tenants'
 import { Route as AuthenticatedStaffAdminSocialIntegrationsRouteImport } from './routes/_authenticated/staff/admin.social-integrations'
 import { Route as AuthenticatedStaffAdminSocialRouteImport } from './routes/_authenticated/staff/admin.social'
 import { Route as AuthenticatedStaffAdminPermitsRouteImport } from './routes/_authenticated/staff/admin.permits'
@@ -345,6 +346,12 @@ const AuthenticatedStaffEventsIdRoute =
     path: '/events/$id',
     getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
+const AuthenticatedStaffAdminTenantsRoute =
+  AuthenticatedStaffAdminTenantsRouteImport.update({
+    id: '/tenants',
+    path: '/tenants',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
 const AuthenticatedStaffAdminSocialIntegrationsRoute =
   AuthenticatedStaffAdminSocialIntegrationsRouteImport.update({
     id: '/social-integrations',
@@ -483,6 +490,7 @@ export interface FileRoutesByFullPath {
   '/staff/admin/permits': typeof AuthenticatedStaffAdminPermitsRoute
   '/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
   '/staff/admin/social-integrations': typeof AuthenticatedStaffAdminSocialIntegrationsRoute
+  '/staff/admin/tenants': typeof AuthenticatedStaffAdminTenantsRoute
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
   '/staff/admin/social/connections': typeof AuthenticatedStaffAdminSocialConnectionsRoute
@@ -547,6 +555,7 @@ export interface FileRoutesByTo {
   '/staff/admin/permits': typeof AuthenticatedStaffAdminPermitsRoute
   '/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
   '/staff/admin/social-integrations': typeof AuthenticatedStaffAdminSocialIntegrationsRoute
+  '/staff/admin/tenants': typeof AuthenticatedStaffAdminTenantsRoute
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
   '/staff/admin/social/connections': typeof AuthenticatedStaffAdminSocialConnectionsRoute
@@ -614,6 +623,7 @@ export interface FileRoutesById {
   '/_authenticated/staff/admin/permits': typeof AuthenticatedStaffAdminPermitsRoute
   '/_authenticated/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
   '/_authenticated/staff/admin/social-integrations': typeof AuthenticatedStaffAdminSocialIntegrationsRoute
+  '/_authenticated/staff/admin/tenants': typeof AuthenticatedStaffAdminTenantsRoute
   '/_authenticated/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
   '/_authenticated/staff/admin/social/connections': typeof AuthenticatedStaffAdminSocialConnectionsRoute
@@ -681,6 +691,7 @@ export interface FileRouteTypes {
     | '/staff/admin/permits'
     | '/staff/admin/social'
     | '/staff/admin/social-integrations'
+    | '/staff/admin/tenants'
     | '/staff/events/$id'
     | '/api/public/manifest/webmanifest'
     | '/staff/admin/social/connections'
@@ -745,6 +756,7 @@ export interface FileRouteTypes {
     | '/staff/admin/permits'
     | '/staff/admin/social'
     | '/staff/admin/social-integrations'
+    | '/staff/admin/tenants'
     | '/staff/events/$id'
     | '/api/public/manifest/webmanifest'
     | '/staff/admin/social/connections'
@@ -811,6 +823,7 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/admin/permits'
     | '/_authenticated/staff/admin/social'
     | '/_authenticated/staff/admin/social-integrations'
+    | '/_authenticated/staff/admin/tenants'
     | '/_authenticated/staff/events/$id'
     | '/api/public/manifest/webmanifest'
     | '/_authenticated/staff/admin/social/connections'
@@ -1207,6 +1220,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffEventsIdRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
     }
+    '/_authenticated/staff/admin/tenants': {
+      id: '/_authenticated/staff/admin/tenants'
+      path: '/tenants'
+      fullPath: '/staff/admin/tenants'
+      preLoaderRoute: typeof AuthenticatedStaffAdminTenantsRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
     '/_authenticated/staff/admin/social-integrations': {
       id: '/_authenticated/staff/admin/social-integrations'
       path: '/social-integrations'
@@ -1327,6 +1347,7 @@ interface AuthenticatedStaffAdminRouteChildren {
   AuthenticatedStaffAdminPermitsRoute: typeof AuthenticatedStaffAdminPermitsRoute
   AuthenticatedStaffAdminSocialRoute: typeof AuthenticatedStaffAdminSocialRouteWithChildren
   AuthenticatedStaffAdminSocialIntegrationsRoute: typeof AuthenticatedStaffAdminSocialIntegrationsRoute
+  AuthenticatedStaffAdminTenantsRoute: typeof AuthenticatedStaffAdminTenantsRoute
 }
 
 const AuthenticatedStaffAdminRouteChildren: AuthenticatedStaffAdminRouteChildren =
@@ -1349,6 +1370,7 @@ const AuthenticatedStaffAdminRouteChildren: AuthenticatedStaffAdminRouteChildren
       AuthenticatedStaffAdminSocialRouteWithChildren,
     AuthenticatedStaffAdminSocialIntegrationsRoute:
       AuthenticatedStaffAdminSocialIntegrationsRoute,
+    AuthenticatedStaffAdminTenantsRoute: AuthenticatedStaffAdminTenantsRoute,
   }
 
 const AuthenticatedStaffAdminRouteWithChildren =
