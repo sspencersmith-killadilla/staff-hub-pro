@@ -562,7 +562,120 @@ function InspectorPanel({
 }) {
   const d: any = item.data;
   const isAd = item.kind === "ad";
+  const isText = item.kind === "text";
+  const isImage = item.kind === "image";
+  const isCustom = isText || isImage;
   const titleField = item.kind === "class" ? "course_title" : "title";
+
+  // Custom (text/image) sections get a dedicated inspector
+  if (isCustom) {
+    return (
+      <div className="space-y-3 p-1 text-xs">
+        <div>
+          <Label className="text-[11px]">Card type</Label>
+          <div className="text-xs font-medium">{KIND_LABEL[item.kind]}</div>
+        </div>
+        <div>
+          <Label className="text-[11px]">Grid span</Label>
+          <Select
+            value={spanId(item.span)}
+            onValueChange={(v) => {
+              const opt = SPAN_OPTIONS.find((o) => o.id === v);
+              if (opt) onSpan(opt.span);
+            }}
+          >
+            <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {SPAN_OPTIONS.map((o) => (
+                <SelectItem key={o.id} value={o.id}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {isText && (
+          <>
+            <FieldInput
+              label="Eyebrow (optional)"
+              value={d.eyebrow}
+              onChange={(v) => onUpdate({ eyebrow: v })}
+              placeholder="e.g. WELCOME"
+            />
+            <FieldInput
+              label="Heading"
+              value={d.heading}
+              onChange={(v) => onUpdate({ heading: v })}
+            />
+            <div>
+              <Label className="text-[11px]">Body</Label>
+              <Textarea
+                className="min-h-[120px] text-xs"
+                value={d.body ?? ""}
+                onChange={(e) => onUpdate({ body: e.target.value || null })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-[11px]">Align</Label>
+                <Select value={d.align ?? "left"} onValueChange={(v) => onUpdate({ align: v })}>
+                  <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="left">Left</SelectItem>
+                    <SelectItem value="center">Center</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-[11px]">Background</Label>
+                <Select
+                  value={d.background ?? "paper"}
+                  onValueChange={(v) => onUpdate({ background: v })}
+                >
+                  <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="paper">Paper</SelectItem>
+                    <SelectItem value="accent">Accent</SelectItem>
+                    <SelectItem value="ink">Ink (dark)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </>
+        )}
+
+        {isImage && (
+          <>
+            <FieldInput
+              label="Image URL"
+              value={d.image_url}
+              onChange={(v) => onUpdate({ image_url: v ?? "" })}
+              placeholder="https://…"
+            />
+            {d.image_url ? (
+              <ImageFocalPicker
+                src={d.image_url}
+                x={d.focal_x ?? 50}
+                y={d.focal_y ?? 50}
+                onChange={({ x, y }: { x: number; y: number }) =>
+                  onUpdate({ focal_x: x, focal_y: y })
+                }
+              />
+            ) : (
+              <p className="text-[10px] text-muted-foreground">
+                Paste an image URL above to position it.
+              </p>
+            )}
+            <FieldInput
+              label="Caption (optional)"
+              value={d.caption}
+              onChange={(v) => onUpdate({ caption: v })}
+            />
+          </>
+        )}
+      </div>
+    );
+  }
+
 
   return (
     <div className="space-y-3 p-1 text-xs">
