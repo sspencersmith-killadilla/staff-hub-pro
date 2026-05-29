@@ -783,6 +783,10 @@ function ApplyTab({
   const [appType, setAppType] = useState<Kind>("vendor");
   const [sessionId, setSessionId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sellingItems, setSellingItems] = useState(false);
+  const [isLicensed, setIsLicensed] = useState(false);
+  const [permitUrls, setPermitUrls] = useState<string[]>([]);
+  const [uploadingPermit, setUploadingPermit] = useState(false);
 
   const fetchSessions = useServerFn(listOpenSessions);
   const fetchTiers = useServerFn(listTiers);
@@ -814,6 +818,17 @@ function ApplyTab({
           logoUrl: (fd.get("logoUrl") as string) || null,
           notes: (fd.get("notes") as string) || null,
           adCopy: (fd.get("adCopy") as string) || null,
+          sellingItems: appType === "vendor" ? sellingItems : undefined,
+          itemsDescription:
+            appType === "vendor" && sellingItems
+              ? ((fd.get("itemsDescription") as string) || null)
+              : null,
+          isLicensed: appType === "vendor" ? isLicensed : undefined,
+          permitUrls: appType === "vendor" ? permitUrls : undefined,
+          specialRequirements:
+            appType === "vendor"
+              ? ((fd.get("specialRequirements") as string) || null)
+              : null,
         },
       });
       alert(
@@ -824,6 +839,33 @@ function ApplyTab({
       alert("Error: " + err.message);
     }
     setLoading(false);
+  };
+
+  const handlePermitUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+    setUploadingPermit(true);
+    try {
+      const uploaded: string[] = [];
+      for (const file of files) {
+        const ext = file.name.split(".").pop() ?? "bin";
+        const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+        const { error } = await supabase.storage
+          .from("vendor-permits")
+          .upload(path, file, { upsert: false, contentType: file.type });
+        if (error) throw error;
+        const { data: pub } = supabase.storage
+          .from("vendor-permits")
+          .getPublicUrl(path);
+        uploaded.push(pub.publicUrl);
+      }
+      setPermitUrls((prev) => [...prev, ...uploaded]);
+    } catch (err: any) {
+      alert("Upload failed: " + err.message);
+    } finally {
+      setUploadingPermit(false);
+      e.target.value = "";
+    }
   };
 
   const tierList = tiers ?? [];
@@ -1003,6 +1045,117 @@ function ApplyTab({
                 />
               </div>
             )}
+
+            {appType === "vendor" && (
+              <div className="space-y-5 rounded-lg border border-gray-200 bg-gray-50/60 p-4">
+                <div>
+                  <label className="flex items-start gap-2 text-sm font-bold text-[#112e51]">
+                    <input
+                      type="checkbox"
+                      checked={sellingItems}
+                      onChange={(e) => setSellingItems(e.target.checked)}
+                      className="mt-1 h-4 w-4"
+                    />
+                    <span>Will you be selling items at the event?</span>
+                  </label>
+                </div>
+
+                {sellingItems && (
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Describe the items you will be selling *
+                    </label>
+                    <textarea
+                      name="itemsDescription"
+                      rows={3}
+                      maxLength={2000}
+                      placeholder="List the products / merchandise / food items you intend to sell."
+                      className="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-[#005ea2] outline-none resize-none"
+                      required
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="flex items-start gap-2 text-sm font-bold text-[#112e51]">
+                    <input
+                      type="checkbox"
+                      checked={isLicensed}
+                      onChange={(e) => setIsLicensed(e.target.checked)}
+                      className="mt-1 h-4 w-4"
+                    />
+                    <span>
+                      Are you licensed to do business and sell items?
+                    </span>
+                  </label>
+                  <p className="ml-6 mt-1 text-[11px] text-gray-500">
+                    Upload your business license, seller's permit, food-handler
+                    certificate, or any other proof required for your booth.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    Upload Permits / Licenses (PDF or image)
+                  </label>
+                  <input
+                    type="file"
+                    accept="application/pdf,image/*"
+                    multiple
+                    onChange={handlePermitUpload}
+                    disabled={uploadingPermit}
+                    className="block w-full text-sm text-gray-600 file:mr-3 file:rounded file:border-0 file:bg-[#005ea2] file:px-3 file:py-2 file:text-xs file:font-bold file:uppercase file:text-white hover:file:bg-[#1a4480] disabled:opacity-50"
+                  />
+                  {uploadingPermit && (
+                    <p className="mt-1 text-xs text-gray-500">Uploading…</p>
+                  )}
+                  {permitUrls.length > 0 && (
+                    <ul className="mt-2 space-y-1">
+                      {permitUrls.map((url, i) => (
+                        <li
+                          key={url}
+                          className="flex items-center justify-between gap-2 rounded border border-gray-200 bg-white px-2 py-1 text-xs"
+                        >
+                          <a
+                            href={url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="truncate text-[#005ea2] hover:underline"
+                          >
+                            Permit #{i + 1}
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPermitUrls((prev) =>
+                                prev.filter((u) => u !== url),
+                              )
+                            }
+                            className="text-red-600 hover:underline"
+                          >
+                            Remove
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    Special Requirements (Optional)
+                  </label>
+                  <textarea
+                    name="specialRequirements"
+                    rows={3}
+                    maxLength={2000}
+                    placeholder="Power, water, tent, ADA access, vehicle load-in, allergens, etc."
+                    className="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-[#005ea2] outline-none resize-none"
+                  />
+                </div>
+              </div>
+            )}
+
 
             {appType === "sponsor" && (
               <div>

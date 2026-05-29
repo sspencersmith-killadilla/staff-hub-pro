@@ -81,6 +81,11 @@ const SubmitInput = z.object({
   logoUrl: z.string().max(1000).optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
   adCopy: z.string().max(2000).optional().nullable(),
+  sellingItems: z.boolean().optional(),
+  itemsDescription: z.string().max(2000).optional().nullable(),
+  isLicensed: z.boolean().optional(),
+  permitUrls: z.array(z.string().max(1000)).max(10).optional(),
+  specialRequirements: z.string().max(2000).optional().nullable(),
 });
 
 export const submitApplication = createServerFn({ method: "POST" })
@@ -100,6 +105,11 @@ export const submitApplication = createServerFn({ method: "POST" })
           session_id: data.sessionId,
           vendor_tier_id: data.tierId,
           status: "pending",
+          selling_items: data.sellingItems ?? false,
+          items_description: data.itemsDescription ?? null,
+          is_licensed: data.isLicensed ?? false,
+          permit_urls: data.permitUrls ?? [],
+          special_requirements: data.specialRequirements ?? null,
         },
       ]);
       if (error) throw new Error(error.message);
@@ -131,6 +141,11 @@ const UpdateInput = z.object({
   logo_url: z.string().max(1000).optional().nullable(),
   application_notes: z.string().max(2000).optional().nullable(),
   photo_urls: z.array(z.string().max(1000)).max(20).optional(),
+  selling_items: z.boolean().optional(),
+  items_description: z.string().max(2000).optional().nullable(),
+  is_licensed: z.boolean().optional(),
+  permit_urls: z.array(z.string().max(1000)).max(10).optional(),
+  special_requirements: z.string().max(2000).optional().nullable(),
 });
 
 export const updateApplication = createServerFn({ method: "POST" })
@@ -139,15 +154,21 @@ export const updateApplication = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const uid = context.userId;
     if (data.kind === "vendor") {
+      const update: Record<string, unknown> = {
+        business_name: data.business_name,
+        contact_name: data.contact_name,
+        logo_url: data.logo_url ?? null,
+        application_notes: data.application_notes ?? null,
+        photo_urls: data.photo_urls ?? [],
+      };
+      if (data.selling_items !== undefined) update.selling_items = data.selling_items;
+      if (data.items_description !== undefined) update.items_description = data.items_description;
+      if (data.is_licensed !== undefined) update.is_licensed = data.is_licensed;
+      if (data.permit_urls !== undefined) update.permit_urls = data.permit_urls;
+      if (data.special_requirements !== undefined) update.special_requirements = data.special_requirements;
       const { error } = await supabaseAdmin
         .from("vendors")
-        .update({
-          business_name: data.business_name,
-          contact_name: data.contact_name,
-          logo_url: data.logo_url ?? null,
-          application_notes: data.application_notes ?? null,
-          photo_urls: data.photo_urls ?? [],
-        })
+        .update(update)
         .eq("id", data.id)
         .eq("user_id", uid);
       if (error) throw new Error(error.message);
