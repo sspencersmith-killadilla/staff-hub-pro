@@ -464,9 +464,10 @@ function ModuleSelect({
     <div>
       <Label>Show when module is enabled</Label>
       <Select
-        value={value ?? ""}
-        onValueChange={(v) => onChange(v ? v : null)}
+        value={value ?? "__all"}
+        onValueChange={(v) => onChange(v === "__all" ? null : v)}
       >
+
         <SelectTrigger><SelectValue /></SelectTrigger>
         <SelectContent>
           {MODULE_KEYS.map((m) => (
