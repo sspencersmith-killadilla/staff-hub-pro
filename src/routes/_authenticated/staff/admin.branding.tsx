@@ -477,7 +477,30 @@ function BrandingPage() {
                       uploading={uploadingKey === "logo_dark_url"}
                       onChange={makeUploader("logo_dark_url", "logo-dark")}
                     />
+                    <div className="rounded-md border border-dashed p-4">
+                      <Label className="font-medium">
+                        Favicon auto-resize pipeline
+                      </Label>
+                      <p className="mt-1 mb-2 text-xs text-muted-foreground">
+                        Upload one square source image (≥512×512 PNG/SVG). We
+                        generate and upload 32, 180, and 512 px versions
+                        automatically.
+                      </p>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        disabled={uploadingKey === "favicon_auto"}
+                        onChange={handleFaviconAutoResize}
+                        className="max-w-xs"
+                      />
+                      {uploadingKey === "favicon_auto" && (
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          Resizing and uploading…
+                        </p>
+                      )}
+                    </div>
                     <AssetUploader
+
                       label="Favicon (32×32)"
                       value={form.favicon_url}
                       uploading={uploadingKey === "favicon_url"}
