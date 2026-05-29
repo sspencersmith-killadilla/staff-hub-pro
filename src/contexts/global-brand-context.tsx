@@ -48,7 +48,7 @@ export function GlobalBrandProvider({ children }: { children: ReactNode }) {
       // applyBrandCss assigns priority 5; we want global below per-department
       // (which uses priority 10 via BrandThemeApplier OR priority 0 via
       // ThemeProvider). Wrap with a lower-priority layer instead.
-      cleanupRef.current = applyBrandCss(brand);
+      cleanupRef.current = applyBrandCss(brand, -10);
     }
     return () => {
       cleanupRef.current?.();
