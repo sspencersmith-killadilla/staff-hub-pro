@@ -439,6 +439,18 @@ export const applyForGuidebookSponsorship = createServerFn({ method: "POST" })
     return { id: row.id, company_name: row.company_name };
   });
 
+export const listGuidebookDepartments = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.userId);
+    const { data, error } = await supabaseAdmin
+      .from("departments")
+      .select("id, name")
+      .order("name", { ascending: true });
+    if (error) throw new Error(error.message);
+    return { departments: (data ?? []) as { id: string; name: string }[] };
+  });
+
 export const listGuidebookSponsors = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
