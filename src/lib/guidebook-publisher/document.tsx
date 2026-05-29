@@ -147,7 +147,9 @@ function renderCard(item: PublisherItem, sizeHint: "hero" | "half" | "quarter") 
   if (item.kind === "class") return <ClassCard data={item.data} size={sizeHint} />;
   if (item.kind === "performance")
     return <PerformanceCard data={item.data} size={sizeHint} />;
-  return <SponsorAdCard data={item.data} size={sizeHint} />;
+  if (item.kind === "ad") return <SponsorAdCard data={item.data} size={sizeHint} />;
+  if (item.kind === "text") return <TextCard data={item.data} size={sizeHint} />;
+  return <ImageCard data={item.data} size={sizeHint} />;
 }
 
 function sizeHintFor(cells: number, totalCells: number): "hero" | "half" | "quarter" {
