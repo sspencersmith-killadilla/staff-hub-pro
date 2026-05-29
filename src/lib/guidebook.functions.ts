@@ -80,7 +80,7 @@ async function fetchData(
     artistIds.length
       ? supabaseAdmin
           .from("artists")
-          .select("id, full_name, genre")
+          .select("id, full_name, genre, avatar_url")
           .in("id", artistIds as any)
       : Promise.resolve({ data: [] as any[], error: null }),
     Promise.resolve({ data: [] as any[], error: null }),
@@ -170,6 +170,7 @@ async function fetchData(
       department_name: deptsById.get(venue?.department_id)?.name ?? null,
       artist_name: artist?.full_name ?? null,
       artist_genre: artist?.genre ?? null,
+      image_url: artist?.avatar_url ?? null,
     };
   });
 
