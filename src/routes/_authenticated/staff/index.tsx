@@ -20,18 +20,20 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2, ExternalLink, Pencil, X, Upload, Download } from "lucide-react";
 import { toast } from "sonner";
 import { ImageFocalPicker } from "@/components/image-focal-picker";
+import {
+  toDateTimeLocalInput,
+  localInputToIso,
+  splitIsoToLocalParts,
+  combineLocalDateTimeToIso,
+  parseFlexibleToIso,
+  formatDateTime,
+} from "@/lib/format-time";
 
 export const Route = createFileRoute("/_authenticated/staff/")({
   component: EventsPage,
 });
 
-function toLocalInput(iso: string | null | undefined) {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
+const toLocalInput = toDateTimeLocalInput;
 
 const emptyForm = {
   title: "",
@@ -61,6 +63,10 @@ function parseLocation(v: string): { room_id: string | null; stage_id: string | 
 }
 
 // ---------- CSV helpers ----------
+// Dates and times are split into separate columns so spreadsheet authors
+// can read/edit them naturally. Times are interpreted in the editor's local
+// timezone on import; exports render the stored UTC timestamp back to the
+// viewer's local timezone.
 const CSV_COLS = [
   "id",
   "title",
@@ -70,7 +76,9 @@ const CSV_COLS = [
   "staff_owner_name",
   "room_id",
   "stage_id",
+  "start_date",
   "start_time",
+  "end_date",
   "end_time",
   "image_url",
   "focal_x",
@@ -88,12 +96,18 @@ function csvEscape(v: unknown): string {
 function rowsToCsv(rows: any[]): string {
   const header = CSV_COLS.join(",");
   const body = rows
-    .map((r) =>
-      CSV_COLS.map((c) => {
+    .map((r) => {
+      const startParts = splitIsoToLocalParts(r.start_time);
+      const endParts = splitIsoToLocalParts(r.end_time);
+      return CSV_COLS.map((c) => {
         if (c === "open_to_vendors") return csvEscape(!!r.open_to_vendors);
+        if (c === "start_date") return csvEscape(startParts.date);
+        if (c === "start_time") return csvEscape(startParts.time);
+        if (c === "end_date") return csvEscape(endParts.date);
+        if (c === "end_time") return csvEscape(endParts.time);
         return csvEscape(r[c] ?? "");
-      }).join(","),
-    )
+      }).join(",");
+    })
     .join("\n");
   return `${header}\n${body}\n`;
 }
@@ -148,16 +162,19 @@ function parseCsv(text: string): Record<string, string>[] {
 }
 
 function csvRowToInput(r: Record<string, string>) {
-  const toIso = (v: string) => {
-    if (!v) return null;
-    const d = new Date(v);
-    return isNaN(d.getTime()) ? v : d.toISOString();
-  };
   const toIntOrUndef = (v: string) => {
     if (!v) return undefined;
     const n = parseInt(v, 10);
     return isNaN(n) ? undefined : Math.max(0, Math.min(100, n));
   };
+  // Prefer the new split columns. Fall back to a single combined column
+  // for backwards compatibility with CSVs exported before the split.
+  const startIso = r.start_date
+    ? combineLocalDateTimeToIso(r.start_date, r.start_time)
+    : parseFlexibleToIso(r.start_time);
+  const endIso = r.end_date
+    ? combineLocalDateTimeToIso(r.end_date, r.end_time)
+    : parseFlexibleToIso(r.end_time);
   return {
     id: r.id || undefined,
     title: r.title || "",
@@ -167,8 +184,8 @@ function csvRowToInput(r: Record<string, string>) {
     staff_owner_name: r.staff_owner_name || null,
     room_id: r.room_id || null,
     stage_id: r.stage_id || null,
-    start_time: toIso(r.start_time),
-    end_time: toIso(r.end_time),
+    start_time: startIso,
+    end_time: endIso,
     image_url: r.image_url || null,
     focal_x: toIntOrUndef(r.focal_x),
     focal_y: toIntOrUndef(r.focal_y),
@@ -247,8 +264,8 @@ function EventsPage() {
         featured_guest: form.featured_guest || null,
         room_id: loc.room_id,
         stage_id: loc.stage_id,
-        start_time: form.start_time ? new Date(form.start_time).toISOString() : null,
-        end_time: form.end_time ? new Date(form.end_time).toISOString() : null,
+        start_time: localInputToIso(form.start_time),
+        end_time: localInputToIso(form.end_time),
         image_url: form.image_url || null,
         focal_x: form.focal_x,
         focal_y: form.focal_y,
@@ -665,7 +682,7 @@ function EventsPage() {
                     <div>
                       <div className="font-semibold text-slate-900">{e.title}</div>
                       <div className="text-xs text-slate-500">
-                        {e.start_time ? new Date(e.start_time).toLocaleString() : "No date"}
+                        {e.start_time ? formatDateTime(e.start_time) : "No date"}
                         {e.featured_guest && ` • ${e.featured_guest}`}
                       </div>
                     </div>

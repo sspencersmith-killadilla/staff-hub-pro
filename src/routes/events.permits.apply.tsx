@@ -28,6 +28,7 @@ import {
   getPermit,
   payForPermit,
 } from "@/lib/permits.functions";
+import { toDateTimeLocalInput, localInputToIso } from "@/lib/format-time";
 
 export const Route = createFileRoute("/events/permits/apply")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -215,20 +216,25 @@ function PermitWizard({
           organization_type: "",
           ...(existing.applicant_info ?? {}),
         },
-        event_details: {
-          event_name: "",
-          estimated_participants: 50,
-          setup_start: "",
-          main_start: "",
-          main_end: "",
-          teardown_end: "",
-          serving_alcohol: false,
-          tabc_license_number: "",
-          food_vendors: false,
-          electrical_voltage: "none",
-          parade_included: false,
-          ...(existing.event_details ?? {}),
-        },
+        event_details: (() => {
+          const ed: any = {
+            event_name: "",
+            estimated_participants: 50,
+            serving_alcohol: false,
+            tabc_license_number: "",
+            food_vendors: false,
+            electrical_voltage: "none",
+            parade_included: false,
+            ...(existing.event_details ?? {}),
+          };
+          // Stored values may be either ISO (new) or naive local strings
+          // (legacy). `toDateTimeLocalInput` handles both safely.
+          ed.setup_start = toDateTimeLocalInput(ed.setup_start);
+          ed.main_start = toDateTimeLocalInput(ed.main_start);
+          ed.main_end = toDateTimeLocalInput(ed.main_end);
+          ed.teardown_end = toDateTimeLocalInput(ed.teardown_end);
+          return ed;
+        })(),
         operations_safety: {
           traffic_control: "",
           litter_control: "",
@@ -296,11 +302,19 @@ function PermitWizard({
   const saveMut = useMutation({
     mutationFn: (intent: "draft" | "submit") => {
       const values = form.getValues();
+      const ed = values.event_details ?? {};
+      const eventDetails = {
+        ...ed,
+        setup_start: localInputToIso(ed.setup_start) ?? "",
+        main_start: localInputToIso(ed.main_start) ?? "",
+        main_end: localInputToIso(ed.main_end) ?? "",
+        teardown_end: localInputToIso(ed.teardown_end) ?? "",
+      };
       return saveFn({
         data: {
           id: recordId,
           applicant_info: values.applicant_info,
-          event_details: values.event_details,
+          event_details: eventDetails,
           operations_safety: values.operations_safety,
           insurance_docs: values.insurance_docs,
           selected_event_type_id: values.selected_event_type_id || null,

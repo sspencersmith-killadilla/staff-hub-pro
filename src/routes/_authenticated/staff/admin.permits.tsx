@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Pencil, Plus, Trash2 } from "lucide-react";
+import { formatDateTime } from "@/lib/format-time";
 
 export const Route = createFileRoute("/_authenticated/staff/admin/permits")({
   beforeLoad: async () => {
@@ -296,7 +297,7 @@ function PermitsAdminPage() {
                       {p.event_details?.event_name || "(untitled)"}
                       <div className="text-xs text-muted-foreground">
                         {p.event_details?.main_start
-                          ? new Date(p.event_details.main_start).toLocaleString()
+                          ? formatDateTime(p.event_details.main_start)
                           : "—"}
                       </div>
                     </TableCell>

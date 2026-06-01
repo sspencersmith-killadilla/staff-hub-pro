@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { listMyPermits, deleteMyDraftPermit } from "@/lib/permits.functions";
 import { Trash2, FileText, Plus } from "lucide-react";
+import { formatDate } from "@/lib/format-time";
 
 export const Route = createFileRoute("/_authenticated/my-permits")({
   head: () => ({
@@ -102,7 +103,7 @@ function MyPermitsPage() {
                           <> · Fee: ${Number(p.calculated_fee).toFixed(2)}</>
                         )}
                         {" · Updated "}
-                        {new Date(p.updated_at).toLocaleDateString()}
+                        {formatDate(p.updated_at)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
