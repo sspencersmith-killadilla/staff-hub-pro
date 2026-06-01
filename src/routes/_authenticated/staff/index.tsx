@@ -162,16 +162,19 @@ function parseCsv(text: string): Record<string, string>[] {
 }
 
 function csvRowToInput(r: Record<string, string>) {
-  const toIso = (v: string) => {
-    if (!v) return null;
-    const d = new Date(v);
-    return isNaN(d.getTime()) ? v : d.toISOString();
-  };
   const toIntOrUndef = (v: string) => {
     if (!v) return undefined;
     const n = parseInt(v, 10);
     return isNaN(n) ? undefined : Math.max(0, Math.min(100, n));
   };
+  // Prefer the new split columns. Fall back to a single combined column
+  // for backwards compatibility with CSVs exported before the split.
+  const startIso = r.start_date
+    ? combineLocalDateTimeToIso(r.start_date, r.start_time)
+    : parseFlexibleToIso(r.start_time);
+  const endIso = r.end_date
+    ? combineLocalDateTimeToIso(r.end_date, r.end_time)
+    : parseFlexibleToIso(r.end_time);
   return {
     id: r.id || undefined,
     title: r.title || "",
@@ -181,8 +184,8 @@ function csvRowToInput(r: Record<string, string>) {
     staff_owner_name: r.staff_owner_name || null,
     room_id: r.room_id || null,
     stage_id: r.stage_id || null,
-    start_time: toIso(r.start_time),
-    end_time: toIso(r.end_time),
+    start_time: startIso,
+    end_time: endIso,
     image_url: r.image_url || null,
     focal_x: toIntOrUndef(r.focal_x),
     focal_y: toIntOrUndef(r.focal_y),
