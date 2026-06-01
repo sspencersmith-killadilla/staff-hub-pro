@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 
 // Unified public events feed: city sessions + approved community events + booked streetbeats gigs.
@@ -429,6 +430,7 @@ export const joinTicketWaitlist = createServerFn({ method: "POST" })
 
 
 export const registerForCityEvent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((i) =>
     z
       .object({
@@ -440,7 +442,12 @@ export const registerForCityEvent = createServerFn({ method: "POST" })
       })
       .parse(i),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    // Force the attendee email to the authenticated user's email so a
+    // logged-in user cannot register arbitrary third-party emails.
+    const authEmail =
+      typeof context.claims.email === "string" ? context.claims.email : null;
+    const attendeeEmail = authEmail ?? data.email;
     let tierId = data.ticket_tier_id ?? null;
     if (tierId) {
       const { data: tier } = await supabaseAdmin
@@ -466,7 +473,7 @@ export const registerForCityEvent = createServerFn({ method: "POST" })
     const groupId = crypto.randomUUID();
     const rows = Array.from({ length: qty }, () => ({
       full_name: data.full_name,
-      email: data.email,
+      email: attendeeEmail,
       ticket_tier_id: tierId,
       quantity: 1,
       checked_in: false,
