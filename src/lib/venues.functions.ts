@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { assertStaff } from "./staff-guard";
+import { generateFallbackImage } from "./auto-image.server";
 
 const dayHoursSchema = z.object({
   closed: z.boolean().default(false),
@@ -206,6 +207,23 @@ export const createRoom = createServerFn({ method: "POST" })
       .select()
       .single();
     if (error) throw new Error(error.message);
+    if (row && !row.image_url) {
+      const url = await generateFallbackImage({
+        kind: "room",
+        title: data.name,
+        description: data.description ?? null,
+        id: row.id,
+      });
+      if (url) {
+        const { data: updated } = await supabaseAdmin
+          .from("rooms")
+          .update({ image_url: url })
+          .eq("id", row.id)
+          .select()
+          .single();
+        if (updated) return updated;
+      }
+    }
     return row;
   });
 

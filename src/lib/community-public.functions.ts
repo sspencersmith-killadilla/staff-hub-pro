@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { generateFallbackImage } from "./auto-image.server";
 
 const EVENT_COLS =
   "id, organization_id, title, description, start_time, end_time, location, image_url, image_focal_x, image_focal_y, is_community, approval_status, reviewer_notes, submitted_by";
@@ -303,6 +304,14 @@ export const createMyCommunityEvent = createServerFn({ method: "POST" })
     const locationLabel = await resolveLocationLabel(org.id, data.location_id ?? null);
     const startIso = new Date(data.starts_at).toISOString();
     const endIso = new Date(data.ends_at).toISOString();
+    let imageUrl: string | null = data.image_url || null;
+    if (!imageUrl) {
+      imageUrl = await generateFallbackImage({
+        kind: "community-event",
+        title: data.title,
+        description: data.description ?? null,
+      });
+    }
     const { error } = await supabaseAdmin.from("events").insert({
       title: data.title,
       description: data.description ?? null,
@@ -316,7 +325,7 @@ export const createMyCommunityEvent = createServerFn({ method: "POST" })
       approval_status: "pending",
       submitted_by: context.userId,
       event_type: "Community",
-      image_url: data.image_url || null,
+      image_url: imageUrl,
       image_focal_x: data.image_focal_x ?? 50,
       image_focal_y: data.image_focal_y ?? 50,
     });
