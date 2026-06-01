@@ -229,6 +229,12 @@ function PermitWizard({
           electrical_voltage: "none",
           parade_included: false,
           ...(existing.event_details ?? {}),
+          // Stored values may be either ISO (new) or naive local strings
+          // (legacy). `toDateTimeLocalInput` handles both safely.
+          setup_start: toDateTimeLocalInput(existing.event_details?.setup_start),
+          main_start: toDateTimeLocalInput(existing.event_details?.main_start),
+          main_end: toDateTimeLocalInput(existing.event_details?.main_end),
+          teardown_end: toDateTimeLocalInput(existing.event_details?.teardown_end),
         },
         operations_safety: {
           traffic_control: "",
