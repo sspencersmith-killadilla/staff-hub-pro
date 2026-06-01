@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Pencil, Plus, Trash2 } from "lucide-react";
+import { formatDateTime } from "@/lib/format-time";
 
 export const Route = createFileRoute("/_authenticated/staff/admin/permits")({
   beforeLoad: async () => {
