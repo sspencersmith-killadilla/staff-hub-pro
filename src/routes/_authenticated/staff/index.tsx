@@ -10,6 +10,7 @@ import {
   listEventLocations,
   listAllStaffProfiles,
   listAssignableDepartments,
+  regenerateEventImage,
 } from "@/lib/events.functions";
 import { useDepartment } from "@/contexts/department-context";
 import { useAuth } from "@/hooks/use-auth";
@@ -269,6 +270,16 @@ function EventsPage() {
     onError: (err: any) => toast.error(err?.message ?? "Failed to save"),
   });
 
+  const regenerate = useMutation({
+    mutationFn: (id: string) => regenerateEventImage({ data: { id } }),
+    onSuccess: (row: any) => {
+      if (row?.image_url) setForm((f) => ({ ...f, image_url: row.image_url }));
+      qc.invalidateQueries({ queryKey: ["events"] });
+      toast.success("Image regenerated");
+    },
+    onError: (err: any) => toast.error(err?.message ?? "Failed to regenerate image"),
+  });
+
   const del = useMutation({
     mutationFn: (id: string) => deleteEvent({ data: { id } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["events"] }),
@@ -517,6 +528,17 @@ function EventsPage() {
               </div>
               <Input placeholder="Image URL (Poster)" value={form.image_url}
                 onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
+              {editingId && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  disabled={regenerate.isPending}
+                  onClick={() => regenerate.mutate(editingId)}
+                >
+                  {regenerate.isPending ? "Generating…" : form.image_url ? "Regenerate Image with AI" : "Generate Image with AI"}
+                </Button>
+              )}
               {form.image_url && (
                 <ImageFocalPicker
                   src={form.image_url}
