@@ -682,7 +682,7 @@ function EventsPage() {
                     <div>
                       <div className="font-semibold text-slate-900">{e.title}</div>
                       <div className="text-xs text-slate-500">
-                        {e.start_time ? new Date(e.start_time).toLocaleString() : "No date"}
+                        {e.start_time ? formatDateTime(e.start_time) : "No date"}
                         {e.featured_guest && ` • ${e.featured_guest}`}
                       </div>
                     </div>
