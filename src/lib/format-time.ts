@@ -8,9 +8,21 @@
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
+function normalizeStoredTimestamp(value: string): string {
+  const v = value.trim();
+  // Some database timestamp columns return UTC values without a timezone
+  // suffix (for example "2026-06-01T15:00:00"). Treat those stored
+  // event timestamps as UTC instead of browser-local time so 10:00 AM
+  // entered locally does not render back as 3:00 PM.
+  if (/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?$/.test(v)) {
+    return `${v.replace(" ", "T")}Z`;
+  }
+  return v;
+}
+
 function safeDate(iso: string | Date | null | undefined): Date | null {
   if (iso == null || iso === "") return null;
-  const d = iso instanceof Date ? iso : new Date(iso);
+  const d = iso instanceof Date ? iso : new Date(normalizeStoredTimestamp(iso));
   return isNaN(d.getTime()) ? null : d;
 }
 
