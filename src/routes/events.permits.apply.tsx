@@ -216,26 +216,25 @@ function PermitWizard({
           organization_type: "",
           ...(existing.applicant_info ?? {}),
         },
-        event_details: {
-          event_name: "",
-          estimated_participants: 50,
-          setup_start: "",
-          main_start: "",
-          main_end: "",
-          teardown_end: "",
-          serving_alcohol: false,
-          tabc_license_number: "",
-          food_vendors: false,
-          electrical_voltage: "none",
-          parade_included: false,
-          ...(existing.event_details ?? {}),
+        event_details: (() => {
+          const ed: any = {
+            event_name: "",
+            estimated_participants: 50,
+            serving_alcohol: false,
+            tabc_license_number: "",
+            food_vendors: false,
+            electrical_voltage: "none",
+            parade_included: false,
+            ...(existing.event_details ?? {}),
+          };
           // Stored values may be either ISO (new) or naive local strings
           // (legacy). `toDateTimeLocalInput` handles both safely.
-          setup_start: toDateTimeLocalInput(existing.event_details?.setup_start),
-          main_start: toDateTimeLocalInput(existing.event_details?.main_start),
-          main_end: toDateTimeLocalInput(existing.event_details?.main_end),
-          teardown_end: toDateTimeLocalInput(existing.event_details?.teardown_end),
-        },
+          ed.setup_start = toDateTimeLocalInput(ed.setup_start);
+          ed.main_start = toDateTimeLocalInput(ed.main_start);
+          ed.main_end = toDateTimeLocalInput(ed.main_end);
+          ed.teardown_end = toDateTimeLocalInput(ed.teardown_end);
+          return ed;
+        })(),
         operations_safety: {
           traffic_control: "",
           litter_control: "",
