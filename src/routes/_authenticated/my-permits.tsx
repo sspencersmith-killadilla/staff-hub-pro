@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { listMyPermits, deleteMyDraftPermit } from "@/lib/permits.functions";
 import { Trash2, FileText, Plus } from "lucide-react";
+import { formatDate } from "@/lib/format-time";
 
 export const Route = createFileRoute("/_authenticated/my-permits")({
   head: () => ({
