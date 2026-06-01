@@ -63,6 +63,10 @@ function parseLocation(v: string): { room_id: string | null; stage_id: string | 
 }
 
 // ---------- CSV helpers ----------
+// Dates and times are split into separate columns so spreadsheet authors
+// can read/edit them naturally. Times are interpreted in the editor's local
+// timezone on import; exports render the stored UTC timestamp back to the
+// viewer's local timezone.
 const CSV_COLS = [
   "id",
   "title",
@@ -72,7 +76,9 @@ const CSV_COLS = [
   "staff_owner_name",
   "room_id",
   "stage_id",
+  "start_date",
   "start_time",
+  "end_date",
   "end_time",
   "image_url",
   "focal_x",
