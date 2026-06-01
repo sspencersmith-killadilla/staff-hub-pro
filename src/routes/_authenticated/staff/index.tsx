@@ -270,6 +270,16 @@ function EventsPage() {
     onError: (err: any) => toast.error(err?.message ?? "Failed to save"),
   });
 
+  const regenerate = useMutation({
+    mutationFn: (id: string) => regenerateEventImage({ data: { id } }),
+    onSuccess: (row: any) => {
+      if (row?.image_url) setForm((f) => ({ ...f, image_url: row.image_url }));
+      qc.invalidateQueries({ queryKey: ["events"] });
+      toast.success("Image regenerated");
+    },
+    onError: (err: any) => toast.error(err?.message ?? "Failed to regenerate image"),
+  });
+
   const del = useMutation({
     mutationFn: (id: string) => deleteEvent({ data: { id } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["events"] }),
