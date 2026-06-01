@@ -528,6 +528,17 @@ function EventsPage() {
               </div>
               <Input placeholder="Image URL (Poster)" value={form.image_url}
                 onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
+              {editingId && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  disabled={regenerate.isPending}
+                  onClick={() => regenerate.mutate(editingId)}
+                >
+                  {regenerate.isPending ? "Generating…" : form.image_url ? "Regenerate Image with AI" : "Generate Image with AI"}
+                </Button>
+              )}
               {form.image_url && (
                 <ImageFocalPicker
                   src={form.image_url}
