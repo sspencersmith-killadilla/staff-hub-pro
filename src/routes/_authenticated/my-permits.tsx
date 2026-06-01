@@ -103,7 +103,7 @@ function MyPermitsPage() {
                           <> · Fee: ${Number(p.calculated_fee).toFixed(2)}</>
                         )}
                         {" · Updated "}
-                        {new Date(p.updated_at).toLocaleDateString()}
+                        {formatDate(p.updated_at)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
