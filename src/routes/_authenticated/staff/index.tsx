@@ -96,12 +96,18 @@ function csvEscape(v: unknown): string {
 function rowsToCsv(rows: any[]): string {
   const header = CSV_COLS.join(",");
   const body = rows
-    .map((r) =>
-      CSV_COLS.map((c) => {
+    .map((r) => {
+      const startParts = splitIsoToLocalParts(r.start_time);
+      const endParts = splitIsoToLocalParts(r.end_time);
+      return CSV_COLS.map((c) => {
         if (c === "open_to_vendors") return csvEscape(!!r.open_to_vendors);
+        if (c === "start_date") return csvEscape(startParts.date);
+        if (c === "start_time") return csvEscape(startParts.time);
+        if (c === "end_date") return csvEscape(endParts.date);
+        if (c === "end_time") return csvEscape(endParts.time);
         return csvEscape(r[c] ?? "");
-      }).join(","),
-    )
+      }).join(",");
+    })
     .join("\n");
   return `${header}\n${body}\n`;
 }
