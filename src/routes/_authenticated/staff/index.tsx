@@ -10,6 +10,7 @@ import {
   listEventLocations,
   listAllStaffProfiles,
   listAssignableDepartments,
+  regenerateEventImage,
 } from "@/lib/events.functions";
 import { useDepartment } from "@/contexts/department-context";
 import { useAuth } from "@/hooks/use-auth";
