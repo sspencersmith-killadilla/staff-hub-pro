@@ -302,11 +302,19 @@ function PermitWizard({
   const saveMut = useMutation({
     mutationFn: (intent: "draft" | "submit") => {
       const values = form.getValues();
+      const ed = values.event_details ?? {};
+      const eventDetails = {
+        ...ed,
+        setup_start: localInputToIso(ed.setup_start) ?? "",
+        main_start: localInputToIso(ed.main_start) ?? "",
+        main_end: localInputToIso(ed.main_end) ?? "",
+        teardown_end: localInputToIso(ed.teardown_end) ?? "",
+      };
       return saveFn({
         data: {
           id: recordId,
           applicant_info: values.applicant_info,
-          event_details: values.event_details,
+          event_details: eventDetails,
           operations_safety: values.operations_safety,
           insurance_docs: values.insurance_docs,
           selected_event_type_id: values.selected_event_type_id || null,
