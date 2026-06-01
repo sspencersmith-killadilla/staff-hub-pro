@@ -473,7 +473,7 @@ export const registerForCityEvent = createServerFn({ method: "POST" })
     const groupId = crypto.randomUUID();
     const rows = Array.from({ length: qty }, () => ({
       full_name: data.full_name,
-      email: data.email,
+      email: attendeeEmail,
       ticket_tier_id: tierId,
       quantity: 1,
       checked_in: false,
