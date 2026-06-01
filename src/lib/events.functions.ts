@@ -291,6 +291,36 @@ export const updateEvent = createServerFn({ method: "POST" })
     return fromSessionRow(row);
   });
 
+export const regenerateEventImage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    const { data: row, error: fetchErr } = await supabaseAdmin
+      .from("sessions")
+      .select("id, title, event_type, speaker_name, department_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (fetchErr) throw new Error(fetchErr.message);
+    if (!row) throw new Error("Event not found");
+    await assertCanManageDepartment(context.userId, row.department_id ?? null);
+    const url = await generateFallbackImage({
+      kind: "event",
+      title: row.title,
+      description: row.event_type ?? row.speaker_name ?? null,
+      id: row.id,
+    });
+    if (!url) throw new Error("Image generation failed. Check that the auto-images storage bucket exists and that the AI gateway is reachable.");
+    const { data: updated, error } = await supabaseAdmin
+      .from("sessions")
+      .update({ image_url: url })
+      .eq("id", row.id)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return fromSessionRow(updated);
+  });
+
 export const deleteEvent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
