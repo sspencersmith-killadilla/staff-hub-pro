@@ -20,18 +20,20 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2, ExternalLink, Pencil, X, Upload, Download } from "lucide-react";
 import { toast } from "sonner";
 import { ImageFocalPicker } from "@/components/image-focal-picker";
+import {
+  toDateTimeLocalInput,
+  localInputToIso,
+  splitIsoToLocalParts,
+  combineLocalDateTimeToIso,
+  parseFlexibleToIso,
+  formatDateTime,
+} from "@/lib/format-time";
 
 export const Route = createFileRoute("/_authenticated/staff/")({
   component: EventsPage,
 });
 
-function toLocalInput(iso: string | null | undefined) {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
+const toLocalInput = toDateTimeLocalInput;
 
 const emptyForm = {
   title: "",
