@@ -124,7 +124,17 @@ export function combineLocalDateTimeToIso(
   const hh = m ? pad(parseInt(m[1], 10)) : "00";
   const mm = m ? m[2] : "00";
   const ss = m && m[3] ? m[3] : "00";
-  const d = new Date(`${datePart}T${hh}:${mm}:${ss}`);
+  // Accept either ISO (YYYY-MM-DD) or US-style M/D/YYYY that Excel writes
+  // out when saving a CSV on a US locale.
+  let normalizedDate = datePart;
+  const slash = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/.exec(datePart);
+  if (slash) {
+    let [, mo, da, yr] = slash;
+    let y = parseInt(yr, 10);
+    if (y < 100) y += 2000;
+    normalizedDate = `${y}-${pad(parseInt(mo, 10))}-${pad(parseInt(da, 10))}`;
+  }
+  const d = new Date(`${normalizedDate}T${hh}:${mm}:${ss}`);
   return isNaN(d.getTime()) ? null : d.toISOString();
 }
 
