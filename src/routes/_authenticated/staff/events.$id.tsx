@@ -378,11 +378,10 @@ function EventDashboard() {
             <h1 className="text-3xl font-black tracking-tight">{session.title}</h1>
             {session.start_time && (
               <p className="text-xs text-blue-200 mt-1">
-                {new Date(session.start_time).toLocaleDateString("en-US", {
-                  timeZone: CT_TZ, weekday: "long", month: "long", day: "numeric",
-                })} · {displayCT(session.start_time)}
+                {formatDate(session.start_time, { weekday: "long", month: "long", day: "numeric" })} · {displayCT(session.start_time)}
               </p>
             )}
+
           </div>
           <button
             onClick={() => window.print()}
