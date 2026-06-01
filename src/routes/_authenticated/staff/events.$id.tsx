@@ -24,45 +24,22 @@ import { Download, Upload } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useAuth } from "@/hooks/use-auth";
 import type { PermissionKey } from "@/lib/staff-permissions";
+import { formatTime, formatDate, localInputToIso } from "@/lib/format-time";
 
 
 const RobustMap = lazy(() => import("@/components/RobustMap"));
 const EventMarketingHub = lazy(() => import("@/components/EventMarketingHub"));
 
-const CT_TZ = "America/Chicago";
-
+// All times render in the viewer's local browser/device timezone.
 function displayCT(iso: string | null | undefined) {
   if (!iso) return null;
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return null;
-  return (
-    d.toLocaleTimeString("en-US", {
-      timeZone: CT_TZ,
-      hour: "numeric",
-      minute: "2-digit",
-    }) + " CT"
-  );
+  return formatTime(iso) || null;
 }
 
 function ctLocalToUtc(local: string | null | undefined): string | null {
-  if (!local) return null;
-  const [datePart, timePart] = local.split("T");
-  if (!datePart || !timePart) return null;
-  const [y, m, d] = datePart.split("-").map(Number);
-  const [hh, mm] = timePart.split(":").map(Number);
-  if ([y, m, d, hh, mm].some(isNaN)) return null;
-  const guess = new Date(Date.UTC(y, m - 1, d, hh, mm));
-  const ctStr = new Intl.DateTimeFormat("en-CA", {
-    timeZone: CT_TZ,
-    year: "numeric", month: "2-digit", day: "2-digit",
-    hour: "2-digit", minute: "2-digit", hour12: false,
-  }).format(guess);
-  const [cd, ct] = ctStr.replace(",", "").trim().split(" ");
-  const [cy, cmo, cda] = cd.split("-").map(Number);
-  const [chh, cmm] = ct.split(":").map(Number);
-  const ctAsUtc = new Date(Date.UTC(cy, cmo - 1, cda, chh === 24 ? 0 : chh, cmm));
-  return new Date(guess.getTime() - (ctAsUtc.getTime() - guess.getTime())).toISOString();
+  return localInputToIso(local);
 }
+
 
 // ─── CSV helpers ───────────────────────────────────────────────────────
 const VOL_CSV_COLS = ["name", "shift_role"] as const;
@@ -401,11 +378,10 @@ function EventDashboard() {
             <h1 className="text-3xl font-black tracking-tight">{session.title}</h1>
             {session.start_time && (
               <p className="text-xs text-blue-200 mt-1">
-                {new Date(session.start_time).toLocaleDateString("en-US", {
-                  timeZone: CT_TZ, weekday: "long", month: "long", day: "numeric",
-                })} · {displayCT(session.start_time)}
+                {formatDate(session.start_time, { weekday: "long", month: "long", day: "numeric" })} · {displayCT(session.start_time)}
               </p>
             )}
+
           </div>
           <button
             onClick={() => window.print()}
