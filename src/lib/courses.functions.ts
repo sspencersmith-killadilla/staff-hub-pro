@@ -11,6 +11,7 @@ import {
   getCourseSessionDepartmentId,
 } from "./staff-guard";
 import { loadUsaepayConfig, buildUsaepayAuthHeader } from "./usaepay.server";
+import { generateFallbackImage } from "./auto-image.server";
 
 // ─── COURSES ────────────────────────────────────────────────────────────
 
@@ -59,6 +60,23 @@ export const upsertCourse = createServerFn({ method: "POST" })
       .select()
       .single();
     if (error) throw new Error(error.message);
+    if (row && !row.image_url) {
+      const url = await generateFallbackImage({
+        kind: "course",
+        title: data.title,
+        description: data.description ?? null,
+        id: row.id,
+      });
+      if (url) {
+        const { data: updated } = await supabaseAdmin
+          .from("courses")
+          .update({ image_url: url })
+          .eq("id", row.id)
+          .select()
+          .single();
+        if (updated) return updated;
+      }
+    }
     return row;
   });
 

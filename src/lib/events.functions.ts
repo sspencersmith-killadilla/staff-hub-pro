@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { assertStaff, assertCanManageDepartment, isAdmin, getUserDepartmentIds } from "./staff-guard";
+import { generateFallbackImage } from "./auto-image.server";
 
 // City-controlled events live in the `sessions` table.
 // Each session attaches to EITHER a room OR a stage — exactly one — so
@@ -215,7 +216,25 @@ export const createEvent = createServerFn({ method: "POST" })
       .select()
       .single();
     if (error) throw new Error(error.message);
-    return fromSessionRow(row);
+    let finalRow = row;
+    if (row && !row.image_url) {
+      const url = await generateFallbackImage({
+        kind: "event",
+        title: data.title,
+        description: data.event_type ?? data.featured_guest ?? null,
+        id: row.id,
+      });
+      if (url) {
+        const { data: updated } = await supabaseAdmin
+          .from("sessions")
+          .update({ image_url: url })
+          .eq("id", row.id)
+          .select()
+          .single();
+        if (updated) finalRow = updated;
+      }
+    }
+    return fromSessionRow(finalRow);
   });
 
 export const updateEvent = createServerFn({ method: "POST" })
