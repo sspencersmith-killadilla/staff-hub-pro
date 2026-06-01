@@ -296,7 +296,7 @@ function PermitsAdminPage() {
                       {p.event_details?.event_name || "(untitled)"}
                       <div className="text-xs text-muted-foreground">
                         {p.event_details?.main_start
-                          ? new Date(p.event_details.main_start).toLocaleString()
+                          ? formatDateTime(p.event_details.main_start)
                           : "—"}
                       </div>
                     </TableCell>
