@@ -23,6 +23,14 @@ function CommunicationsPage() {
     queryFn: () => listCampaigns(),
     enabled: can("page.communications"),
   });
+  const { data: departments = [] } = useQuery({
+    queryKey: ["assignable-departments"],
+    queryFn: () => listAssignableDepartments(),
+    enabled: can("page.communications"),
+  });
+  const deptName = (id: string | null) =>
+    id ? (departments as any[]).find((d) => d.id === id)?.name ?? null : null;
+
 
   const create = useMutation({
     mutationFn: () =>
