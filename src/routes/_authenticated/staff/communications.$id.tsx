@@ -7,6 +7,7 @@ import {
   dispatchCampaignNow,
   sendTestCampaign,
   previewAudience,
+  getCampaignStats,
 } from "@/lib/campaigns.functions";
 import { listEvents, listAssignableDepartments } from "@/lib/events.functions";
 import { RichTextEditor } from "@/components/rich-text-editor";
@@ -252,8 +253,111 @@ function EditCampaign() {
               </div>
             </CardContent>
           </Card>
+
+          {(data.status === "sent" || data.status === "sending") && (
+            <CampaignStats campaignId={id} />
+          )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function CampaignStats({ campaignId }: { campaignId: string }) {
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ["campaign-stats", campaignId],
+    queryFn: () => getCampaignStats({ data: { id: campaignId } }),
+    refetchInterval: 30_000,
+  });
+
+  if (isLoading || !stats) {
+    return (
+      <Card>
+        <CardHeader className="py-3"><CardTitle className="text-sm">Stats</CardTitle></CardHeader>
+        <CardContent className="pb-4 text-sm text-muted-foreground">Loading…</CardContent>
+      </Card>
+    );
+  }
+
+  const { totals, recipients, topLinks } = stats as any;
+  const openRate = totals.sent > 0 ? Math.round((totals.uniqueOpens / totals.sent) * 100) : 0;
+  const clickRate = totals.sent > 0 ? Math.round((totals.uniqueClicks / totals.sent) * 100) : 0;
+
+  return (
+    <Card>
+      <CardHeader className="py-3"><CardTitle className="text-sm">Stats</CardTitle></CardHeader>
+      <CardContent className="pb-4 space-y-4">
+        <div className="grid grid-cols-2 gap-2 text-center">
+          <Stat label="Sent" value={totals.sent} />
+          <Stat label="Failed" value={totals.failed} />
+          <Stat label="Opens (unique)" value={totals.uniqueOpens} sub={`${openRate}%`} />
+          <Stat label="Clicks (unique)" value={totals.uniqueClicks} sub={`${clickRate}%`} />
+          <Stat label="Total opens" value={totals.totalOpens} />
+          <Stat label="Total clicks" value={totals.totalClicks} />
+        </div>
+
+        {topLinks.length > 0 && (
+          <div>
+            <div className="text-xs font-medium text-muted-foreground mb-1">Top links</div>
+            <div className="space-y-1">
+              {topLinks.map((l: any) => (
+                <div key={l.url} className="text-xs flex gap-2">
+                  <span className="font-mono tabular-nums w-8 text-right">{l.count}</span>
+                  <span className="truncate flex-1" title={l.url}>{l.url}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <details>
+          <summary className="text-xs font-medium text-muted-foreground cursor-pointer">
+            Recipients ({recipients.length})
+          </summary>
+          <div className="mt-2 max-h-72 overflow-y-auto border rounded">
+            <table className="w-full text-xs">
+              <thead className="bg-slate-50 sticky top-0">
+                <tr className="text-left">
+                  <th className="px-2 py-1">Email</th>
+                  <th className="px-2 py-1">Status</th>
+                  <th className="px-2 py-1 text-right">Opens</th>
+                  <th className="px-2 py-1 text-right">Clicks</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {recipients.map((r: any) => (
+                  <tr key={r.id}>
+                    <td className="px-2 py-1 truncate max-w-[18ch]" title={r.email}>{r.email}</td>
+                    <td className="px-2 py-1">
+                      <Badge
+                        className={
+                          r.status === "sent" ? "bg-green-100 text-green-700"
+                          : r.status === "failed" ? "bg-red-100 text-red-700"
+                          : "bg-slate-200 text-slate-700"
+                        }
+                      >
+                        {r.status}
+                      </Badge>
+                    </td>
+                    <td className="px-2 py-1 text-right tabular-nums">{r.opens_count ?? 0}</td>
+                    <td className="px-2 py-1 text-right tabular-nums">{r.clicks_count ?? 0}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </CardContent>
+    </Card>
+  );
+}
+
+function Stat({ label, value, sub }: { label: string; value: number; sub?: string }) {
+  return (
+    <div className="border rounded p-2">
+      <div className="text-xl font-semibold tabular-nums">{value}</div>
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      {sub && <div className="text-[10px] text-muted-foreground">{sub}</div>}
     </div>
   );
 }
