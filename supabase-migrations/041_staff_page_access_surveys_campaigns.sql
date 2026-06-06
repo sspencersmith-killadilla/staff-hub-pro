@@ -31,6 +31,9 @@ as $$
   ), false)
 $$;
 
+revoke all on function public._has_staff_page_access(uuid, text) from public;
+grant execute on function public._has_staff_page_access(uuid, text) to authenticated, service_role;
+
 drop policy if exists "staff manage campaigns" on public.communication_campaigns;
 create policy "staff manage campaigns" on public.communication_campaigns
   for all to authenticated
