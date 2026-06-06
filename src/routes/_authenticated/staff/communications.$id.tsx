@@ -172,6 +172,25 @@ function EditCampaign() {
 
         <div className="space-y-4">
           <Card>
+            <CardHeader className="py-3"><CardTitle className="text-sm">Department</CardTitle></CardHeader>
+            <CardContent className="pb-4">
+              <Select
+                value={departmentId ?? "__none"}
+                onValueChange={(v) => setDepartmentId(v === "__none" ? null : v)}
+                disabled={readOnly}
+              >
+                <SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none">Unassigned</SelectItem>
+                  {(departments as any[]).map((d) => (
+                    <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+
+          <Card>
             <CardHeader className="py-3">
               <CardTitle className="text-sm">Audience</CardTitle>
             </CardHeader>
