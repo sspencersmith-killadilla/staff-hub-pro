@@ -3,13 +3,21 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 async function assertStaff(supabase: any, userId: string) {
-  const { data } = await supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", userId)
-    .in("role", ["admin", "staff"])
-    .maybeSingle();
-  if (!data) throw new Error("Forbidden");
+  const [{ data: role }, { data: dept }] = await Promise.all([
+    supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .in("role", ["admin", "staff"])
+      .maybeSingle(),
+    supabase
+      .from("department_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .in("role", ["dept_admin", "staff", "super_admin"])
+      .maybeSingle(),
+  ]);
+  if (!role && !dept) throw new Error("Forbidden");
 }
 
 const QuestionSchema = z.object({
