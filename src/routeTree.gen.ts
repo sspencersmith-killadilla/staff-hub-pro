@@ -82,6 +82,7 @@ import { Route as AuthenticatedStaffAdminEmailSettingsRouteImport } from './rout
 import { Route as AuthenticatedStaffAdminDepartmentsRouteImport } from './routes/_authenticated/staff/admin.departments'
 import { Route as AuthenticatedStaffAdminBrandingRouteImport } from './routes/_authenticated/staff/admin.branding'
 import { Route as AuthenticatedStaffAdminAnalyticsRouteImport } from './routes/_authenticated/staff/admin.analytics'
+import { Route as AuthenticatedStaffSurveysIdIndexRouteImport } from './routes/_authenticated/staff/surveys.$id.index'
 import { Route as ApiPublicOauthMetaCallbackRouteImport } from './routes/api/public/oauth/meta/callback'
 import { Route as ApiPublicOauthLinkedinCallbackRouteImport } from './routes/api/public/oauth/linkedin/callback'
 import { Route as AuthenticatedStaffSurveysIdAnalyticsRouteImport } from './routes/_authenticated/staff/surveys.$id.analytics'
@@ -487,6 +488,12 @@ const AuthenticatedStaffAdminAnalyticsRoute =
     path: '/analytics',
     getParentRoute: () => AuthenticatedStaffAdminRoute,
   } as any)
+const AuthenticatedStaffSurveysIdIndexRoute =
+  AuthenticatedStaffSurveysIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedStaffSurveysIdRoute,
+  } as any)
 const ApiPublicOauthMetaCallbackRoute =
   ApiPublicOauthMetaCallbackRouteImport.update({
     id: '/api/public/oauth/meta/callback',
@@ -589,6 +596,7 @@ export interface FileRoutesByFullPath {
   '/staff/surveys/$id/analytics': typeof AuthenticatedStaffSurveysIdAnalyticsRoute
   '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
+  '/staff/surveys/$id/': typeof AuthenticatedStaffSurveysIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -656,7 +664,6 @@ export interface FileRoutesByTo {
   '/staff/admin/tenants': typeof AuthenticatedStaffAdminTenantsRoute
   '/staff/communications/$id': typeof AuthenticatedStaffCommunicationsIdRoute
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
-  '/staff/surveys/$id': typeof AuthenticatedStaffSurveysIdRouteWithChildren
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
   '/staff/communications': typeof AuthenticatedStaffCommunicationsIndexRoute
   '/staff/surveys': typeof AuthenticatedStaffSurveysIndexRoute
@@ -664,6 +671,7 @@ export interface FileRoutesByTo {
   '/staff/surveys/$id/analytics': typeof AuthenticatedStaffSurveysIdAnalyticsRoute
   '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
+  '/staff/surveys/$id': typeof AuthenticatedStaffSurveysIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -744,6 +752,7 @@ export interface FileRoutesById {
   '/_authenticated/staff/surveys/$id/analytics': typeof AuthenticatedStaffSurveysIdAnalyticsRoute
   '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
+  '/_authenticated/staff/surveys/$id/': typeof AuthenticatedStaffSurveysIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -824,6 +833,7 @@ export interface FileRouteTypes {
     | '/staff/surveys/$id/analytics'
     | '/api/public/oauth/linkedin/callback'
     | '/api/public/oauth/meta/callback'
+    | '/staff/surveys/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -891,7 +901,6 @@ export interface FileRouteTypes {
     | '/staff/admin/tenants'
     | '/staff/communications/$id'
     | '/staff/events/$id'
-    | '/staff/surveys/$id'
     | '/api/public/manifest/webmanifest'
     | '/staff/communications'
     | '/staff/surveys'
@@ -899,6 +908,7 @@ export interface FileRouteTypes {
     | '/staff/surveys/$id/analytics'
     | '/api/public/oauth/linkedin/callback'
     | '/api/public/oauth/meta/callback'
+    | '/staff/surveys/$id'
   id:
     | '__root__'
     | '/'
@@ -978,6 +988,7 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/surveys/$id/analytics'
     | '/api/public/oauth/linkedin/callback'
     | '/api/public/oauth/meta/callback'
+    | '/_authenticated/staff/surveys/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1526,6 +1537,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffAdminAnalyticsRouteImport
       parentRoute: typeof AuthenticatedStaffAdminRoute
     }
+    '/_authenticated/staff/surveys/$id/': {
+      id: '/_authenticated/staff/surveys/$id/'
+      path: '/'
+      fullPath: '/staff/surveys/$id/'
+      preLoaderRoute: typeof AuthenticatedStaffSurveysIdIndexRouteImport
+      parentRoute: typeof AuthenticatedStaffSurveysIdRoute
+    }
     '/api/public/oauth/meta/callback': {
       id: '/api/public/oauth/meta/callback'
       path: '/api/public/oauth/meta/callback'
@@ -1639,12 +1657,15 @@ const AuthenticatedStaffCommunicationsRouteWithChildren =
 
 interface AuthenticatedStaffSurveysIdRouteChildren {
   AuthenticatedStaffSurveysIdAnalyticsRoute: typeof AuthenticatedStaffSurveysIdAnalyticsRoute
+  AuthenticatedStaffSurveysIdIndexRoute: typeof AuthenticatedStaffSurveysIdIndexRoute
 }
 
 const AuthenticatedStaffSurveysIdRouteChildren: AuthenticatedStaffSurveysIdRouteChildren =
   {
     AuthenticatedStaffSurveysIdAnalyticsRoute:
       AuthenticatedStaffSurveysIdAnalyticsRoute,
+    AuthenticatedStaffSurveysIdIndexRoute:
+      AuthenticatedStaffSurveysIdIndexRoute,
   }
 
 const AuthenticatedStaffSurveysIdRouteWithChildren =
