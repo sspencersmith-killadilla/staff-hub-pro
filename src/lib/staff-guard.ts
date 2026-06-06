@@ -3,6 +3,8 @@ async function getAdminClient() {
   return supabaseAdmin;
 }
 
+type GuardCheckResult = { data: unknown[] | null; error: { message: string } | null };
+
 export async function assertStaff(userId: string, permission?: string) {
   const supabaseAdmin = await getAdminClient();
   const roleCheck = supabaseAdmin
@@ -26,10 +28,10 @@ export async function assertStaff(userId: string, permission?: string) {
         .limit(1)
     : Promise.resolve({ data: [], error: null });
 
-  const [roleResult, departmentResult, permissionResult] = await Promise.all([
-    roleCheck,
-    departmentCheck,
-    permissionCheck,
+  const [roleResult, departmentResult, permissionResult] = await Promise.all<GuardCheckResult>([
+    roleCheck as PromiseLike<GuardCheckResult>,
+    departmentCheck as PromiseLike<GuardCheckResult>,
+    permissionCheck as PromiseLike<GuardCheckResult>,
   ]);
 
   const error = roleResult.error ?? departmentResult.error ?? permissionResult?.error;
