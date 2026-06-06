@@ -1,227 +1,339 @@
-# Reproduction Instructions (Self-Hosted, No Lovable)
+# Reproduction Instructions — Total Event System Solutions
 
-This guide explains how to take the code in this GitHub repository and stand
-up the entire Total Event System Solutions platform on your own
-infrastructure — **without Lovable, without Lovable Cloud, and without the
-Lovable AI Gateway**. Everything here uses standard open-source tools and
-third-party services you sign up for directly.
+A complete, **zero-cost**, **no-Lovable-required** guide to deploying this platform for a small city, town, or nonprofit. Everything below uses free tiers of well-known services. No credit card is required for the default path.
 
-> If you instead want to fork the project and keep editing it inside Lovable,
-> see the in-app onboarding flow. This document is for engineers who want to
-> own the deployment end-to-end.
+> **Who this is for.** A city staffer, nonprofit coordinator, or volunteer with **no coding experience**. If you can copy/paste and click buttons, you can do this.
+> **Time.** About 2 hours start to finish.
+> **Cost.** $0/month at small-city scale (see Appendix B).
 
 ---
 
-## 1. What you'll need
+## Part 1 — What you're building
 
-### Local tooling
-- **Node.js 20+** and **Bun 1.1+** (the repo uses Bun for installs and scripts; npm/pnpm work but the lockfile is `bun.lock`).
-- **Git**.
-- **psql** (PostgreSQL client) or any SQL GUI (TablePlus, DBeaver, pgAdmin).
-- **Wrangler CLI** (`npm i -g wrangler`) — Cloudflare's deployment CLI. The repo's `wrangler.jsonc` already targets Cloudflare Workers via `@cloudflare/vite-plugin`.
+You're standing up your own copy of an event-management platform that includes:
 
-### Third-party accounts (all have free tiers)
-| Service | Used for | Required? |
+- Public event listings and free or paid ticketing
+- Room and meeting-space reservations
+- Vendor, sponsor, and busker (StreetBeats) applications
+- Special-event permit intake
+- Staff dashboards with granular permissions per department
+- Email marketing campaigns + surveys
+- Multi-department tenancy with per-department branding
+- A built-in visual user manual at `/manual`
+
+### Time + cost at a glance
+
+| Resource | Free tier | Enough for |
 | --- | --- | --- |
-| **Supabase** (supabase.com) | Postgres, Auth, Storage, RLS | Yes |
-| **Cloudflare** | Workers hosting (SSR runtime) | Yes (or pick another edge host — see §8) |
-| **Resend** (resend.com) | Email campaigns | Only if you enable Communications |
-| **Stripe** (stripe.com) | Ticket payments | Only if you enable ticketing |
-| **OpenAI / Anthropic / Google** | Image generation (replaces Lovable AI Gateway) | Only if you want auto-generated images |
-| **Meta + LinkedIn dev apps** | Social Command Center OAuth | Only if you enable that module |
+| Supabase (database, auth, storage) | 500 MB DB, 1 GB storage, 50k MAU | A town of ~10k residents |
+| Cloudflare Workers (hosting) | 100k requests/day | ~3k unique daily visitors |
+| Resend (email, optional) | 3,000 emails/mo | ~10 campaigns/mo to 300 people |
+| GitHub (code hosting) | Unlimited public repos | Anything |
+| **Total** | | **$0 / month** |
+
+You can run the entire platform without spending a dollar. Paid upgrades only kick in past those limits.
 
 ---
 
-## 2. Clone the repo and install
+## Part 2 — Install the free tools on your computer
 
+You only do this once.
+
+### 2.1 Git (downloads + uploads code)
+- **Mac**: open Terminal, type `git --version`, press Enter. If it offers to install Command Line Tools, click **Install**.
+- **Windows**: download from https://git-scm.com/download/win, run the installer, accept all defaults.
+
+Verify: open a terminal and run `git --version`. You should see a version number.
+
+### 2.2 Node.js 20 LTS (runs the website)
+- Download the **LTS** installer from https://nodejs.org/. Run it, accept defaults.
+
+Verify: `node -v` should print `v20.x.x` or higher.
+
+### 2.3 Bun (installs the building blocks faster than npm)
+- **Mac/Linux**, paste this in Terminal:
+  ```bash
+  curl -fsSL https://bun.sh/install | bash
+  ```
+- **Windows (PowerShell)**:
+  ```powershell
+  powershell -c "irm bun.sh/install.ps1 | iex"
+  ```
+
+Close and reopen your terminal. Verify: `bun -v` should print a version number.
+
+### 2.4 VS Code (optional — friendlier than Notepad)
+- Download from https://code.visualstudio.com/. Used only for editing a single config file later.
+
+### 2.5 Wrangler (uploads the site to Cloudflare)
+After Node.js is installed, run:
 ```bash
-git clone <your-fork-url> total-event-system
-cd total-event-system
-bun install        # or: npm install / pnpm install
+npm install -g wrangler
 ```
-
-The repo is a **TanStack Start v1** app (React 19 + Vite 7). Source layout:
-
-```
-src/routes/           File-based routes (TanStack Router)
-src/lib/              Server functions (.functions.ts) + helpers
-src/integrations/supabase/   Browser, server, and auth-middleware clients
-supabase-migrations/  Numbered SQL migrations
-```
+Verify: `wrangler --version` prints a version.
 
 ---
 
-## 3. Create the Supabase project
+## Part 3 — Get the code
 
-1. Go to [supabase.com](https://supabase.com) → **New Project**. Pick a region close to your users. Save the database password somewhere safe.
-2. Once the project is provisioned, grab three values from **Project Settings → API**:
-   - **Project URL** → `SUPABASE_URL`
-   - **`publishable` key** (a.k.a. anon key, `sb_publishable_…` or `eyJ…`) → `SUPABASE_PUBLISHABLE_KEY`
-   - **`service_role` key** → `SUPABASE_SERVICE_ROLE_KEY` *(server-only, never ship to clients)*
-3. Open **Project Settings → API → Connection string** and copy the `psql` URI.
+1. Open https://github.com/ and create a free account if you don't have one.
+2. Open the project's GitHub page in your browser. Click the **Fork** button in the top-right. This makes your own copy you can modify.
+3. On *your* fork, click the green **Code** button → **HTTPS** → copy the URL.
+4. In your terminal, in a folder where you keep projects:
+   ```bash
+   git clone <paste-the-url-here>
+   cd <project-folder-name>
+   bun install
+   ```
+   The last step downloads ~500 MB of building blocks. Grab a coffee.
 
-### Wire the publishable values into the repo
+---
 
-The browser client reads its URL/key from `src/integrations/supabase/config.ts`. Replace the existing values with yours:
+## Part 4 — Create your free database (Supabase)
+
+Supabase gives you a Postgres database, user accounts, file storage, and security policies in one free package. No credit card.
+
+### 4.1 Create the project
+1. Go to https://supabase.com → **Start your project** → sign in with GitHub.
+2. Click **New Project**.
+   - Name: anything (e.g. `myCity-events`)
+   - Database password: **write this down somewhere safe** — you can't recover it.
+   - Region: pick the one closest to your residents.
+   - Plan: **Free**.
+3. Wait ~2 minutes for it to provision.
+
+### 4.2 Grab your keys
+Open **Project Settings → API** and copy these three values into a temporary text file:
+
+| Value | What you'll do with it |
+| --- | --- |
+| **Project URL** (`https://xxxx.supabase.co`) | Goes into the code in step 4.3 |
+| **`publishable` / `anon` key** (`sb_publishable_…` or `eyJ…`) | Goes into the code in step 4.3 |
+| **`service_role` key** (a long secret) | Goes into your secrets later (Part 8). **Never share this publicly.** |
+
+### 4.3 Paste your URL + publishable key into the code
+This is the only file edit a non-coder has to make.
+
+Open `src/integrations/supabase/config.ts` in VS Code and replace the two lines:
 
 ```ts
-// src/integrations/supabase/config.ts
-export const SUPABASE_URL = "https://<your-ref>.supabase.co";
-export const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_…";
+export const SUPABASE_URL = "https://YOUR-PROJECT-REF.supabase.co";
+export const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_...your-key...";
 ```
 
-Commit that change — the publishable key is safe in client bundles because RLS protects every table.
+Save the file. (The publishable key is safe in code — row-level security protects every table.)
 
----
+### 4.4 Run the database migrations
+The repo has 38 numbered SQL files under `supabase-migrations/` that build all the tables.
 
-## 4. Apply the database migrations
+**Easy way (Supabase dashboard):**
+1. In Supabase, open **SQL Editor** → **New query**.
+2. Open `supabase-migrations/001_staff_portal.sql` from your code folder in VS Code.
+3. Copy the entire file. Paste into the SQL Editor. Click **Run**. Wait for "Success."
+4. Repeat for every file in numerical order through `038_communications_surveys.sql`. (Yes, all 38. It takes ~15 minutes.)
 
-All schema lives under `supabase-migrations/` as numbered SQL files. Run them **in order, top to bottom**:
-
+**Faster way (one terminal command):**
+If you have `psql` installed (Mac: `brew install libpq`; Windows: comes with the Postgres installer), copy the connection string from **Settings → Database → Connection string → URI**, then:
 ```bash
-export DATABASE_URL="postgresql://postgres:<password>@db.<ref>.supabase.co:5432/postgres"
-
+export DATABASE_URL="postgresql://postgres:YOUR-PASSWORD@db.YOUR-REF.supabase.co:5432/postgres"
 for f in supabase-migrations/*.sql; do
   echo ">>> $f"
   psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$f"
 done
 ```
 
-Latest file as of writing: **`038_communications_surveys.sql`**.
+### 4.5 Turn on the two database extensions
+In Supabase → **Database → Extensions**, search for and enable:
+- **`pg_cron`** (lets the database run scheduled jobs — for email dispatch)
+- **`pg_net`** (lets the database make HTTP calls — used by the cron job)
 
-The migrations are mostly idempotent (`create table if not exists`, etc.) so partial re-runs are safe. They also create RLS policies, GRANTs, storage buckets, and (where used) `pg_cron`/`pg_net` job rows.
-
-> **Enable the extensions Supabase doesn't enable by default.** In the Supabase dashboard → **Database → Extensions**, turn on `pg_cron` and `pg_net` (used for scheduled email dispatch). Then re-run any migration that depends on them.
-
----
-
-## 5. Configure storage buckets
-
-The migrations create the buckets the app expects (`department-logos`, `auto-images`, etc.). Confirm they exist under **Storage → Buckets** in Supabase. If you skip a migration, the matching bucket will be missing and uploads will silently fail.
+Both are one-click toggles.
 
 ---
 
-## 6. Set up environment variables
+## Part 5 — Run it on your laptop first
 
-The Cloudflare Worker needs both server-side and client-side variables. Wrangler reads them from `.dev.vars` locally and from `wrangler secret put` in production.
-
-### `.dev.vars` for local dev
-
-Create `.dev.vars` at the repo root:
-
-```ini
-# Server-side (process.env.*)
-SUPABASE_URL=https://<your-ref>.supabase.co
-SUPABASE_PUBLISHABLE_KEY=sb_publishable_…
-SUPABASE_SERVICE_ROLE_KEY=eyJ…service-role…
-
-# Email (Communications module)
-RESEND_API_KEY=re_…
-RESEND_FROM=City Events <hello@yourdomain.com>
-
-# Public site URL (used for unsubscribe links, OG metadata)
-SITE_URL=http://localhost:8080
-
-# Cron protection (used by /api/public/dispatch-due)
-DISPATCH_SECRET=<random-32-char-string>
-
-# Stripe (optional)
-STRIPE_SECRET_KEY=sk_…
-STRIPE_WEBHOOK_SECRET=whsec_…
-
-# Image generation (replaces Lovable AI Gateway — pick ONE)
-OPENAI_API_KEY=sk-…
-# or ANTHROPIC_API_KEY / GOOGLE_AI_API_KEY — see §9
-```
-
-Vite-exposed (browser) variables go in `.env`:
-
-```ini
-VITE_SUPABASE_URL=https://<your-ref>.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_…
-VITE_SITE_URL=http://localhost:8080
-```
-
-### Local dev
+Before deploying anywhere, make sure it works locally.
 
 ```bash
-bun dev          # Vite at http://localhost:8080
+bun dev
 ```
 
-The Worker runtime is simulated by `@cloudflare/vite-plugin`, so server functions and `/api/public/*` routes work end-to-end locally.
+Open http://localhost:8080 in your browser. You should see the home page.
 
----
-
-## 7. Create the first admin user
-
-1. Visit `http://localhost:8080/signup` and create an account with your email.
-2. Find the auth user id under Supabase → **Authentication → Users**.
-3. Promote that user to admin (the platform uses a separate `user_roles` table for security — never store roles on profiles):
-
+### 5.1 Create your first admin user
+1. Click **Sign up** on the site, create an account with your email.
+2. Open Supabase → **Authentication → Users**. Copy your user ID (a long UUID).
+3. Back in Supabase → **SQL Editor**, run (paste your ID):
    ```sql
    insert into public.user_roles (user_id, role)
-   values ('<your-auth-user-id>', 'admin');
+   values ('paste-your-user-id-here', 'admin');
    ```
+4. Refresh the site. The **Event Ops** sidebar appears.
+5. Open `/staff/admin/departments` and create your first department (e.g. "Parks & Rec").
+6. Open `/staff/admin/permissions` and give yourself a role in that department.
 
-4. Reload the app. The **Event Ops** sidebar appears at `/staff`.
-5. Bootstrap a department at `/staff/admin/departments`, then give yourself a department role at `/staff/admin/permissions`.
+### 5.2 Common local errors
 
----
-
-## 8. Deploy to Cloudflare Workers
-
-The repo is preconfigured for Cloudflare Workers (`wrangler.jsonc` → `src/server.ts`).
-
-```bash
-# Log in (browser flow)
-wrangler login
-
-# Push every secret your .dev.vars contains
-wrangler secret put SUPABASE_URL
-wrangler secret put SUPABASE_PUBLISHABLE_KEY
-wrangler secret put SUPABASE_SERVICE_ROLE_KEY
-wrangler secret put RESEND_API_KEY
-wrangler secret put RESEND_FROM
-wrangler secret put SITE_URL
-wrangler secret put DISPATCH_SECRET
-wrangler secret put STRIPE_SECRET_KEY
-wrangler secret put STRIPE_WEBHOOK_SECRET
-wrangler secret put OPENAI_API_KEY
-
-# Build the SSR bundle, then deploy
-bun run build
-wrangler deploy
-```
-
-Wrangler prints a `*.workers.dev` URL. Point your custom domain at it via Cloudflare DNS, then update `SITE_URL` / `VITE_SITE_URL` to that domain and redeploy.
-
-> **Other hosts work too.** Anything that supports SSR on a V8/Node runtime can host this: Vercel, Netlify, Fly.io, AWS Lambda@Edge, or a plain Node container running `bun run start`. You'll need to adapt the build output and remove `@cloudflare/vite-plugin` from `vite.config.ts`. See the [TanStack Start deployment docs](https://tanstack.com/start/latest/docs/framework/react/hosting) for adapters.
+| Message | Fix |
+| --- | --- |
+| `Port 8080 already in use` | Close whatever's using it, or run `PORT=8081 bun dev`. |
+| `Failed to fetch` on every page | Your Supabase URL or key in `config.ts` is wrong. Double-check Part 4.3. |
+| `new row violates row-level security policy` | A migration was skipped. Re-run them all from 001. |
 
 ---
 
-## 9. Replacing Lovable AI Gateway (image generation)
+## Part 6 — Pick a payment option (or skip)
 
-Some features (auto-generated event hero images, branding artwork) used the **Lovable AI Gateway**. To run without Lovable, swap `src/lib/auto-image.server.ts` to call your provider of choice:
+You have five paths. Pick **one** based on your situation.
 
-- **OpenAI**: `POST https://api.openai.com/images/generations` with `OPENAI_API_KEY`.
-- **Anthropic / Claude vision**: image gen isn't supported; use it only for vision/text.
-- **Google Gemini**: `POST https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0:generateImages` with `GOOGLE_AI_API_KEY`.
-- **Stability / Replicate / Together**: each has a similar REST endpoint.
+### Option A — No payments (recommended if all your events are free)
+**Do nothing.** The platform works fine without payments. Ticketing pages will show "Free" and skip checkout. **Skip ahead to Part 7.**
 
-The function's contract is: take a prompt, return a PNG buffer, upload it to the `auto-images` Supabase storage bucket, return the public URL. Keep that signature stable and the rest of the app keeps working.
+### Option B — USAePay (already wired up — best for U.S. municipalities)
+USAePay is built into the codebase (`src/lib/payments.functions.ts` + `src/lib/usaepay.server.ts`). It uses your existing merchant bank account — typically cheaper per transaction than Stripe/PayPal and often already approved for government use.
 
-If you don't need auto-generated images, leave the file alone — features that call it will surface a friendly error and the rest of the platform runs fine.
+1. Apply for a USAePay merchant account at https://usaepay.com/. Many cities already have one through their bank.
+2. Log into the USAePay merchant console. Under **Settings → API Keys**, generate an API Key and an API PIN.
+3. You'll add three secrets in Part 8:
+   - `USAEPAY_API_KEY` — the key from above
+   - `USAEPAY_API_PIN` — the PIN from above
+   - `USAEPAY_MODE` — set to `sandbox` while testing, then change to `live`
+4. Test with USAePay's sandbox test card `4000100011112224`, any future expiry, CVV `123`.
+
+Skip ahead to **Part 7**.
+
+### Option C — Stripe (easiest signup, 2.9% + 30¢ per transaction)
+Stripe is not wired up by default — you add ~30 lines of code. If you can copy/paste, you can do this.
+
+1. Create a free Stripe account at https://stripe.com.
+2. Under **Developers → API keys**, copy your **Secret key** (`sk_test_…`).
+3. Under **Developers → Webhooks**, click **Add endpoint**. URL: `https://YOUR-DOMAIN/api/public/stripe-webhook`. Select events: `checkout.session.completed`, `payment_intent.succeeded`, `payment_intent.payment_failed`. Save and copy the **Signing secret** (`whsec_…`).
+4. In your code folder, install the Stripe SDK:
+   ```bash
+   bun add stripe
+   ```
+5. Create `src/lib/stripe.server.ts` with this content:
+   ```ts
+   // SERVER ONLY — Stripe helpers. Never import from client code.
+   import Stripe from "stripe";
+
+   export function loadStripe(): Stripe | null {
+     const key = process.env.STRIPE_SECRET_KEY;
+     if (!key) return null;
+     return new Stripe(key, { apiVersion: "2024-06-20" });
+   }
+
+   export async function createCheckoutSession(opts: {
+     amountCents: number;
+     currency: string;
+     successUrl: string;
+     cancelUrl: string;
+     metadata?: Record<string, string>;
+     description?: string;
+   }) {
+     const stripe = loadStripe();
+     if (!stripe) throw new Error("STRIPE_SECRET_KEY not configured");
+     return stripe.checkout.sessions.create({
+       mode: "payment",
+       line_items: [{
+         price_data: {
+           currency: opts.currency,
+           product_data: { name: opts.description ?? "Ticket" },
+           unit_amount: opts.amountCents,
+         },
+         quantity: 1,
+       }],
+       success_url: opts.successUrl,
+       cancel_url: opts.cancelUrl,
+       metadata: opts.metadata,
+     });
+   }
+   ```
+6. In `src/lib/payments.functions.ts`, find the `charge` handler. Where it calls `loadUsaepayConfig()`, branch on `process.env.PAYMENT_PROVIDER`:
+   ```ts
+   if (process.env.PAYMENT_PROVIDER === "stripe") {
+     const { createCheckoutSession } = await import("./stripe.server");
+     const session = await createCheckoutSession({ /* ...fields... */ });
+     return { provider: "stripe", redirectUrl: session.url! };
+   }
+   // existing USAePay path stays below
+   ```
+7. Add these secrets in Part 8: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `PAYMENT_PROVIDER=stripe`.
+
+Skip ahead to **Part 7**.
+
+### Option D — PayPal (no monthly fee, 3.49% + 49¢)
+1. Create a PayPal Business account → https://developer.paypal.com.
+2. In the developer dashboard, **Apps & Credentials** → **Create App**. Copy the **Client ID** and **Secret**.
+3. Install the SDK:
+   ```bash
+   bun add @paypal/checkout-server-sdk
+   ```
+4. Create `src/lib/paypal.server.ts`:
+   ```ts
+   import * as paypal from "@paypal/checkout-server-sdk";
+
+   function client() {
+     const id = process.env.PAYPAL_CLIENT_ID!;
+     const secret = process.env.PAYPAL_CLIENT_SECRET!;
+     const env = process.env.PAYPAL_MODE === "live"
+       ? new paypal.core.LiveEnvironment(id, secret)
+       : new paypal.core.SandboxEnvironment(id, secret);
+     return new paypal.core.PayPalHttpClient(env);
+   }
+
+   export async function createOrder(amountCents: number, currency = "USD") {
+     const req = new paypal.orders.OrdersCreateRequest();
+     req.requestBody({
+       intent: "CAPTURE",
+       purchase_units: [{
+         amount: { currency_code: currency, value: (amountCents / 100).toFixed(2) },
+       }],
+     });
+     const res = await client().execute(req);
+     return res.result;
+   }
+   ```
+5. Branch in `payments.functions.ts` the same way as Stripe (Option C, step 6) but on `PAYMENT_PROVIDER === "paypal"`.
+6. Add secrets: `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_MODE=sandbox` (or `live`), `PAYMENT_PROVIDER=paypal`.
+
+### Option E — Square (good for cities that already use Square for in-person POS)
+1. Create a Square account → https://developer.squareup.com.
+2. **Applications** → **+** → name it. Copy the **Access Token** and **Application ID** from the **Sandbox** tab (switch to **Production** when ready).
+3. Install: `bun add square`
+4. Create `src/lib/square.server.ts`:
+   ```ts
+   import { Client, Environment } from "square";
+
+   export function loadSquare() {
+     const token = process.env.SQUARE_ACCESS_TOKEN;
+     if (!token) return null;
+     return new Client({
+       accessToken: token,
+       environment: process.env.SQUARE_MODE === "live"
+         ? Environment.Production
+         : Environment.Sandbox,
+     });
+   }
+   ```
+5. Use Square's `paymentsApi.createPayment` with the source nonce from the Square Web Payments SDK on the front-end. Wire into `payments.functions.ts` the same way.
+6. Add secrets: `SQUARE_ACCESS_TOKEN`, `SQUARE_APPLICATION_ID`, `SQUARE_MODE`, `PAYMENT_PROVIDER=square`.
 
 ---
 
-## 10. Configure optional modules
+## Part 7 — Optional add-on services
 
-### Communications (email campaigns)
-1. Get a Resend API key at [resend.com](https://resend.com).
-2. Verify a sending domain in Resend and set `RESEND_FROM`.
-3. Grant `page.communications` to staff under **Admin → Permissions**.
-4. For scheduled sends, create a `pg_cron` job in Supabase that hits the public dispatch route every minute:
+Each of these is **optional**. Skip any you don't need — the platform works without them.
 
+### 7.1 Email campaigns (Resend, free tier 3,000/mo)
+Required only if you want to send email blasts from `/staff/communications`.
+
+1. Sign up at https://resend.com.
+2. **Domains** → add yours. Resend gives you DNS records to add at your domain registrar (GoDaddy, Namecheap, Cloudflare DNS, etc.).
+3. **API Keys** → create one. Copy it.
+4. Add secrets in Part 8: `RESEND_API_KEY`, `RESEND_FROM` (e.g. `City Events <hello@yourcity.gov>`), `DISPATCH_SECRET` (any random 32-character string you make up).
+5. After deploying, schedule the database to ping the dispatch endpoint every minute. In Supabase → **SQL Editor**:
    ```sql
    select cron.schedule(
      'dispatch-due-campaigns',
@@ -233,72 +345,233 @@ If you don't need auto-generated images, leave the file alone — features that 
    );
    ```
 
-### Surveys
-- Migration 038 is all you need. Grant `page.surveys` to staff and you're done. Public anonymous form lives at `/survey/<id>`.
+### 7.2 Auto-generated images (optional, ~$0.04/image)
+Used to auto-create event hero images. The platform works fine without this — staff can upload images manually.
 
-### Social Command Center
-1. Create Meta and LinkedIn developer apps. OAuth callback URLs:
+If you want it: open `src/lib/auto-image.server.ts`. Replace the function body to call one of:
+- **OpenAI** (best quality, $0.04/image): `POST https://api.openai.com/v1/images/generations` with header `Authorization: Bearer $OPENAI_API_KEY`.
+- **Google Gemini** (cheaper, similar quality): `POST https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0:generateImages?key=$GOOGLE_AI_API_KEY`.
+- **Stability AI** (open weights): `POST https://api.stability.ai/v2beta/stable-image/generate/core`.
+
+Keep the function signature the same: take a prompt → return a PNG buffer → upload to the `auto-images` Supabase storage bucket → return the public URL. Add whichever provider's key as a secret.
+
+### 7.3 Google sign-in (optional)
+1. Supabase → **Authentication → Providers** → enable **Google**.
+2. Google Cloud Console → **APIs & Services → Credentials** → **Create OAuth client ID** → Web application.
+3. Authorized redirect URI: `https://YOUR-REF.supabase.co/auth/v1/callback`.
+4. Paste the Client ID + Secret into Supabase. Save.
+
+### 7.4 Social Command Center (optional — schedule Facebook/Instagram/LinkedIn posts)
+1. Create Meta and LinkedIn developer apps at https://developers.facebook.com and https://developer.linkedin.com.
+2. OAuth callbacks:
    - `https://YOUR-DOMAIN/api/public/oauth/meta/callback`
    - `https://YOUR-DOMAIN/api/public/oauth/linkedin/callback`
-2. Paste app id / secret at `/staff/admin/social-integrations`.
-3. Grant `page.social_command` to staff.
+3. After deploy, paste the App IDs/secrets at `/staff/admin/social-integrations`.
 
-### Ticketing & Payments
-1. Set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`.
-2. Add a Stripe webhook endpoint → `https://YOUR-DOMAIN/api/public/stripe-webhook`.
+### 7.5 Custom domain (optional, ~$12/yr)
+Buy a domain at Cloudflare Registrar (cheapest, at-cost) or Namecheap. Skip until Part 8 is done — easier to point at the Worker once it exists.
 
 ---
 
-## 11. Smoke test
+## Part 8 — Put it on the internet (free Cloudflare Workers)
 
-After deploying, hit each surface:
+Cloudflare Workers gives you 100,000 requests/day free, no credit card.
 
-- `/` — home page (CMS-driven; seed content at `/staff/admin/home`)
-- `/events` — public event listing
-- `/manual` — full visual user manual (in-app docs)
-- `/staff` — staff dashboard
-- `/staff/admin/permissions` — admin panel
-- `/staff/communications` — campaigns list
-- `/staff/surveys` — surveys list
-- `/survey/<id>` — public anonymous form
+### 8.1 Create the Cloudflare account
+- Sign up at https://cloudflare.com.
+- No credit card required for the Workers free plan.
+
+### 8.2 Log in from your terminal
+```bash
+wrangler login
+```
+A browser opens; click **Allow**.
+
+### 8.3 Push your secrets
+For each secret you collected above, run `wrangler secret put NAME` — it prompts for the value (which is hidden as you paste).
+
+**Required for every install:**
+```bash
+wrangler secret put SUPABASE_URL
+wrangler secret put SUPABASE_PUBLISHABLE_KEY
+wrangler secret put EXT_SUPABASE_SERVICE_ROLE_KEY
+wrangler secret put SITE_URL                  # e.g. https://your-worker.workers.dev
+```
+
+**If you set up email (7.1):**
+```bash
+wrangler secret put RESEND_API_KEY
+wrangler secret put RESEND_FROM
+wrangler secret put DISPATCH_SECRET
+```
+
+**If you set up payments — choose the one you picked:**
+```bash
+# USAePay
+wrangler secret put USAEPAY_API_KEY
+wrangler secret put USAEPAY_API_PIN
+wrangler secret put USAEPAY_MODE
+
+# Stripe
+wrangler secret put STRIPE_SECRET_KEY
+wrangler secret put STRIPE_WEBHOOK_SECRET
+wrangler secret put PAYMENT_PROVIDER          # value: stripe
+
+# PayPal
+wrangler secret put PAYPAL_CLIENT_ID
+wrangler secret put PAYPAL_CLIENT_SECRET
+wrangler secret put PAYPAL_MODE
+wrangler secret put PAYMENT_PROVIDER          # value: paypal
+
+# Square
+wrangler secret put SQUARE_ACCESS_TOKEN
+wrangler secret put SQUARE_APPLICATION_ID
+wrangler secret put SQUARE_MODE
+wrangler secret put PAYMENT_PROVIDER          # value: square
+```
+
+### 8.4 Build and deploy
+```bash
+bun run build
+wrangler deploy
+```
+
+Wrangler prints a URL like `https://total-event-system.YOUR-NAME.workers.dev`. Open it. You should see your home page **live on the internet**.
+
+### 8.5 Update SITE_URL
+Once you have the live URL, re-run `wrangler secret put SITE_URL` with that URL and `wrangler deploy` again. (Unsubscribe links and OAuth callbacks need the real URL.)
+
+### 8.6 Attach a custom domain (optional)
+1. In Cloudflare, add your domain (move nameservers — they walk you through it).
+2. Open your Worker → **Settings → Triggers → Add Custom Domain** → enter `events.yourcity.gov`. Done.
+
+### 8.7 Other free hosts
+If you'd rather not use Cloudflare, these all work too. You'll need to remove `@cloudflare/vite-plugin` from `vite.config.ts` and follow the host's TanStack Start adapter docs:
+- **Vercel** (free hobby tier): https://vercel.com
+- **Netlify** (free starter): https://netlify.com
+- **Render** (free web service tier): https://render.com
+- **Fly.io** (free allowance): https://fly.io
 
 ---
 
-## 12. Auth provider notes
+## Part 9 — Smoke test (verify everything works)
 
-The repo's email/password sign-in works out of the box. The OAuth flows shipped in the codebase (Google in particular) were brokered by Lovable Cloud. To run them yourself:
+Click each of these on your live URL. Each one should load without errors.
 
-1. In Supabase → **Authentication → Providers**, enable Google.
-2. Create OAuth credentials in Google Cloud Console; add `https://<your-ref>.supabase.co/auth/v1/callback` as an authorized redirect.
-3. Paste the client id/secret into Supabase. The existing `/login` button uses Supabase's `signInWithOAuth({ provider: 'google' })`, which now goes through your own credentials.
-
-Repeat for Apple, GitHub, etc. as needed.
-
----
-
-## 13. Troubleshooting
-
-**`Failed to resolve import` during build** — make sure `bun install` finished and that you didn't delete files referenced by the route tree.
-
-**`new row violates row-level security policy`** — user isn't signed in, or a migration was skipped. Every public-schema table needs both RLS policies *and* `GRANT` statements; re-run the migration that creates the failing table.
-
-**Campaign stuck in `scheduled` status forever** — the `pg_cron` job isn't pinging `/api/public/dispatch-due`. Verify with `select * from cron.job;` and curl the endpoint manually to confirm `DISPATCH_SECRET` matches.
-
-**Email comes from `onboarding@resend.dev`** — `RESEND_FROM` isn't set. That address is Resend's shared test sender (max 100/day).
-
-**SSR error referencing `LOVABLE_API_KEY` or `lovable-ai-gateway`** — you're hitting a code path that still calls the gateway. Swap that helper to your own provider as in §9.
-
-**Worker deploy fails with "Module not found: cloudflare:workers"** — you're running on Node directly. Either run via Wrangler (`wrangler dev`) or switch hosts and remove `@cloudflare/vite-plugin` from `vite.config.ts`.
-
-**`__dirname is not defined` at runtime** — a Node-only npm package slipped into a server function. Replace it with a Web-standard or fetch-based alternative; the Worker runtime can't shim it.
+| URL | What you should see |
+| --- | --- |
+| `/` | Home page (CMS-driven; bare until you add content at `/staff/admin/home`) |
+| `/events` | Public event list (empty until you create events) |
+| `/manual` | Full visual user manual |
+| `/staff` | Staff dashboard (sign in first) |
+| `/staff/admin/permissions` | Admin permissions matrix |
+| `/staff/admin/departments` | Create/edit departments |
+| `/staff/communications` | Email campaigns (if Resend is set up) |
+| `/staff/surveys` | Surveys list |
+| `/survey/<id>` | Public anonymous survey form (after creating one) |
 
 ---
 
-## 14. Going further
+## Part 10 — Day-to-day operations
 
-- **Backups**: Supabase runs daily backups on paid tiers. For self-managed Postgres, `pg_dump` on a schedule.
-- **Custom domain**: Cloudflare DNS → CNAME → your worker. Update `SITE_URL` and Supabase redirect URLs afterwards.
-- **Monitoring**: Workers Analytics + Supabase Logs cover most of it; pipe to Sentry / Logflare if you want richer traces.
-- **CI/CD**: The repo has no opinionated pipeline. A 20-line GitHub Action that runs `bun install && bun run build && wrangler deploy` on push to `main` is enough.
+### Update the code
+When the upstream repo gets new features:
+```bash
+git pull
+bun install
+bun run build
+wrangler deploy
+```
+If new files appear in `supabase-migrations/`, run those in Supabase SQL Editor first.
 
-You now own every layer of the stack — code, database, runtime, secrets. Lovable is no longer in the loop.
+### Back up your data
+Supabase free tier keeps 7 days of point-in-time recovery automatically. For longer backups: **Database → Backups → Download** weekly.
+
+### Invite more admins
+Sign them up on the live site, then run:
+```sql
+insert into public.user_roles (user_id, role)
+values ('<their-user-id>', 'admin');
+```
+
+### Where to look when something breaks
+- **Live site logs**: `wrangler tail` in your terminal — streams every request and error.
+- **Database logs**: Supabase → **Logs → Postgres logs**.
+- **Email send failures**: Resend dashboard → **Emails** tab.
+
+### Where to get help
+- This repo's **Issues** tab on GitHub.
+- Supabase Discord: https://discord.supabase.com
+- Cloudflare community: https://community.cloudflare.com
+- TanStack Start docs: https://tanstack.com/start
+
+---
+
+## Part 11 — Troubleshooting
+
+| Error you see | What it means | Fix |
+| --- | --- | --- |
+| `Failed to resolve import` | A file the code expects is missing. | Re-run `bun install`. Make sure you didn't delete any files in `src/`. |
+| `new row violates row-level security policy` | You skipped a migration. | Re-run all migrations in `supabase-migrations/` in order. |
+| Campaign stuck in `scheduled` forever | The `pg_cron` job isn't running. | Run `select * from cron.job;` in Supabase to confirm the schedule exists. Make sure `DISPATCH_SECRET` matches between your secret and the cron SQL. |
+| Emails come from `onboarding@resend.dev` | `RESEND_FROM` isn't set, so Resend uses its test sender (capped at 100/day). | `wrangler secret put RESEND_FROM` with a verified domain. |
+| `__dirname is not defined` at runtime | A Node-only npm package slipped in. | Find and replace it with a Web-standard / fetch-based alternative — Cloudflare Workers can't shim `__dirname`. |
+| `Module not found: cloudflare:workers` | You're running on plain Node, not Wrangler. | Use `wrangler dev`, or switch hosts and remove `@cloudflare/vite-plugin` from `vite.config.ts`. |
+| `USAEPAY_API_KEY not configured` | You picked USAePay but didn't add the secrets. | `wrangler secret put USAEPAY_API_KEY` etc. |
+| Stripe webhook signature mismatch | The signing secret you copied is for a different endpoint. | In Stripe → Webhooks, click your endpoint → re-copy the signing secret → `wrangler secret put STRIPE_WEBHOOK_SECRET`. |
+| Google sign-in says "redirect URI mismatch" | The URI in Google Cloud Console doesn't exactly match Supabase's. | Copy it from Supabase verbatim — including `https://` and the trailing path. |
+| Wrangler says "You need to login" | Token expired. | `wrangler login` again. |
+| Worker deploy fails — "size limit exceeded" | Bundle too big (rare). | Make sure you ran `bun run build`, not `bun build`. The Vite build tree-shakes; a raw `bun build` doesn't. |
+| Local dev fails — `bun: command not found` | Bun isn't in your PATH yet. | Close and reopen your terminal. On Windows, also restart VS Code. |
+
+---
+
+## Appendix A — Full environment variable reference
+
+| Name | Where to set it | Required? | What it is |
+| --- | --- | --- | --- |
+| `SUPABASE_URL` | `wrangler secret put` | Yes | Your Supabase project URL |
+| `SUPABASE_PUBLISHABLE_KEY` | `wrangler secret put` | Yes | Supabase anon/publishable key |
+| `EXT_SUPABASE_SERVICE_ROLE_KEY` | `wrangler secret put` | Yes | Supabase service role key (server only — never expose) |
+| `SITE_URL` | `wrangler secret put` | Yes | Your live URL (e.g. `https://events.yourcity.gov`) |
+| `RESEND_API_KEY` | `wrangler secret put` | If using email | Resend API key |
+| `RESEND_FROM` | `wrangler secret put` | If using email | `Display Name <you@yourdomain.com>` |
+| `DISPATCH_SECRET` | `wrangler secret put` | If using scheduled email | Random 32-char string shared with the pg_cron job |
+| `USAEPAY_API_KEY` / `USAEPAY_API_PIN` / `USAEPAY_MODE` | `wrangler secret put` | If using USAePay | Merchant credentials; mode = `sandbox` or `live` |
+| `PAYMENT_PROVIDER` | `wrangler secret put` | If using Stripe/PayPal/Square | One of `stripe`, `paypal`, `square` |
+| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | `wrangler secret put` | If using Stripe | From Stripe dashboard |
+| `PAYPAL_CLIENT_ID` / `PAYPAL_CLIENT_SECRET` / `PAYPAL_MODE` | `wrangler secret put` | If using PayPal | From PayPal Developer dashboard |
+| `SQUARE_ACCESS_TOKEN` / `SQUARE_APPLICATION_ID` / `SQUARE_MODE` | `wrangler secret put` | If using Square | From Square Developer dashboard |
+| `OPENAI_API_KEY` / `GOOGLE_AI_API_KEY` / `STABILITY_API_KEY` | `wrangler secret put` | If using auto-images | Pick one |
+
+For local development, put the same values in a `.dev.vars` file at the repo root (one `KEY=value` per line). `.dev.vars` is gitignored.
+
+---
+
+## Appendix B — Cost calculator
+
+| Scale | Supabase | Cloudflare Workers | Resend | Total |
+| --- | --- | --- | --- | --- |
+| Small town (100 active users, 1k visits/mo) | Free | Free | Free | **$0/mo** |
+| Mid-size city (1k users, 30k visits/mo, weekly email) | Free | Free | Free | **$0/mo** |
+| Large city (10k users, 300k visits/mo, daily email) | Pro $25 | Free | Pro $20 | **$45/mo** |
+
+Stripe/PayPal/Square fees are per-transaction (no monthly fee). USAePay typically has a small monthly gateway fee but lower per-transaction rates — usually a win once you process more than a few thousand dollars/mo.
+
+---
+
+## Appendix C — Glossary
+
+- **RLS (Row-Level Security)**: Database rules that say "this user can only see their own rows."
+- **Environment variable / `.dev.vars`**: A file holding secrets for *local* development. Never committed to GitHub.
+- **Secret**: Same idea, but stored on the host (Cloudflare) for production.
+- **Migration**: A numbered SQL file that adds or changes tables. You run them in order.
+- **Worker**: A small program Cloudflare runs at the edge — handles incoming web requests for you.
+- **SSR**: Server-Side Rendering — the page is built on the server before being sent to the browser.
+- **OAuth**: The "Sign in with Google" flow.
+- **Webhook**: A URL on your site that another service (Stripe, Resend) calls when something happens.
+- **`pg_cron`**: A Postgres extension that runs SQL on a schedule (like a cron job inside the database).
+
+---
+
+**You now own every layer:** code (GitHub), database (Supabase), runtime (Cloudflare), payments (your choice). No vendor lock-in, no monthly bill at small scale, no Lovable required.

@@ -1,135 +1,135 @@
-# Communications & Surveys Module (Resend)
 
-Native replacement for Mailchimp + SurveyMonkey using your own Resend API key.
+# Rewrite REPRODUCTION.md and README.md for non-technical, zero-cost self-hosting
 
-## Locked-in decisions
+## Goals (from your message)
+- **Zero Lovable dependency.** Nothing in the instructions should require Lovable, Lovable Cloud, or the Lovable AI Gateway.
+- **Zero cost path.** Default route should cost $0/month for a small city or nonprofit (free tiers only).
+- **Soup to nuts.** Start at "I have nothing installed" and end at "my site is live on my own domain."
+- **Beginner-friendly.** Written so a non-technical staffer can follow along — every command, every click, every screen.
+- **Keep USAePay** instructions intact (the working integration in `src/lib/payments.functions.ts` + `src/lib/usaepay.server.ts`).
+- **Document multiple payment options** so cities can pick: USAePay (wired up), Stripe, PayPal, Square, or "no payments at all" (free events only).
 
-- **Email delivery:** Resend, called directly with your `RESEND_API_KEY` from a server route at `/api/public/dispatch-campaign`.
-- **Editor:** TipTap rich-text editor.
-- **Scheduling:** `scheduled_for` supported; pg_cron pings the dispatch route every minute.
-- **Surveys:** Always anonymous submissions.
-- **Permissions:** `communications.manage` + `surveys.manage` gated through existing `usePermissions()`.
+---
 
-## Setup (one-time)
+## New REPRODUCTION.md — structure
 
-I'll request via `add_secret`:
-- `RESEND_API_KEY` — your Resend API key.
-- `RESEND_FROM` — verified sender like `Events <hello@yourdomain.com>`.
-- `DISPATCH_SECRET` — random string protecting the dispatch route.
-- `SITE_URL` — base URL for unsubscribe links (auto-defaults to publish URL if omitted).
+Plain English, numbered steps, screenshots/links where helpful, "what this does / why you need it" callouts before each section.
 
-## Part 1 — Schema (migration `038_communications_surveys.sql`)
+### Part 1 — What you're building (1 page)
+- One paragraph: what the platform does (events, tickets, rooms, vendors, surveys, comms).
+- Cost table: **free tier ($0/mo)** vs **paid tier (~$25/mo at scale)**.
+- Time estimate: ~2 hours for a first-timer.
 
-```text
-communication_campaigns
-  id uuid pk, department_id uuid fk null,
-  subject text, body_html text, body_json jsonb,   -- TipTap JSON + rendered HTML
-  status text check in (draft|scheduled|sending|sent|failed),
-  target_audience_rules jsonb,
-  scheduled_for timestamptz null, sent_at timestamptz null,
-  created_by uuid, recipient_count int default 0,
-  created_at, updated_at
+### Part 2 — Install the free tools on your computer (Mac + Windows)
+Click-by-click, with download links:
+1. Install **Git** (link + installer walk-through).
+2. Install **Node.js 20 LTS** (link + verify with `node -v`).
+3. Install **Bun** (one-line installer for Mac/Linux, PowerShell line for Windows).
+4. Install **VS Code** (optional, for editing config files).
+5. Install the **Wrangler CLI** (`npm i -g wrangler`) — explained as "the tool that uploads the site."
 
-campaign_recipients
-  id, campaign_id fk, email text,
-  status (queued|sent|failed|suppressed), error text null,
-  sent_at timestamptz, resend_id text null
+### Part 3 — Get the code
+1. Fork the GitHub repo (screenshot of the Fork button).
+2. `git clone` your fork.
+3. `bun install` — explained as "downloads all the building blocks."
 
-campaign_unsubscribes               -- email pk, unsubscribed_at
+### Part 4 — Create your free database (Supabase — free tier, no card)
+1. Sign up at supabase.com (free, no credit card).
+2. Create a project, save the database password.
+3. Copy 3 values from **Settings → API**: Project URL, publishable key, service_role key.
+4. Edit `src/integrations/supabase/config.ts` — paste URL + publishable key (the only file edit a non-coder has to make).
+5. Open **SQL Editor** → paste each migration in order (`001` through `038`). Provide a copy-paste loop using the Supabase CLI as the "advanced" alternative.
+6. Turn on `pg_cron` and `pg_net` extensions (one click each in Database → Extensions).
+7. Create the first admin user: sign up on the local site, then run the 2-line SQL snippet to grant the `admin` role in `user_roles`.
 
-surveys                             -- title, description_html, is_active, redirect_to, dept
-survey_questions                    -- position, text, type (text|rating_1_to_5|multiple_choice), options jsonb, required
-survey_responses                    -- answers jsonb, submitted_at  (NO user_id — always anonymous)
-```
+### Part 5 — Run it on your laptop first
+- `bun dev` → open http://localhost:8080.
+- Walk through: sign up, promote yourself, open `/staff`, create a department.
+- Troubleshooting box for the 3 most common errors (port in use, missing env var, RLS denial).
 
-**target_audience_rules**:
-```json
-{ "segments": [
-  { "type": "all_active_users" },
-  { "type": "event_attendees", "event_id": "..." },
-  { "type": "approved_vendors" },
-  { "type": "department_members", "department_id": "..." }
-] }
-```
-Unioned, deduped, filtered against `campaign_unsubscribes`.
+### Part 6 — Pick a payment option (or skip)
+A clear decision tree, each with its own sub-section:
 
-**RLS + GRANTs** (per public-schema-grants rule, in same migration):
-- Campaigns / recipients / surveys / questions: staff with permission scoped to manageable departments; admins full.
-- `surveys` + `survey_questions`: `SELECT` to `anon`+`authenticated` when active.
-- `survey_responses`: `INSERT` open to `anon`+`authenticated`; `SELECT` staff with `surveys.manage`.
-- `campaign_unsubscribes`: `INSERT`/`SELECT` open (public link must work).
+**Option A — No payments (free events only).** Skip this part entirely. The platform works.
 
-## Part 2 — Resend dispatch
+**Option B — USAePay** *(already wired up, preferred for U.S. municipalities — no per-transaction Stripe-style fees, merchant-account-based).*
+1. Apply for a USAePay merchant account (link).
+2. Get `USAEPAY_API_KEY` + `USAEPAY_API_PIN` from the USAePay console.
+3. Add them as secrets (see Part 8). Set `USAEPAY_MODE=sandbox` to test, then flip to `live`.
+4. Test card numbers + how to verify a sandbox transaction.
 
-**Server route `src/routes/api/public/dispatch-campaign.ts`** (POST):
-- Verifies `x-dispatch-secret` header against `DISPATCH_SECRET`.
-- Body: `{ campaign_id }`.
-- Loads campaign → `status='sending'`.
-- Resolves audience via `src/lib/communications.server.ts` (admin client, queries `attendees`, `vendor_applications`, `department_members`, `profiles`).
-- Subtracts `campaign_unsubscribes`.
-- For each recipient (batched 10, small delay): inserts `campaign_recipients` row, POSTs `https://api.resend.com/emails` with `from`=`RESEND_FROM`, body_html + unsubscribe footer (`{SITE_URL}/api/public/unsubscribe?token=<HMAC of email>`), stores returned id.
-- Updates `status='sent'`, `sent_at`, `recipient_count`.
+**Option C — Stripe** (easiest signup, 2.9% + 30¢).
+1. Create a Stripe account.
+2. Grab the secret key + webhook signing secret.
+3. Swap the helper: a 30-line drop-in `src/lib/stripe.server.ts` snippet + which lines in `payments.functions.ts` to change. Include the snippet in the doc so they can copy-paste.
 
-**Staff server fns** `src/lib/communications.functions.ts`:
-- `dispatchCampaign({ campaignId })` — staff; calls the public route internally with the shared secret.
-- `sendTestCampaign({ campaignId })` — sends one email to the logged-in user via Resend directly.
-- `previewAudience({ rules })` — `{ count, sample: email[5] }`.
-- `saveCampaign`, `listCampaigns`, `getCampaign`, `deleteCampaign`.
+**Option D — PayPal Checkout / Braintree.** Sign-up link + REST credential location + the same swap pattern with a code snippet.
 
-**Scheduler:** pg_cron job runs every minute, selects campaigns with `status='scheduled' AND scheduled_for <= now()`, calls `/api/public/dispatch-campaign` via `pg_net` with the shared secret. SQL in the migration.
+**Option E — Square.** Same pattern with a code snippet.
 
-**Unsubscribe route** `src/routes/api/public/unsubscribe.ts` GET — validates HMAC token, upserts `campaign_unsubscribes`, returns simple confirmation HTML.
+Each option ends with: "Now skip ahead to Part 7."
 
-## Part 3 — Staff Communications dashboard
+### Part 7 — Optional add-on services (each with a "skip if you don't need it" banner)
+- **Email (Resend)** — free tier 3,000/mo. How to verify a domain, set `RESEND_API_KEY` + `RESEND_FROM`, then schedule the `pg_cron` job that hits `/api/public/dispatch-due`. SQL snippet included.
+- **Auto-generated images** — three drop-in options (OpenAI, Google Gemini, Stability) with the exact function signature `src/lib/auto-image.server.ts` must satisfy. Also: "leave this off — the platform still works."
+- **Google sign-in** — Google Cloud Console click-through, where to paste the OAuth client id/secret in Supabase.
+- **Social Command Center** — Meta + LinkedIn developer app walk-through, callback URLs to register.
+- **Custom domain** — pointing a domain at Cloudflare.
 
-- Add `communications.manage` to `PermissionKey`.
-- Sidebar entry **Communications** (gated).
-- `src/routes/_authenticated/staff/communications.tsx`: DataTable (subject, status, audience count, scheduled_for, sent_at, actions).
-- `src/routes/_authenticated/staff/communications.$id.tsx`: editor
-  - Subject input.
-  - **TipTap editor** (`@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-link`) → `src/components/RichTextEditor.tsx` (reusable).
-  - **Audience Selector**: chip list with "Add segment" popover (event picker, dept picker), live "Will send to N recipients" via `previewAudience`.
-  - **Schedule control**: "Send now" vs "Schedule for" date+time.
-  - Buttons: Save Draft, Send Test to Me, Schedule / Dispatch (confirm dialog with count).
-- Recipients drawer: list of `campaign_recipients` with status.
+### Part 8 — Put it on the internet (free Cloudflare Workers)
+1. Create a Cloudflare account (free, no card for Workers free tier — 100k requests/day).
+2. `wrangler login` (browser flow, one click).
+3. `wrangler secret put` for each secret — full checklist of names with what each one is for.
+4. `bun run build` then `wrangler deploy`. Result: a `*.workers.dev` URL that anyone can visit.
+5. Optional: connect a custom domain via Cloudflare DNS.
+6. **Alternative free hosts** (one paragraph each, links to their adapter docs): Vercel, Netlify, Render, Fly.io.
 
-## Part 4 — Survey builder (staff)
+### Part 9 — Verify everything works (smoke test checklist)
+Numbered list of URLs to click after deploy: `/`, `/events`, `/manual`, `/staff`, `/staff/admin/permissions`, `/staff/communications`, `/staff/surveys`, `/survey/<id>`. What each should look like (1-line description).
 
-- Add `surveys.manage` to `PermissionKey`.
-- Sidebar entry **Surveys & Feedback** (gated).
-- `surveys.tsx` (list/create), `surveys.$id.tsx` (editor), `surveys.$id.analytics.tsx`.
-- Editor: title, TipTap description, active toggle, redirect URL, drag-reorder questions (reuse `SortableList`), per-question type + options + required, copy public link button.
-- Analytics: per-question — text→list; rating→recharts BarChart of 1–5 + average; multiple_choice→PieChart of tallies. Response count + over-time LineChart.
+### Part 10 — Day-to-day operations
+- How to apply a new migration when the repo updates.
+- How to back up the database (Supabase free tier has 7-day PITR).
+- How to invite more admins.
+- Where logs live (Wrangler tail, Supabase logs).
+- Who to ask for help (GitHub Issues link, Supabase Discord, Cloudflare community).
 
-## Part 5 — Public `/survey/:id`
+### Part 11 — Troubleshooting
+Expanded from the current short list: ~12 common error messages with the exact fix. Each entry: symptom (verbatim error text) → cause → fix.
 
-- `src/routes/survey.$id.tsx` (top-level, public, SSR on, no auth gate).
-- Public fn `getPublicSurvey({ id })` (admin client, only `is_active`, safe columns).
-- Mobile-friendly form: text / 5-star / radio. Zod-validated required fields.
-- Submit → public fn `submitSurveyResponse({ surveyId, answers })` — always anonymous, no user_id.
-- Completion → redirect to `survey.redirect_to ?? '/hub'` after 2s.
-- `head()` from survey for shareable links.
+### Appendix A — Full environment variable reference
+Single table: name, where it goes (.dev.vars / wrangler secret / .env), required-or-optional, where to get it.
 
-## Permissions wiring
+### Appendix B — Cost calculator
+Rows for each service at three scale tiers: 100 users, 1k users, 10k users. Shows the platform stays free at small-city scale.
 
-- New keys added to `PermissionKey` union + admin Permissions UI.
-- Sidebar + routes gated via `usePermissions().can(...)`.
-- Server fns re-check via `requireSupabaseAuth` + DB lookup.
+### Appendix C — Glossary
+Plain-English definitions: RLS, env var, secret, migration, Worker, SSR, OAuth, webhook, cron — so non-technical readers aren't lost.
 
-## Dependencies
+---
 
-- New npm: `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-link`, `isomorphic-dompurify` (sanitise HTML server-side before storage).
-- Secrets to add: `RESEND_API_KEY`, `RESEND_FROM`, `DISPATCH_SECRET`, optional `SITE_URL`.
+## README.md — rewrite to match
 
-## Build order
+Keep the project overview but **remove every Lovable URL and Lovable-Cloud reference**. New shape:
+1. One-paragraph what-it-is.
+2. Feature list by audience (community / staff / admin) — keep current content.
+3. Tech stack table — remove "Lovable AI Gateway"; replace with "OpenAI / Gemini / Stability (pluggable)".
+4. **Quick start (5 lines)** for developers who already have Node/Bun.
+5. **Non-technical setup** → link to `REPRODUCTION.md` as the canonical guide.
+6. Payment options summary table (USAePay / Stripe / PayPal / Square / none) — one row each, link to the relevant REPRODUCTION.md section.
+7. Repo layout (keep).
+8. Server-side architecture rules (keep).
+9. Module breakdown (keep).
+10. Links section — drop Lovable preview/published URLs; keep `/manual`, `REPRODUCTION.md`.
 
-1. Request secrets via `add_secret`.
-2. Migration 038 (schema + RLS + grants + pg_cron job).
-3. `RichTextEditor` component + audience-resolver server helper.
-4. Dispatch route + unsubscribe route + communications server fns.
-5. Staff Communications dashboard + campaign editor + permission key.
-6. Surveys server fns + staff survey builder + analytics + permission key.
-7. Public `/survey/:id` page.
-8. Sidebar entries + admin Permissions UI.
+---
 
-Approve to switch to build mode and ship.
+## Files changed
+- `REPRODUCTION.md` — full rewrite (~3-4× current length to cover beginner steps + all payment options).
+- `README.md` — rewrite the Lovable-specific sections and add the payment-options table.
+
+## Not in scope (will confirm before doing)
+- Regenerating `public/ReproductionInstruction.pdf` and `public/manual.pdf` from the new markdown.
+- Actually wiring Stripe/PayPal/Square into the codebase (the docs include drop-in snippets, but no new `.functions.ts` files are added unless you ask).
+
+Let me know if you want me to (a) also regenerate the PDFs, and (b) actually scaffold the Stripe/PayPal/Square server helpers as optional files in the repo, or just leave them as copy-paste snippets in the doc.

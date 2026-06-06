@@ -1,16 +1,17 @@
 # Total Event System Solutions
 
-A multi-tenant, multi-department community event & partnership platform. Built on **TanStack Start** (React 19 + Vite 7), **Supabase** (Postgres + Auth + Storage + RLS), and **Cloudflare Workers** for SSR.
+An open-source, multi-tenant, multi-department community event & partnership platform. Built for **small cities, towns, and nonprofits** that want a complete event-management system without the per-seat SaaS bill.
 
-> **Live preview:** https://id-preview--44bd1e98-47d5-489a-8e35-066a9a498b60.lovable.app
-> **Production:** https://totaleventsystemsolutions.lovable.app
+Built on **TanStack Start** (React 19 + Vite 7), **Supabase** (Postgres + Auth + Storage + RLS), and **Cloudflare Workers** for SSR. Runs $0/month at small-city scale.
+
+> **New to the project?** See [REPRODUCTION.md](./REPRODUCTION.md) — a soup-to-nuts, no-coding-required setup guide.
 
 ---
 
 ## What's in the platform
 
 ### For community members
-- **Events & ticketing** — browse sessions, buy tickets (Stripe), receive QR codes.
+- **Events & ticketing** — browse sessions, buy tickets (multiple payment providers supported), receive QR codes.
 - **Room reservations** — request meeting rooms, track approval state.
 - **StreetBeats** — register as a busker, claim and share gig flyers.
 - **Community organizations & events** — orgs can publish their own events.
@@ -33,7 +34,7 @@ A multi-tenant, multi-department community event & partnership platform. Built o
 - **Guidebook publisher** — public-facing program PDFs.
 - **Social Command Center** — schedule posts to Facebook, Instagram, and LinkedIn from one calendar.
 - **Communications** — native email campaigns (Resend), audience segments, scheduling, unsubscribe handling.
-- **Surveys & Feedback** — native survey builder with anonymous responses and recharts analytics.
+- **Surveys & Feedback** — native survey builder with anonymous responses and Recharts analytics.
 
 ---
 
@@ -42,16 +43,45 @@ A multi-tenant, multi-department community event & partnership platform. Built o
 | Layer | Choice |
 | --- | --- |
 | Framework | TanStack Start v1 (React 19, Vite 7) |
-| Runtime | Cloudflare Workers (SSR via `nodejs_compat`) |
+| Runtime | Cloudflare Workers (SSR via `nodejs_compat`); Vercel/Netlify/Render/Fly also supported |
 | Database | Supabase Postgres with RLS |
-| Auth | Supabase Auth (email/password + Google OAuth via Lovable broker) |
+| Auth | Supabase Auth (email/password + optional Google/Apple/GitHub OAuth) |
 | Styling | Tailwind v4 (`src/styles.css`) + shadcn/ui |
 | State | TanStack Query |
 | Rich text | TipTap |
 | Charts | Recharts v2 |
-| Email | Resend |
-| Payments | Stripe |
-| Image gen | Lovable AI Gateway (auto image storage) |
+| Email | Resend (optional) |
+| Image generation | Pluggable — OpenAI / Google Gemini / Stability AI (optional) |
+
+---
+
+## Payment options
+
+The platform supports five payment configurations. Pick one. (See [REPRODUCTION.md §6](./REPRODUCTION.md#part-6--pick-a-payment-option-or-skip) for full instructions.)
+
+| Option | Status | Pricing | Best for |
+| --- | --- | --- | --- |
+| **None** | Built-in | Free | Cities with only free events |
+| **USAePay** | Wired up (`src/lib/usaepay.server.ts`) | Merchant-account based, low per-transaction | U.S. municipalities with existing merchant accounts |
+| **Stripe** | Drop-in snippet | 2.9% + 30¢ | Easiest signup, global support |
+| **PayPal** | Drop-in snippet | 3.49% + 49¢ | Existing PayPal users, no monthly fee |
+| **Square** | Drop-in snippet | 2.6% + 10¢ (in-person) / 2.9% + 30¢ (online) | Cities already using Square for POS |
+
+---
+
+## Quick start (for developers who already have Node + Bun)
+
+```bash
+git clone <your-fork-url>
+cd total-event-system
+bun install
+# edit src/integrations/supabase/config.ts with your Supabase URL + publishable key
+bun dev          # http://localhost:8080
+```
+
+Then run all SQL files in `supabase-migrations/` against your Supabase project in numerical order.
+
+Full beginner walkthrough: **[REPRODUCTION.md](./REPRODUCTION.md)**.
 
 ---
 
@@ -62,9 +92,9 @@ src/
 ├── routes/                       # File-based routes (TanStack Router)
 │   ├── __root.tsx                # Root layout / shellComponent
 │   ├── index.tsx                 # Home (CMS-driven)
-│   ├── _authenticated/           # Auth-gated subtree (managed; do not edit)
+│   ├── _authenticated/           # Auth-gated subtree
 │   │   └── staff/                # Staff dashboards
-│   ├── api/public/               # Webhooks & cron (no published-site auth)
+│   ├── api/public/               # Webhooks & cron (no auth)
 │   ├── survey.$id.tsx            # Public anonymous survey form
 │   ├── manual.tsx                # Full visual user manual
 │   └── ...
@@ -78,32 +108,11 @@ supabase-migrations/              # Numbered SQL migrations (run in order)
 
 ---
 
-## Local development
-
-```bash
-bun install
-bun dev               # starts Vite on http://localhost:8080
-```
-
-Environment variables come from Lovable Cloud (auto-injected). Locally you'll need:
-
-| Variable | Where |
-| --- | --- |
-| `VITE_SUPABASE_URL` / `SUPABASE_URL` | Supabase project |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` / `SUPABASE_PUBLISHABLE_KEY` | Supabase project |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server-only |
-| `LOVABLE_API_KEY` | Auto-provisioned |
-| `RESEND_API_KEY` | If using Communications module |
-| `RESEND_FROM` *(optional)* | Verified sender email |
-| `STRIPE_SECRET_KEY` | If using ticketing |
-
----
-
 ## Database migrations
 
 All schema lives under `supabase-migrations/` as numbered SQL files. Apply them in order via the Supabase SQL editor or `psql`. Latest migration: **`038_communications_surveys.sql`**.
 
-See [REPRODUCTION.md](./REPRODUCTION.md) for the full bootstrap order.
+See [REPRODUCTION.md §4](./REPRODUCTION.md#part-4--create-your-free-database-supabase) for the full bootstrap order.
 
 ---
 
@@ -111,7 +120,6 @@ See [REPRODUCTION.md](./REPRODUCTION.md) for the full bootstrap order.
 
 - **Internal server logic** → `createServerFn` in `src/lib/*.functions.ts`.
 - **Public HTTP endpoints** (webhooks, cron, public APIs) → server routes under `src/routes/api/public/`.
-- **Never** use Supabase Edge Functions for app logic — they're only for externally called webhooks that must live inside Supabase's network.
 - **RLS-bypassing admin client** (`@/integrations/supabase/client.server`) is only imported inside server function `.handler()` bodies via dynamic `await import(...)`.
 - **Authenticated server fns** chain `.middleware([requireSupabaseAuth])`. The browser bearer token is auto-attached via `attachSupabaseAuth` registered in `src/start.ts`.
 
@@ -139,6 +147,10 @@ See [REPRODUCTION.md](./REPRODUCTION.md) for the full bootstrap order.
 - Per-event grants/revokes.
 - Department roles override page-level grants automatically.
 
+### Payments (`src/lib/payments.functions.ts`)
+- USAePay wired in by default (`src/lib/usaepay.server.ts`).
+- Pluggable via a `PAYMENT_PROVIDER` env switch — see REPRODUCTION.md for Stripe/PayPal/Square drop-ins.
+
 ---
 
 ## User documentation
@@ -149,8 +161,16 @@ When you add a new module, add a section to `src/routes/manual.tsx` and register
 
 ---
 
+## License
+
+See [LICENSE](./LICENSE). Free for cities, towns, nonprofits, and commercial use.
+
+---
+
 ## Links
 
-- [REPRODUCTION.md](./REPRODUCTION.md) — How to spin this project up from scratch.
-- [.lovable/plan.md](./.lovable/plan.md) — Current build plan (Communications & Surveys).
-- In-app manual: `/manual`
+- **[REPRODUCTION.md](./REPRODUCTION.md)** — Soup-to-nuts setup guide (no coding required).
+- **In-app manual** — `/manual` on any deployed instance.
+- **TanStack Start docs** — https://tanstack.com/start
+- **Supabase docs** — https://supabase.com/docs
+- **Cloudflare Workers docs** — https://developers.cloudflare.com/workers
