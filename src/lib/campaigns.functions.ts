@@ -27,6 +27,45 @@ export const listCampaigns = createServerFn({ method: "GET" })
 
   });
 
+export const getCampaignStats = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    await assertStaff(context.userId, COMMUNICATIONS_PERMISSION);
+    const { data: recipients, error } = await context.supabase
+      .from("campaign_recipients")
+      .select("id, email, status, error, sent_at, opens_count, clicks_count, first_opened_at, last_opened_at, first_clicked_at, last_clicked_at")
+      .eq("campaign_id", data.id)
+      .order("sent_at", { ascending: false, nullsFirst: false });
+    if (error) throw new Error(error.message);
+
+    const rows = recipients ?? [];
+    const total = rows.length;
+    const sent = rows.filter((r: any) => r.status === "sent").length;
+    const failed = rows.filter((r: any) => r.status === "failed").length;
+    const uniqueOpens = rows.filter((r: any) => (r.opens_count ?? 0) > 0).length;
+    const uniqueClicks = rows.filter((r: any) => (r.clicks_count ?? 0) > 0).length;
+    const totalOpens = rows.reduce((s: number, r: any) => s + (r.opens_count ?? 0), 0);
+    const totalClicks = rows.reduce((s: number, r: any) => s + (r.clicks_count ?? 0), 0);
+
+    const { data: links } = await context.supabase
+      .from("campaign_link_clicks")
+      .select("url")
+      .eq("campaign_id", data.id);
+    const linkMap = new Map<string, number>();
+    (links ?? []).forEach((l: any) => linkMap.set(l.url, (linkMap.get(l.url) ?? 0) + 1));
+    const topLinks = Array.from(linkMap.entries())
+      .map(([url, count]) => ({ url, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+
+    return {
+      totals: { total, sent, failed, uniqueOpens, uniqueClicks, totalOpens, totalClicks },
+      recipients: rows,
+      topLinks,
+    };
+  });
+
 export const getCampaign = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
