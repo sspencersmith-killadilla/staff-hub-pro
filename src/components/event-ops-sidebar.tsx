@@ -15,6 +15,8 @@ import {
   Home,
   GraduationCap,
   Share2,
+  Mail,
+  ClipboardList,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
