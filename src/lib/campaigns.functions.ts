@@ -1,6 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertStaff } from "./staff-guard";
+
+const COMMUNICATIONS_PERMISSION = "page.communications";
 
 const SegmentSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("all_active_users") }),
@@ -11,28 +14,10 @@ const SegmentSchema = z.discriminatedUnion("type", [
 
 const AudienceSchema = z.object({ segments: z.array(SegmentSchema).default([]) });
 
-async function assertStaff(supabase: any, userId: string) {
-  const [{ data: role }, { data: dept }] = await Promise.all([
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .in("role", ["admin", "staff"])
-      .maybeSingle(),
-    supabase
-      .from("department_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .in("role", ["dept_admin", "staff", "super_admin"])
-      .maybeSingle(),
-  ]);
-  if (!role && !dept) throw new Error("Forbidden");
-}
-
 export const listCampaigns = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertStaff(context.supabase, context.userId);
+    await assertStaff(context.userId, COMMUNICATIONS_PERMISSION);
     const { data, error } = await context.supabase
       .from("communication_campaigns")
       .select("id, subject, status, scheduled_for, sent_at, recipient_count, created_at")
@@ -45,7 +30,7 @@ export const getCampaign = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => {
-    await assertStaff(context.supabase, context.userId);
+    await assertStaff(context.userId, COMMUNICATIONS_PERMISSION);
     const { data: row, error } = await context.supabase
       .from("communication_campaigns")
       .select("*")
@@ -70,7 +55,7 @@ export const saveCampaign = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: z.infer<typeof SaveSchema>) => SaveSchema.parse(d))
   .handler(async ({ context, data }) => {
-    await assertStaff(context.supabase, context.userId);
+    await assertStaff(context.userId, COMMUNICATIONS_PERMISSION);
     const status = data.scheduled_for ? "scheduled" : "draft";
     const payload: any = {
       subject: data.subject,
@@ -106,7 +91,7 @@ export const deleteCampaign = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => {
-    await assertStaff(context.supabase, context.userId);
+    await assertStaff(context.userId, COMMUNICATIONS_PERMISSION);
     const { error } = await context.supabase.from("communication_campaigns").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -119,7 +104,7 @@ export const previewAudience = createServerFn({ method: "POST" })
     z.object({ rules: AudienceSchema }).parse(d),
   )
   .handler(async ({ context, data }) => {
-    await assertStaff(context.supabase, context.userId);
+    await assertStaff(context.userId, COMMUNICATIONS_PERMISSION);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const emails = await resolveAudience(supabaseAdmin, data.rules);
     return { count: emails.length, sample: emails.slice(0, 10) };
@@ -179,7 +164,7 @@ export const dispatchCampaignNow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => {
-    await assertStaff(context.supabase, context.userId);
+    await assertStaff(context.userId, COMMUNICATIONS_PERMISSION);
     const { dispatchCampaign } = await import("@/lib/communications.server");
     return dispatchCampaign(data.id);
   });
@@ -190,7 +175,7 @@ export const sendTestCampaign = createServerFn({ method: "POST" })
     z.object({ id: z.string().uuid(), email: z.string().email() }).parse(d),
   )
   .handler(async ({ context, data }) => {
-    await assertStaff(context.supabase, context.userId);
+    await assertStaff(context.userId, COMMUNICATIONS_PERMISSION);
     const { sendTest } = await import("@/lib/communications.server");
     return sendTest(data.id, data.email);
   });
