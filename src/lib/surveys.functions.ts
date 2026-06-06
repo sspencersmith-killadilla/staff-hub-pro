@@ -1,24 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertStaff } from "./staff-guard";
 
-async function assertStaff(supabase: any, userId: string) {
-  const [{ data: role }, { data: dept }] = await Promise.all([
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .in("role", ["admin", "staff"])
-      .maybeSingle(),
-    supabase
-      .from("department_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .in("role", ["dept_admin", "staff", "super_admin"])
-      .maybeSingle(),
-  ]);
-  if (!role && !dept) throw new Error("Forbidden");
-}
+const SURVEYS_PERMISSION = "page.surveys";
 
 const QuestionSchema = z.object({
   id: z.string().uuid().optional(),
@@ -42,7 +27,7 @@ const SaveSurveySchema = z.object({
 export const listSurveys = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertStaff(context.supabase, context.userId);
+    await assertStaff(context.userId, SURVEYS_PERMISSION);
     const { data, error } = await context.supabase
       .from("surveys")
       .select("id, title, is_active, created_at")
@@ -55,7 +40,7 @@ export const getSurveyForEdit = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => {
-    await assertStaff(context.supabase, context.userId);
+    await assertStaff(context.userId, SURVEYS_PERMISSION);
     const [{ data: survey }, { data: questions }] = await Promise.all([
       context.supabase.from("surveys").select("*").eq("id", data.id).maybeSingle(),
       context.supabase
@@ -72,7 +57,7 @@ export const saveSurvey = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: z.infer<typeof SaveSurveySchema>) => SaveSurveySchema.parse(d))
   .handler(async ({ context, data }) => {
-    await assertStaff(context.supabase, context.userId);
+    await assertStaff(context.userId, SURVEYS_PERMISSION);
     const surveyPayload: any = {
       title: data.title,
       description_html: data.description_html,
@@ -119,7 +104,7 @@ export const deleteSurvey = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => {
-    await assertStaff(context.supabase, context.userId);
+    await assertStaff(context.userId, SURVEYS_PERMISSION);
     const { error } = await context.supabase.from("surveys").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -129,7 +114,7 @@ export const getSurveyAnalytics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => {
-    await assertStaff(context.supabase, context.userId);
+    await assertStaff(context.userId, SURVEYS_PERMISSION);
     const [{ data: survey }, { data: questions }, { data: responses }] = await Promise.all([
       context.supabase.from("surveys").select("id, title").eq("id", data.id).maybeSingle(),
       context.supabase
