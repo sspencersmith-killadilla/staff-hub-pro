@@ -59,6 +59,8 @@ export const PAGE_PERMISSIONS = [
   { key: "page.classes", label: "Class Management" },
   { key: "page.settings", label: "Platform Settings" },
   { key: "page.social_command", label: "Social Command Center" },
+  { key: "page.communications", label: "Communications (Email Campaigns)" },
+  { key: "page.surveys", label: "Surveys & Feedback" },
 ] as const;
 
 export const EVENT_PERMISSIONS = [
