@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Plus, Mail, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/staff/communications")({
   component: CommunicationsPage,
@@ -34,11 +35,16 @@ function CommunicationsPage() {
       qc.invalidateQueries({ queryKey: ["campaigns"] });
       navigate({ to: "/staff/communications/$id", params: { id: row.id } });
     },
+    onError: (e: any) => {
+      console.error("Create campaign failed", e);
+      toast.error(e?.message ?? "Failed to create campaign");
+    },
   });
 
   const del = useMutation({
     mutationFn: (id: string) => deleteCampaign({ data: { id } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["campaigns"] }),
+    onError: (e: any) => toast.error(e?.message ?? "Failed to delete"),
   });
 
   if (loading) return <div className="p-8 text-sm text-muted-foreground">Loading…</div>;

@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Plus, ClipboardList, BarChart3, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/staff/surveys")({
   component: SurveysPage,
@@ -30,11 +31,16 @@ function SurveysPage() {
       qc.invalidateQueries({ queryKey: ["surveys"] });
       navigate({ to: "/staff/surveys/$id", params: { id: r.id } });
     },
+    onError: (e: any) => {
+      console.error("Create survey failed", e);
+      toast.error(e?.message ?? "Failed to create survey");
+    },
   });
 
   const del = useMutation({
     mutationFn: (id: string) => deleteSurvey({ data: { id } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["surveys"] }),
+    onError: (e: any) => toast.error(e?.message ?? "Failed to delete"),
   });
 
   if (loading) return <div className="p-8 text-sm text-muted-foreground">Loading…</div>;
