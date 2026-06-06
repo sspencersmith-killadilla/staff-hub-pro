@@ -1,35 +1,40 @@
-## Goal
-Make **New survey** and **New campaign** work for users who can see those pages through department/staff permissions, without weakening access control.
+# Make surveys & campaigns actually manageable
 
-## Root cause to fix
-The UI allows access when `getMyPermissions()` finds a department role, but the create server functions still rely on a narrower inline staff check. If the user’s department role is not visible through RLS, or if the user only has granular `page.surveys` / `page.communications` permission, the backend still throws `Forbidden`.
+The editor pages already exist (`/staff/surveys/$id` and `/staff/communications/$id`) and the DB has a `department_id` on both tables, but:
+- The list rows look like rows, not actionable items — no explicit "Edit" affordance.
+- Neither editor exposes a Department assignment control, so a newly-created "Untitled" item can't be tied to a department.
+- A few small UX gaps (campaign editor missing a Back/Save header, no rename inline on the list, etc.) make it feel like you can only create-then-nothing.
 
-## Plan
-1. **Unify the backend staff guard**
-   - Update the shared `src/lib/staff-guard.ts` helper to recognize:
-     - global `user_roles`: `admin`, `staff`
-     - department roles: `super_admin`, `dept_admin`, `staff`
-     - explicit page permissions when relevant
-   - Use admin-side server access inside the guard so the check is not blocked by `department_roles` RLS visibility.
+## Changes
 
-2. **Apply the guard to surveys and campaigns**
-   - Replace the duplicate inline `assertStaff()` functions in:
-     - `src/lib/surveys.functions.ts`
-     - `src/lib/campaigns.functions.ts`
-   - For survey creation/list/edit/delete, require `page.surveys` or staff/department role.
-   - For campaign creation/list/edit/delete, require `page.communications` or staff/department role.
+### 1. Surveys list (`src/routes/_authenticated/staff/surveys.tsx`)
+- Add an explicit **Edit** button on each row (in addition to keeping the title clickable).
+- Show the department name next to each survey when assigned.
+- Inline-rename pencil that updates `title` via `saveSurvey` without opening the editor.
 
-3. **Add a follow-up database migration**
-   - Create a new migration that broadens RLS policies using the existing department-role helpers instead of relying only on `user_roles`.
-   - This ensures inserts/updates/deletes on `surveys`, `survey_questions`, `communication_campaigns`, `campaign_recipients`, and survey response admin reads match the backend guard.
+### 2. Survey editor (`src/routes/_authenticated/staff/surveys.$id.tsx`)
+- Add a **Department** select (populated from `listAssignableDepartments()`), bound to `department_id`, with an "Unassigned" option.
+- Pass `department_id` through `saveSurvey` (server fn already accepts it).
+- Show a clearer header: "Editing: <title>" so it's obvious you're on the edit page.
 
-4. **Improve the visible failure message**
-   - Keep `Forbidden` for true access denial, but make permission check failures clearer in server logs and UI to separate “no role/permission” from database policy errors.
+### 3. Communications list (`src/routes/_authenticated/staff/communications.tsx`)
+- Add an explicit **Edit** button per row.
+- Show department + audience summary on each row.
+- Inline-rename for `subject`.
 
-5. **Ignore the manifest 404 for this fix**
-   - The missing `manifest.webmanifest` is unrelated to survey/campaign creation. I’ll leave it untouched unless you want a separate PWA/manifest fix.
+### 4. Campaign editor (`src/routes/_authenticated/staff/communications.$id.tsx`)
+- Add a top header with Back + **Save** (currently Save lives only in the sidebar — easy to miss).
+- Add a **Department** select bound to `department_id`.
+- Show editing title prominently.
 
-## Validation
-- Confirm the updated functions no longer have duplicate narrow staff checks.
-- Verify the new SQL migration includes grants/policies where needed.
-- After implementation, you’ll need to apply the new migration to the live database; then department-scoped staff should be able to create surveys and campaigns.
+### 5. Server functions
+- No schema changes required — `department_id` already validated by both `SaveSurveySchema` and the campaign `SaveSchema`.
+- No new server functions; reuse `listAssignableDepartments()` already used by the campaign audience picker.
+
+### 6. Permissions/RLS
+- No changes. The existing `assertStaff(userId, "page.surveys" | "page.communications")` guard already covers edit/save. Migration 041 (already drafted) remains the source of truth for RLS; this plan doesn't depend on schema changes.
+
+## Out of scope
+- Survey response export / per-respondent management (analytics page already exists).
+- Re-sending sent campaigns or duplicating campaigns.
+- Editing the manifest 404 noise in the console.
