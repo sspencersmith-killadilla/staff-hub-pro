@@ -30,10 +30,11 @@ export const listSurveys = createServerFn({ method: "GET" })
     await assertStaff(context.userId, SURVEYS_PERMISSION);
     const { data, error } = await context.supabase
       .from("surveys")
-      .select("id, title, is_active, created_at")
+      .select("id, title, is_active, created_at, department_id")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
+
   });
 
 export const getSurveyForEdit = createServerFn({ method: "GET" })

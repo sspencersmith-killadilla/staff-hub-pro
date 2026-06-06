@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getSurveyForEdit, saveSurvey } from "@/lib/surveys.functions";
+import { listAssignableDepartments } from "@/lib/events.functions";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Save, BarChart3, Copy } from "lucide-react";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/_authenticated/staff/surveys/$id")({
   component: EditSurvey,
@@ -37,7 +39,13 @@ function EditSurvey() {
   const [descHtml, setDescHtml] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [redirectTo, setRedirectTo] = useState("");
+  const [departmentId, setDepartmentId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<Q[]>([]);
+
+  const { data: departments = [] } = useQuery({
+    queryKey: ["assignable-departments"],
+    queryFn: () => listAssignableDepartments(),
+  });
 
   useEffect(() => {
     if (!data) return;
@@ -45,6 +53,7 @@ function EditSurvey() {
     setDescHtml(data.survey.description_html || "");
     setIsActive(data.survey.is_active);
     setRedirectTo(data.survey.redirect_to || "");
+    setDepartmentId((data.survey as any).department_id ?? null);
     setQuestions(
       (data.questions as any[]).map((q) => ({
         id: q.id,
@@ -57,6 +66,7 @@ function EditSurvey() {
     );
   }, [data]);
 
+
   const save = useMutation({
     mutationFn: () =>
       saveSurvey({
@@ -66,6 +76,7 @@ function EditSurvey() {
           description_html: descHtml,
           is_active: isActive,
           redirect_to: redirectTo || null,
+          department_id: departmentId,
           questions: questions.map((q, i) => ({ ...q, position: i })),
         },
       }),
@@ -75,6 +86,7 @@ function EditSurvey() {
       qc.invalidateQueries({ queryKey: ["surveys"] });
     },
     onError: (e: any) => toast.error(e.message),
+
   });
 
   function update(i: number, patch: Partial<Q>) {
@@ -100,8 +112,9 @@ function EditSurvey() {
             <ArrowLeft className="h-4 w-4" /> Back
           </Link>
           <span className="text-sm text-muted-foreground">/</span>
-          <span className="text-sm font-medium">Edit survey</span>
+          <span className="text-sm font-medium truncate max-w-[40ch]">Editing: {title || "Untitled survey"}</span>
         </div>
+
         <div className="flex gap-2">
           <Link to="/staff/surveys/$id/analytics" params={{ id }}>
             <Button variant="outline" size="sm"><BarChart3 className="h-4 w-4 mr-1" /> Analytics</Button>
@@ -129,7 +142,23 @@ function EditSurvey() {
               <Label>Redirect URL after submit (optional)</Label>
               <Input value={redirectTo} onChange={(e) => setRedirectTo(e.target.value)} placeholder="/hub" />
             </div>
+            <div>
+              <Label>Department</Label>
+              <Select
+                value={departmentId ?? "__none"}
+                onValueChange={(v) => setDepartmentId(v === "__none" ? null : v)}
+              >
+                <SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none">Unassigned</SelectItem>
+                  {(departments as any[]).map((d) => (
+                    <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
           {isActive && (
             <div className="bg-slate-50 rounded p-3 text-sm flex items-center gap-2">
               <span className="text-muted-foreground">Public link:</span>

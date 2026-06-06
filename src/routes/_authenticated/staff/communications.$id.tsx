@@ -46,6 +46,7 @@ function EditCampaign() {
   const [scheduleMode, setScheduleMode] = useState<"now" | "later">("now");
   const [scheduledFor, setScheduledFor] = useState("");
   const [testEmail, setTestEmail] = useState("");
+  const [departmentId, setDepartmentId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!data) return;
@@ -53,6 +54,7 @@ function EditCampaign() {
     setBodyHtml(data.body_html || "");
     setBodyJson(data.body_json ?? null);
     setSegments((data.target_audience_rules as any)?.segments ?? []);
+    setDepartmentId((data as any).department_id ?? null);
     if (data.scheduled_for) {
       setScheduleMode("later");
       const d = new Date(data.scheduled_for);
@@ -60,6 +62,7 @@ function EditCampaign() {
       setScheduledFor(iso);
     }
   }, [data]);
+
 
   const { data: events = [] } = useQuery({ queryKey: ["events-list"], queryFn: () => listEvents() });
   const { data: departments = [] } = useQuery({
@@ -82,12 +85,14 @@ function EditCampaign() {
           body_html: bodyHtml,
           body_json: bodyJson,
           target_audience_rules: { segments },
+          department_id: departmentId,
           scheduled_for:
             scheduleMode === "later" && scheduledFor
               ? new Date(scheduledFor).toISOString()
               : null,
         },
       }),
+
     onSuccess: () => {
       toast.success("Saved");
       qc.invalidateQueries({ queryKey: ["campaign", id] });
@@ -125,14 +130,20 @@ function EditCampaign() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
-      <div className="flex items-center gap-2 mb-4">
-        <Link to="/staff/communications" className="text-sm text-muted-foreground hover:underline flex items-center gap-1">
-          <ArrowLeft className="h-4 w-4" /> Back
-        </Link>
-        <span className="text-sm text-muted-foreground">/</span>
-        <span className="text-sm font-medium">Edit campaign</span>
-        <Badge className="ml-2">{data.status}</Badge>
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <div className="flex items-center gap-2 min-w-0">
+          <Link to="/staff/communications" className="text-sm text-muted-foreground hover:underline flex items-center gap-1">
+            <ArrowLeft className="h-4 w-4" /> Back
+          </Link>
+          <span className="text-sm text-muted-foreground">/</span>
+          <span className="text-sm font-medium truncate max-w-[40ch]">Editing: {subject || "Untitled campaign"}</span>
+          <Badge className="ml-2">{data.status}</Badge>
+        </div>
+        <Button onClick={() => save.mutate()} disabled={save.isPending || readOnly} size="sm">
+          <Save className="h-4 w-4 mr-1" /> Save
+        </Button>
       </div>
+
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
@@ -160,6 +171,25 @@ function EditCampaign() {
         </div>
 
         <div className="space-y-4">
+          <Card>
+            <CardHeader className="py-3"><CardTitle className="text-sm">Department</CardTitle></CardHeader>
+            <CardContent className="pb-4">
+              <Select
+                value={departmentId ?? "__none"}
+                onValueChange={(v) => setDepartmentId(v === "__none" ? null : v)}
+                disabled={readOnly}
+              >
+                <SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none">Unassigned</SelectItem>
+                  {(departments as any[]).map((d) => (
+                    <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader className="py-3">
               <CardTitle className="text-sm">Audience</CardTitle>
