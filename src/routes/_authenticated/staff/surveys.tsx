@@ -23,6 +23,14 @@ function SurveysPage() {
     queryFn: () => listSurveys(),
     enabled: can("page.surveys"),
   });
+  const { data: departments = [] } = useQuery({
+    queryKey: ["assignable-departments"],
+    queryFn: () => listAssignableDepartments(),
+    enabled: can("page.surveys"),
+  });
+  const deptName = (id: string | null) =>
+    id ? (departments as any[]).find((d) => d.id === id)?.name ?? null : null;
+
 
   const create = useMutation({
     mutationFn: () =>
