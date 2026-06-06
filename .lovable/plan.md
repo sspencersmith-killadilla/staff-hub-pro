@@ -1,70 +1,93 @@
-## What's happening
+## Goal
 
-The toast "Forbidden" comes from the server. In both `src/lib/surveys.functions.ts` and `src/lib/campaigns.functions.ts`, the `assertStaff()` helper only accepts users that have a row in `public.user_roles` with role `admin` or `staff`:
+Let an admin configure the email-sending provider for **Communications** from a web page in the Staff/Admin area — exactly the same way `Admin → Social Integrations` lets them paste OAuth credentials for Meta/LinkedIn — instead of having to set `RESEND_API_KEY` / `RESEND_FROM` / `SITE_URL` as platform secrets in the hosting environment.
 
-```ts
-// surveys.functions.ts / campaigns.functions.ts
-async function assertStaff(supabase, userId) {
-  const { data } = await supabase.from("user_roles")
-    .select("role").eq("user_id", userId)
-    .in("role", ["admin", "staff"]).maybeSingle();
-  if (!data) throw new Error("Forbidden");
-}
-```
+## What exists today
 
-But the UI's "Can I see this page / button?" check (`usePermissions`/`getMyPermissions`) is **more permissive** — it also grants every page permission to users that only have a `department_roles` row with role `dept_admin`, `staff`, or `super_admin`:
+- `src/lib/communications.server.ts` reads `process.env.RESEND_API_KEY`, `process.env.RESEND_FROM`, and `process.env.SITE_URL` at send time. No UI to set them.
+- The Social Integrations pattern (`supabase-migrations/028_social_command.sql`, `src/lib/social.functions.ts`, `src/routes/_authenticated/staff/admin.social-integrations.tsx`) already does this cleanly: one row per platform in `social_integration_secrets`, list/save server fns, admin-only RLS, an admin page with a card per platform.
 
-```ts
-// auth.functions.ts → getMyPermissions
-const hasDeptRole = (deptRoles ?? []).some(
-  r => r.role === "dept_admin" || r.role === "staff" || r.role === "super_admin",
+## Design (mirror the social-integrations pattern)
+
+### 1. New table: `public.email_integration_settings`
+
+Single-row-per-provider, admin-only, RLS-locked, never returned to the client with the secret value.
+
+```sql
+create table public.email_integration_settings (
+  provider text primary key check (provider in ('resend')),
+  api_key text,                 -- write-only from the API (never SELECTed back)
+  from_address text,            -- e.g. "Our City <notify@ourcity.gov>"
+  reply_to text,
+  site_url text,                -- used in unsub footer link
+  is_active boolean not null default false,
+  updated_at timestamptz not null default now(),
+  updated_by uuid references auth.users(id) on delete set null
 );
-if (hasDeptRole) { for (const p of ALL_PERMISSIONS) global.add(p); }
+-- grants + admin-only RLS (only has_role(auth.uid(),'admin') can read/write)
 ```
 
-So a department admin/staff user:
-- sees `/staff/surveys` and `/staff/communications` (✓ correct),
-- sees the **+ New survey / + New campaign** button (✓ correct),
-- clicks it → server runs the stricter `assertStaff` against `user_roles` → no row → throws `Forbidden` (✗ inconsistent).
+(Provider list starts at `resend`; the `check` is easy to widen later if we add SES/Postmark/Mailgun.)
 
-The earlier toast wiring I added is what surfaced the existing problem. The DB tables, RLS, and grants for `surveys`/`communication_campaigns` are fine — a service-role insert succeeds, and the RLS policies allow `has_role(auth.uid(), 'admin' | 'staff')`. The actual blocker is the in-code `assertStaff` checks not recognizing department roles.
+### 2. Server functions in `src/lib/email-settings.functions.ts`
 
-(The `manifest.webmanifest 404` line in the console is unrelated cosmetic noise from the published site and not the cause.)
+- `getEmailSettings()` — admin-only. Returns `{ provider, from_address, reply_to, site_url, is_active, has_api_key: boolean, updated_at }`. **Never returns `api_key`.**
+- `saveEmailSettings({ provider, api_key?, from_address, reply_to?, site_url?, is_active })` — admin-only. Upserts. If `api_key` is omitted/empty, keeps the existing one.
+- `sendProviderTest({ to })` — admin-only. Sends a test email **using the DB settings** (not env), so the admin can verify wiring from the page.
 
-## Fix
+### 3. Rewrite `communications.server.ts` to read from the DB first
 
-Make the server-side staff gate match the UI's permission model: accept either a global `user_roles` entry **or** a `department_roles` entry, in every server function that gates on `assertStaff`.
+New helper `getEmailConfig()`:
 
-### Files to change
+1. Load the active row from `email_integration_settings` via `supabaseAdmin`.
+2. If `is_active` and `api_key`/`from_address` present → use those.
+3. Else fall back to `process.env.RESEND_API_KEY` / `RESEND_FROM` / `SITE_URL` (keeps current deployments working, and keeps tests passing with env-only setups).
+4. If neither is configured → `resendSend` returns a clean error `"Email provider not configured. Open Admin → Email Settings."` (already surfaces via the existing toasts).
 
-1. `src/lib/surveys.functions.ts` — rewrite `assertStaff()` to also accept `department_roles` with role in (`dept_admin`, `staff`, `super_admin`). Applies to: `listSurveys`, `getSurveyForEdit`, `saveSurvey`, `deleteSurvey`, `getSurveyAnalytics`.
+`sendTest` and `dispatchCampaign` keep their current shape; only the inner `resendSend` and `withFooter` switch to the resolved config.
 
-2. `src/lib/campaigns.functions.ts` — same rewrite of `assertStaff()`. Applies to: `listCampaigns`, `getCampaign`, `saveCampaign`, `deleteCampaign`, `previewAudience`, `dispatchCampaignNow`, `sendTestCampaign`.
+### 4. New admin page: `src/routes/_authenticated/staff/admin.email-settings.tsx`
 
-3. Check the RLS policies on `public.surveys`, `public.survey_questions`, `public.communication_campaigns`, `public.campaign_recipients` (migration `038_communications_surveys.sql`). They currently say `using/with check: has_role(auth.uid(), 'admin') or has_role(auth.uid(), 'staff')`. If a department-only user reaches an insert, RLS will also reject. Add a migration that updates these four policies to additionally allow `exists (select 1 from public.department_roles where user_id = auth.uid() and role in ('dept_admin','staff','super_admin'))`. Existing `surveys.functions.ts` / `campaigns.functions.ts` writes go through the user-scoped supabase client (RLS applies), so this is required for dept-only users.
+Same shape as `admin.social-integrations.tsx`:
 
-### Reference helper shape
+- Header + short copy explaining what this controls.
+- One card for **Resend** with fields:
+  - From address (with helper text: "Use a verified domain, or leave blank to use the Resend sandbox `onboarding@resend.dev` for testing.")
+  - Reply-to (optional)
+  - Site URL (helper: "Used to build the unsubscribe link in every email — defaults to your published site.")
+  - API key (password input, "Leave blank to keep current" when one is already saved)
+  - Active toggle
+- Save button.
+- "Send test email to:" input + button calling `sendProviderTest`.
+- Link out to https://resend.com/api-keys with brief 3-step instructions: create Resend account → verify your domain → paste API key here.
 
-```ts
-async function assertStaff(supabase: any, userId: string) {
-  const [{ data: role }, { data: dept }] = await Promise.all([
-    supabase.from("user_roles").select("role")
-      .eq("user_id", userId).in("role", ["admin", "staff"]).maybeSingle(),
-    supabase.from("department_roles").select("role")
-      .eq("user_id", userId).in("role", ["dept_admin", "staff", "super_admin"]).maybeSingle(),
-  ]);
-  if (!role && !dept) throw new Error("Forbidden");
-}
-```
+### 5. Sidebar / navigation
 
-### Verification
+Add an "Email Settings" link in `event-ops-sidebar.tsx` under the existing Admin group (next to `Admin → Social Integrations`), admin-only.
 
-- Sign in as a department-only user → click **+ New survey** → row is created and the editor opens.
-- Sign in as the same user → click **+ New campaign** → same.
-- Sign in as a user with no roles at all → button is hidden; if forced, server still returns `Forbidden`.
+### 6. Docs touch-up (lightweight, no PDF rebuild)
 
-### Out of scope
+In `REPRODUCTION.md` the **Optional add-ons → Resend** section currently tells users to add `RESEND_API_KEY` as a Cloudflare Worker secret. Replace that with: "Sign in as admin → Admin → Email Settings → paste your Resend API key and from address." Keep the env-var path as the fallback ("advanced / headless deployments").
 
-- The `manifest.webmanifest` 404 (separate, cosmetic).
-- Any rewrite of the permissions model itself.
-- The `REPRODUCTION.md` / `README.md` / PDF docs from the prior turn.
+## Out of scope
+
+- Adding SES / Postmark / Mailgun providers (the schema leaves room, but no UI/code for them yet).
+- Rebuilding `public/ReproductionInstruction.pdf`.
+- Any change to the surveys flow or campaigns UI other than what's needed for sendTest plumbing.
+- Storing the API key encrypted at rest (Supabase already encrypts the column; we just never return it to the client). If you want pgcrypto/Vault on top, that's a follow-up.
+
+## Files added / changed
+
+- `supabase-migrations/040_email_integration_settings.sql` *(new)*
+- `src/lib/email-settings.functions.ts` *(new)*
+- `src/lib/communications.server.ts` *(edit — config resolver)*
+- `src/routes/_authenticated/staff/admin.email-settings.tsx` *(new)*
+- `src/components/event-ops-sidebar.tsx` *(edit — admin link)*
+- `REPRODUCTION.md` *(edit — Resend section)*
+
+## Verification
+
+1. Apply migration → row absent → existing env-only sends still work.
+2. Admin opens `/staff/admin/email-settings`, pastes a Resend test key + from address, toggles Active, clicks **Send test email to me** → email arrives.
+3. Open Communications → create a campaign → Send test → uses the new DB-stored key (verify by leaving `RESEND_API_KEY` unset in env).
+4. Non-admin staff visiting `/staff/admin/email-settings` see "Admin access required" (mirrors social-integrations behavior).
