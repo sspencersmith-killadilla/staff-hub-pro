@@ -85,11 +85,17 @@ function SurveysPage() {
                 <div key={s.id} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50">
                   <Link to="/staff/surveys/$id" params={{ id: s.id }} className="flex-1 min-w-0">
                     <div className="font-medium truncate">{s.title}</div>
-                    <div className="text-xs text-muted-foreground">
-                      Created {new Date(s.created_at).toLocaleDateString()}
+                    <div className="text-xs text-muted-foreground flex items-center gap-2">
+                      <span>Created {new Date(s.created_at).toLocaleDateString()}</span>
+                      {deptName(s.department_id) && (
+                        <Badge variant="outline" className="text-xs">{deptName(s.department_id)}</Badge>
+                      )}
                     </div>
                   </Link>
                   {s.is_active ? <Badge className="bg-green-100 text-green-700">Active</Badge> : <Badge>Inactive</Badge>}
+                  <Link to="/staff/surveys/$id" params={{ id: s.id }}>
+                    <Button size="sm" variant="outline"><Pencil className="h-3.5 w-3.5 mr-1" /> Edit</Button>
+                  </Link>
                   <Link to="/staff/surveys/$id/analytics" params={{ id: s.id }} className="p-2 text-muted-foreground hover:text-foreground">
                     <BarChart3 className="h-4 w-4" />
                   </Link>
@@ -98,6 +104,7 @@ function SurveysPage() {
                   </button>
                 </div>
               ))}
+
             </div>
           )}
         </CardContent>
