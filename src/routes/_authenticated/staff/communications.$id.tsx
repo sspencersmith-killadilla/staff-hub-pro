@@ -85,12 +85,14 @@ function EditCampaign() {
           body_html: bodyHtml,
           body_json: bodyJson,
           target_audience_rules: { segments },
+          department_id: departmentId,
           scheduled_for:
             scheduleMode === "later" && scheduledFor
               ? new Date(scheduledFor).toISOString()
               : null,
         },
       }),
+
     onSuccess: () => {
       toast.success("Saved");
       qc.invalidateQueries({ queryKey: ["campaign", id] });
