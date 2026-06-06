@@ -329,10 +329,15 @@ Each of these is **optional**. Skip any you don't need — the platform works wi
 ### 7.1 Email campaigns (Resend, free tier 3,000/mo)
 Required only if you want to send email blasts from `/staff/communications`.
 
+**Easy path (recommended) — set it up from the web UI:**
+
 1. Sign up at https://resend.com.
 2. **Domains** → add yours. Resend gives you DNS records to add at your domain registrar (GoDaddy, Namecheap, Cloudflare DNS, etc.).
 3. **API Keys** → create one. Copy it.
-4. Add secrets in Part 8: `RESEND_API_KEY`, `RESEND_FROM` (e.g. `City Events <hello@yourcity.gov>`), `DISPATCH_SECRET` (any random 32-character string you make up).
+4. In your deployed site, sign in as an admin and go to **Staff → Admin → Email settings**. Paste the API key, your from address (e.g. `City Events <hello@yourcity.gov>`), flip "Active" on, and click **Save**. Send a test from the same page to confirm.
+5. Add `DISPATCH_SECRET` in Part 8 (any random 32-character string you make up) — this is only used for the scheduler ping below.
+
+**Advanced path (headless / CI):** instead of using the admin page, you can set `RESEND_API_KEY` and `RESEND_FROM` as Cloudflare Worker secrets in Part 8. The Communications module uses the admin-page values when present and falls back to these env vars otherwise.
 5. After deploying, schedule the database to ping the dispatch endpoint every minute. In Supabase → **SQL Editor**:
    ```sql
    select cron.schedule(

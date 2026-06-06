@@ -76,6 +76,7 @@ import { Route as AuthenticatedStaffAdminHomeRouteImport } from './routes/_authe
 import { Route as AuthenticatedStaffAdminGuidebookPublisherRouteImport } from './routes/_authenticated/staff/admin.guidebook-publisher'
 import { Route as AuthenticatedStaffAdminGuidebookCanvasRouteImport } from './routes/_authenticated/staff/admin.guidebook-canvas'
 import { Route as AuthenticatedStaffAdminGuidebookRouteImport } from './routes/_authenticated/staff/admin.guidebook'
+import { Route as AuthenticatedStaffAdminEmailSettingsRouteImport } from './routes/_authenticated/staff/admin.email-settings'
 import { Route as AuthenticatedStaffAdminDepartmentsRouteImport } from './routes/_authenticated/staff/admin.departments'
 import { Route as AuthenticatedStaffAdminBrandingRouteImport } from './routes/_authenticated/staff/admin.branding'
 import { Route as AuthenticatedStaffAdminAnalyticsRouteImport } from './routes/_authenticated/staff/admin.analytics'
@@ -448,6 +449,12 @@ const AuthenticatedStaffAdminGuidebookRoute =
     path: '/guidebook',
     getParentRoute: () => AuthenticatedStaffAdminRoute,
   } as any)
+const AuthenticatedStaffAdminEmailSettingsRoute =
+  AuthenticatedStaffAdminEmailSettingsRouteImport.update({
+    id: '/email-settings',
+    path: '/email-settings',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
 const AuthenticatedStaffAdminDepartmentsRoute =
   AuthenticatedStaffAdminDepartmentsRouteImport.update({
     id: '/departments',
@@ -548,6 +555,7 @@ export interface FileRoutesByFullPath {
   '/staff/admin/analytics': typeof AuthenticatedStaffAdminAnalyticsRoute
   '/staff/admin/branding': typeof AuthenticatedStaffAdminBrandingRoute
   '/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
+  '/staff/admin/email-settings': typeof AuthenticatedStaffAdminEmailSettingsRoute
   '/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
   '/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   '/staff/admin/guidebook-publisher': typeof AuthenticatedStaffAdminGuidebookPublisherRoute
@@ -622,6 +630,7 @@ export interface FileRoutesByTo {
   '/staff/admin/analytics': typeof AuthenticatedStaffAdminAnalyticsRoute
   '/staff/admin/branding': typeof AuthenticatedStaffAdminBrandingRoute
   '/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
+  '/staff/admin/email-settings': typeof AuthenticatedStaffAdminEmailSettingsRoute
   '/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
   '/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   '/staff/admin/guidebook-publisher': typeof AuthenticatedStaffAdminGuidebookPublisherRoute
@@ -699,6 +708,7 @@ export interface FileRoutesById {
   '/_authenticated/staff/admin/analytics': typeof AuthenticatedStaffAdminAnalyticsRoute
   '/_authenticated/staff/admin/branding': typeof AuthenticatedStaffAdminBrandingRoute
   '/_authenticated/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
+  '/_authenticated/staff/admin/email-settings': typeof AuthenticatedStaffAdminEmailSettingsRoute
   '/_authenticated/staff/admin/guidebook': typeof AuthenticatedStaffAdminGuidebookRoute
   '/_authenticated/staff/admin/guidebook-canvas': typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   '/_authenticated/staff/admin/guidebook-publisher': typeof AuthenticatedStaffAdminGuidebookPublisherRoute
@@ -776,6 +786,7 @@ export interface FileRouteTypes {
     | '/staff/admin/analytics'
     | '/staff/admin/branding'
     | '/staff/admin/departments'
+    | '/staff/admin/email-settings'
     | '/staff/admin/guidebook'
     | '/staff/admin/guidebook-canvas'
     | '/staff/admin/guidebook-publisher'
@@ -850,6 +861,7 @@ export interface FileRouteTypes {
     | '/staff/admin/analytics'
     | '/staff/admin/branding'
     | '/staff/admin/departments'
+    | '/staff/admin/email-settings'
     | '/staff/admin/guidebook'
     | '/staff/admin/guidebook-canvas'
     | '/staff/admin/guidebook-publisher'
@@ -926,6 +938,7 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/admin/analytics'
     | '/_authenticated/staff/admin/branding'
     | '/_authenticated/staff/admin/departments'
+    | '/_authenticated/staff/admin/email-settings'
     | '/_authenticated/staff/admin/guidebook'
     | '/_authenticated/staff/admin/guidebook-canvas'
     | '/_authenticated/staff/admin/guidebook-publisher'
@@ -1449,6 +1462,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffAdminGuidebookRouteImport
       parentRoute: typeof AuthenticatedStaffAdminRoute
     }
+    '/_authenticated/staff/admin/email-settings': {
+      id: '/_authenticated/staff/admin/email-settings'
+      path: '/email-settings'
+      fullPath: '/staff/admin/email-settings'
+      preLoaderRoute: typeof AuthenticatedStaffAdminEmailSettingsRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
     '/_authenticated/staff/admin/departments': {
       id: '/_authenticated/staff/admin/departments'
       path: '/departments'
@@ -1520,6 +1540,7 @@ interface AuthenticatedStaffAdminRouteChildren {
   AuthenticatedStaffAdminAnalyticsRoute: typeof AuthenticatedStaffAdminAnalyticsRoute
   AuthenticatedStaffAdminBrandingRoute: typeof AuthenticatedStaffAdminBrandingRoute
   AuthenticatedStaffAdminDepartmentsRoute: typeof AuthenticatedStaffAdminDepartmentsRoute
+  AuthenticatedStaffAdminEmailSettingsRoute: typeof AuthenticatedStaffAdminEmailSettingsRoute
   AuthenticatedStaffAdminGuidebookRoute: typeof AuthenticatedStaffAdminGuidebookRoute
   AuthenticatedStaffAdminGuidebookCanvasRoute: typeof AuthenticatedStaffAdminGuidebookCanvasRoute
   AuthenticatedStaffAdminGuidebookPublisherRoute: typeof AuthenticatedStaffAdminGuidebookPublisherRoute
@@ -1538,6 +1559,8 @@ const AuthenticatedStaffAdminRouteChildren: AuthenticatedStaffAdminRouteChildren
     AuthenticatedStaffAdminBrandingRoute: AuthenticatedStaffAdminBrandingRoute,
     AuthenticatedStaffAdminDepartmentsRoute:
       AuthenticatedStaffAdminDepartmentsRoute,
+    AuthenticatedStaffAdminEmailSettingsRoute:
+      AuthenticatedStaffAdminEmailSettingsRoute,
     AuthenticatedStaffAdminGuidebookRoute:
       AuthenticatedStaffAdminGuidebookRoute,
     AuthenticatedStaffAdminGuidebookCanvasRoute:

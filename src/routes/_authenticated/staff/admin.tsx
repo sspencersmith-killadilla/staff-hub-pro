@@ -156,6 +156,12 @@ function AdminPage() {
             Social integrations →
           </Link>
           <Link
+            to="/staff/admin/email-settings"
+            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
+          >
+            Email settings →
+          </Link>
+          <Link
             to="/staff/admin/permits"
             className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
           >
