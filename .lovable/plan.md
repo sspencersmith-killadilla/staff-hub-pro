@@ -1,41 +1,156 @@
-# Auto-generate fallback images for submissions
+# Communications & Surveys Module
 
-Goal: when a user creates/edits an event, community event, course, gig, venue, room, vendor, or sponsor without uploading or pasting an image URL, the system generates one from the item's title/description and stores it just like an uploaded image. The user can still replace it later.
+A native replacement for Mailchimp + SurveyMonkey, integrated with departments, events, vendors, and the existing staff permissions system.
 
-## Approach
+## Key decisions (locked in from your answers)
 
-1. **Server helper** — `src/lib/auto-image.server.ts`
-   - `generateFallbackImage({ kind, title, description, extra })` → returns a public URL.
-   - Calls Lovable AI Gateway `/v1/images/generations` with `openai/gpt-image-2`, `quality: "low"`, non-streaming (we just need the final PNG server-side).
-   - Builds a concise prompt per kind (e.g. event flyer, course thumbnail, venue hero, vendor booth, gig poster) using the item's title + short description.
-   - Uploads the returned base64 PNG to a public Supabase Storage bucket (`auto-images`, created via migration) at `{kind}/{id-or-uuid}.png` using `supabaseAdmin`.
-   - Returns `publicUrl`.
-   - Wraps everything in try/catch: on failure (rate limit, content policy, network), returns `null` so the submission still succeeds — image just stays empty.
+- **Email delivery:** Resend via the connector gateway, called from a TanStack server route at `/api/public/dispatch-campaign` (project's "edge function" equivalent — no Supabase Edge Function, per stack rules).
+- **Editor:** TipTap rich-text editor for the email body and survey description.
+- **Scheduling:** `scheduled_for` is supported; a pg_cron job pings the dispatch route every minute to fire due campaigns.
+- **Surveys:** Always submitted anonymously (no `user_id` recorded even when logged in).
+- **Permissions:** New keys `communications.manage` and `surveys.manage` gated through existing `usePermissions()` system.
 
-2. **Wire into mutation server functions** — only when the incoming `image_url` is null/empty:
-   - `events.functions.ts` → `upsertEvent`
-   - `community.functions.ts` → community event submit / update
-   - `courses.functions.ts` → `upsertCourse`
-   - `streetbeats.functions.ts` → `createGig` / `updateGig` (if gigs carry an image; otherwise skip)
-   - `venues.functions.ts` → `upsertVenue`, `updateRoom`
-   - `vendor-portal.functions.ts` / `vendor-staff.functions.ts` → vendor + sponsor submissions
-   - Pattern: after the row is inserted (so we have the id), if `image_url` is still empty, call `generateFallbackImage`, then `update ... set image_url` on that row. Done async-but-awaited inside the handler so the returned record already has the image; UI sees it on the first render.
+## Part 1 — Database schema (migration `038_communications_surveys.sql`)
 
-3. **Migration** — `supabase-migrations/037_auto_images_bucket.sql`
-   - `insert into storage.buckets ('auto-images', public)`
-   - Public read policy; insert/update/delete restricted to `service_role` (only the admin client writes here).
+```text
+communication_campaigns
+  id uuid pk, department_id uuid fk departments null,
+  subject text, body_html text, body_json jsonb,   -- TipTap JSON + rendered HTML
+  status text check in (draft|scheduled|sending|sent|failed),
+  target_audience_rules jsonb,
+  scheduled_for timestamptz null,
+  sent_at timestamptz null,
+  created_by uuid fk auth.users,
+  recipient_count int default 0,
+  created_at, updated_at
 
-4. **Secrets / config**
-   - Requires `LOVABLE_API_KEY` (already managed by Lovable AI Gateway). If missing, I'll run `lovable_api_key--create` before shipping.
+campaign_recipients                    -- per-recipient audit
+  id, campaign_id fk, email text,
+  status (queued|sent|failed|suppressed), error text null,
+  sent_at timestamptz, resend_id text null
 
-5. **UX note** — no UI changes required; existing ImageUploader still works. Optionally we can show a small "auto-generated" caption on cards, but not in scope unless you want it.
+campaign_unsubscribes                  -- email-level opt-out
+  email text pk, unsubscribed_at timestamptz default now()
 
-## Open questions before I build
+surveys
+  id, department_id fk null, title, description_html text,
+  is_active bool default true,
+  redirect_to text default '/hub',
+  created_by, created_at, updated_at
 
-1. **Which entities are in scope?** I listed events, community events, courses, gigs, venues, rooms, vendors, sponsors. Want all of them, or a subset (e.g. just events + community events + courses)?
-2. **Sync vs background?** Generating an image adds ~3–8s to the save call. Two options:
-   - (a) **Sync** — save waits until the image is generated; user sees it immediately. Simpler.
-   - (b) **Async** — return the saved row instantly with no image, kick off generation in the background, image appears on next refresh. Needs a small job table or fire-and-forget pattern in the Worker.
-3. **Style** — one consistent look across all auto-images (e.g. "minimal flat illustration on a brand-colored background") or kind-specific (event = flyer, venue = architectural render, vendor = product shot)?
+survey_questions
+  id, survey_id fk, position int,
+  question_text text,
+  question_type text check in (text|rating_1_to_5|multiple_choice),
+  options jsonb null,
+  required bool default false
 
-Once you confirm those three, I'll implement.
+survey_responses
+  id, survey_id fk,
+  answers jsonb,                       -- { question_id: value } — always anonymous
+  submitted_at timestamptz default now()
+```
+
+**target_audience_rules JSONB:**
+```json
+{ "segments": [
+  { "type": "all_active_users" },
+  { "type": "event_attendees", "event_id": "..." },
+  { "type": "approved_vendors" },
+  { "type": "department_members", "department_id": "..." }
+] }
+```
+Segments unioned, deduped by email, filtered against `campaign_unsubscribes`.
+
+**RLS + GRANTs (per public-schema-grants rule):**
+- All tables RLS-enabled with explicit grants in same migration.
+- Campaigns / recipients / surveys / questions: staff with the relevant permission scoped to manageable departments; admins full access.
+- `surveys` + `survey_questions`: `SELECT` to `anon` + `authenticated` when survey `is_active`.
+- `survey_responses`: `INSERT` open to `anon` + `authenticated`; `SELECT` restricted to staff with `surveys.manage`.
+- `campaign_unsubscribes`: `INSERT`/`SELECT` open (public unsubscribe link must work without auth).
+
+## Part 2 — Resend dispatch engine
+
+**Connector setup:** Link the Resend connector via `standard_connectors--connect` (you'll get prompted). Gateway URL `https://connector-gateway.lovable.dev/resend`, auth via `LOVABLE_API_KEY` + `RESEND_API_KEY`.
+
+**Server route `src/routes/api/public/dispatch-campaign.ts`** (POST):
+- Verifies an `x-dispatch-secret` header against `DISPATCH_SECRET` env (so only pg_cron and authenticated staff fns can call it).
+- Body: `{ campaign_id }`.
+- Loads campaign, sets `status='sending'`.
+- Resolves audience via `src/lib/communications.server.ts` → queries `attendees`, `vendor_applications`, `department_members`, `profiles` based on segments.
+- Subtracts `campaign_unsubscribes`.
+- For each recipient: inserts `campaign_recipients` row, POSTs to `https://connector-gateway.lovable.dev/resend/emails` with subject, `body_html` + unsubscribe footer (`<a href="{site}/unsubscribe?token=...">Unsubscribe</a>`), stores returned `resend_id`. Batched 10 at a time with small delay to respect rate limits.
+- Updates campaign `status='sent'`, `sent_at`, `recipient_count`.
+
+**Server fns in `src/lib/communications.functions.ts`:**
+- `dispatchCampaign({ campaignId })` — staff-only; calls the public route internally with the shared secret.
+- `sendTestCampaign({ campaignId })` — sends one email to the logged-in user via the same Resend path.
+- `previewAudience({ rules })` — returns `{ count, sample: email[5] }`.
+- `saveCampaign`, `listCampaigns`, `getCampaign`, `deleteCampaign`.
+
+**Scheduler:** pg_cron job runs every minute, selects campaigns where `status='scheduled' AND scheduled_for <= now()`, calls the dispatch route via `pg_net` with the shared secret. SQL added to the migration.
+
+**Unsubscribe route:** `src/routes/api/public/unsubscribe.ts` GET — validates token (HMAC of email), inserts into `campaign_unsubscribes`, returns simple confirmation HTML.
+
+## Part 3 — Staff Communications dashboard
+
+- Add `communications.manage` to `PermissionKey` in `src/lib/staff-permissions.ts`.
+- Sidebar entry **Communications** (gated).
+- Route `src/routes/_authenticated/staff/communications.tsx`: DataTable of campaigns (subject, status, audience count, scheduled_for, sent_at, actions).
+- Route `src/routes/_authenticated/staff/communications.$id.tsx`: Campaign editor
+  - Subject input
+  - **TipTap editor** (`@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-link`) with toolbar: bold, italic, headings, lists, links, blockquote. New component `src/components/RichTextEditor.tsx` (reusable).
+  - **Audience Selector** component: chip list; "Add segment" popover with type + conditional secondary control (event picker, department picker). Live "Will send to N recipients" via `previewAudience`.
+  - **Schedule control**: "Send now" vs "Schedule for" with date+time picker.
+  - Buttons: **Save Draft**, **Send Test to Me**, **Schedule / Dispatch** (confirm dialog with recipient count).
+- Recipients view (drawer): list of `campaign_recipients` with status.
+
+## Part 4 — Survey builder (staff)
+
+- Add `surveys.manage` to `PermissionKey`.
+- Sidebar entry **Surveys & Feedback** (gated).
+- Route `src/routes/_authenticated/staff/surveys.tsx`: list / create surveys.
+- Route `src/routes/_authenticated/staff/surveys.$id.tsx`: editor
+  - Title, **TipTap** description, active toggle, redirect URL.
+  - Question list with drag-reorder (reuse `SortableList`), add/delete, per-question type selector and options input for `multiple_choice`, required toggle.
+  - Public link with copy button.
+- Route `src/routes/_authenticated/staff/surveys.$id.analytics.tsx`:
+  - Per question: text → list of responses; rating → average + recharts BarChart of 1–5 distribution; multiple_choice → recharts PieChart of tallies.
+  - Response count + completion-over-time LineChart.
+
+Server fns in `src/lib/surveys.functions.ts`: `listSurveys`, `getSurvey`, `saveSurvey`, `saveQuestions`, `getSurveyAnalytics`, `deleteSurvey`.
+
+## Part 5 — Public survey view
+
+- Route `src/routes/survey.$id.tsx` (top-level, public, SSR on, no auth gate).
+  - Loader → public server fn `getPublicSurvey({ id })` (admin client, only `is_active`, safe columns).
+  - Mobile-friendly form: text input, 5-star rating control, radio group for multiple choice; required-field validation with Zod.
+  - Submit → public server fn `submitSurveyResponse({ surveyId, answers })` — **always anonymous**, no `user_id` written even when logged in.
+  - Completion state: "Thanks!" → `navigate({ to: survey.redirect_to ?? '/hub' })` after 2s.
+- `head()` populates title/description/og from survey.
+
+## Permissions wiring
+
+- Permission keys added to `PermissionKey` union + admin Permissions UI.
+- Sidebar + routes gated via `usePermissions().can(...)`.
+- Server fns re-check permissions via `requireSupabaseAuth` + DB lookup.
+
+## Dependencies & secrets
+
+- New npm deps: `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-link`.
+- Resend connector linked → injects `RESEND_API_KEY` automatically.
+- New secret `DISPATCH_SECRET` (random string) — I'll request via `add_secret`.
+- `marked` not needed (TipTap outputs HTML directly via `generateHTML`).
+
+## Build order
+
+1. Link Resend connector + add `DISPATCH_SECRET`.
+2. Migration 038 (schema + RLS + grants + pg_cron job).
+3. `RichTextEditor` component + audience-resolver server helper.
+4. Dispatch route + unsubscribe route + communications server fns.
+5. Staff Communications dashboard + campaign editor.
+6. Surveys schema fns + staff survey builder + analytics.
+7. Public `/survey/:id` page.
+8. Permission keys + sidebar entries + admin Permissions UI update.
+
+Ready for your sign-off — once approved, switch me to build mode.
