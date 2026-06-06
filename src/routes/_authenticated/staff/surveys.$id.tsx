@@ -142,7 +142,23 @@ function EditSurvey() {
               <Label>Redirect URL after submit (optional)</Label>
               <Input value={redirectTo} onChange={(e) => setRedirectTo(e.target.value)} placeholder="/hub" />
             </div>
+            <div>
+              <Label>Department</Label>
+              <Select
+                value={departmentId ?? "__none"}
+                onValueChange={(v) => setDepartmentId(v === "__none" ? null : v)}
+              >
+                <SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none">Unassigned</SelectItem>
+                  {(departments as any[]).map((d) => (
+                    <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
           {isActive && (
             <div className="bg-slate-50 rounded p-3 text-sm flex items-center gap-2">
               <span className="text-muted-foreground">Public link:</span>
