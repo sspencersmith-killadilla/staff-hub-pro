@@ -14,7 +14,7 @@ import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Save, BarChart3, Copy } fr
 import { toast } from "sonner";
 
 
-export const Route = createFileRoute("/_authenticated/staff/surveys/$id")({
+export const Route = createFileRoute("/_authenticated/staff/surveys/$id/")({
   component: EditSurvey,
 });
 
