@@ -76,6 +76,7 @@ function EditSurvey() {
           description_html: descHtml,
           is_active: isActive,
           redirect_to: redirectTo || null,
+          department_id: departmentId,
           questions: questions.map((q, i) => ({ ...q, position: i })),
         },
       }),
@@ -85,6 +86,7 @@ function EditSurvey() {
       qc.invalidateQueries({ queryKey: ["surveys"] });
     },
     onError: (e: any) => toast.error(e.message),
+
   });
 
   function update(i: number, patch: Partial<Q>) {
