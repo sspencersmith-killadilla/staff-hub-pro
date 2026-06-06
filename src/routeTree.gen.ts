@@ -87,6 +87,8 @@ import { Route as ApiPublicOauthMetaCallbackRouteImport } from './routes/api/pub
 import { Route as ApiPublicOauthLinkedinCallbackRouteImport } from './routes/api/public/oauth/linkedin/callback'
 import { Route as AuthenticatedStaffSurveysIdAnalyticsRouteImport } from './routes/_authenticated/staff/surveys.$id.analytics'
 import { Route as AuthenticatedStaffAdminSocialConnectionsRouteImport } from './routes/_authenticated/staff/admin.social.connections'
+import { Route as ApiPublicEmailTrackOpenRidRouteImport } from './routes/api/public/email.track.open.$rid'
+import { Route as ApiPublicEmailTrackClickRidRouteImport } from './routes/api/public/email.track.click.$rid'
 
 const VenuesRoute = VenuesRouteImport.update({
   id: '/venues',
@@ -518,6 +520,18 @@ const AuthenticatedStaffAdminSocialConnectionsRoute =
     path: '/connections',
     getParentRoute: () => AuthenticatedStaffAdminSocialRoute,
   } as any)
+const ApiPublicEmailTrackOpenRidRoute =
+  ApiPublicEmailTrackOpenRidRouteImport.update({
+    id: '/api/public/email/track/open/$rid',
+    path: '/api/public/email/track/open/$rid',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicEmailTrackClickRidRoute =
+  ApiPublicEmailTrackClickRidRouteImport.update({
+    id: '/api/public/email/track/click/$rid',
+    path: '/api/public/email/track/click/$rid',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -597,6 +611,8 @@ export interface FileRoutesByFullPath {
   '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
   '/staff/surveys/$id/': typeof AuthenticatedStaffSurveysIdIndexRoute
+  '/api/public/email/track/click/$rid': typeof ApiPublicEmailTrackClickRidRoute
+  '/api/public/email/track/open/$rid': typeof ApiPublicEmailTrackOpenRidRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -672,6 +688,8 @@ export interface FileRoutesByTo {
   '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
   '/staff/surveys/$id': typeof AuthenticatedStaffSurveysIdIndexRoute
+  '/api/public/email/track/click/$rid': typeof ApiPublicEmailTrackClickRidRoute
+  '/api/public/email/track/open/$rid': typeof ApiPublicEmailTrackOpenRidRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -753,6 +771,8 @@ export interface FileRoutesById {
   '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
   '/_authenticated/staff/surveys/$id/': typeof AuthenticatedStaffSurveysIdIndexRoute
+  '/api/public/email/track/click/$rid': typeof ApiPublicEmailTrackClickRidRoute
+  '/api/public/email/track/open/$rid': typeof ApiPublicEmailTrackOpenRidRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -834,6 +854,8 @@ export interface FileRouteTypes {
     | '/api/public/oauth/linkedin/callback'
     | '/api/public/oauth/meta/callback'
     | '/staff/surveys/$id/'
+    | '/api/public/email/track/click/$rid'
+    | '/api/public/email/track/open/$rid'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -909,6 +931,8 @@ export interface FileRouteTypes {
     | '/api/public/oauth/linkedin/callback'
     | '/api/public/oauth/meta/callback'
     | '/staff/surveys/$id'
+    | '/api/public/email/track/click/$rid'
+    | '/api/public/email/track/open/$rid'
   id:
     | '__root__'
     | '/'
@@ -989,6 +1013,8 @@ export interface FileRouteTypes {
     | '/api/public/oauth/linkedin/callback'
     | '/api/public/oauth/meta/callback'
     | '/_authenticated/staff/surveys/$id/'
+    | '/api/public/email/track/click/$rid'
+    | '/api/public/email/track/open/$rid'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1022,6 +1048,8 @@ export interface RootRouteChildren {
   ApiPublicManifestWebmanifestRoute: typeof ApiPublicManifestWebmanifestRoute
   ApiPublicOauthLinkedinCallbackRoute: typeof ApiPublicOauthLinkedinCallbackRoute
   ApiPublicOauthMetaCallbackRoute: typeof ApiPublicOauthMetaCallbackRoute
+  ApiPublicEmailTrackClickRidRoute: typeof ApiPublicEmailTrackClickRidRoute
+  ApiPublicEmailTrackOpenRidRoute: typeof ApiPublicEmailTrackOpenRidRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1572,6 +1600,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffAdminSocialConnectionsRouteImport
       parentRoute: typeof AuthenticatedStaffAdminSocialRoute
     }
+    '/api/public/email/track/open/$rid': {
+      id: '/api/public/email/track/open/$rid'
+      path: '/api/public/email/track/open/$rid'
+      fullPath: '/api/public/email/track/open/$rid'
+      preLoaderRoute: typeof ApiPublicEmailTrackOpenRidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/email/track/click/$rid': {
+      id: '/api/public/email/track/click/$rid'
+      path: '/api/public/email/track/click/$rid'
+      fullPath: '/api/public/email/track/click/$rid'
+      preLoaderRoute: typeof ApiPublicEmailTrackClickRidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1818,6 +1860,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicManifestWebmanifestRoute: ApiPublicManifestWebmanifestRoute,
   ApiPublicOauthLinkedinCallbackRoute: ApiPublicOauthLinkedinCallbackRoute,
   ApiPublicOauthMetaCallbackRoute: ApiPublicOauthMetaCallbackRoute,
+  ApiPublicEmailTrackClickRidRoute: ApiPublicEmailTrackClickRidRoute,
+  ApiPublicEmailTrackOpenRidRoute: ApiPublicEmailTrackOpenRidRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
