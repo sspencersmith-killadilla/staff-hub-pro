@@ -1,16 +1,55 @@
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+async function getAdminClient() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin;
+}
 
-export async function assertStaff(userId: string) {
-  const { data, error } = await supabaseAdmin
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", userId)
-    .in("role", ["staff", "admin"]);
-  if (error) throw new Error(error.message);
-  if (!data || data.length === 0) throw new Error("Forbidden: staff role required");
+export async function assertStaff(userId: string, permission?: string) {
+  const supabaseAdmin = await getAdminClient();
+  const checks = [
+    supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .in("role", ["staff", "admin"])
+      .limit(1),
+    supabaseAdmin
+      .from("department_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .in("role", ["super_admin", "dept_admin", "staff"])
+      .limit(1),
+  ];
+
+  if (permission) {
+    checks.push(
+      supabaseAdmin
+        .from("staff_permissions")
+        .select("permission")
+        .eq("user_id", userId)
+        .eq("permission", permission)
+        .limit(1),
+    );
+  }
+
+  const [roleResult, departmentResult, permissionResult] = await Promise.all(checks);
+
+  const error = roleResult.error ?? departmentResult.error ?? permissionResult?.error;
+  if (error) {
+    console.error("Staff permission check failed", { userId, permission, message: error.message });
+    throw new Error("Permission check failed");
+  }
+
+  const hasRole = (roleResult.data ?? []).length > 0;
+  const hasDepartmentRole = (departmentResult.data ?? []).length > 0;
+  const hasPermission = (permissionResult?.data ?? []).length > 0;
+
+  if (!hasRole && !hasDepartmentRole && !hasPermission) {
+    throw new Error("Forbidden: staff permission required");
+  }
 }
 
 export async function isAdmin(userId: string): Promise<boolean> {
+  const supabaseAdmin = await getAdminClient();
   const { data } = await supabaseAdmin
     .from("user_roles")
     .select("role")
@@ -22,6 +61,7 @@ export async function isAdmin(userId: string): Promise<boolean> {
 
 /** Returns the set of department IDs the user belongs to via department_roles. */
 export async function getUserDepartmentIds(userId: string): Promise<Set<string>> {
+  const supabaseAdmin = await getAdminClient();
   const { data, error } = await supabaseAdmin
     .from("department_roles")
     .select("department_id")
