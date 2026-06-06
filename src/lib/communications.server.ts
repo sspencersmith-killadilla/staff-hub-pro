@@ -3,17 +3,52 @@ import { resolveAudience } from "@/lib/campaigns.functions";
 
 const RESEND_URL = "https://api.resend.com/emails";
 
-function getFrom() {
-  return process.env.RESEND_FROM || "onboarding@resend.dev";
+export type EmailConfig = {
+  apiKey: string | null;
+  from: string;
+  replyTo: string | null;
+  siteUrl: string;
+};
+
+const FALLBACK_SITE_URL = "https://totaleventsystemsolutions.lovable.app";
+
+export async function resolveEmailConfig(): Promise<EmailConfig> {
+  let dbApiKey: string | null = null;
+  let dbFrom: string | null = null;
+  let dbReplyTo: string | null = null;
+  let dbSiteUrl: string | null = null;
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("email_integration_settings")
+      .select("api_key, from_address, reply_to, site_url, is_active")
+      .eq("provider", "resend")
+      .maybeSingle();
+    if (data?.is_active) {
+      dbApiKey = data.api_key ?? null;
+      dbFrom = data.from_address ?? null;
+      dbReplyTo = data.reply_to ?? null;
+      dbSiteUrl = data.site_url ?? null;
+    }
+  } catch {
+    // table may not exist yet (pre-migration); fall through to env
+  }
+
+  return {
+    apiKey: dbApiKey || process.env.RESEND_API_KEY || null,
+    from: dbFrom || process.env.RESEND_FROM || "onboarding@resend.dev",
+    replyTo: dbReplyTo || process.env.RESEND_REPLY_TO || null,
+    siteUrl:
+      dbSiteUrl ||
+      process.env.SITE_URL ||
+      process.env.VITE_SITE_URL ||
+      FALLBACK_SITE_URL,
+  };
 }
 
-function getSiteUrl(): string {
-  return process.env.SITE_URL || process.env.VITE_SITE_URL || "https://totaleventsystemsolutions.lovable.app";
-}
-
-function withFooter(html: string, email: string): string {
+function withFooter(html: string, email: string, siteUrl: string): string {
   const clean = DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
-  const unsubUrl = `${getSiteUrl()}/api/public/unsubscribe?email=${encodeURIComponent(email)}`;
+  const unsubUrl = `${siteUrl}/api/public/unsubscribe?email=${encodeURIComponent(email)}`;
   return `<!doctype html><html><body style="font-family:system-ui,sans-serif;color:#111;max-width:640px;margin:0 auto;padding:24px">
     ${clean}
     <hr style="margin-top:32px;border:none;border-top:1px solid #eee" />
@@ -24,20 +59,36 @@ function withFooter(html: string, email: string): string {
   </body></html>`;
 }
 
-async function resendSend(to: string, subject: string, html: string): Promise<{ id?: string; error?: string }> {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return { error: "RESEND_API_KEY not configured" };
+export async function resendSendWithConfig(
+  cfg: EmailConfig,
+  to: string,
+  subject: string,
+  html: string,
+): Promise<{ id?: string; error?: string }> {
+  if (!cfg.apiKey) {
+    return {
+      error:
+        "Email provider not configured. An admin can set it up in Admin → Email Settings.",
+    };
+  }
+  const body: Record<string, unknown> = {
+    from: cfg.from,
+    to: [to],
+    subject,
+    html,
+  };
+  if (cfg.replyTo) body.reply_to = cfg.replyTo;
   const res = await fetch(RESEND_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${cfg.apiKey}`,
     },
-    body: JSON.stringify({ from: getFrom(), to: [to], subject, html }),
+    body: JSON.stringify(body),
   });
-  const body = (await res.json().catch(() => ({}))) as any;
-  if (!res.ok) return { error: body?.message || `HTTP ${res.status}` };
-  return { id: body?.id };
+  const json = (await res.json().catch(() => ({}))) as any;
+  if (!res.ok) return { error: json?.message || `HTTP ${res.status}` };
+  return { id: json?.id };
 }
 
 export async function sendTest(campaignId: string, email: string) {
@@ -48,7 +99,13 @@ export async function sendTest(campaignId: string, email: string) {
     .eq("id", campaignId)
     .single();
   if (error || !c) throw new Error(error?.message || "Campaign not found");
-  const res = await resendSend(email, `[TEST] ${c.subject}`, withFooter(c.body_html, email));
+  const cfg = await resolveEmailConfig();
+  const res = await resendSendWithConfig(
+    cfg,
+    email,
+    `[TEST] ${c.subject}`,
+    withFooter(c.body_html, email, cfg.siteUrl),
+  );
   if (res.error) throw new Error(res.error);
   return { ok: true, id: res.id };
 }
@@ -69,17 +126,22 @@ export async function dispatchCampaign(campaignId: string) {
     .update({ status: "sending" })
     .eq("id", campaignId);
 
+  const cfg = await resolveEmailConfig();
   const emails = await resolveAudience(supabaseAdmin, c.target_audience_rules);
   let sent = 0;
   let failed = 0;
   const rows: any[] = [];
 
-  // Process in chunks
   for (let i = 0; i < emails.length; i += 10) {
     const batch = emails.slice(i, i + 10);
     const results = await Promise.all(
       batch.map(async (email) => {
-        const res = await resendSend(email, c.subject, withFooter(c.body_html, email));
+        const res = await resendSendWithConfig(
+          cfg,
+          email,
+          c.subject,
+          withFooter(c.body_html, email, cfg.siteUrl),
+        );
         return { email, res };
       }),
     );
