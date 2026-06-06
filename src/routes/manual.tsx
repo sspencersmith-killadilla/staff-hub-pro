@@ -123,6 +123,8 @@ const groups: { label: string; sectionIds: string[] }[] = [
       "admin-home",
       "admin-guidebook",
       "admin-social",
+      "admin-communications",
+      "admin-surveys",
     ],
   },
 
