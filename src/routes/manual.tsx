@@ -24,6 +24,8 @@ import {
   Palette,
   FileText,
   Share2,
+  Mail,
+  ClipboardList,
 } from "lucide-react";
 
 import homeImg from "@/assets/manual/home.png";
@@ -121,6 +123,8 @@ const groups: { label: string; sectionIds: string[] }[] = [
       "admin-home",
       "admin-guidebook",
       "admin-social",
+      "admin-communications",
+      "admin-surveys",
     ],
   },
 
@@ -1614,6 +1618,176 @@ const sections: Section[] = [
           only sees account names and connection status. Publishing happens
           entirely through TanStack server functions using each department's
           stored access token.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "admin-communications",
+    title: "Communications (Email Campaigns)",
+    icon: Mail,
+    audience: "admin",
+    render: () => (
+      <>
+        <p>
+          The Communications module is a native replacement for tools like
+          Mailchimp. Compose rich-text emails, target specific community
+          segments, send immediately or schedule for later — all without
+          leaving the platform. Open it from{" "}
+          <em>Event Ops sidebar → Communications</em>.
+        </p>
+
+        <h4 className="mt-6 font-semibold text-[#002f49]">Permission</h4>
+        <p>
+          Access is gated by the <strong>Communications</strong> staff
+          permission (<code>page.communications</code>). Grant it under{" "}
+          <em>Admin → Permissions</em>.
+        </p>
+
+        <h4 className="mt-6 font-semibold text-[#002f49]">One-time setup</h4>
+        <p>
+          The module sends through <a className="text-primary underline" href="https://resend.com" target="_blank" rel="noreferrer">Resend</a>{" "}
+          using a server-stored API key. The following secrets can be set in{" "}
+          <em>Project Settings → Secrets</em>:
+        </p>
+        <ul className="my-3 list-disc pl-6 text-sm">
+          <li><code>RESEND_API_KEY</code> — required. Your Resend API key.</li>
+          <li><code>RESEND_FROM</code> — optional. Verified sender like{" "}
+            <code>City Events &lt;hello@yourdomain.com&gt;</code>. Defaults to{" "}
+            <code>onboarding@resend.dev</code> for testing.</li>
+          <li><code>SITE_URL</code> — optional. Used in unsubscribe links.
+            Defaults to the deployed app URL.</li>
+          <li><code>DISPATCH_SECRET</code> — optional. Protects the{" "}
+            <code>/api/public/dispatch-due</code> cron endpoint.</li>
+        </ul>
+
+        <h4 className="mt-6 font-semibold text-[#002f49]">Compose a campaign</h4>
+        <ol className="my-3 space-y-3">
+          <Step n={1} title="Click New campaign">
+            A draft is created instantly and the editor opens.
+          </Step>
+          <Step n={2} title="Write the email">
+            Use the TipTap rich-text editor: headings, bold, italic, lists,
+            blockquote, and links. Content is sanitized server-side before
+            sending.
+          </Step>
+          <Step n={3} title="Choose your audience">
+            Add one or more <strong>audience segments</strong>:
+            <ul className="my-2 list-disc pl-6">
+              <li><strong>All active users</strong> — every signed-up
+                community member.</li>
+              <li><strong>Event attendees</strong> — everyone with a ticket to
+                a specific event.</li>
+              <li><strong>Approved vendors</strong> — applicants whose status
+                is approved or paid.</li>
+              <li><strong>Department members</strong> — staff and admins in a
+                given department.</li>
+            </ul>
+            Unsubscribed emails are automatically excluded. The live preview
+            shows the recipient count.
+          </Step>
+          <Step n={4} title="Send now or schedule">
+            Pick <em>Send now</em> to dispatch immediately, or{" "}
+            <em>Schedule for…</em> with a date and time. Scheduled campaigns
+            are picked up by a per-minute cron job that pings{" "}
+            <code>/api/public/dispatch-due</code>.
+          </Step>
+          <Step n={5} title="Send a test first">
+            Enter your email in the <em>Send test</em> box to preview the
+            real rendered email in your inbox before sending to everyone.
+          </Step>
+        </ol>
+
+        <h4 className="mt-6 font-semibold text-[#002f49]">After sending</h4>
+        <p>
+          Each campaign records its recipients, status (sent/failed), and the
+          Resend message ID for follow-up. Sent campaigns are read-only.
+          Recipients who click the unsubscribe link at the bottom of any
+          email are permanently added to the <code>campaign_unsubscribes</code>
+          table and excluded from all future campaigns.
+        </p>
+
+        <Callout kind="note">
+          The <code>RESEND_API_KEY</code> never leaves the server. The
+          dispatch route runs server-side via TanStack server functions; the
+          browser only sees campaign metadata and recipient counts.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "admin-surveys",
+    title: "Surveys & Feedback",
+    icon: ClipboardList,
+    audience: "admin",
+    render: () => (
+      <>
+        <p>
+          The Surveys module is a native replacement for tools like
+          SurveyMonkey. Build multi-question surveys, share a public link,
+          and view aggregated results with charts — all responses are
+          anonymous by design. Open it from{" "}
+          <em>Event Ops sidebar → Surveys</em>.
+        </p>
+
+        <h4 className="mt-6 font-semibold text-[#002f49]">Permission</h4>
+        <p>
+          Access is gated by the <strong>Surveys & Feedback</strong> staff
+          permission (<code>page.surveys</code>). Grant it under{" "}
+          <em>Admin → Permissions</em>.
+        </p>
+
+        <h4 className="mt-6 font-semibold text-[#002f49]">Build a survey</h4>
+        <ol className="my-3 space-y-3">
+          <Step n={1} title="Click New survey">
+            A draft is created instantly and the editor opens.
+          </Step>
+          <Step n={2} title="Title and description">
+            Use the rich-text editor for the description — explain what the
+            survey is for and how the answers will be used.
+          </Step>
+          <Step n={3} title="Add questions">
+            Three question types are supported:
+            <ul className="my-2 list-disc pl-6">
+              <li><strong>Short text</strong> — free-form response.</li>
+              <li><strong>Rating 1–5</strong> — five-star picker, great for
+                NPS-style scores.</li>
+              <li><strong>Multiple choice</strong> — one answer from your
+                option list.</li>
+            </ul>
+            Mark any question as <em>Required</em>. Reorder with the up/down
+            arrows.
+          </Step>
+          <Step n={4} title="Set active and share the link">
+            Toggle the survey <em>Active</em>, then copy the public link
+            (<code>/survey/&lt;id&gt;</code>). Anyone with the link can
+            respond — no sign-in required.
+          </Step>
+          <Step n={5} title="Optional: post-submit redirect">
+            Set a <em>Redirect URL</em> to send respondents to a thank-you
+            page, the department hub, or any internal route after they
+            submit. Leave blank to send them back to the home page.
+          </Step>
+        </ol>
+
+        <h4 className="mt-6 font-semibold text-[#002f49]">View results</h4>
+        <p>
+          Click the <em>Analytics</em> icon on any survey row (or the
+          Analytics button in the editor) to see:
+        </p>
+        <ul className="my-3 list-disc pl-6 text-sm">
+          <li>Total response count.</li>
+          <li>Bar charts for rating and multiple-choice questions, with
+            per-option tallies.</li>
+          <li>Full text dumps for free-form questions.</li>
+          <li>Average score for 1–5 rating questions.</li>
+        </ul>
+
+        <Callout kind="note">
+          Submissions are always anonymous — no user ID, IP, or session is
+          stored with the response. Toggling a survey to <em>Inactive</em>
+          stops new submissions but keeps all historical data and analytics
+          intact.
         </Callout>
       </>
     ),
