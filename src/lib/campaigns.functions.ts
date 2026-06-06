@@ -20,10 +20,11 @@ export const listCampaigns = createServerFn({ method: "GET" })
     await assertStaff(context.userId, COMMUNICATIONS_PERMISSION);
     const { data, error } = await context.supabase
       .from("communication_campaigns")
-      .select("id, subject, status, scheduled_for, sent_at, recipient_count, created_at")
+      .select("id, subject, status, scheduled_for, sent_at, recipient_count, created_at, department_id")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
+
   });
 
 export const getCampaign = createServerFn({ method: "GET" })
