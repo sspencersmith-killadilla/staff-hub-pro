@@ -63,6 +63,8 @@ import { Route as AuthenticatedStaffAttendeesRouteImport } from './routes/_authe
 import { Route as AuthenticatedStaffAdminRouteImport } from './routes/_authenticated/staff/admin'
 import { Route as AuthenticatedCommunityManageRouteImport } from './routes/_authenticated/community/manage'
 import { Route as AuthenticatedCommunityApplyRouteImport } from './routes/_authenticated/community/apply'
+import { Route as AuthenticatedStaffSurveysIndexRouteImport } from './routes/_authenticated/staff/surveys.index'
+import { Route as AuthenticatedStaffCommunicationsIndexRouteImport } from './routes/_authenticated/staff/communications.index'
 import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
 import { Route as AuthenticatedStaffSurveysIdRouteImport } from './routes/_authenticated/staff/surveys.$id'
 import { Route as AuthenticatedStaffEventsIdRouteImport } from './routes/_authenticated/staff/events.$id'
@@ -371,6 +373,18 @@ const AuthenticatedCommunityApplyRoute =
     path: '/community/apply',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedStaffSurveysIndexRoute =
+  AuthenticatedStaffSurveysIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedStaffSurveysRoute,
+  } as any)
+const AuthenticatedStaffCommunicationsIndexRoute =
+  AuthenticatedStaffCommunicationsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedStaffCommunicationsRoute,
+  } as any)
 const ApiPublicManifestWebmanifestRoute =
   ApiPublicManifestWebmanifestRouteImport.update({
     id: '/api/public/manifest/webmanifest',
@@ -569,6 +583,8 @@ export interface FileRoutesByFullPath {
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
   '/staff/surveys/$id': typeof AuthenticatedStaffSurveysIdRouteWithChildren
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
+  '/staff/communications/': typeof AuthenticatedStaffCommunicationsIndexRoute
+  '/staff/surveys/': typeof AuthenticatedStaffSurveysIndexRoute
   '/staff/admin/social/connections': typeof AuthenticatedStaffAdminSocialConnectionsRoute
   '/staff/surveys/$id/analytics': typeof AuthenticatedStaffSurveysIdAnalyticsRoute
   '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
@@ -610,7 +626,6 @@ export interface FileRoutesByTo {
   '/staff/admin': typeof AuthenticatedStaffAdminRouteWithChildren
   '/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
   '/staff/classes': typeof AuthenticatedStaffClassesRoute
-  '/staff/communications': typeof AuthenticatedStaffCommunicationsRouteWithChildren
   '/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
   '/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
@@ -618,7 +633,6 @@ export interface FileRoutesByTo {
   '/staff/room-reservations': typeof AuthenticatedStaffRoomReservationsRoute
   '/staff/settings': typeof AuthenticatedStaffSettingsRoute
   '/staff/sponsors': typeof AuthenticatedStaffSponsorsRoute
-  '/staff/surveys': typeof AuthenticatedStaffSurveysRouteWithChildren
   '/staff/vendors': typeof AuthenticatedStaffVendorsRoute
   '/staff/venues': typeof AuthenticatedStaffVenuesRoute
   '/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
@@ -644,6 +658,8 @@ export interface FileRoutesByTo {
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
   '/staff/surveys/$id': typeof AuthenticatedStaffSurveysIdRouteWithChildren
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
+  '/staff/communications': typeof AuthenticatedStaffCommunicationsIndexRoute
+  '/staff/surveys': typeof AuthenticatedStaffSurveysIndexRoute
   '/staff/admin/social/connections': typeof AuthenticatedStaffAdminSocialConnectionsRoute
   '/staff/surveys/$id/analytics': typeof AuthenticatedStaffSurveysIdAnalyticsRoute
   '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
@@ -722,6 +738,8 @@ export interface FileRoutesById {
   '/_authenticated/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
   '/_authenticated/staff/surveys/$id': typeof AuthenticatedStaffSurveysIdRouteWithChildren
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
+  '/_authenticated/staff/communications/': typeof AuthenticatedStaffCommunicationsIndexRoute
+  '/_authenticated/staff/surveys/': typeof AuthenticatedStaffSurveysIndexRoute
   '/_authenticated/staff/admin/social/connections': typeof AuthenticatedStaffAdminSocialConnectionsRoute
   '/_authenticated/staff/surveys/$id/analytics': typeof AuthenticatedStaffSurveysIdAnalyticsRoute
   '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
@@ -800,6 +818,8 @@ export interface FileRouteTypes {
     | '/staff/events/$id'
     | '/staff/surveys/$id'
     | '/api/public/manifest/webmanifest'
+    | '/staff/communications/'
+    | '/staff/surveys/'
     | '/staff/admin/social/connections'
     | '/staff/surveys/$id/analytics'
     | '/api/public/oauth/linkedin/callback'
@@ -841,7 +861,6 @@ export interface FileRouteTypes {
     | '/staff/admin'
     | '/staff/attendees'
     | '/staff/classes'
-    | '/staff/communications'
     | '/staff/community-events'
     | '/staff/community-music'
     | '/staff/community-organizations'
@@ -849,7 +868,6 @@ export interface FileRouteTypes {
     | '/staff/room-reservations'
     | '/staff/settings'
     | '/staff/sponsors'
-    | '/staff/surveys'
     | '/staff/vendors'
     | '/staff/venues'
     | '/streetbeats/apply'
@@ -875,6 +893,8 @@ export interface FileRouteTypes {
     | '/staff/events/$id'
     | '/staff/surveys/$id'
     | '/api/public/manifest/webmanifest'
+    | '/staff/communications'
+    | '/staff/surveys'
     | '/staff/admin/social/connections'
     | '/staff/surveys/$id/analytics'
     | '/api/public/oauth/linkedin/callback'
@@ -952,6 +972,8 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/events/$id'
     | '/_authenticated/staff/surveys/$id'
     | '/api/public/manifest/webmanifest'
+    | '/_authenticated/staff/communications/'
+    | '/_authenticated/staff/surveys/'
     | '/_authenticated/staff/admin/social/connections'
     | '/_authenticated/staff/surveys/$id/analytics'
     | '/api/public/oauth/linkedin/callback'
@@ -1371,6 +1393,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommunityApplyRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/staff/surveys/': {
+      id: '/_authenticated/staff/surveys/'
+      path: '/'
+      fullPath: '/staff/surveys/'
+      preLoaderRoute: typeof AuthenticatedStaffSurveysIndexRouteImport
+      parentRoute: typeof AuthenticatedStaffSurveysRoute
+    }
+    '/_authenticated/staff/communications/': {
+      id: '/_authenticated/staff/communications/'
+      path: '/'
+      fullPath: '/staff/communications/'
+      preLoaderRoute: typeof AuthenticatedStaffCommunicationsIndexRouteImport
+      parentRoute: typeof AuthenticatedStaffCommunicationsRoute
+    }
     '/api/public/manifest/webmanifest': {
       id: '/api/public/manifest/webmanifest'
       path: '/api/public/manifest/webmanifest'
@@ -1585,12 +1621,15 @@ const AuthenticatedStaffAdminRouteWithChildren =
 
 interface AuthenticatedStaffCommunicationsRouteChildren {
   AuthenticatedStaffCommunicationsIdRoute: typeof AuthenticatedStaffCommunicationsIdRoute
+  AuthenticatedStaffCommunicationsIndexRoute: typeof AuthenticatedStaffCommunicationsIndexRoute
 }
 
 const AuthenticatedStaffCommunicationsRouteChildren: AuthenticatedStaffCommunicationsRouteChildren =
   {
     AuthenticatedStaffCommunicationsIdRoute:
       AuthenticatedStaffCommunicationsIdRoute,
+    AuthenticatedStaffCommunicationsIndexRoute:
+      AuthenticatedStaffCommunicationsIndexRoute,
   }
 
 const AuthenticatedStaffCommunicationsRouteWithChildren =
@@ -1615,12 +1654,14 @@ const AuthenticatedStaffSurveysIdRouteWithChildren =
 
 interface AuthenticatedStaffSurveysRouteChildren {
   AuthenticatedStaffSurveysIdRoute: typeof AuthenticatedStaffSurveysIdRouteWithChildren
+  AuthenticatedStaffSurveysIndexRoute: typeof AuthenticatedStaffSurveysIndexRoute
 }
 
 const AuthenticatedStaffSurveysRouteChildren: AuthenticatedStaffSurveysRouteChildren =
   {
     AuthenticatedStaffSurveysIdRoute:
       AuthenticatedStaffSurveysIdRouteWithChildren,
+    AuthenticatedStaffSurveysIndexRoute: AuthenticatedStaffSurveysIndexRoute,
   }
 
 const AuthenticatedStaffSurveysRouteWithChildren =
