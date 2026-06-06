@@ -10,7 +10,7 @@ import { Plus, Mail, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 
-export const Route = createFileRoute("/_authenticated/staff/communications")({
+export const Route = createFileRoute("/_authenticated/staff/communications/")({
   component: CommunicationsPage,
 });
 

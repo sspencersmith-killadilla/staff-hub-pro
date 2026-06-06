@@ -10,7 +10,7 @@ import { Plus, ClipboardList, BarChart3, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 
-export const Route = createFileRoute("/_authenticated/staff/surveys")({
+export const Route = createFileRoute("/_authenticated/staff/surveys/")({
   component: SurveysPage,
 });
 
