@@ -5,33 +5,32 @@ async function getAdminClient() {
 
 export async function assertStaff(userId: string, permission?: string) {
   const supabaseAdmin = await getAdminClient();
-  const checks = [
-    supabaseAdmin
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .in("role", ["staff", "admin"])
-      .limit(1),
-    supabaseAdmin
-      .from("department_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .in("role", ["super_admin", "dept_admin", "staff"])
-      .limit(1),
-  ];
-
-  if (permission) {
-    checks.push(
-      supabaseAdmin
+  const roleCheck = supabaseAdmin
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .in("role", ["staff", "admin"])
+    .limit(1);
+  const departmentCheck = supabaseAdmin
+    .from("department_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .in("role", ["super_admin", "dept_admin", "staff"])
+    .limit(1);
+  const permissionCheck = permission
+    ? supabaseAdmin
         .from("staff_permissions")
         .select("permission")
         .eq("user_id", userId)
         .eq("permission", permission)
-        .limit(1),
-    );
-  }
+        .limit(1)
+    : Promise.resolve({ data: [], error: null });
 
-  const [roleResult, departmentResult, permissionResult] = await Promise.all(checks);
+  const [roleResult, departmentResult, permissionResult] = await Promise.all([
+    roleCheck,
+    departmentCheck,
+    permissionCheck,
+  ]);
 
   const error = roleResult.error ?? departmentResult.error ?? permissionResult?.error;
   if (error) {
@@ -93,6 +92,7 @@ export async function assertCanManageDepartment(
 
 /** Resolve the department a course belongs to (or null). */
 export async function getCourseDepartmentId(courseId: string): Promise<string | null> {
+  const supabaseAdmin = await getAdminClient();
   const { data } = await supabaseAdmin
     .from("courses")
     .select("department_id")
@@ -103,6 +103,7 @@ export async function getCourseDepartmentId(courseId: string): Promise<string | 
 
 /** Resolve the department that owns a stage (via its venue). */
 export async function getStageDepartmentId(stageId: string): Promise<string | null> {
+  const supabaseAdmin = await getAdminClient();
   const { data } = await supabaseAdmin
     .from("stages")
     .select("venues:venue_id(department_id)")
@@ -115,6 +116,7 @@ export async function getStageDepartmentId(stageId: string): Promise<string | nu
 
 /** Resolve the department that owns a slot (via stage → venue). */
 export async function getSlotDepartmentId(slotId: number): Promise<string | null> {
+  const supabaseAdmin = await getAdminClient();
   const { data } = await supabaseAdmin
     .from("slots")
     .select("stage_id")
@@ -127,6 +129,7 @@ export async function getSlotDepartmentId(slotId: number): Promise<string | null
 
 /** Resolve the department a course session belongs to (via course). */
 export async function getCourseSessionDepartmentId(sessionId: string): Promise<string | null> {
+  const supabaseAdmin = await getAdminClient();
   const { data } = await supabaseAdmin
     .from("course_sessions")
     .select("course_id")
