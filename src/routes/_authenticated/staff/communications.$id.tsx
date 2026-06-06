@@ -46,6 +46,7 @@ function EditCampaign() {
   const [scheduleMode, setScheduleMode] = useState<"now" | "later">("now");
   const [scheduledFor, setScheduledFor] = useState("");
   const [testEmail, setTestEmail] = useState("");
+  const [departmentId, setDepartmentId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!data) return;
@@ -53,6 +54,7 @@ function EditCampaign() {
     setBodyHtml(data.body_html || "");
     setBodyJson(data.body_json ?? null);
     setSegments((data.target_audience_rules as any)?.segments ?? []);
+    setDepartmentId((data as any).department_id ?? null);
     if (data.scheduled_for) {
       setScheduleMode("later");
       const d = new Date(data.scheduled_for);
@@ -60,6 +62,7 @@ function EditCampaign() {
       setScheduledFor(iso);
     }
   }, [data]);
+
 
   const { data: events = [] } = useQuery({ queryKey: ["events-list"], queryFn: () => listEvents() });
   const { data: departments = [] } = useQuery({
