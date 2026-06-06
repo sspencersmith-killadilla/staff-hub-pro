@@ -26,6 +26,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as RoomsIndexRouteImport } from './routes/rooms.index'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as VenuesIdRouteImport } from './routes/venues.$id'
+import { Route as SurveyIdRouteImport } from './routes/survey.$id'
 import { Route as StagesIdRouteImport } from './routes/stages.$id'
 import { Route as RoomsIdRouteImport } from './routes/rooms.$id'
 import { Route as GigsIdRouteImport } from './routes/gigs.$id'
@@ -42,10 +43,13 @@ import { Route as AuthenticatedMyPermitsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedHubRouteImport } from './routes/_authenticated/hub'
 import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff/index'
 import { Route as EventsPermitsApplyRouteImport } from './routes/events.permits.apply'
+import { Route as ApiPublicUnsubscribeRouteImport } from './routes/api/public/unsubscribe'
+import { Route as ApiPublicDispatchDueRouteImport } from './routes/api/public/dispatch-due'
 import { Route as AuthenticatedStreetbeatsMyGigsRouteImport } from './routes/_authenticated/streetbeats/my-gigs'
 import { Route as AuthenticatedStreetbeatsApplyRouteImport } from './routes/_authenticated/streetbeats/apply'
 import { Route as AuthenticatedStaffVenuesRouteImport } from './routes/_authenticated/staff/venues'
 import { Route as AuthenticatedStaffVendorsRouteImport } from './routes/_authenticated/staff/vendors'
+import { Route as AuthenticatedStaffSurveysRouteImport } from './routes/_authenticated/staff/surveys'
 import { Route as AuthenticatedStaffSponsorsRouteImport } from './routes/_authenticated/staff/sponsors'
 import { Route as AuthenticatedStaffSettingsRouteImport } from './routes/_authenticated/staff/settings'
 import { Route as AuthenticatedStaffRoomReservationsRouteImport } from './routes/_authenticated/staff/room-reservations'
@@ -53,13 +57,16 @@ import { Route as AuthenticatedStaffMapRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedStaffCommunityOrganizationsRouteImport } from './routes/_authenticated/staff/community-organizations'
 import { Route as AuthenticatedStaffCommunityMusicRouteImport } from './routes/_authenticated/staff/community-music'
 import { Route as AuthenticatedStaffCommunityEventsRouteImport } from './routes/_authenticated/staff/community-events'
+import { Route as AuthenticatedStaffCommunicationsRouteImport } from './routes/_authenticated/staff/communications'
 import { Route as AuthenticatedStaffClassesRouteImport } from './routes/_authenticated/staff/classes'
 import { Route as AuthenticatedStaffAttendeesRouteImport } from './routes/_authenticated/staff/attendees'
 import { Route as AuthenticatedStaffAdminRouteImport } from './routes/_authenticated/staff/admin'
 import { Route as AuthenticatedCommunityManageRouteImport } from './routes/_authenticated/community/manage'
 import { Route as AuthenticatedCommunityApplyRouteImport } from './routes/_authenticated/community/apply'
 import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
+import { Route as AuthenticatedStaffSurveysIdRouteImport } from './routes/_authenticated/staff/surveys.$id'
 import { Route as AuthenticatedStaffEventsIdRouteImport } from './routes/_authenticated/staff/events.$id'
+import { Route as AuthenticatedStaffCommunicationsIdRouteImport } from './routes/_authenticated/staff/communications.$id'
 import { Route as AuthenticatedStaffAdminTenantsRouteImport } from './routes/_authenticated/staff/admin.tenants'
 import { Route as AuthenticatedStaffAdminSocialIntegrationsRouteImport } from './routes/_authenticated/staff/admin.social-integrations'
 import { Route as AuthenticatedStaffAdminSocialRouteImport } from './routes/_authenticated/staff/admin.social'
@@ -74,6 +81,7 @@ import { Route as AuthenticatedStaffAdminBrandingRouteImport } from './routes/_a
 import { Route as AuthenticatedStaffAdminAnalyticsRouteImport } from './routes/_authenticated/staff/admin.analytics'
 import { Route as ApiPublicOauthMetaCallbackRouteImport } from './routes/api/public/oauth/meta/callback'
 import { Route as ApiPublicOauthLinkedinCallbackRouteImport } from './routes/api/public/oauth/linkedin/callback'
+import { Route as AuthenticatedStaffSurveysIdAnalyticsRouteImport } from './routes/_authenticated/staff/surveys.$id.analytics'
 import { Route as AuthenticatedStaffAdminSocialConnectionsRouteImport } from './routes/_authenticated/staff/admin.social.connections'
 
 const VenuesRoute = VenuesRouteImport.update({
@@ -160,6 +168,11 @@ const VenuesIdRoute = VenuesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => VenuesRoute,
 } as any)
+const SurveyIdRoute = SurveyIdRouteImport.update({
+  id: '/survey/$id',
+  path: '/survey/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StagesIdRoute = StagesIdRouteImport.update({
   id: '/stages/$id',
   path: '/stages/$id',
@@ -241,6 +254,16 @@ const EventsPermitsApplyRoute = EventsPermitsApplyRouteImport.update({
   path: '/events/permits/apply',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicUnsubscribeRoute = ApiPublicUnsubscribeRouteImport.update({
+  id: '/api/public/unsubscribe',
+  path: '/api/public/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicDispatchDueRoute = ApiPublicDispatchDueRouteImport.update({
+  id: '/api/public/dispatch-due',
+  path: '/api/public/dispatch-due',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedStreetbeatsMyGigsRoute =
   AuthenticatedStreetbeatsMyGigsRouteImport.update({
     id: '/streetbeats/my-gigs',
@@ -263,6 +286,12 @@ const AuthenticatedStaffVendorsRoute =
   AuthenticatedStaffVendorsRouteImport.update({
     id: '/vendors',
     path: '/vendors',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
+const AuthenticatedStaffSurveysRoute =
+  AuthenticatedStaffSurveysRouteImport.update({
+    id: '/surveys',
+    path: '/surveys',
     getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
 const AuthenticatedStaffSponsorsRoute =
@@ -306,6 +335,12 @@ const AuthenticatedStaffCommunityEventsRoute =
     path: '/community-events',
     getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
+const AuthenticatedStaffCommunicationsRoute =
+  AuthenticatedStaffCommunicationsRouteImport.update({
+    id: '/communications',
+    path: '/communications',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
 const AuthenticatedStaffClassesRoute =
   AuthenticatedStaffClassesRouteImport.update({
     id: '/classes',
@@ -341,11 +376,23 @@ const ApiPublicManifestWebmanifestRoute =
     path: '/api/public/manifest/webmanifest',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedStaffSurveysIdRoute =
+  AuthenticatedStaffSurveysIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedStaffSurveysRoute,
+  } as any)
 const AuthenticatedStaffEventsIdRoute =
   AuthenticatedStaffEventsIdRouteImport.update({
     id: '/events/$id',
     path: '/events/$id',
     getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
+const AuthenticatedStaffCommunicationsIdRoute =
+  AuthenticatedStaffCommunicationsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedStaffCommunicationsRoute,
   } as any)
 const AuthenticatedStaffAdminTenantsRoute =
   AuthenticatedStaffAdminTenantsRouteImport.update({
@@ -431,6 +478,12 @@ const ApiPublicOauthLinkedinCallbackRoute =
     path: '/api/public/oauth/linkedin/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedStaffSurveysIdAnalyticsRoute =
+  AuthenticatedStaffSurveysIdAnalyticsRouteImport.update({
+    id: '/analytics',
+    path: '/analytics',
+    getParentRoute: () => AuthenticatedStaffSurveysIdRoute,
+  } as any)
 const AuthenticatedStaffAdminSocialConnectionsRoute =
   AuthenticatedStaffAdminSocialConnectionsRouteImport.update({
     id: '/connections',
@@ -466,6 +519,7 @@ export interface FileRoutesByFullPath {
   '/gigs/$id': typeof GigsIdRoute
   '/rooms/$id': typeof RoomsIdRoute
   '/stages/$id': typeof StagesIdRoute
+  '/survey/$id': typeof SurveyIdRoute
   '/venues/$id': typeof VenuesIdRoute
   '/events/': typeof EventsIndexRoute
   '/rooms/': typeof RoomsIndexRoute
@@ -474,6 +528,7 @@ export interface FileRoutesByFullPath {
   '/staff/admin': typeof AuthenticatedStaffAdminRouteWithChildren
   '/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
   '/staff/classes': typeof AuthenticatedStaffClassesRoute
+  '/staff/communications': typeof AuthenticatedStaffCommunicationsRouteWithChildren
   '/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
   '/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
@@ -481,10 +536,13 @@ export interface FileRoutesByFullPath {
   '/staff/room-reservations': typeof AuthenticatedStaffRoomReservationsRoute
   '/staff/settings': typeof AuthenticatedStaffSettingsRoute
   '/staff/sponsors': typeof AuthenticatedStaffSponsorsRoute
+  '/staff/surveys': typeof AuthenticatedStaffSurveysRouteWithChildren
   '/staff/vendors': typeof AuthenticatedStaffVendorsRoute
   '/staff/venues': typeof AuthenticatedStaffVenuesRoute
   '/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
   '/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
+  '/api/public/dispatch-due': typeof ApiPublicDispatchDueRoute
+  '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/events/permits/apply': typeof EventsPermitsApplyRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
   '/staff/admin/analytics': typeof AuthenticatedStaffAdminAnalyticsRoute
@@ -499,9 +557,12 @@ export interface FileRoutesByFullPath {
   '/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
   '/staff/admin/social-integrations': typeof AuthenticatedStaffAdminSocialIntegrationsRoute
   '/staff/admin/tenants': typeof AuthenticatedStaffAdminTenantsRoute
+  '/staff/communications/$id': typeof AuthenticatedStaffCommunicationsIdRoute
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
+  '/staff/surveys/$id': typeof AuthenticatedStaffSurveysIdRouteWithChildren
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
   '/staff/admin/social/connections': typeof AuthenticatedStaffAdminSocialConnectionsRoute
+  '/staff/surveys/$id/analytics': typeof AuthenticatedStaffSurveysIdAnalyticsRoute
   '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
 }
@@ -532,6 +593,7 @@ export interface FileRoutesByTo {
   '/gigs/$id': typeof GigsIdRoute
   '/rooms/$id': typeof RoomsIdRoute
   '/stages/$id': typeof StagesIdRoute
+  '/survey/$id': typeof SurveyIdRoute
   '/venues/$id': typeof VenuesIdRoute
   '/events': typeof EventsIndexRoute
   '/rooms': typeof RoomsIndexRoute
@@ -540,6 +602,7 @@ export interface FileRoutesByTo {
   '/staff/admin': typeof AuthenticatedStaffAdminRouteWithChildren
   '/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
   '/staff/classes': typeof AuthenticatedStaffClassesRoute
+  '/staff/communications': typeof AuthenticatedStaffCommunicationsRouteWithChildren
   '/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
   '/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
@@ -547,10 +610,13 @@ export interface FileRoutesByTo {
   '/staff/room-reservations': typeof AuthenticatedStaffRoomReservationsRoute
   '/staff/settings': typeof AuthenticatedStaffSettingsRoute
   '/staff/sponsors': typeof AuthenticatedStaffSponsorsRoute
+  '/staff/surveys': typeof AuthenticatedStaffSurveysRouteWithChildren
   '/staff/vendors': typeof AuthenticatedStaffVendorsRoute
   '/staff/venues': typeof AuthenticatedStaffVenuesRoute
   '/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
   '/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
+  '/api/public/dispatch-due': typeof ApiPublicDispatchDueRoute
+  '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/events/permits/apply': typeof EventsPermitsApplyRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
   '/staff/admin/analytics': typeof AuthenticatedStaffAdminAnalyticsRoute
@@ -565,9 +631,12 @@ export interface FileRoutesByTo {
   '/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
   '/staff/admin/social-integrations': typeof AuthenticatedStaffAdminSocialIntegrationsRoute
   '/staff/admin/tenants': typeof AuthenticatedStaffAdminTenantsRoute
+  '/staff/communications/$id': typeof AuthenticatedStaffCommunicationsIdRoute
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
+  '/staff/surveys/$id': typeof AuthenticatedStaffSurveysIdRouteWithChildren
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
   '/staff/admin/social/connections': typeof AuthenticatedStaffAdminSocialConnectionsRoute
+  '/staff/surveys/$id/analytics': typeof AuthenticatedStaffSurveysIdAnalyticsRoute
   '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
 }
@@ -601,6 +670,7 @@ export interface FileRoutesById {
   '/gigs/$id': typeof GigsIdRoute
   '/rooms/$id': typeof RoomsIdRoute
   '/stages/$id': typeof StagesIdRoute
+  '/survey/$id': typeof SurveyIdRoute
   '/venues/$id': typeof VenuesIdRoute
   '/events/': typeof EventsIndexRoute
   '/rooms/': typeof RoomsIndexRoute
@@ -609,6 +679,7 @@ export interface FileRoutesById {
   '/_authenticated/staff/admin': typeof AuthenticatedStaffAdminRouteWithChildren
   '/_authenticated/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
   '/_authenticated/staff/classes': typeof AuthenticatedStaffClassesRoute
+  '/_authenticated/staff/communications': typeof AuthenticatedStaffCommunicationsRouteWithChildren
   '/_authenticated/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
   '/_authenticated/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/_authenticated/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
@@ -616,10 +687,13 @@ export interface FileRoutesById {
   '/_authenticated/staff/room-reservations': typeof AuthenticatedStaffRoomReservationsRoute
   '/_authenticated/staff/settings': typeof AuthenticatedStaffSettingsRoute
   '/_authenticated/staff/sponsors': typeof AuthenticatedStaffSponsorsRoute
+  '/_authenticated/staff/surveys': typeof AuthenticatedStaffSurveysRouteWithChildren
   '/_authenticated/staff/vendors': typeof AuthenticatedStaffVendorsRoute
   '/_authenticated/staff/venues': typeof AuthenticatedStaffVenuesRoute
   '/_authenticated/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
   '/_authenticated/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
+  '/api/public/dispatch-due': typeof ApiPublicDispatchDueRoute
+  '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/events/permits/apply': typeof EventsPermitsApplyRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
   '/_authenticated/staff/admin/analytics': typeof AuthenticatedStaffAdminAnalyticsRoute
@@ -634,9 +708,12 @@ export interface FileRoutesById {
   '/_authenticated/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
   '/_authenticated/staff/admin/social-integrations': typeof AuthenticatedStaffAdminSocialIntegrationsRoute
   '/_authenticated/staff/admin/tenants': typeof AuthenticatedStaffAdminTenantsRoute
+  '/_authenticated/staff/communications/$id': typeof AuthenticatedStaffCommunicationsIdRoute
   '/_authenticated/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
+  '/_authenticated/staff/surveys/$id': typeof AuthenticatedStaffSurveysIdRouteWithChildren
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
   '/_authenticated/staff/admin/social/connections': typeof AuthenticatedStaffAdminSocialConnectionsRoute
+  '/_authenticated/staff/surveys/$id/analytics': typeof AuthenticatedStaffSurveysIdAnalyticsRoute
   '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
 }
@@ -670,6 +747,7 @@ export interface FileRouteTypes {
     | '/gigs/$id'
     | '/rooms/$id'
     | '/stages/$id'
+    | '/survey/$id'
     | '/venues/$id'
     | '/events/'
     | '/rooms/'
@@ -678,6 +756,7 @@ export interface FileRouteTypes {
     | '/staff/admin'
     | '/staff/attendees'
     | '/staff/classes'
+    | '/staff/communications'
     | '/staff/community-events'
     | '/staff/community-music'
     | '/staff/community-organizations'
@@ -685,10 +764,13 @@ export interface FileRouteTypes {
     | '/staff/room-reservations'
     | '/staff/settings'
     | '/staff/sponsors'
+    | '/staff/surveys'
     | '/staff/vendors'
     | '/staff/venues'
     | '/streetbeats/apply'
     | '/streetbeats/my-gigs'
+    | '/api/public/dispatch-due'
+    | '/api/public/unsubscribe'
     | '/events/permits/apply'
     | '/staff/'
     | '/staff/admin/analytics'
@@ -703,9 +785,12 @@ export interface FileRouteTypes {
     | '/staff/admin/social'
     | '/staff/admin/social-integrations'
     | '/staff/admin/tenants'
+    | '/staff/communications/$id'
     | '/staff/events/$id'
+    | '/staff/surveys/$id'
     | '/api/public/manifest/webmanifest'
     | '/staff/admin/social/connections'
+    | '/staff/surveys/$id/analytics'
     | '/api/public/oauth/linkedin/callback'
     | '/api/public/oauth/meta/callback'
   fileRoutesByTo: FileRoutesByTo
@@ -736,6 +821,7 @@ export interface FileRouteTypes {
     | '/gigs/$id'
     | '/rooms/$id'
     | '/stages/$id'
+    | '/survey/$id'
     | '/venues/$id'
     | '/events'
     | '/rooms'
@@ -744,6 +830,7 @@ export interface FileRouteTypes {
     | '/staff/admin'
     | '/staff/attendees'
     | '/staff/classes'
+    | '/staff/communications'
     | '/staff/community-events'
     | '/staff/community-music'
     | '/staff/community-organizations'
@@ -751,10 +838,13 @@ export interface FileRouteTypes {
     | '/staff/room-reservations'
     | '/staff/settings'
     | '/staff/sponsors'
+    | '/staff/surveys'
     | '/staff/vendors'
     | '/staff/venues'
     | '/streetbeats/apply'
     | '/streetbeats/my-gigs'
+    | '/api/public/dispatch-due'
+    | '/api/public/unsubscribe'
     | '/events/permits/apply'
     | '/staff'
     | '/staff/admin/analytics'
@@ -769,9 +859,12 @@ export interface FileRouteTypes {
     | '/staff/admin/social'
     | '/staff/admin/social-integrations'
     | '/staff/admin/tenants'
+    | '/staff/communications/$id'
     | '/staff/events/$id'
+    | '/staff/surveys/$id'
     | '/api/public/manifest/webmanifest'
     | '/staff/admin/social/connections'
+    | '/staff/surveys/$id/analytics'
     | '/api/public/oauth/linkedin/callback'
     | '/api/public/oauth/meta/callback'
   id:
@@ -804,6 +897,7 @@ export interface FileRouteTypes {
     | '/gigs/$id'
     | '/rooms/$id'
     | '/stages/$id'
+    | '/survey/$id'
     | '/venues/$id'
     | '/events/'
     | '/rooms/'
@@ -812,6 +906,7 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/admin'
     | '/_authenticated/staff/attendees'
     | '/_authenticated/staff/classes'
+    | '/_authenticated/staff/communications'
     | '/_authenticated/staff/community-events'
     | '/_authenticated/staff/community-music'
     | '/_authenticated/staff/community-organizations'
@@ -819,10 +914,13 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/room-reservations'
     | '/_authenticated/staff/settings'
     | '/_authenticated/staff/sponsors'
+    | '/_authenticated/staff/surveys'
     | '/_authenticated/staff/vendors'
     | '/_authenticated/staff/venues'
     | '/_authenticated/streetbeats/apply'
     | '/_authenticated/streetbeats/my-gigs'
+    | '/api/public/dispatch-due'
+    | '/api/public/unsubscribe'
     | '/events/permits/apply'
     | '/_authenticated/staff/'
     | '/_authenticated/staff/admin/analytics'
@@ -837,9 +935,12 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/admin/social'
     | '/_authenticated/staff/admin/social-integrations'
     | '/_authenticated/staff/admin/tenants'
+    | '/_authenticated/staff/communications/$id'
     | '/_authenticated/staff/events/$id'
+    | '/_authenticated/staff/surveys/$id'
     | '/api/public/manifest/webmanifest'
     | '/_authenticated/staff/admin/social/connections'
+    | '/_authenticated/staff/surveys/$id/analytics'
     | '/api/public/oauth/linkedin/callback'
     | '/api/public/oauth/meta/callback'
   fileRoutesById: FileRoutesById
@@ -866,8 +967,11 @@ export interface RootRouteChildren {
   GigsIdRoute: typeof GigsIdRoute
   RoomsIdRoute: typeof RoomsIdRoute
   StagesIdRoute: typeof StagesIdRoute
+  SurveyIdRoute: typeof SurveyIdRoute
   EventsIndexRoute: typeof EventsIndexRoute
   RoomsIndexRoute: typeof RoomsIndexRoute
+  ApiPublicDispatchDueRoute: typeof ApiPublicDispatchDueRoute
+  ApiPublicUnsubscribeRoute: typeof ApiPublicUnsubscribeRoute
   EventsPermitsApplyRoute: typeof EventsPermitsApplyRoute
   ApiPublicManifestWebmanifestRoute: typeof ApiPublicManifestWebmanifestRoute
   ApiPublicOauthLinkedinCallbackRoute: typeof ApiPublicOauthLinkedinCallbackRoute
@@ -995,6 +1099,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VenuesIdRouteImport
       parentRoute: typeof VenuesRoute
     }
+    '/survey/$id': {
+      id: '/survey/$id'
+      path: '/survey/$id'
+      fullPath: '/survey/$id'
+      preLoaderRoute: typeof SurveyIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/stages/$id': {
       id: '/stages/$id'
       path: '/stages/$id'
@@ -1107,6 +1218,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventsPermitsApplyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/unsubscribe': {
+      id: '/api/public/unsubscribe'
+      path: '/api/public/unsubscribe'
+      fullPath: '/api/public/unsubscribe'
+      preLoaderRoute: typeof ApiPublicUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/dispatch-due': {
+      id: '/api/public/dispatch-due'
+      path: '/api/public/dispatch-due'
+      fullPath: '/api/public/dispatch-due'
+      preLoaderRoute: typeof ApiPublicDispatchDueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/streetbeats/my-gigs': {
       id: '/_authenticated/streetbeats/my-gigs'
       path: '/streetbeats/my-gigs'
@@ -1133,6 +1258,13 @@ declare module '@tanstack/react-router' {
       path: '/vendors'
       fullPath: '/staff/vendors'
       preLoaderRoute: typeof AuthenticatedStaffVendorsRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/surveys': {
+      id: '/_authenticated/staff/surveys'
+      path: '/surveys'
+      fullPath: '/staff/surveys'
+      preLoaderRoute: typeof AuthenticatedStaffSurveysRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
     }
     '/_authenticated/staff/sponsors': {
@@ -1184,6 +1316,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffCommunityEventsRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
     }
+    '/_authenticated/staff/communications': {
+      id: '/_authenticated/staff/communications'
+      path: '/communications'
+      fullPath: '/staff/communications'
+      preLoaderRoute: typeof AuthenticatedStaffCommunicationsRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
     '/_authenticated/staff/classes': {
       id: '/_authenticated/staff/classes'
       path: '/classes'
@@ -1226,12 +1365,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicManifestWebmanifestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/staff/surveys/$id': {
+      id: '/_authenticated/staff/surveys/$id'
+      path: '/$id'
+      fullPath: '/staff/surveys/$id'
+      preLoaderRoute: typeof AuthenticatedStaffSurveysIdRouteImport
+      parentRoute: typeof AuthenticatedStaffSurveysRoute
+    }
     '/_authenticated/staff/events/$id': {
       id: '/_authenticated/staff/events/$id'
       path: '/events/$id'
       fullPath: '/staff/events/$id'
       preLoaderRoute: typeof AuthenticatedStaffEventsIdRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/communications/$id': {
+      id: '/_authenticated/staff/communications/$id'
+      path: '/$id'
+      fullPath: '/staff/communications/$id'
+      preLoaderRoute: typeof AuthenticatedStaffCommunicationsIdRouteImport
+      parentRoute: typeof AuthenticatedStaffCommunicationsRoute
     }
     '/_authenticated/staff/admin/tenants': {
       id: '/_authenticated/staff/admin/tenants'
@@ -1331,6 +1484,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicOauthLinkedinCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/staff/surveys/$id/analytics': {
+      id: '/_authenticated/staff/surveys/$id/analytics'
+      path: '/analytics'
+      fullPath: '/staff/surveys/$id/analytics'
+      preLoaderRoute: typeof AuthenticatedStaffSurveysIdAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedStaffSurveysIdRoute
+    }
     '/_authenticated/staff/admin/social/connections': {
       id: '/_authenticated/staff/admin/social/connections'
       path: '/connections'
@@ -1400,10 +1560,56 @@ const AuthenticatedStaffAdminRouteWithChildren =
     AuthenticatedStaffAdminRouteChildren,
   )
 
+interface AuthenticatedStaffCommunicationsRouteChildren {
+  AuthenticatedStaffCommunicationsIdRoute: typeof AuthenticatedStaffCommunicationsIdRoute
+}
+
+const AuthenticatedStaffCommunicationsRouteChildren: AuthenticatedStaffCommunicationsRouteChildren =
+  {
+    AuthenticatedStaffCommunicationsIdRoute:
+      AuthenticatedStaffCommunicationsIdRoute,
+  }
+
+const AuthenticatedStaffCommunicationsRouteWithChildren =
+  AuthenticatedStaffCommunicationsRoute._addFileChildren(
+    AuthenticatedStaffCommunicationsRouteChildren,
+  )
+
+interface AuthenticatedStaffSurveysIdRouteChildren {
+  AuthenticatedStaffSurveysIdAnalyticsRoute: typeof AuthenticatedStaffSurveysIdAnalyticsRoute
+}
+
+const AuthenticatedStaffSurveysIdRouteChildren: AuthenticatedStaffSurveysIdRouteChildren =
+  {
+    AuthenticatedStaffSurveysIdAnalyticsRoute:
+      AuthenticatedStaffSurveysIdAnalyticsRoute,
+  }
+
+const AuthenticatedStaffSurveysIdRouteWithChildren =
+  AuthenticatedStaffSurveysIdRoute._addFileChildren(
+    AuthenticatedStaffSurveysIdRouteChildren,
+  )
+
+interface AuthenticatedStaffSurveysRouteChildren {
+  AuthenticatedStaffSurveysIdRoute: typeof AuthenticatedStaffSurveysIdRouteWithChildren
+}
+
+const AuthenticatedStaffSurveysRouteChildren: AuthenticatedStaffSurveysRouteChildren =
+  {
+    AuthenticatedStaffSurveysIdRoute:
+      AuthenticatedStaffSurveysIdRouteWithChildren,
+  }
+
+const AuthenticatedStaffSurveysRouteWithChildren =
+  AuthenticatedStaffSurveysRoute._addFileChildren(
+    AuthenticatedStaffSurveysRouteChildren,
+  )
+
 interface AuthenticatedStaffRouteChildren {
   AuthenticatedStaffAdminRoute: typeof AuthenticatedStaffAdminRouteWithChildren
   AuthenticatedStaffAttendeesRoute: typeof AuthenticatedStaffAttendeesRoute
   AuthenticatedStaffClassesRoute: typeof AuthenticatedStaffClassesRoute
+  AuthenticatedStaffCommunicationsRoute: typeof AuthenticatedStaffCommunicationsRouteWithChildren
   AuthenticatedStaffCommunityEventsRoute: typeof AuthenticatedStaffCommunityEventsRoute
   AuthenticatedStaffCommunityMusicRoute: typeof AuthenticatedStaffCommunityMusicRoute
   AuthenticatedStaffCommunityOrganizationsRoute: typeof AuthenticatedStaffCommunityOrganizationsRoute
@@ -1411,6 +1617,7 @@ interface AuthenticatedStaffRouteChildren {
   AuthenticatedStaffRoomReservationsRoute: typeof AuthenticatedStaffRoomReservationsRoute
   AuthenticatedStaffSettingsRoute: typeof AuthenticatedStaffSettingsRoute
   AuthenticatedStaffSponsorsRoute: typeof AuthenticatedStaffSponsorsRoute
+  AuthenticatedStaffSurveysRoute: typeof AuthenticatedStaffSurveysRouteWithChildren
   AuthenticatedStaffVendorsRoute: typeof AuthenticatedStaffVendorsRoute
   AuthenticatedStaffVenuesRoute: typeof AuthenticatedStaffVenuesRoute
   AuthenticatedStaffIndexRoute: typeof AuthenticatedStaffIndexRoute
@@ -1421,6 +1628,8 @@ const AuthenticatedStaffRouteChildren: AuthenticatedStaffRouteChildren = {
   AuthenticatedStaffAdminRoute: AuthenticatedStaffAdminRouteWithChildren,
   AuthenticatedStaffAttendeesRoute: AuthenticatedStaffAttendeesRoute,
   AuthenticatedStaffClassesRoute: AuthenticatedStaffClassesRoute,
+  AuthenticatedStaffCommunicationsRoute:
+    AuthenticatedStaffCommunicationsRouteWithChildren,
   AuthenticatedStaffCommunityEventsRoute:
     AuthenticatedStaffCommunityEventsRoute,
   AuthenticatedStaffCommunityMusicRoute: AuthenticatedStaffCommunityMusicRoute,
@@ -1431,6 +1640,7 @@ const AuthenticatedStaffRouteChildren: AuthenticatedStaffRouteChildren = {
     AuthenticatedStaffRoomReservationsRoute,
   AuthenticatedStaffSettingsRoute: AuthenticatedStaffSettingsRoute,
   AuthenticatedStaffSponsorsRoute: AuthenticatedStaffSponsorsRoute,
+  AuthenticatedStaffSurveysRoute: AuthenticatedStaffSurveysRouteWithChildren,
   AuthenticatedStaffVendorsRoute: AuthenticatedStaffVendorsRoute,
   AuthenticatedStaffVenuesRoute: AuthenticatedStaffVenuesRoute,
   AuthenticatedStaffIndexRoute: AuthenticatedStaffIndexRoute,
@@ -1514,8 +1724,11 @@ const rootRouteChildren: RootRouteChildren = {
   GigsIdRoute: GigsIdRoute,
   RoomsIdRoute: RoomsIdRoute,
   StagesIdRoute: StagesIdRoute,
+  SurveyIdRoute: SurveyIdRoute,
   EventsIndexRoute: EventsIndexRoute,
   RoomsIndexRoute: RoomsIndexRoute,
+  ApiPublicDispatchDueRoute: ApiPublicDispatchDueRoute,
+  ApiPublicUnsubscribeRoute: ApiPublicUnsubscribeRoute,
   EventsPermitsApplyRoute: EventsPermitsApplyRoute,
   ApiPublicManifestWebmanifestRoute: ApiPublicManifestWebmanifestRoute,
   ApiPublicOauthLinkedinCallbackRoute: ApiPublicOauthLinkedinCallbackRoute,
@@ -1524,13 +1737,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
