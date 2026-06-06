@@ -61,6 +61,8 @@ const items: Item[] = [
   { title: "Room Reservations", url: "/staff/room-reservations", icon: BedDouble, module: "room_reservations", permission: "page.room_reservations" },
   { title: "Classes", url: "/staff/classes", icon: GraduationCap, module: "classes", permission: "page.classes" },
   { title: "Social Command", url: "/staff/admin/social", icon: Share2, module: "social_command", permission: "page.social_command" },
+  { title: "Communications", url: "/staff/communications", icon: Mail, permission: "page.communications" },
+  { title: "Surveys", url: "/staff/surveys", icon: ClipboardList, permission: "page.surveys" },
   { title: "Platform Settings", url: "/staff/settings", icon: Settings, permission: "page.settings" },
 ];
 
