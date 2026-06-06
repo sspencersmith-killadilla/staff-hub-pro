@@ -39,7 +39,13 @@ function EditSurvey() {
   const [descHtml, setDescHtml] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [redirectTo, setRedirectTo] = useState("");
+  const [departmentId, setDepartmentId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<Q[]>([]);
+
+  const { data: departments = [] } = useQuery({
+    queryKey: ["assignable-departments"],
+    queryFn: () => listAssignableDepartments(),
+  });
 
   useEffect(() => {
     if (!data) return;
@@ -47,6 +53,7 @@ function EditSurvey() {
     setDescHtml(data.survey.description_html || "");
     setIsActive(data.survey.is_active);
     setRedirectTo(data.survey.redirect_to || "");
+    setDepartmentId((data.survey as any).department_id ?? null);
     setQuestions(
       (data.questions as any[]).map((q) => ({
         id: q.id,
@@ -58,6 +65,7 @@ function EditSurvey() {
       })),
     );
   }, [data]);
+
 
   const save = useMutation({
     mutationFn: () =>
