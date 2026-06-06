@@ -112,8 +112,9 @@ function EditSurvey() {
             <ArrowLeft className="h-4 w-4" /> Back
           </Link>
           <span className="text-sm text-muted-foreground">/</span>
-          <span className="text-sm font-medium">Edit survey</span>
+          <span className="text-sm font-medium truncate max-w-[40ch]">Editing: {title || "Untitled survey"}</span>
         </div>
+
         <div className="flex gap-2">
           <Link to="/staff/surveys/$id/analytics" params={{ id }}>
             <Button variant="outline" size="sm"><BarChart3 className="h-4 w-4 mr-1" /> Analytics</Button>
