@@ -24,6 +24,8 @@ import {
   Palette,
   FileText,
   Share2,
+  Mail,
+  ClipboardList,
 } from "lucide-react";
 
 import homeImg from "@/assets/manual/home.png";
