@@ -93,15 +93,23 @@ function CommunicationsPage() {
                     className="flex-1 min-w-0"
                   >
                     <div className="font-medium truncate">{c.subject}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {c.status === "sent" && c.sent_at && `Sent ${new Date(c.sent_at).toLocaleString()} • ${c.recipient_count} recipients`}
-                      {c.status === "scheduled" && c.scheduled_for && `Scheduled for ${new Date(c.scheduled_for).toLocaleString()}`}
-                      {c.status === "draft" && `Draft • Updated ${new Date(c.created_at).toLocaleDateString()}`}
-                      {c.status === "sending" && "Sending…"}
-                      {c.status === "failed" && "Failed"}
+                    <div className="text-xs text-muted-foreground flex items-center gap-2">
+                      <span>
+                        {c.status === "sent" && c.sent_at && `Sent ${new Date(c.sent_at).toLocaleString()} • ${c.recipient_count} recipients`}
+                        {c.status === "scheduled" && c.scheduled_for && `Scheduled for ${new Date(c.scheduled_for).toLocaleString()}`}
+                        {c.status === "draft" && `Draft • Updated ${new Date(c.created_at).toLocaleDateString()}`}
+                        {c.status === "sending" && "Sending…"}
+                        {c.status === "failed" && "Failed"}
+                      </span>
+                      {deptName(c.department_id) && (
+                        <Badge variant="outline" className="text-xs">{deptName(c.department_id)}</Badge>
+                      )}
                     </div>
                   </Link>
                   <StatusBadge status={c.status} />
+                  <Link to="/staff/communications/$id" params={{ id: c.id }}>
+                    <Button size="sm" variant="outline"><Pencil className="h-3.5 w-3.5 mr-1" /> Edit</Button>
+                  </Link>
                   <button
                     onClick={() => { if (confirm("Delete this campaign?")) del.mutate(c.id); }}
                     className="text-muted-foreground hover:text-red-600 p-2"
@@ -110,6 +118,7 @@ function CommunicationsPage() {
                   </button>
                 </div>
               ))}
+
             </div>
           )}
         </CardContent>
