@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listCampaigns, saveCampaign, deleteCampaign } from "@/lib/campaigns.functions";
+import { listAssignableDepartments } from "@/lib/events.functions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { usePermissions } from "@/hooks/use-permissions";
-import { Plus, Mail, Trash2 } from "lucide-react";
+import { Plus, Mail, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/_authenticated/staff/communications")({
   component: CommunicationsPage,
