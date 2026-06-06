@@ -130,14 +130,20 @@ function EditCampaign() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
-      <div className="flex items-center gap-2 mb-4">
-        <Link to="/staff/communications" className="text-sm text-muted-foreground hover:underline flex items-center gap-1">
-          <ArrowLeft className="h-4 w-4" /> Back
-        </Link>
-        <span className="text-sm text-muted-foreground">/</span>
-        <span className="text-sm font-medium">Edit campaign</span>
-        <Badge className="ml-2">{data.status}</Badge>
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <div className="flex items-center gap-2 min-w-0">
+          <Link to="/staff/communications" className="text-sm text-muted-foreground hover:underline flex items-center gap-1">
+            <ArrowLeft className="h-4 w-4" /> Back
+          </Link>
+          <span className="text-sm text-muted-foreground">/</span>
+          <span className="text-sm font-medium truncate max-w-[40ch]">Editing: {subject || "Untitled campaign"}</span>
+          <Badge className="ml-2">{data.status}</Badge>
+        </div>
+        <Button onClick={() => save.mutate()} disabled={save.isPending || readOnly} size="sm">
+          <Save className="h-4 w-4 mr-1" /> Save
+        </Button>
       </div>
+
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
