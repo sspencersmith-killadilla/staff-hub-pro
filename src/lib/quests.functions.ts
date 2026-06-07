@@ -416,7 +416,6 @@ export const adminSaveQuest = createServerFn({ method: "POST" })
     // Replace waypoints (delete-then-insert keeps the editor simple).
     await supabaseAdmin.from("quest_waypoints").delete().eq("quest_id", questId);
     const inserts = data.waypoints.map((w) => ({
-      id: w.id,
       quest_id: questId!,
       title: w.title,
       description: w.description ?? null,
