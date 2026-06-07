@@ -127,8 +127,12 @@ const groups: { label: string; sectionIds: string[] }[] = [
       "admin-surveys",
     ],
   },
-
+  {
+    label: "Civic Quests & Discovery",
+    sectionIds: ["quests-overview", "quests-play", "quests-leaderboard", "quests-report", "quests-admin"],
+  },
 ];
+
 
 function Figure({
   src,
@@ -1792,7 +1796,189 @@ const sections: Section[] = [
       </>
     ),
   },
+  {
+    id: "quests-overview",
+    title: "Civic Quests — Overview",
+    icon: Sparkles,
+    audience: "community",
+    render: () => (
+      <>
+        <p>
+          <strong>Civic Quests</strong> is an optional discovery layer that
+          turns visiting local landmarks, attending events, and supporting
+          partner businesses into a guided, point-earning experience.
+          Residents and visitors follow a quest's waypoints, check in at each
+          stop, and earn badges and leaderboard points.
+        </p>
+        <ul className="my-3 list-disc pl-6 text-sm">
+          <li><strong>Explore</strong> at <code>/explore</code> — browse every
+            published quest with its theme, length, and reward.</li>
+          <li><strong>Quest detail</strong> at <code>/explore/&lt;id&gt;</code>
+            — see the full waypoint list, social proof ("127 explorers
+            completed this · 38 in progress"), and start the quest.</li>
+          <li><strong>Leaderboard</strong> at <code>/leaderboard</code> —
+            public top-100 ranking with a podium for the top 3 and a "your
+            rank" pill for signed-in players.</li>
+          <li><strong>Hub badges strip</strong> — signed-in residents see
+            their earned quest badges on the Hub with a shortcut to the
+            leaderboard.</li>
+        </ul>
+        <Callout kind="note">
+          The entire module is gated by the <code>civic_quests</code> platform
+          module. When an admin turns it off, every quest surface (Explore,
+          Quest detail, Leaderboard, Staff report, Admin manager, and the Hub
+          badges strip) is hidden or replaced with a "module disabled" stub.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "quests-play",
+    title: "Playing a Quest",
+    icon: Sparkles,
+    audience: "community",
+    render: () => (
+      <>
+        <ol className="my-3 space-y-3">
+          <Step n={1} title="Pick a quest from Explore">
+            Open <code>/explore</code> and choose a quest. Each card shows the
+            estimated duration, number of waypoints, and reward badge.
+          </Step>
+          <Step n={2} title="Start the quest">
+            On the quest detail page, click <em>Start quest</em>. You must be
+            signed in — guests are bounced to the login page and returned
+            here afterward.
+          </Step>
+          <Step n={3} title="Check in at each waypoint">
+            Travel to the waypoint, then use <em>Check in</em>. Some
+            waypoints require a code, photo, or proximity confirmation
+            depending on how staff configured them.
+          </Step>
+          <Step n={4} title="Earn the badge and climb the leaderboard">
+            Completing the final waypoint awards the quest badge and adds
+            the quest's points to your leaderboard score. Your badges appear
+            on the Hub and the public leaderboard.
+          </Step>
+        </ol>
+      </>
+    ),
+  },
+  {
+    id: "quests-leaderboard",
+    title: "Public Leaderboard",
+    icon: Sparkles,
+    audience: "community",
+    render: () => (
+      <>
+        <p>
+          The leaderboard at <code>/leaderboard</code> is public — no sign-in
+          required to view. It shows the top 100 explorers ranked by total
+          quest points, with a podium for the top 3.
+        </p>
+        <ul className="my-3 list-disc pl-6 text-sm">
+          <li>Signed-in users see a <em>Your rank</em> pill even if they are
+            outside the top 100.</li>
+          <li>Display names and avatars come from the user's profile.
+            Residents who prefer not to appear can clear their display name
+            in <em>Profile settings</em>.</li>
+          <li>Scores update in near real-time as quests complete.</li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    id: "quests-report",
+    title: "Staff Quest Reporting",
+    icon: ClipboardList,
+    audience: "staff",
+    render: () => (
+      <>
+        <p>
+          Staff can review quest performance outside the admin panel at{" "}
+          <code>/staff/quests-report</code>. The report is linked from the
+          <em> Civic Quests</em> card on the Staff Admin landing page.
+        </p>
+        <h4 className="mt-6 font-semibold text-[#002f49]">Permission</h4>
+        <p>
+          Access is gated by the <strong>Quest Reporting</strong> staff
+          permission (<code>page.quests_report</code>). Grant it under{" "}
+          <em>Admin → Permissions</em>.
+        </p>
+        <h4 className="mt-6 font-semibold text-[#002f49]">What you see</h4>
+        <ul className="my-3 list-disc pl-6 text-sm">
+          <li><strong>Per-quest table</strong> — starts, completions,
+            completion rate, average time-to-finish, and unique players.</li>
+          <li><strong>Waypoint funnel drawer</strong> — click any quest to
+            see the drop-off at each waypoint and spot stops that are
+            confusing or unreachable.</li>
+          <li><strong>CSV export</strong> — download the raw activity log for
+            external analysis or grant reporting.</li>
+        </ul>
+        <Callout kind="tip">
+          The report respects the module toggle. If <code>civic_quests</code>
+          is disabled, the page renders a stub and the navigation card is
+          hidden.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "quests-admin",
+    title: "Admin — Module Toggle & Management",
+    icon: Settings,
+    audience: "admin",
+    render: () => (
+      <>
+        <h4 className="font-semibold text-[#002f49]">Turn the module on or off</h4>
+        <p>
+          Civic Quests is a first-class platform module. Open{" "}
+          <em>Admin → Modules</em> and toggle <strong>Civic Quests</strong>.
+          When disabled:
+        </p>
+        <ul className="my-3 list-disc pl-6 text-sm">
+          <li>The <code>/explore</code>, <code>/explore/&lt;id&gt;</code>,
+            <code> /leaderboard</code>, and <code>/staff/quests-report</code>{" "}
+            routes render a "module disabled" stub.</li>
+          <li>The Quest Badges strip on the Hub is hidden.</li>
+          <li>Quest management is removed from the Staff Admin landing.</li>
+          <li>All quest server functions short-circuit with a typed
+            <code> {`{ disabled: true }`} </code> response so direct API
+            calls also fail safely.</li>
+        </ul>
+        <Callout kind="warn">
+          Turning the module off does <em>not</em> delete quests, waypoints,
+          check-ins, or leaderboard scores. Flipping it back on restores
+          every surface with all historical data intact.
+        </Callout>
+
+        <h4 className="mt-6 font-semibold text-[#002f49]">Manage quests</h4>
+        <p>
+          With the module enabled, manage quests from{" "}
+          <em>Admin → Civic Quests</em> (<code>/staff/admin/quests</code>):
+        </p>
+        <ul className="my-3 list-disc pl-6 text-sm">
+          <li>Create a quest with a theme, reward badge, point value, and
+            cover image.</li>
+          <li>Add waypoints in order — each with a title, location, check-in
+            method, and optional hint or photo.</li>
+          <li>Publish to make the quest visible on <code>/explore</code>, or
+            keep it as a draft while you finalize content.</li>
+        </ul>
+
+        <h4 className="mt-6 font-semibold text-[#002f49]">Permissions summary</h4>
+        <ul className="my-3 list-disc pl-6 text-sm">
+          <li><code>module.civic_quests</code> — admin-only, controls the
+            whole module.</li>
+          <li><code>page.quests_report</code> — staff permission for the
+            reporting page.</li>
+          <li>Quest management inherits the existing admin role; no new
+            admin-side permission was added.</li>
+        </ul>
+      </>
+    ),
+  },
 ];
+
 
 function ManualPage() {
   const sectionMap = useMemo(
