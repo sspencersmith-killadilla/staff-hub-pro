@@ -511,3 +511,174 @@ export const adminDeleteQuest = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ─── Staff: per-quest reporting stats ─────────────────────────────────
+export type QuestStatsRow = {
+  id: string;
+  title: string;
+  is_active: boolean;
+  points_reward: number;
+  waypoint_count: number;
+  participants: number;
+  completions: number;
+  completion_rate: number; // 0..1
+  avg_waypoints_done: number;
+  last_completion_at: string | null;
+};
+
+export const staffListQuestStats = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaffWithQuestReports(context.userId);
+    if (!(await isCivicQuestsEnabled())) {
+      return { rows: [] as QuestStatsRow[], disabled: true as const, totals: null };
+    }
+    const { data: quests, error } = await supabaseAdmin
+      .from("quests")
+      .select("id, title, is_active, points_reward, quest_waypoints(id)")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+
+    const { data: progress } = await supabaseAdmin
+      .from("user_quest_progress")
+      .select("quest_id, is_completed, completed_at, completed_waypoints");
+
+    const byQuest = new Map<string, { participants: number; completions: number; doneSum: number; last: string | null }>();
+    for (const row of (progress ?? []) as any[]) {
+      const bucket = byQuest.get(row.quest_id) ?? { participants: 0, completions: 0, doneSum: 0, last: null };
+      bucket.participants += 1;
+      if (row.is_completed) {
+        bucket.completions += 1;
+        if (row.completed_at && (!bucket.last || row.completed_at > bucket.last)) {
+          bucket.last = row.completed_at;
+        }
+      }
+      bucket.doneSum += Array.isArray(row.completed_waypoints) ? row.completed_waypoints.length : 0;
+      byQuest.set(row.quest_id, bucket);
+    }
+
+    const rows: QuestStatsRow[] = (quests ?? []).map((q: any) => {
+      const b = byQuest.get(q.id) ?? { participants: 0, completions: 0, doneSum: 0, last: null };
+      return {
+        id: q.id,
+        title: q.title,
+        is_active: q.is_active,
+        points_reward: q.points_reward,
+        waypoint_count: (q.quest_waypoints ?? []).length,
+        participants: b.participants,
+        completions: b.completions,
+        completion_rate: b.participants ? b.completions / b.participants : 0,
+        avg_waypoints_done: b.participants ? b.doneSum / b.participants : 0,
+        last_completion_at: b.last,
+      };
+    });
+
+    const totals = {
+      active_quests: rows.filter((r) => r.is_active).length,
+      total_quests: rows.length,
+      total_participants: rows.reduce((a, r) => a + r.participants, 0),
+      total_completions: rows.reduce((a, r) => a + r.completions, 0),
+      total_points_awarded: rows.reduce((a, r) => a + r.completions * r.points_reward, 0),
+    };
+
+    return { rows, disabled: false as const, totals };
+  });
+
+// ─── Staff: per-waypoint funnel for one quest ────────────────────────
+export const staffGetQuestFunnel = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ questId: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertStaffWithQuestReports(context.userId);
+    await assertCivicQuestsEnabled();
+
+    const { data: quest } = await supabaseAdmin
+      .from("quests")
+      .select("id, title")
+      .eq("id", data.questId)
+      .maybeSingle();
+    if (!quest) throw new Error("Quest not found");
+
+    const { data: wps } = await supabaseAdmin
+      .from("quest_waypoints")
+      .select("id, title, sort_order")
+      .eq("quest_id", data.questId)
+      .order("sort_order", { ascending: true });
+
+    const { data: progress } = await supabaseAdmin
+      .from("user_quest_progress")
+      .select("completed_waypoints")
+      .eq("quest_id", data.questId);
+
+    const reach = new Map<string, number>();
+    for (const row of (progress ?? []) as any[]) {
+      for (const wid of (row.completed_waypoints as string[]) ?? []) {
+        reach.set(wid, (reach.get(wid) ?? 0) + 1);
+      }
+    }
+
+    const total_starts = (progress ?? []).length;
+    const waypoints = (wps ?? []).map((w: any) => ({
+      id: w.id,
+      title: w.title,
+      sort_order: w.sort_order,
+      users_reached: reach.get(w.id) ?? 0,
+    }));
+
+    return { quest: { id: quest.id, title: quest.title }, total_starts, waypoints };
+  });
+
+// ─── Staff: CSV export of quest activity ─────────────────────────────
+function csvCell(v: string | number | null | undefined): string {
+  if (v == null) return "";
+  const s = String(v);
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+export const staffExportQuestActivityCsv = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) =>
+    z.object({ questId: z.string().uuid().optional() }).parse(i ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStaffWithQuestReports(context.userId);
+    await assertCivicQuestsEnabled();
+
+    let query = supabaseAdmin
+      .from("user_quest_progress")
+      .select(
+        "user_id, quest_id, is_completed, completed_at, completed_waypoints, updated_at, quests(title)",
+      );
+    if (data.questId) query = query.eq("quest_id", data.questId);
+
+    const { data: rows, error } = await query;
+    if (error) throw new Error(error.message);
+
+    const header = [
+      "user_id",
+      "quest_id",
+      "quest_title",
+      "is_completed",
+      "completed_at",
+      "updated_at",
+      "waypoints_done",
+    ];
+    const lines = [header.join(",")];
+    for (const r of (rows ?? []) as any[]) {
+      lines.push(
+        [
+          csvCell(r.user_id),
+          csvCell(r.quest_id),
+          csvCell(r.quests?.title ?? ""),
+          csvCell(r.is_completed ? "true" : "false"),
+          csvCell(r.completed_at),
+          csvCell(r.updated_at),
+          csvCell(
+            Array.isArray(r.completed_waypoints) ? r.completed_waypoints.length : 0,
+          ),
+        ].join(","),
+      );
+    }
+    return { csv: lines.join("\n"), count: rows?.length ?? 0 };
+  });
+
