@@ -32,7 +32,7 @@ export const Route = createFileRoute("/departments/$id")({
   component: DepartmentHub,
 });
 
-const ALL_SECTIONS = ["events", "gigs", "rooms"] as const;
+const ALL_SECTIONS = ["events", "classes", "gigs", "rooms"] as const;
 
 function DepartmentHub() {
   const { id } = Route.useParams();
