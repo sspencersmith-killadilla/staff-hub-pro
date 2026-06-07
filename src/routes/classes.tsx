@@ -61,7 +61,7 @@ function ClassesIndex() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-dvh bg-slate-50">
       <SiteHeader />
       <header className="bg-[#002f49] text-white py-12 px-6">
         <div className="max-w-6xl mx-auto">

@@ -42,7 +42,7 @@ function MyTicketsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-dvh bg-slate-50">
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-6 py-12">
         <h1 className="text-3xl font-black uppercase tracking-tight text-slate-900">

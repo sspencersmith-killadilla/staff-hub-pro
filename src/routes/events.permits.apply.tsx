@@ -113,10 +113,10 @@ function PermitWizardRoute() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  if (!authReady) return <div className="min-h-screen bg-slate-50" />;
+  if (!authReady) return <div className="min-h-dvh bg-slate-50" />;
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-dvh bg-slate-50">
         <SiteHeader />
         <div className="mx-auto max-w-md p-10 text-center">
           <h1 className="text-2xl font-bold">Sign in required</h1>
@@ -346,11 +346,11 @@ function PermitWizard({
   };
 
   if (cfgLoading) {
-    return <div className="min-h-screen bg-slate-50" />;
+    return <div className="min-h-dvh bg-slate-50" />;
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-dvh bg-slate-50">
       <SiteHeader />
       <FormProvider {...form}>
         <main className="mx-auto max-w-3xl px-4 py-10">

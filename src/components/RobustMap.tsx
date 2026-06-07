@@ -427,7 +427,7 @@ export default function RobustMap({
         <div className="w-full lg:w-80 shrink-0 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col">
           <div className="flex border-b border-gray-200">
             {(["select", "draw", "erase"] as const).map((m) => (
-              <button key={m} onClick={() => setMode(m)} className={`flex-1 py-3 text-xs font-black uppercase tracking-widest ${mode === m ? "bg-[#112e51] text-white" : "bg-gray-50 text-gray-500"}`}>
+              <button key={m} onClick={() => setMode(m)} className={`flex-1 py-3 text-xs font-black uppercase tracking-widest ${mode === m ? "bg-[#112e51] text-white" : "bg-gray-50 text-muted-foreground"}`}>
                 {m === "select" ? "↖ Select" : m === "draw" ? "✏ Draw" : "⌫ Erase"}
               </button>
             ))}
@@ -442,13 +442,13 @@ export default function RobustMap({
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-[10px] font-black uppercase tracking-wider text-[#112e51]">Size</span>
-                    <span className="text-[10px] font-bold text-gray-500">{Math.round(selectedScale * 100)}%</span>
+                    <span className="text-[10px] font-bold text-muted-foreground">{Math.round(selectedScale * 100)}%</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => setSelectedScale(selectedScale / 1.15)}
-                      className="px-2 py-1 bg-white border border-gray-300 rounded text-sm font-black text-gray-700 hover:bg-gray-50"
+                      className="px-2 py-1 bg-white border border-gray-300 rounded text-sm font-black text-foreground hover:bg-gray-50"
                       title="Shrink"
                     >
                       −
@@ -465,7 +465,7 @@ export default function RobustMap({
                     <button
                       type="button"
                       onClick={() => setSelectedScale(selectedScale * 1.15)}
-                      className="px-2 py-1 bg-white border border-gray-300 rounded text-sm font-black text-gray-700 hover:bg-gray-50"
+                      className="px-2 py-1 bg-white border border-gray-300 rounded text-sm font-black text-foreground hover:bg-gray-50"
                       title="Grow"
                     >
                       +
@@ -473,20 +473,20 @@ export default function RobustMap({
                     <button
                       type="button"
                       onClick={() => setSelectedScale(1)}
-                      className="px-2 py-1 bg-white border border-gray-300 rounded text-[10px] font-black text-gray-500 hover:bg-gray-50 uppercase"
+                      className="px-2 py-1 bg-white border border-gray-300 rounded text-[10px] font-black text-muted-foreground hover:bg-gray-50 uppercase"
                       title="Reset to 100%"
                     >
                       1×
                     </button>
                   </div>
-                  <p className="text-[10px] text-gray-500 mt-1">Drag the corner handles on the canvas to free-resize.</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Drag the corner handles on the canvas to free-resize.</p>
                 </div>
               </div>
             )}
             {mode === "select" ? (
               <>
                 <div>
-                  <p className="text-[10px] text-gray-500 mb-2 font-black uppercase tracking-wider border-b pb-1.5">0. Background Image</p>
+                  <p className="text-[10px] text-muted-foreground mb-2 font-black uppercase tracking-wider border-b pb-1.5">0. Background Image</p>
                   <div className="space-y-2">
                     <input
                       type="text"
@@ -503,7 +503,7 @@ export default function RobustMap({
                       >
                         Use URL
                       </button>
-                      <label className="p-2 border border-gray-300 rounded text-[10px] font-black text-gray-700 hover:bg-gray-50 bg-white shadow-sm uppercase tracking-wider cursor-pointer text-center">
+                      <label className="p-2 border border-gray-300 rounded text-[10px] font-black text-foreground hover:bg-gray-50 bg-white shadow-sm uppercase tracking-wider cursor-pointer text-center">
                         Upload
                         <input
                           type="file"
@@ -526,34 +526,34 @@ export default function RobustMap({
                         Remove background
                       </button>
                     )}
-                    <p className="text-[10px] text-gray-500 leading-snug">
+                    <p className="text-[10px] text-muted-foreground leading-snug">
                       Place a venue map, blueprint, or aerial photo behind the floorplan. Files {`>`}2 MB should be hosted externally — paste the URL above.
                     </p>
                   </div>
                 </div>
                 <div>
-                  <p className="text-[10px] text-gray-500 mb-2 font-black uppercase tracking-wider border-b pb-1.5">1. Architecture</p>
+                  <p className="text-[10px] text-muted-foreground mb-2 font-black uppercase tracking-wider border-b pb-1.5">1. Architecture</p>
 
                   <div className="grid grid-cols-2 gap-2">
-                    <button onClick={() => addShape("wall-h")} className="p-2 border border-gray-300 rounded text-xs font-bold text-gray-700 hover:bg-gray-50 bg-white shadow-sm">Horiz. Wall</button>
-                    <button onClick={() => addShape("wall-v")} className="p-2 border border-gray-300 rounded text-xs font-bold text-gray-700 hover:bg-gray-50 bg-white shadow-sm">Vert. Wall</button>
-                    <button onClick={() => addShape("table")} className="p-2 border border-gray-300 rounded text-xs font-bold text-gray-700 hover:bg-gray-50 bg-white shadow-sm">Round Table</button>
-                    <button onClick={() => addShape("stage")} className="p-2 border border-gray-300 rounded text-xs font-bold text-gray-700 hover:bg-gray-50 bg-white shadow-sm">Event Stage</button>
+                    <button onClick={() => addShape("wall-h")} className="p-2 border border-gray-300 rounded text-xs font-bold text-foreground hover:bg-gray-50 bg-white shadow-sm">Horiz. Wall</button>
+                    <button onClick={() => addShape("wall-v")} className="p-2 border border-gray-300 rounded text-xs font-bold text-foreground hover:bg-gray-50 bg-white shadow-sm">Vert. Wall</button>
+                    <button onClick={() => addShape("table")} className="p-2 border border-gray-300 rounded text-xs font-bold text-foreground hover:bg-gray-50 bg-white shadow-sm">Round Table</button>
+                    <button onClick={() => addShape("stage")} className="p-2 border border-gray-300 rounded text-xs font-bold text-foreground hover:bg-gray-50 bg-white shadow-sm">Event Stage</button>
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between items-center border-b pb-1.5 mb-2">
-                    <p className="text-[10px] text-gray-500 font-black uppercase tracking-wider">2. Place Vendors</p>
-                    <span className="text-[10px] font-bold text-gray-400">{placedCount} / {totalCount} placed</span>
+                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-wider">2. Place Vendors</p>
+                    <span className="text-[10px] font-bold text-muted-foreground">{placedCount} / {totalCount} placed</span>
                   </div>
                   <div className="space-y-2">
                     {(!availableVendors || availableVendors.length === 0) && (
-                      <p className="text-xs text-gray-400 italic p-3 bg-gray-50 rounded border border-gray-200">No approved vendors yet.</p>
+                      <p className="text-xs text-muted-foreground italic p-3 bg-gray-50 rounded border border-gray-200">No approved vendors yet.</p>
                     )}
                     {availableVendors?.map((vendor: any) => {
                       const isOnMap = vendors.some((v) => v.original_id === vendor.id);
                       return (
-                        <button key={vendor.id} onClick={() => addVendor(vendor)} disabled={isOnMap} className={`w-full text-left p-3 rounded border text-xs font-bold transition-all flex items-center gap-3 ${isOnMap ? "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed" : "bg-white border-[#005ea2] text-[#005ea2] hover:bg-blue-50 shadow-sm"}`}>
+                        <button key={vendor.id} onClick={() => addVendor(vendor)} disabled={isOnMap} className={`w-full text-left p-3 rounded border text-xs font-bold transition-all flex items-center gap-3 ${isOnMap ? "bg-gray-50 border-gray-200 text-muted-foreground cursor-not-allowed" : "bg-white border-[#005ea2] text-[#005ea2] hover:bg-blue-50 shadow-sm"}`}>
                           {vendor.logo_url ? (
                             <img src={vendor.logo_url} className="w-8 h-8 object-contain shrink-0 rounded" alt="" />
                           ) : (
@@ -561,7 +561,7 @@ export default function RobustMap({
                           )}
                           <span className="flex-1 leading-tight">
                             {vendor.business_name}
-                            {isOnMap && <span className="block text-[10px] font-normal text-gray-400 mt-0.5">Placed on map</span>}
+                            {isOnMap && <span className="block text-[10px] font-normal text-muted-foreground mt-0.5">Placed on map</span>}
                           </span>
                           {isOnMap && <span className="text-green-500 text-base">✓</span>}
                         </button>
@@ -571,14 +571,14 @@ export default function RobustMap({
                 </div>
               </>
             ) : (
-              <div className="text-xs text-gray-600 p-4 bg-gray-50 rounded border border-gray-200">
+              <div className="text-xs text-muted-foreground p-4 bg-gray-50 rounded border border-gray-200">
                 <p className="font-black mb-2 text-[#112e51] uppercase tracking-wider">{mode === "draw" ? "Drawing Mode" : "Erase Mode"}</p>
-                <p className="text-gray-500 leading-relaxed">{mode === "draw" ? "Click and drag on the canvas to draw walls, paths, or annotations." : "Click and drag over lines to erase them. Shapes and vendor pins are removed via Delete key."}</p>
+                <p className="text-muted-foreground leading-relaxed">{mode === "draw" ? "Click and drag on the canvas to draw walls, paths, or annotations." : "Click and drag over lines to erase them. Shapes and vendor pins are removed via Delete key."}</p>
                 <button onClick={() => { const next: DrawLine[] = []; setLines(next); pushHistory(next, vendors, shapes); }} className="mt-4 w-full py-2 bg-red-100 text-red-700 font-black rounded hover:bg-red-200 transition-colors text-[10px] uppercase tracking-widest">Clear All Lines</button>
               </div>
             )}
           </div>
-          <div className="p-3 border-t border-gray-100 bg-gray-50 text-[10px] text-gray-400 font-medium flex justify-between">
+          <div className="p-3 border-t border-gray-100 bg-gray-50 text-[10px] text-muted-foreground font-medium flex justify-between">
             <span>⌘Z / Ctrl+Z to undo</span>
             <span>Del to remove selected</span>
           </div>
@@ -587,10 +587,10 @@ export default function RobustMap({
 
       <div className="flex-1 flex flex-col gap-3">
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
-          <button onClick={() => zoomTo(ZOOM_STEP)} className="px-3 py-1.5 bg-white border border-gray-300 rounded text-sm font-black text-gray-700 hover:bg-gray-50 shadow-sm">+</button>
-          <button onClick={() => zoomTo(1 / ZOOM_STEP)} className="px-3 py-1.5 bg-white border border-gray-300 rounded text-sm font-black text-gray-700 hover:bg-gray-50 shadow-sm">−</button>
-          <button onClick={resetView} className="px-3 py-1.5 bg-white border border-gray-300 rounded text-xs font-black text-gray-500 hover:bg-gray-50 shadow-sm uppercase tracking-wider">Reset</button>
-          <span className="text-xs font-bold text-gray-400">{Math.round(scale * 100)}%</span>
+          <button onClick={() => zoomTo(ZOOM_STEP)} className="px-3 py-1.5 bg-white border border-gray-300 rounded text-sm font-black text-foreground hover:bg-gray-50 shadow-sm">+</button>
+          <button onClick={() => zoomTo(1 / ZOOM_STEP)} className="px-3 py-1.5 bg-white border border-gray-300 rounded text-sm font-black text-foreground hover:bg-gray-50 shadow-sm">−</button>
+          <button onClick={resetView} className="px-3 py-1.5 bg-white border border-gray-300 rounded text-xs font-black text-muted-foreground hover:bg-gray-50 shadow-sm uppercase tracking-wider">Reset</button>
+          <span className="text-xs font-bold text-muted-foreground">{Math.round(scale * 100)}%</span>
           <button onClick={handleExportMap} className="ml-auto px-4 py-1.5 bg-[#112e51] text-white rounded text-[10px] font-black uppercase tracking-widest shadow-sm hover:bg-[#1a4480]">Export PNG</button>
           {!readOnly && isDirty && (
             <span className="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-1 rounded uppercase tracking-wider">Unsaved changes</span>
@@ -680,7 +680,7 @@ export default function RobustMap({
 
         {!readOnly && (
           <div className="flex justify-between items-center shrink-0">
-            <p className="text-xs text-gray-400 font-medium">Scroll to zoom · Middle-click drag to pan · ⌘Z to undo</p>
+            <p className="text-xs text-muted-foreground font-medium">Scroll to zoom · Middle-click drag to pan · ⌘Z to undo</p>
             <button onClick={handleSave} disabled={!isDirty} className="bg-[#00a91c] hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-black py-2.5 px-8 rounded transition-all shadow-md uppercase tracking-widest text-xs">
               {isDirty ? "Save Blueprint" : "Blueprint Saved ✓"}
             </button>

@@ -80,14 +80,14 @@ function ClassDetail() {
 
   if (cls.isLoading)
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-dvh bg-slate-50">
         <SiteHeader />
         <div className="max-w-4xl mx-auto p-10">Loading…</div>
       </div>
     );
   if (!cls.data)
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-dvh bg-slate-50">
         <SiteHeader />
         <div className="max-w-4xl mx-auto p-10">Class not found.</div>
       </div>
@@ -97,7 +97,7 @@ function ClassDetail() {
   const price = Number(c.price ?? 0);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-dvh bg-slate-50">
       <SiteHeader />
       <div className="max-w-4xl mx-auto px-6 py-10">
         <Link to="/classes" className="text-sm text-blue-700 hover:underline">

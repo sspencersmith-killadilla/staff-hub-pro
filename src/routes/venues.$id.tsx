@@ -53,7 +53,7 @@ function VenueDetail() {
   const address = [v.address, v.city, v.state, v.zip].filter(Boolean).join(", ");
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-dvh bg-slate-50">
       <SiteHeader />
       <main className="mx-auto max-w-5xl px-6 py-12">
         <Link to="/venues" className="text-sm text-slate-500 hover:text-slate-900">

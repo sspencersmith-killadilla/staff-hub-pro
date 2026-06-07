@@ -158,7 +158,7 @@ function EventDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-dvh bg-slate-50">
         <SiteHeader />
         <main className="mx-auto max-w-3xl px-6 py-12">
           <p className="text-sm text-slate-500">Loading…</p>
@@ -168,7 +168,7 @@ function EventDetail() {
   }
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-dvh bg-slate-50">
         <SiteHeader />
         <main className="mx-auto max-w-3xl px-6 py-12">
           <p className="text-sm text-red-600">
@@ -214,7 +214,7 @@ function EventDetail() {
       : null;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-dvh bg-slate-50">
       <BrandThemeApplier brand={(data as any)?.department?.brand_css ?? null} />
       <SiteHeader />
 

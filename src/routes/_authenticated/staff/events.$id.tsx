@@ -360,7 +360,7 @@ function EventDashboard() {
     "w-full p-2.5 border border-input bg-background rounded text-sm outline-none focus:border-primary font-medium";
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       {toast && (
         <div
           className={`fixed top-4 right-4 z-50 px-4 py-2 rounded shadow-lg text-sm text-white ${

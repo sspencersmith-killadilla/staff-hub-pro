@@ -211,7 +211,7 @@ function HubPage() {
   const idsToRender = editing ? orderedIds : visibleIds;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc]">
+    <div className="min-h-dvh bg-[#f8fafc]">
       <SiteHeader />
       <div className="mx-auto max-w-6xl px-4 py-10">
         <div className="mb-10 flex items-start justify-between gap-4">

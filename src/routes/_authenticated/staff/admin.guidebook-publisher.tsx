@@ -289,7 +289,7 @@ function PublisherPage() {
   const selected = selectedIdx != null ? items[selectedIdx] : null;
 
   return (
-    <div className="flex flex-col h-screen bg-muted/20">
+    <div className="flex flex-col h-dvh bg-muted/20">
       {/* Toolbar */}
       <header className="border-b bg-background px-4 py-3 flex flex-wrap items-end gap-3">
         <Link to="/staff/admin/guidebook" className="text-sm text-muted-foreground hover:underline self-center mr-2">

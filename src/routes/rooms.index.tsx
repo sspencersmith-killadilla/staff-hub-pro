@@ -95,13 +95,13 @@ function RoomsIndex() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-dvh bg-gray-50">
       <SiteHeader />
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Room Reservations</h1>
-          <p className="mt-2 text-gray-600 max-w-2xl">
+          <h1 className="text-3xl font-bold text-foreground">Room Reservations</h1>
+          <p className="mt-2 text-muted-foreground max-w-2xl">
             Browse rooms available for public booking. Pick a room, choose your
             time, and submit a request.
           </p>
@@ -111,7 +111,7 @@ function RoomsIndex() {
         <div className="mb-6 rounded-xl border bg-white p-4">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <div>
-              <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Venue
               </label>
               <Select
@@ -136,7 +136,7 @@ function RoomsIndex() {
               </Select>
             </div>
             <div>
-              <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Min capacity
               </label>
               <Input
@@ -174,7 +174,7 @@ function RoomsIndex() {
           </div>
           {allTags.length > 0 && (
             <div className="mt-4">
-              <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+              <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Tags
               </div>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -188,7 +188,7 @@ function RoomsIndex() {
                       className={`rounded-full px-3 py-1 text-xs font-medium transition ${
                         active
                           ? "bg-gray-900 text-white"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          : "bg-gray-100 text-foreground hover:bg-gray-200"
                       }`}
                     >
                       {t}
@@ -202,7 +202,7 @@ function RoomsIndex() {
 
         {filtered.length === 0 ? (
           <div className="rounded-2xl border bg-white p-12 text-center">
-            <p className="text-gray-500">
+            <p className="text-muted-foreground">
               {hasFilter
                 ? "No rooms match your filters."
                 : "No publicly bookable rooms available right now."}
@@ -227,24 +227,24 @@ function RoomsIndex() {
                   </div>
                 ) : (
                   <div className="h-48 w-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                    <Building2 className="h-12 w-12 text-gray-400" />
+                    <Building2 className="h-12 w-12 text-muted-foreground" />
                   </div>
                 )}
 
                 <div className="flex flex-1 flex-col p-5">
-                  <h2 className="text-lg font-semibold text-gray-900 group-hover:text-gray-700">
+                  <h2 className="text-lg font-semibold text-foreground group-hover:text-foreground">
                     {room.name}
                   </h2>
 
                   {room.venue && (
-                    <div className="mt-2 flex items-center gap-1.5 text-sm text-gray-600">
+                    <div className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
                       <Building2 className="h-4 w-4" />
                       <span>{room.venue.name}</span>
                     </div>
                   )}
 
                   {room.venue && (room.venue.address || room.venue.city) && (
-                    <div className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
+                    <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                       <MapPin className="h-3.5 w-3.5" />
                       {[room.venue.city, room.venue.state]
                         .filter(Boolean)
@@ -254,7 +254,7 @@ function RoomsIndex() {
 
                   <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
                     {room.capacity && (
-                      <div className="flex items-center gap-1 text-gray-700">
+                      <div className="flex items-center gap-1 text-foreground">
                         <Users className="h-4 w-4" />
                         <span>Up to {room.capacity}</span>
                       </div>
@@ -262,7 +262,7 @@ function RoomsIndex() {
                     {(room.tags ?? []).slice(0, 4).map((t: string) => (
                       <span
                         key={t}
-                        className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700"
+                        className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-foreground"
                       >
                         {t}
                       </span>
@@ -270,7 +270,7 @@ function RoomsIndex() {
                   </div>
 
                   <div className="mt-auto pt-4">
-                    <span className="text-sm font-medium text-gray-900 group-hover:underline">
+                    <span className="text-sm font-medium text-foreground group-hover:underline">
                       View details →
                     </span>
                   </div>

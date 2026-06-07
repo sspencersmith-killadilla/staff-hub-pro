@@ -48,7 +48,7 @@ function DepartmentHub() {
   const idsToRender = editing ? orderedIds : visibleIds;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <BrandThemeApplier brand={department.brand_css} />
       <SiteHeader />
 

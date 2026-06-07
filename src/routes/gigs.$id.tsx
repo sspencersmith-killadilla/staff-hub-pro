@@ -48,12 +48,12 @@ export const Route = createFileRoute("/gigs/$id")({
   },
   component: GigFlyerPage,
   notFoundComponent: () => (
-    <div className="min-h-screen flex items-center justify-center text-destructive">
+    <div className="min-h-dvh flex items-center justify-center text-destructive">
       Gig not found.
     </div>
   ),
   errorComponent: ({ error }) => (
-    <div className="min-h-screen flex items-center justify-center text-destructive p-8">
+    <div className="min-h-dvh flex items-center justify-center text-destructive p-8">
       {error.message}
     </div>
   ),
@@ -93,7 +93,7 @@ function GigFlyerPage() {
   const features = (stage?.features ?? {}) as Record<string, any>;
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] py-4 px-4 sm:py-6">
+    <div className="min-h-dvh bg-[#f9fafb] py-4 px-4 sm:py-6">
       <div className="w-full max-w-xl mx-auto space-y-3">
         <div className="bg-white rounded-2xl border overflow-hidden shadow-sm">
           <div className="relative bg-black aspect-square">
@@ -114,7 +114,7 @@ function GigFlyerPage() {
               <h1 className="text-xl font-bold flex-1">{title}</h1>
               <FavoriteButton itemType="gig" itemId={id} size="sm" />
             </div>
-            <p className="text-sm text-gray-900 font-medium">
+            <p className="text-sm text-foreground font-medium">
               {stage?.name || venue?.name}
             </p>
             {(stage?.address || venue?.address) && (
@@ -162,10 +162,10 @@ function GigFlyerPage() {
             </div>
 
             {stage?.load_in_notes && (
-              <p className="text-xs text-gray-600 mb-3">Load-in: {stage.load_in_notes}</p>
+              <p className="text-xs text-muted-foreground mb-3">Load-in: {stage.load_in_notes}</p>
             )}
             {artist?.genre && (
-              <p className="text-sm text-gray-600 mb-4">🎵 {artist.genre}</p>
+              <p className="text-sm text-muted-foreground mb-4">🎵 {artist.genre}</p>
             )}
             {artist?.id && (
               <Link
@@ -181,7 +181,7 @@ function GigFlyerPage() {
 
         {socials.length > 0 && (
           <div className="bg-white rounded-2xl border p-5">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
               Scan or Tap to Connect
             </h3>
             <div className="grid grid-cols-4 gap-3">
@@ -205,7 +205,7 @@ function GigFlyerPage() {
                       </div>
                     </div>
                   </div>
-                  <p className="text-xs mt-1.5 font-medium text-gray-700">{s.name}</p>
+                  <p className="text-xs mt-1.5 font-medium text-foreground">{s.name}</p>
                 </a>
               ))}
             </div>
@@ -213,7 +213,7 @@ function GigFlyerPage() {
         )}
 
         <div className="bg-white rounded-2xl border p-4">
-          <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">
+          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
             Share This Gig
           </p>
           <div className="grid grid-cols-5 gap-2">
@@ -252,7 +252,7 @@ function GigFlyerPage() {
             </button>
             <button
               onClick={() => navigator.clipboard.writeText(url)}
-              className="bg-gray-100 text-gray-800 rounded-xl py-2.5 text-xs font-semibold"
+              className="bg-gray-100 text-foreground rounded-xl py-2.5 text-xs font-semibold"
             >
               Copy
             </button>
@@ -261,17 +261,17 @@ function GigFlyerPage() {
 
         {artist?.bio && (
           <div className="bg-white rounded-2xl border p-5">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
               About {artist.full_name}
             </h3>
-            <p className="text-sm text-gray-700 leading-relaxed">{artist.bio}</p>
+            <p className="text-sm text-foreground leading-relaxed">{artist.bio}</p>
           </div>
         )}
 
         <div className="pt-2 pb-6 text-center">
           <Link
             to="/streetbeats"
-            className="text-xs text-gray-400 hover:text-gray-600 underline-offset-4 hover:underline"
+            className="text-xs text-muted-foreground hover:text-muted-foreground underline-offset-4 hover:underline"
           >
             ← Back to Streetbeats
           </Link>

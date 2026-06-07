@@ -32,7 +32,7 @@ export function HomePageView({
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col font-sans text-gray-800">
+    <div className="min-h-dvh bg-[#f8fafc] flex flex-col font-sans text-foreground">
       {showHeader && <SiteHeader />}
 
       {/* HERO */}
@@ -116,15 +116,15 @@ export function HomePageView({
       ))}
 
       {/* FOOTER */}
-      <footer className="bg-[#001f2b] text-gray-400 py-12 text-center mt-auto border-t border-[#002f49]">
+      <footer className="bg-[#001f2b] text-muted-foreground py-12 text-center mt-auto border-t border-[#002f49]">
         <div className="max-w-4xl mx-auto px-6">
           {content.footer_tagline && (
-            <p className="text-xs font-black uppercase tracking-[0.3em] mb-4 text-gray-300">
+            <p className="text-xs font-black uppercase tracking-[0.3em] mb-4 text-muted-foreground">
               {content.footer_tagline}
             </p>
           )}
           {content.footer_body && (
-            <p className="text-sm text-gray-500 mb-6">{content.footer_body}</p>
+            <p className="text-sm text-muted-foreground mb-6">{content.footer_body}</p>
           )}
           {content.footer_copyright && (
             <p className="text-[10px] font-bold tracking-widest uppercase">
@@ -188,7 +188,7 @@ function SectionRenderer({
                 <h3 className="text-xl font-black mb-3" style={{ color: NAVY }}>
                   {item.title}
                 </h3>
-                <p className="text-sm text-gray-600 mb-5 flex-1">{item.description}</p>
+                <p className="text-sm text-muted-foreground mb-5 flex-1">{item.description}</p>
                 {item.link_to.startsWith("/") ? (
                   <Link
                     to={item.link_to as any}
@@ -226,7 +226,7 @@ function SectionRenderer({
                 </h2>
               )}
               {section.subtitle && (
-                <p className="text-gray-500 max-w-2xl mx-auto text-lg">
+                <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
                   {section.subtitle}
                 </p>
               )}
@@ -248,7 +248,7 @@ function SectionRenderer({
                       {item.title}
                     </h3>
                   </div>
-                  <ol className="space-y-3 text-sm text-gray-600">
+                  <ol className="space-y-3 text-sm text-muted-foreground">
                     {item.steps.map((step, i) => (
                       <li key={i} className="flex items-start gap-3">
                         <span
@@ -301,7 +301,7 @@ function SectionRenderer({
           className="w-full rounded-2xl shadow-lg object-cover"
         />
         {section.caption && (
-          <figcaption className="text-center text-sm text-gray-500 mt-3">
+          <figcaption className="text-center text-sm text-muted-foreground mt-3">
             {section.caption}
           </figcaption>
         )}
@@ -338,7 +338,7 @@ function SectionRenderer({
               <a
                 key={i}
                 href={b.href}
-                className="bg-white text-slate-900 font-bold py-3 px-6 rounded-lg uppercase tracking-wider text-sm shadow hover:bg-slate-100"
+                className="bg-white text-foreground font-bold py-3 px-6 rounded-lg uppercase tracking-wider text-sm shadow hover:bg-slate-100"
               >
                 {b.label}
               </a>

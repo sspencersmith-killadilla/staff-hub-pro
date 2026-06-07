@@ -43,7 +43,7 @@ function StageDetail() {
   const address = s.address || [v?.address, v?.city, v?.state].filter(Boolean).join(", ");
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-dvh bg-slate-50">
       <SiteHeader />
       <main className="mx-auto max-w-4xl px-6 py-12">
         {v && (

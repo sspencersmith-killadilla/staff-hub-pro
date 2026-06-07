@@ -31,12 +31,12 @@ export const Route = createFileRoute("/artists/$id")({
   }),
   component: ArtistProfilePage,
   notFoundComponent: () => (
-    <div className="min-h-screen flex items-center justify-center text-destructive font-bold text-xl">
+    <div className="min-h-dvh flex items-center justify-center text-destructive font-bold text-xl">
       Artist not found.
     </div>
   ),
   errorComponent: ({ error }) => (
-    <div className="min-h-screen flex items-center justify-center text-destructive p-8">
+    <div className="min-h-dvh flex items-center justify-center text-destructive p-8">
       {error.message}
     </div>
   ),
@@ -55,7 +55,7 @@ function ArtistProfilePage() {
     profile.other_link_url;
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] py-12 px-4 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-dvh bg-[#f8f9fa] py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="h-48 md:h-64 bg-gray-900 relative">
@@ -138,14 +138,14 @@ function ArtistProfilePage() {
                 </a>
               )}
               {!hasSocial && (
-                <span className="text-gray-400 text-sm italic">
+                <span className="text-muted-foreground text-sm italic">
                   Social links coming soon.
                 </span>
               )}
             </div>
 
-            <div className="prose max-w-none text-gray-600">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">About the Artist</h3>
+            <div className="prose max-w-none text-muted-foreground">
+              <h3 className="text-xl font-bold text-foreground mb-2">About the Artist</h3>
               <p className="whitespace-pre-wrap">
                 {profile.bio ||
                   `Come see ${profile.full_name ?? "this artist"} perform live at StreetBeats!`}
@@ -160,7 +160,7 @@ function ArtistProfilePage() {
           </h2>
 
           {gigs.length === 0 ? (
-            <div className="bg-white p-8 rounded-2xl text-center text-gray-500 border border-gray-200">
+            <div className="bg-white p-8 rounded-2xl text-center text-muted-foreground border border-gray-200">
               No upcoming gigs scheduled right now. Check back later!
             </div>
           ) : (
@@ -183,7 +183,7 @@ function ArtistProfilePage() {
                             })
                           : "TBA"}
                       </div>
-                      <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#005ea2] transition">
+                      <h3 className="text-lg font-bold text-foreground group-hover:text-[#005ea2] transition">
                         Live at {gig.venue_name || gig.stage_name || "StreetBeats Stage"}
                       </h3>
                     </div>
@@ -196,7 +196,7 @@ function ArtistProfilePage() {
                       </div>
                     )}
                   </div>
-                  <div className="text-sm text-gray-500 font-medium">
+                  <div className="text-sm text-muted-foreground font-medium">
                     View digital flyer &rarr;
                   </div>
                 </Link>
@@ -208,7 +208,7 @@ function ArtistProfilePage() {
         <div className="pt-2 pb-8 text-center">
           <Link
             to="/streetbeats"
-            className="text-xs text-gray-400 hover:text-gray-600 underline-offset-4 hover:underline"
+            className="text-xs text-muted-foreground hover:text-muted-foreground underline-offset-4 hover:underline"
           >
             ← Back to Streetbeats
           </Link>

@@ -29,7 +29,7 @@ export const Route = createFileRoute("/venues")({
 function VenuesIndex() {
   const { data: venues } = useSuspenseQuery(venuesQO);
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-dvh bg-slate-50">
       <SiteHeader />
       <main className="mx-auto max-w-5xl px-6 py-12">
         <h1 className="text-4xl font-black tracking-tight text-slate-900 uppercase">

@@ -37,12 +37,12 @@ export const Route = createFileRoute("/community-events/$id")({
   },
   component: CommunityEventFlyer,
   notFoundComponent: () => (
-    <div className="min-h-screen flex items-center justify-center text-slate-700 font-bold text-xl">
+    <div className="min-h-dvh flex items-center justify-center text-slate-700 font-bold text-xl">
       Community event not found, or not yet approved.
     </div>
   ),
   errorComponent: ({ error }) => (
-    <div className="min-h-screen flex items-center justify-center text-destructive p-8">
+    <div className="min-h-dvh flex items-center justify-center text-destructive p-8">
       {error.message}
     </div>
   ),
@@ -88,7 +88,7 @@ function CommunityEventFlyer() {
       : event.location?.name ?? null;
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] font-sans">
+    <div className="min-h-dvh bg-[#f8f9fa] font-sans">
       <SiteHeader />
       <div className="py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">

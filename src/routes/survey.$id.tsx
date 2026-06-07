@@ -44,11 +44,11 @@ function PublicSurvey() {
   });
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">Loading…</div>;
+    return <div className="min-h-dvh flex items-center justify-center text-sm text-muted-foreground">Loading…</div>;
   }
   if (!data) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="min-h-dvh flex items-center justify-center px-4">
         <Card className="max-w-md w-full"><CardContent className="p-8 text-center">
           <h1 className="text-xl font-semibold mb-2">Survey not available</h1>
           <p className="text-sm text-muted-foreground">This survey is closed or doesn't exist.</p>
@@ -58,7 +58,7 @@ function PublicSurvey() {
   }
   if (done) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4 bg-slate-50">
+      <div className="min-h-dvh flex items-center justify-center px-4 bg-slate-50">
         <Card className="max-w-md w-full"><CardContent className="p-10 text-center">
           <CheckCircle2 className="h-12 w-12 mx-auto text-green-600 mb-4" />
           <h1 className="text-2xl font-semibold mb-2">Thank you!</h1>
@@ -79,7 +79,7 @@ function PublicSurvey() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-8">
+    <div className="min-h-dvh bg-slate-50 px-4 py-8">
       <div className="max-w-2xl mx-auto">
         <Card>
           <CardContent className="p-6 sm:p-8">

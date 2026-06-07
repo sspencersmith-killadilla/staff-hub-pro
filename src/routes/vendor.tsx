@@ -61,7 +61,7 @@ function VendorPortal() {
   }, []);
 
   if (isCheckingAuth) {
-    return <div className="min-h-screen bg-[#f4f6f9]" />;
+    return <div className="min-h-dvh bg-[#f4f6f9]" />;
   }
   if (!user) return <AuthGate />;
   return <PortalDashboard user={user} />;
@@ -92,7 +92,7 @@ function AuthGate() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f6f9]">
+    <div className="min-h-dvh bg-[#f4f6f9]">
       <SiteHeader />
       <main className="flex items-center justify-center p-6 font-sans py-16">
         <div className="bg-white p-10 rounded-xl shadow-lg border border-gray-200 max-w-md w-full">
@@ -100,11 +100,11 @@ function AuthGate() {
             <h1 className="text-3xl font-black text-[#112e51] tracking-tight mb-2">
               Sponsorship and Vendor Opportunities
             </h1>
-            <p className="text-gray-500 text-sm">Partner Operations Hub</p>
+            <p className="text-muted-foreground text-sm">Partner Operations Hub</p>
           </div>
           <form onSubmit={handleAuth} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">
+              <label className="block text-xs font-bold text-foreground mb-1 uppercase tracking-wider">
                 Business Email
               </label>
               <input
@@ -117,7 +117,7 @@ function AuthGate() {
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">
+              <label className="block text-xs font-bold text-foreground mb-1 uppercase tracking-wider">
                 Password
               </label>
               <input
@@ -192,7 +192,7 @@ function PortalDashboard({ user }: { user: any }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f6f9] font-sans text-[#1b1b1b]">
+    <div className="min-h-dvh bg-[#f4f6f9] font-sans text-[#1b1b1b]">
       <SiteHeader />
       <header className="bg-[#112e51] text-white py-6 px-8 shadow-md">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
@@ -298,7 +298,7 @@ function TabButton({
       className={`pb-2 text-lg font-bold transition-colors ${
         active
           ? "text-[#005ea2] border-b-4 border-[#005ea2]"
-          : "text-gray-500 hover:text-[#112e51]"
+          : "text-muted-foreground hover:text-[#112e51]"
       }`}
     >
       {children}
@@ -323,14 +323,14 @@ function DashboardTab({
   if (vendors.length === 0 && sponsors.length === 0) {
     return (
       <div className="bg-white p-12 text-center rounded-xl border border-gray-200 shadow-sm">
-        <p className="text-gray-500 text-lg font-medium">
+        <p className="text-muted-foreground text-lg font-medium">
           {archived
             ? "No archived applications yet."
             : "You haven\u2019t submitted any applications yet."}
         </p>
         {!archived && (
           <>
-            <p className="text-gray-500 text-sm mt-2">
+            <p className="text-muted-foreground text-sm mt-2">
               One account can hold multiple vendor businesses and sponsor brands —
               submit a separate application for each event you want to
               participate in.
@@ -350,7 +350,7 @@ function DashboardTab({
   return (
     <div className="space-y-8">
       {archived && (
-        <p className="text-xs uppercase tracking-widest text-gray-500 font-bold">
+        <p className="text-xs uppercase tracking-widest text-muted-foreground font-bold">
           Past events · read-only
         </p>
       )}
@@ -383,7 +383,7 @@ function StatusBadge({ status }: { status: string }) {
       : status === "paid"
         ? "bg-[#005ea2] text-white border-[#005ea2]"
         : status === "cancelled"
-          ? "bg-gray-100 text-gray-400 border-gray-200"
+          ? "bg-gray-100 text-muted-foreground border-gray-200"
           : "bg-[#fff3d4] text-[#a57914] border-[#fde047]";
   return (
     <span
@@ -493,7 +493,7 @@ function ApplicationCard({
             className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded border mb-2 inline-block ${
               isSponsor
                 ? "text-[#a57914] bg-[#fef3c7] border-[#fde68a]"
-                : "text-gray-500 bg-gray-200 border-gray-300"
+                : "text-muted-foreground bg-gray-200 border-gray-300"
             }`}
           >
             {isSponsor ? "Sponsorship Package" : "Vendor Booth"}
@@ -501,11 +501,11 @@ function ApplicationCard({
           <h2 className="text-2xl font-bold text-[#112e51] mb-1">
             {app.sessions?.title}
           </h2>
-          <p className="text-sm text-gray-600 font-bold mb-1">
+          <p className="text-sm text-muted-foreground font-bold mb-1">
             {tier || (isSponsor ? "Custom" : "Standard Tier")}
           </p>
           {app.sessions?.start_time && (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               {new Date(app.sessions.start_time).toLocaleDateString()}
             </p>
           )}
@@ -585,7 +585,7 @@ function ApplicationCard({
             </button>
             <button
               onClick={() => setConfirmCancel(false)}
-              className="bg-white border border-gray-300 text-gray-700 text-sm font-bold px-4 py-2 rounded hover:bg-gray-50 transition-colors"
+              className="bg-white border border-gray-300 text-foreground text-sm font-bold px-4 py-2 rounded hover:bg-gray-50 transition-colors"
             >
               Keep Application
             </button>
@@ -644,7 +644,7 @@ function ApplicationCard({
                   label={
                     <>
                       Photo URLs{" "}
-                      <span className="font-normal text-gray-500">
+                      <span className="font-normal text-muted-foreground">
                         (comma-separated)
                       </span>
                     </>
@@ -718,7 +718,7 @@ function ApplicationCard({
               </button>
               <button
                 onClick={() => setEditing(false)}
-                className="bg-white border border-gray-300 text-gray-700 text-sm font-bold px-4 py-2 rounded hover:bg-gray-50 transition-colors"
+                className="bg-white border border-gray-300 text-foreground text-sm font-bold px-4 py-2 rounded hover:bg-gray-50 transition-colors"
               >
                 Discard
               </button>
@@ -731,15 +731,15 @@ function ApplicationCard({
         (app.status === "approved" || app.status === "paid") &&
         app.sessions?.interactive_map_data && (
           <div className="p-6">
-            <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-4">
+            <h3 className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] mb-4">
               Load-In Logistics & Floorplan
             </h3>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               Your designated booth location is shown on the map below.
             </p>
             <Suspense
               fallback={
-                <div className="text-sm text-gray-500">Loading map…</div>
+                <div className="text-sm text-muted-foreground">Loading map…</div>
               }
             >
               <RobustMap
@@ -764,7 +764,7 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-xs font-bold text-gray-700 mb-1">
+      <label className="block text-xs font-bold text-foreground mb-1">
         {label}
       </label>
       {children}
@@ -876,7 +876,7 @@ function ApplyTab({
       <h2 className="text-2xl font-bold text-[#112e51] mb-2">
         Submit Application
       </h2>
-      <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+      <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
         You can submit <strong>as many applications as you like</strong> from
         this one account — one per event, and you can use a{" "}
         <strong>different business or sponsor name</strong> on each.
@@ -893,7 +893,7 @@ function ApplyTab({
           className={`flex-1 py-2 rounded text-sm font-bold transition-all ${
             appType === "vendor"
               ? "bg-white shadow border border-gray-200 text-[#112e51]"
-              : "text-gray-500 hover:text-[#112e51]"
+              : "text-muted-foreground hover:text-[#112e51]"
           }`}
         >
           Vendor Booth
@@ -906,7 +906,7 @@ function ApplyTab({
           className={`flex-1 py-2 rounded text-sm font-bold transition-all ${
             appType === "sponsor"
               ? "bg-[#fffdf5] shadow border border-[#e8c872] text-[#a57914]"
-              : "text-gray-500 hover:text-[#a57914]"
+              : "text-muted-foreground hover:text-[#a57914]"
           }`}
         >
           Event Sponsorship
@@ -915,7 +915,7 @@ function ApplyTab({
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="block text-xs font-bold text-gray-700 mb-1">
+          <label className="block text-xs font-bold text-foreground mb-1">
             Select Event *
           </label>
           <select
@@ -935,7 +935,7 @@ function ApplyTab({
 
         {sessionId && tierList.length > 0 && (
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-foreground mb-2 uppercase tracking-wider">
               Select {appType === "vendor" ? "Booth" : "Sponsorship"} Tier *
             </label>
             <div className="space-y-2">
@@ -974,7 +974,7 @@ function ApplyTab({
                     </span>
                   </div>
                   {tier.perks_description && (
-                    <p className="text-xs text-gray-600 ml-7">
+                    <p className="text-xs text-muted-foreground ml-7">
                       {tier.perks_description}
                     </p>
                   )}
@@ -994,7 +994,7 @@ function ApplyTab({
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
+                <label className="block text-xs font-bold text-foreground mb-1">
                   Company / Business Name *
                 </label>
                 <input
@@ -1004,7 +1004,7 @@ function ApplyTab({
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
+                <label className="block text-xs font-bold text-foreground mb-1">
                   Contact Name *
                 </label>
                 <input
@@ -1016,7 +1016,7 @@ function ApplyTab({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">
+              <label className="block text-xs font-bold text-foreground mb-1">
                 {appType === "sponsor" ? "Company" : "Business"} Logo URL
                 (Optional)
               </label>
@@ -1025,7 +1025,7 @@ function ApplyTab({
                 placeholder="https://yourwebsite.com/logo.png"
                 className="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-[#005ea2] outline-none"
               />
-              <p className="text-[10px] text-gray-500 mt-1">
+              <p className="text-[10px] text-muted-foreground mt-1">
                 Provide a link to a high-res PNG or JPG logo for the public
                 directory and marketing materials.
               </p>
@@ -1033,7 +1033,7 @@ function ApplyTab({
 
             {appType === "vendor" && (
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
+                <label className="block text-xs font-bold text-foreground mb-1">
                   Proposed Goods / Services *
                 </label>
                 <textarea
@@ -1062,7 +1062,7 @@ function ApplyTab({
 
                 {sellingItems && (
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                    <label className="block text-xs font-bold text-foreground mb-1">
                       Describe the items you will be selling *
                     </label>
                     <textarea
@@ -1088,14 +1088,14 @@ function ApplyTab({
                       Are you licensed to do business and sell items?
                     </span>
                   </label>
-                  <p className="ml-6 mt-1 text-[11px] text-gray-500">
+                  <p className="ml-6 mt-1 text-[11px] text-muted-foreground">
                     Upload your business license, seller's permit, food-handler
                     certificate, or any other proof required for your booth.
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                  <label className="block text-xs font-bold text-foreground mb-1">
                     Upload Permits / Licenses (PDF or image)
                   </label>
                   <input
@@ -1104,10 +1104,10 @@ function ApplyTab({
                     multiple
                     onChange={handlePermitUpload}
                     disabled={uploadingPermit}
-                    className="block w-full text-sm text-gray-600 file:mr-3 file:rounded file:border-0 file:bg-[#005ea2] file:px-3 file:py-2 file:text-xs file:font-bold file:uppercase file:text-white hover:file:bg-[#1a4480] disabled:opacity-50"
+                    className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded file:border-0 file:bg-[#005ea2] file:px-3 file:py-2 file:text-xs file:font-bold file:uppercase file:text-white hover:file:bg-[#1a4480] disabled:opacity-50"
                   />
                   {uploadingPermit && (
-                    <p className="mt-1 text-xs text-gray-500">Uploading…</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Uploading…</p>
                   )}
                   {permitUrls.length > 0 && (
                     <ul className="mt-2 space-y-1">
@@ -1142,7 +1142,7 @@ function ApplyTab({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                  <label className="block text-xs font-bold text-foreground mb-1">
                     Special Requirements (Optional)
                   </label>
                   <textarea
@@ -1159,7 +1159,7 @@ function ApplyTab({
 
             {appType === "sponsor" && (
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
+                <label className="block text-xs font-bold text-foreground mb-1">
                   Promotional Text (Optional)
                 </label>
                 <textarea
@@ -1169,7 +1169,7 @@ function ApplyTab({
                   placeholder="Tagline or short ad copy that will appear in the printed Program Guidebook if you purchase the Guidebook Ad Space tier."
                   className="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-[#a57914] outline-none resize-none"
                 />
-                <p className="text-[10px] text-gray-500 mt-1">
+                <p className="text-[10px] text-muted-foreground mt-1">
                   Used in the official Program Guidebook ad slots when your
                   sponsorship is approved. Up to 2000 characters.
                 </p>
@@ -1195,7 +1195,7 @@ function ApplyTab({
         )}
       </form>
 
-      <p className="text-xs text-gray-400 mt-4">Signed in as {user.email}</p>
+      <p className="text-xs text-muted-foreground mt-4">Signed in as {user.email}</p>
     </div>
   );
 }
@@ -1266,14 +1266,14 @@ function PaymentPanel({
       <h3 className="text-sm font-black uppercase tracking-wider mb-2 text-[#112e51]">
         Pay for {isSponsor ? "sponsorship" : "vendor booth"}
       </h3>
-      <p className="text-sm text-gray-700 mb-4">
+      <p className="text-sm text-foreground mb-4">
         {tier?.name ?? "Selected tier"} ·{" "}
         <strong className="text-[#00a91c]">
           {price != null ? `$${Number(price).toFixed(2)}` : "—"}
         </strong>
       </p>
 
-      <div className="mb-4 max-h-40 overflow-y-auto rounded border border-gray-300 bg-white p-4 text-xs text-gray-700 leading-relaxed">
+      <div className="mb-4 max-h-40 overflow-y-auto rounded border border-gray-300 bg-white p-4 text-xs text-foreground leading-relaxed">
         <p className="font-bold mb-1">{isSponsor ? "Sponsorship" : "Vendor"} Agreement</p>
         <p>
           By submitting payment, you agree to the terms and conditions of the{" "}
@@ -1345,7 +1345,7 @@ function PaymentPanel({
           </Field>
         </div>
 
-        <label className="flex items-start gap-2 text-sm text-gray-800 cursor-pointer select-none">
+        <label className="flex items-start gap-2 text-sm text-foreground cursor-pointer select-none">
           <input
             type="checkbox"
             checked={agreed}
@@ -1371,7 +1371,7 @@ function PaymentPanel({
           <button
             type="button"
             onClick={onClose}
-            className="bg-white border border-gray-300 text-gray-700 text-sm font-bold px-4 py-2.5 rounded hover:bg-gray-50 transition-colors"
+            className="bg-white border border-gray-300 text-foreground text-sm font-bold px-4 py-2.5 rounded hover:bg-gray-50 transition-colors"
           >
             Cancel
           </button>
@@ -1441,7 +1441,7 @@ function GuidebookSponsorshipTab({ onSubmitted }: { onSubmitted: () => void }) {
         <h2 className="text-3xl font-black text-[#112e51] tracking-tight mb-4">
           Program Guidebook Sponsorship
         </h2>
-        <p className="text-gray-700 leading-relaxed mb-6">
+        <p className="text-foreground leading-relaxed mb-6">
           Reach every attendee, vendor, and performer through our printed and
           digital Program Guidebook — distributed at every event, venue, and
           info booth across the season.
@@ -1450,7 +1450,7 @@ function GuidebookSponsorshipTab({ onSubmitted }: { onSubmitted: () => void }) {
           <h3 className="font-bold text-[#112e51] text-sm uppercase tracking-wider mb-2">
             What's included
           </h3>
-          <ul className="text-sm text-gray-700 space-y-1.5">
+          <ul className="text-sm text-foreground space-y-1.5">
             <li>• Full-color ad placement in the Program Guidebook</li>
             <li>• Logo featured on our public Community Partners page</li>
             <li>• "Presented by" callouts on featured event listings</li>
@@ -1458,13 +1458,13 @@ function GuidebookSponsorshipTab({ onSubmitted }: { onSubmitted: () => void }) {
             <li>• Social shout-out at season launch</li>
           </ul>
         </div>
-        <div className="bg-[#f4f6f9] rounded-lg p-4 text-sm text-gray-700">
+        <div className="bg-[#f4f6f9] rounded-lg p-4 text-sm text-foreground">
           <strong className="text-[#112e51]">How it works:</strong> Submit your
           brand details on the right. Our team reviews and reaches out within
           2 business days with placement options and pricing for the next
           guidebook printing.
         </div>
-        <p className="text-xs text-gray-500 mt-4">
+        <p className="text-xs text-muted-foreground mt-4">
           Looking to sponsor a single event instead?{" "}
           <span className="text-[#005ea2] font-bold">
             Use the "Apply for Event" tab.
@@ -1481,7 +1481,7 @@ function GuidebookSponsorshipTab({ onSubmitted }: { onSubmitted: () => void }) {
           Apply to be a Guidebook Sponsor
         </h3>
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+          <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
             Company name *
           </label>
           <input
@@ -1495,7 +1495,7 @@ function GuidebookSponsorshipTab({ onSubmitted }: { onSubmitted: () => void }) {
         </div>
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
               Contact name
             </label>
             <input
@@ -1507,7 +1507,7 @@ function GuidebookSponsorshipTab({ onSubmitted }: { onSubmitted: () => void }) {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
               Contact email
             </label>
             <input
@@ -1520,7 +1520,7 @@ function GuidebookSponsorshipTab({ onSubmitted }: { onSubmitted: () => void }) {
           </div>
         </div>
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+          <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
             Logo URL
           </label>
           <input
@@ -1533,7 +1533,7 @@ function GuidebookSponsorshipTab({ onSubmitted }: { onSubmitted: () => void }) {
           />
         </div>
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+          <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
             Ad copy / tagline
           </label>
           <textarea
