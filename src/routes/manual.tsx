@@ -127,8 +127,12 @@ const groups: { label: string; sectionIds: string[] }[] = [
       "admin-surveys",
     ],
   },
-
+  {
+    label: "Civic Quests & Discovery",
+    sectionIds: ["quests-overview", "quests-play", "quests-leaderboard", "quests-report", "quests-admin"],
+  },
 ];
+
 
 function Figure({
   src,
