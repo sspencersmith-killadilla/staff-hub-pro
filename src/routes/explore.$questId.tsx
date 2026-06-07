@@ -151,6 +151,15 @@ function QuestDetailPage() {
               <p className="mt-3 text-xs font-bold uppercase tracking-wider text-stone-700">
                 {done} / {total} waypoints · +{quest.points_reward} pts
               </p>
+              {data.stats && (data.stats.completion_count + data.stats.in_progress_count) > 0 && (
+                <p className="mt-1 text-xs text-stone-600">
+                  {data.stats.completion_count} explorer
+                  {data.stats.completion_count === 1 ? "" : "s"} completed this
+                  {data.stats.in_progress_count > 0 && (
+                    <> · {data.stats.in_progress_count} in progress</>
+                  )}
+                </p>
+              )}
             </div>
           </div>
         </header>
