@@ -16,6 +16,7 @@ const DEFAULTS: Record<ModuleKey, boolean> = {
   social_command: true,
   guidebook: true,
   events: true,
+  civic_quests: true,
 };
 
 export function useModules() {
