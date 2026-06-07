@@ -265,6 +265,7 @@ function EventsPage() {
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value as SortKey)}
+                aria-label="Sort events"
                 className="rounded-md border border-slate-300 px-3 py-1.5 text-sm"
               >
                 <option value="date_asc">Date — soonest</option>
