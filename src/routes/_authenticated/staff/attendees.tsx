@@ -24,6 +24,40 @@ export const Route = createFileRoute("/_authenticated/staff/attendees")({
 
 type ScanMsg = { type: "success" | "warning" | "error"; text: string } | null;
 
+// Standardized ticket QR format: `ticket_{ticket_id}`.
+// Legacy bare-UUID tickets are still accepted until this date, after which
+// they will be rejected with the standard "Invalid Ticket Format" error.
+// This gives users a 30-day window from 2026-06-07 to re-issue old tickets.
+const LEGACY_TICKET_CUTOFF = new Date("2026-07-07T00:00:00Z").getTime();
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Parse a scanned/typed string into an attendee ID.
+ * Returns { id, legacy } on success, or { error } on failure.
+ */
+function parseTicketInput(raw: string):
+  | { id: string; legacy: boolean }
+  | { error: string } {
+  const trimmed = raw.trim();
+  if (!trimmed) return { error: "Empty input" };
+  if (trimmed.toLowerCase().startsWith("quest_")) {
+    return { error: "Invalid Ticket Format" };
+  }
+  if (trimmed.toLowerCase().startsWith("ticket_")) {
+    const id = trimmed.slice(7);
+    if (!UUID_RE.test(id)) return { error: "Invalid Ticket Format" };
+    return { id, legacy: false };
+  }
+  // Legacy: bare UUID.
+  if (UUID_RE.test(trimmed)) {
+    if (Date.now() > LEGACY_TICKET_CUTOFF) {
+      return { error: "Invalid Ticket Format" };
+    }
+    return { id: trimmed, legacy: true };
+  }
+  return { error: "Invalid Ticket Format" };
+}
+
 function fmtWhen(starts: string | null) {
   if (!starts) return "—";
   return new Date(starts).toLocaleString([], {
