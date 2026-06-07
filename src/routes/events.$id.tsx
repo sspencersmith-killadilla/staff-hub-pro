@@ -682,9 +682,10 @@ function TicketSuccess({
 
   useEffect(() => {
     if (!canvasRef.current) return;
+    const payload = `ticket_${attendeeId}`;
     QRCode.toCanvas(
       canvasRef.current,
-      attendeeId,
+      payload,
       { width: 240, margin: 2, errorCorrectionLevel: "M" },
       (err) => {
         if (err) {
@@ -696,7 +697,7 @@ function TicketSuccess({
           .then(setDataUrl)
           .catch(() => {
             QRCode.toDataURL(
-              attendeeId,
+              payload,
               { width: 720, margin: 2, errorCorrectionLevel: "M" },
               (e2, url) => {
                 if (!e2) setDataUrl(url);
@@ -815,7 +816,7 @@ async function composeTicketImage({
   wrapText(ctx, eventTitle, W / 2, PAD + 30, W - PAD * 2, 36);
 
   // QR (re-render at high res into this canvas)
-  const qrDataUrl = await QRCode.toDataURL(attendeeId, {
+  const qrDataUrl = await QRCode.toDataURL(`ticket_${attendeeId}`, {
     width: qrSize,
     margin: 1,
     errorCorrectionLevel: "M",
