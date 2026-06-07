@@ -187,7 +187,18 @@ function AttendeesPage() {
       const last = cooldown.current.get(raw) ?? 0;
       if (now - last < 3000) continue;
       cooldown.current.set(raw, now);
-      mCheck.mutate(raw);
+      const parsed = parseTicketInput(raw);
+      if ("error" in parsed) {
+        setScanMsg({ type: "error", text: parsed.error });
+        return;
+      }
+      if (parsed.legacy) {
+        setScanMsg({
+          type: "warning",
+          text: "Legacy ticket format — please re-issue this ticket soon.",
+        });
+      }
+      mCheck.mutate(parsed.id);
       break;
     }
   };
@@ -198,9 +209,21 @@ function AttendeesPage() {
       setScanMsg({ type: "error", text: "Select an event before checking tickets in." });
       return;
     }
-    const id = manualId.trim();
-    if (!id) return;
-    mCheck.mutate(id);
+    const raw = manualId.trim();
+    if (!raw) return;
+    const parsed = parseTicketInput(raw);
+    if ("error" in parsed) {
+      setScanMsg({ type: "error", text: parsed.error });
+      setManualId("");
+      return;
+    }
+    if (parsed.legacy) {
+      setScanMsg({
+        type: "warning",
+        text: "Legacy ticket format — please re-issue this ticket soon.",
+      });
+    }
+    mCheck.mutate(parsed.id);
     setManualId("");
   };
 
