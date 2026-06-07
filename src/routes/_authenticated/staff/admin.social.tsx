@@ -286,12 +286,12 @@ function SocialCommandCenter() {
                 {conns.length} connected
               </Link>
             </Button>
-            <Button variant="outline" size="icon" onClick={() => setCursor(subMonths(cursor, 1))}>
-              <ChevronLeft />
+            <Button variant="outline" size="icon" aria-label="Previous month" onClick={() => setCursor(subMonths(cursor, 1))}>
+              <ChevronLeft aria-hidden="true" />
             </Button>
             <div className="w-44 text-center font-semibold">{format(cursor, "MMMM yyyy")}</div>
-            <Button variant="outline" size="icon" onClick={() => setCursor(addMonths(cursor, 1))}>
-              <ChevronRight />
+            <Button variant="outline" size="icon" aria-label="Next month" onClick={() => setCursor(addMonths(cursor, 1))}>
+              <ChevronRight aria-hidden="true" />
             </Button>
             <Button variant="outline" onClick={() => setCursor(startOfMonth(new Date()))}>
               Today
@@ -459,18 +459,17 @@ function DroppableDay({
       </div>
       <div className="space-y-1">
         {posts.slice(0, 3).map((p) => (
-          <div
+          <button
             key={p.id}
-            role="button"
-            tabIndex={0}
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
               onEditPost(p);
             }}
-            className="text-[11px] truncate rounded bg-primary/10 text-primary px-1.5 py-0.5 hover:bg-primary/20"
+            className="block w-full text-left text-[11px] truncate rounded bg-primary/10 text-primary px-1.5 py-0.5 hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {p.caption.slice(0, 28) || "Untitled post"}
-          </div>
+          </button>
         ))}
         {posts.length > 3 && (
           <div className="text-[10px] text-muted-foreground">+{posts.length - 3} more</div>
