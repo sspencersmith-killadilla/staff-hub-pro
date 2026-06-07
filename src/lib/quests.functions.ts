@@ -47,6 +47,48 @@ async function assertAdmin(userId: string) {
   if (!data) throw new Error("Forbidden: admin only");
 }
 
+async function assertStaffWithQuestReports(userId: string) {
+  const { data: adminRow } = await supabaseAdmin
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (adminRow) return;
+  const { data: perm } = await supabaseAdmin
+    .from("staff_permissions")
+    .select("permission")
+    .eq("user_id", userId)
+    .eq("permission", "page.quests_report")
+    .maybeSingle();
+  if (!perm) throw new Error("Forbidden: missing page.quests_report");
+}
+
+// ─── Module enabled check ─────────────────────────────────────────────
+async function isCivicQuestsEnabled(): Promise<boolean> {
+  try {
+    const { data } = await supabaseAdmin
+      .from("platform_modules")
+      .select("enabled")
+      .eq("key", "civic_quests")
+      .maybeSingle();
+    if (!data) return true; // default-on when row missing
+    return !!data.enabled;
+  } catch {
+    return true; // fail-open if table missing
+  }
+}
+
+async function assertCivicQuestsEnabled() {
+  if (!(await isCivicQuestsEnabled())) {
+    throw new Error("Civic Quests module is disabled");
+  }
+}
+
+export const getCivicQuestsModuleStatus = createServerFn({ method: "GET" }).handler(
+  async () => ({ enabled: await isCivicQuestsEnabled() }),
+);
+
 // ─── Public: list active quests ───────────────────────────────────────
 export const listPublicQuests = createServerFn({ method: "GET" }).handler(
   async () => {
