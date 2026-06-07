@@ -207,6 +207,52 @@ function DepartmentHub() {
                     ))}
                   </div>
                 )
+              ) : sectionId === "classes" ? (
+                classes.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No upcoming classes for this department.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {classes.map((c: any) => (
+                      <Link
+                        key={c.id}
+                        to="/classes/$id"
+                        params={{ id: c.id }}
+                        className="group overflow-hidden rounded-lg border bg-card transition-shadow hover:shadow-md"
+                        style={{ borderColor: "color-mix(in oklab, var(--primary) 25%, transparent)" }}
+                      >
+                        {c.image_url ? (
+                          <div className="aspect-video w-full overflow-hidden bg-muted">
+                            <img
+                              src={c.image_url}
+                              alt={c.title}
+                              className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                            />
+                          </div>
+                        ) : (
+                          <div className="aspect-video w-full bg-muted" />
+                        )}
+                        <div className="p-4">
+                          <h3 className="line-clamp-2 font-medium text-foreground">{c.title}</h3>
+                          {c.next_session?.start_time && (
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              Next: {new Date(c.next_session.start_time).toLocaleString()}
+                            </p>
+                          )}
+                          <p
+                            className="mt-2 text-xs font-semibold"
+                            style={{ color: "var(--primary)" }}
+                          >
+                            {Number(c.price) > 0
+                              ? `$${Number(c.price).toFixed(2)}`
+                              : "Free"}
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )
               ) : sectionId === "gigs" ? (
                 gigs.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
