@@ -134,7 +134,12 @@ const groups: { label: string; sectionIds: string[] }[] = [
     label: "Civic Quests & Discovery",
     sectionIds: ["quests-overview", "quests-play", "quests-leaderboard", "quests-report", "quests-admin"],
   },
+  {
+    label: "311 Non-Emergency Reporting",
+    sectionIds: ["report-overview", "report-submit", "report-tracker", "report-dispatch"],
+  },
 ];
+
 
 
 function Figure({
