@@ -127,6 +127,7 @@ function HubPage() {
       to: "/explore",
       icon: Compass,
       accent: "from-amber-500 to-orange-600",
+      module: "civic_quests",
       cta: "Start exploring",
     },
   ];
