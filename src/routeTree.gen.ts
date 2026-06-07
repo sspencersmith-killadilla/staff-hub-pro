@@ -15,6 +15,7 @@ import { Route as StreetbeatsRouteImport } from './routes/streetbeats'
 import { Route as SponsorsRouteImport } from './routes/sponsors'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as ReportRouteImport } from './routes/report'
 import { Route as NoAccessRouteImport } from './routes/no-access'
 import { Route as ManualRouteImport } from './routes/manual'
 import { Route as ManifestDotwebmanifestRouteImport } from './routes/manifest[.]webmanifest'
@@ -44,6 +45,7 @@ import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedMyTicketsRouteImport } from './routes/_authenticated/my-tickets'
 import { Route as AuthenticatedMyScheduleRouteImport } from './routes/_authenticated/my-schedule'
 import { Route as AuthenticatedMyReservationsRouteImport } from './routes/_authenticated/my-reservations'
+import { Route as AuthenticatedMyReportsRouteImport } from './routes/_authenticated/my-reports'
 import { Route as AuthenticatedMyPermitsRouteImport } from './routes/_authenticated/my-permits'
 import { Route as AuthenticatedHubRouteImport } from './routes/_authenticated/hub'
 import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff/index'
@@ -60,6 +62,7 @@ import { Route as AuthenticatedStaffSettingsRouteImport } from './routes/_authen
 import { Route as AuthenticatedStaffRoomReservationsRouteImport } from './routes/_authenticated/staff/room-reservations'
 import { Route as AuthenticatedStaffQuestsReportRouteImport } from './routes/_authenticated/staff/quests-report'
 import { Route as AuthenticatedStaffMapRouteImport } from './routes/_authenticated/staff/map'
+import { Route as AuthenticatedStaffDispatchRouteImport } from './routes/_authenticated/staff/dispatch'
 import { Route as AuthenticatedStaffCommunityOrganizationsRouteImport } from './routes/_authenticated/staff/community-organizations'
 import { Route as AuthenticatedStaffCommunityMusicRouteImport } from './routes/_authenticated/staff/community-music'
 import { Route as AuthenticatedStaffCommunityEventsRouteImport } from './routes/_authenticated/staff/community-events'
@@ -125,6 +128,11 @@ const SignupRoute = SignupRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportRoute = ReportRouteImport.update({
+  id: '/report',
+  path: '/report',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NoAccessRoute = NoAccessRouteImport.update({
@@ -272,6 +280,11 @@ const AuthenticatedMyReservationsRoute =
     path: '/my-reservations',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedMyReportsRoute = AuthenticatedMyReportsRouteImport.update({
+  id: '/my-reports',
+  path: '/my-reports',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedMyPermitsRoute = AuthenticatedMyPermitsRouteImport.update({
   id: '/my-permits',
   path: '/my-permits',
@@ -361,6 +374,12 @@ const AuthenticatedStaffMapRoute = AuthenticatedStaffMapRouteImport.update({
   path: '/map',
   getParentRoute: () => AuthenticatedStaffRoute,
 } as any)
+const AuthenticatedStaffDispatchRoute =
+  AuthenticatedStaffDispatchRouteImport.update({
+    id: '/dispatch',
+    path: '/dispatch',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
 const AuthenticatedStaffCommunityOrganizationsRoute =
   AuthenticatedStaffCommunityOrganizationsRouteImport.update({
     id: '/community-organizations',
@@ -587,6 +606,7 @@ export interface FileRoutesByFullPath {
   '/manifest.webmanifest': typeof ManifestDotwebmanifestRoute
   '/manual': typeof ManualRoute
   '/no-access': typeof NoAccessRoute
+  '/report': typeof ReportRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/sponsors': typeof SponsorsRoute
@@ -595,6 +615,7 @@ export interface FileRoutesByFullPath {
   '/venues': typeof VenuesRouteWithChildren
   '/hub': typeof AuthenticatedHubRoute
   '/my-permits': typeof AuthenticatedMyPermitsRoute
+  '/my-reports': typeof AuthenticatedMyReportsRoute
   '/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/my-schedule': typeof AuthenticatedMyScheduleRoute
   '/my-tickets': typeof AuthenticatedMyTicketsRoute
@@ -623,6 +644,7 @@ export interface FileRoutesByFullPath {
   '/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
   '/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
+  '/staff/dispatch': typeof AuthenticatedStaffDispatchRoute
   '/staff/map': typeof AuthenticatedStaffMapRoute
   '/staff/quests-report': typeof AuthenticatedStaffQuestsReportRoute
   '/staff/room-reservations': typeof AuthenticatedStaffRoomReservationsRoute
@@ -675,6 +697,7 @@ export interface FileRoutesByTo {
   '/manifest.webmanifest': typeof ManifestDotwebmanifestRoute
   '/manual': typeof ManualRoute
   '/no-access': typeof NoAccessRoute
+  '/report': typeof ReportRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/sponsors': typeof SponsorsRoute
@@ -683,6 +706,7 @@ export interface FileRoutesByTo {
   '/venues': typeof VenuesRouteWithChildren
   '/hub': typeof AuthenticatedHubRoute
   '/my-permits': typeof AuthenticatedMyPermitsRoute
+  '/my-reports': typeof AuthenticatedMyReportsRoute
   '/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/my-schedule': typeof AuthenticatedMyScheduleRoute
   '/my-tickets': typeof AuthenticatedMyTicketsRoute
@@ -709,6 +733,7 @@ export interface FileRoutesByTo {
   '/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
   '/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
+  '/staff/dispatch': typeof AuthenticatedStaffDispatchRoute
   '/staff/map': typeof AuthenticatedStaffMapRoute
   '/staff/quests-report': typeof AuthenticatedStaffQuestsReportRoute
   '/staff/room-reservations': typeof AuthenticatedStaffRoomReservationsRoute
@@ -761,6 +786,7 @@ export interface FileRoutesById {
   '/manifest.webmanifest': typeof ManifestDotwebmanifestRoute
   '/manual': typeof ManualRoute
   '/no-access': typeof NoAccessRoute
+  '/report': typeof ReportRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/sponsors': typeof SponsorsRoute
@@ -769,6 +795,7 @@ export interface FileRoutesById {
   '/venues': typeof VenuesRouteWithChildren
   '/_authenticated/hub': typeof AuthenticatedHubRoute
   '/_authenticated/my-permits': typeof AuthenticatedMyPermitsRoute
+  '/_authenticated/my-reports': typeof AuthenticatedMyReportsRoute
   '/_authenticated/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/_authenticated/my-schedule': typeof AuthenticatedMyScheduleRoute
   '/_authenticated/my-tickets': typeof AuthenticatedMyTicketsRoute
@@ -797,6 +824,7 @@ export interface FileRoutesById {
   '/_authenticated/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
   '/_authenticated/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/_authenticated/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
+  '/_authenticated/staff/dispatch': typeof AuthenticatedStaffDispatchRoute
   '/_authenticated/staff/map': typeof AuthenticatedStaffMapRoute
   '/_authenticated/staff/quests-report': typeof AuthenticatedStaffQuestsReportRoute
   '/_authenticated/staff/room-reservations': typeof AuthenticatedStaffRoomReservationsRoute
@@ -851,6 +879,7 @@ export interface FileRouteTypes {
     | '/manifest.webmanifest'
     | '/manual'
     | '/no-access'
+    | '/report'
     | '/reset-password'
     | '/signup'
     | '/sponsors'
@@ -859,6 +888,7 @@ export interface FileRouteTypes {
     | '/venues'
     | '/hub'
     | '/my-permits'
+    | '/my-reports'
     | '/my-reservations'
     | '/my-schedule'
     | '/my-tickets'
@@ -887,6 +917,7 @@ export interface FileRouteTypes {
     | '/staff/community-events'
     | '/staff/community-music'
     | '/staff/community-organizations'
+    | '/staff/dispatch'
     | '/staff/map'
     | '/staff/quests-report'
     | '/staff/room-reservations'
@@ -939,6 +970,7 @@ export interface FileRouteTypes {
     | '/manifest.webmanifest'
     | '/manual'
     | '/no-access'
+    | '/report'
     | '/reset-password'
     | '/signup'
     | '/sponsors'
@@ -947,6 +979,7 @@ export interface FileRouteTypes {
     | '/venues'
     | '/hub'
     | '/my-permits'
+    | '/my-reports'
     | '/my-reservations'
     | '/my-schedule'
     | '/my-tickets'
@@ -973,6 +1006,7 @@ export interface FileRouteTypes {
     | '/staff/community-events'
     | '/staff/community-music'
     | '/staff/community-organizations'
+    | '/staff/dispatch'
     | '/staff/map'
     | '/staff/quests-report'
     | '/staff/room-reservations'
@@ -1024,6 +1058,7 @@ export interface FileRouteTypes {
     | '/manifest.webmanifest'
     | '/manual'
     | '/no-access'
+    | '/report'
     | '/reset-password'
     | '/signup'
     | '/sponsors'
@@ -1032,6 +1067,7 @@ export interface FileRouteTypes {
     | '/venues'
     | '/_authenticated/hub'
     | '/_authenticated/my-permits'
+    | '/_authenticated/my-reports'
     | '/_authenticated/my-reservations'
     | '/_authenticated/my-schedule'
     | '/_authenticated/my-tickets'
@@ -1060,6 +1096,7 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/community-events'
     | '/_authenticated/staff/community-music'
     | '/_authenticated/staff/community-organizations'
+    | '/_authenticated/staff/dispatch'
     | '/_authenticated/staff/map'
     | '/_authenticated/staff/quests-report'
     | '/_authenticated/staff/room-reservations'
@@ -1114,6 +1151,7 @@ export interface RootRouteChildren {
   ManifestDotwebmanifestRoute: typeof ManifestDotwebmanifestRoute
   ManualRoute: typeof ManualRoute
   NoAccessRoute: typeof NoAccessRoute
+  ReportRoute: typeof ReportRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   SponsorsRoute: typeof SponsorsRoute
@@ -1185,6 +1223,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/report': {
+      id: '/report'
+      path: '/report'
+      fullPath: '/report'
+      preLoaderRoute: typeof ReportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/no-access': {
@@ -1390,6 +1435,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMyReservationsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/my-reports': {
+      id: '/_authenticated/my-reports'
+      path: '/my-reports'
+      fullPath: '/my-reports'
+      preLoaderRoute: typeof AuthenticatedMyReportsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/my-permits': {
       id: '/_authenticated/my-permits'
       path: '/my-permits'
@@ -1500,6 +1552,13 @@ declare module '@tanstack/react-router' {
       path: '/map'
       fullPath: '/staff/map'
       preLoaderRoute: typeof AuthenticatedStaffMapRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/dispatch': {
+      id: '/_authenticated/staff/dispatch'
+      path: '/dispatch'
+      fullPath: '/staff/dispatch'
+      preLoaderRoute: typeof AuthenticatedStaffDispatchRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
     }
     '/_authenticated/staff/community-organizations': {
@@ -1882,6 +1941,7 @@ interface AuthenticatedStaffRouteChildren {
   AuthenticatedStaffCommunityEventsRoute: typeof AuthenticatedStaffCommunityEventsRoute
   AuthenticatedStaffCommunityMusicRoute: typeof AuthenticatedStaffCommunityMusicRoute
   AuthenticatedStaffCommunityOrganizationsRoute: typeof AuthenticatedStaffCommunityOrganizationsRoute
+  AuthenticatedStaffDispatchRoute: typeof AuthenticatedStaffDispatchRoute
   AuthenticatedStaffMapRoute: typeof AuthenticatedStaffMapRoute
   AuthenticatedStaffQuestsReportRoute: typeof AuthenticatedStaffQuestsReportRoute
   AuthenticatedStaffRoomReservationsRoute: typeof AuthenticatedStaffRoomReservationsRoute
@@ -1905,6 +1965,7 @@ const AuthenticatedStaffRouteChildren: AuthenticatedStaffRouteChildren = {
   AuthenticatedStaffCommunityMusicRoute: AuthenticatedStaffCommunityMusicRoute,
   AuthenticatedStaffCommunityOrganizationsRoute:
     AuthenticatedStaffCommunityOrganizationsRoute,
+  AuthenticatedStaffDispatchRoute: AuthenticatedStaffDispatchRoute,
   AuthenticatedStaffMapRoute: AuthenticatedStaffMapRoute,
   AuthenticatedStaffQuestsReportRoute: AuthenticatedStaffQuestsReportRoute,
   AuthenticatedStaffRoomReservationsRoute:
@@ -1924,6 +1985,7 @@ const AuthenticatedStaffRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedHubRoute: typeof AuthenticatedHubRoute
   AuthenticatedMyPermitsRoute: typeof AuthenticatedMyPermitsRoute
+  AuthenticatedMyReportsRoute: typeof AuthenticatedMyReportsRoute
   AuthenticatedMyReservationsRoute: typeof AuthenticatedMyReservationsRoute
   AuthenticatedMyScheduleRoute: typeof AuthenticatedMyScheduleRoute
   AuthenticatedMyTicketsRoute: typeof AuthenticatedMyTicketsRoute
@@ -1937,6 +1999,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHubRoute: AuthenticatedHubRoute,
   AuthenticatedMyPermitsRoute: AuthenticatedMyPermitsRoute,
+  AuthenticatedMyReportsRoute: AuthenticatedMyReportsRoute,
   AuthenticatedMyReservationsRoute: AuthenticatedMyReservationsRoute,
   AuthenticatedMyScheduleRoute: AuthenticatedMyScheduleRoute,
   AuthenticatedMyTicketsRoute: AuthenticatedMyTicketsRoute,
@@ -1984,6 +2047,7 @@ const rootRouteChildren: RootRouteChildren = {
   ManifestDotwebmanifestRoute: ManifestDotwebmanifestRoute,
   ManualRoute: ManualRoute,
   NoAccessRoute: NoAccessRoute,
+  ReportRoute: ReportRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   SponsorsRoute: SponsorsRoute,

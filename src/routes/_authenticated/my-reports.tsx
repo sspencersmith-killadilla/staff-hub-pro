@@ -36,10 +36,10 @@ function MyReportsPage() {
   useEffect(() => {
     if (!me?.id) return;
     const channel = supabase
-      .channel(`my-tickets-${me.id}`)
+      .channel(`my-tickets-${me?.userId}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "tickets", filter: `user_id=eq.${me.id}` },
+        { event: "*", schema: "public", table: "tickets", filter: `user_id=eq.${me?.userId}` },
         () => qc.invalidateQueries({ queryKey: ["my-tickets"] }),
       )
       .on(
