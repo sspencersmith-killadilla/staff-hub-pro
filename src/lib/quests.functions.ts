@@ -92,6 +92,7 @@ export const getCivicQuestsModuleStatus = createServerFn({ method: "GET" }).hand
 // ─── Public: list active quests ───────────────────────────────────────
 export const listPublicQuests = createServerFn({ method: "GET" }).handler(
   async () => {
+    if (!(await isCivicQuestsEnabled())) return { quests: [], disabled: true as const };
     const { data, error } = await supabaseAdmin
       .from("quests")
       .select(
@@ -109,7 +110,7 @@ export const listPublicQuests = createServerFn({ method: "GET" }).handler(
       department_id: q.department_id,
       waypoint_count: (q.quest_waypoints ?? []).length,
     }));
-    return { quests };
+    return { quests, disabled: false as const };
   },
 );
 
@@ -117,6 +118,7 @@ export const listPublicQuests = createServerFn({ method: "GET" }).handler(
 export const getPublicQuest = createServerFn({ method: "GET" })
   .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data }) => {
+    await assertCivicQuestsEnabled();
     const { data: q, error } = await supabaseAdmin
       .from("quests")
       .select(
@@ -134,6 +136,15 @@ export const getPublicQuest = createServerFn({ method: "GET" })
       .eq("quest_id", data.id)
       .order("sort_order", { ascending: true });
     if (wpErr) throw new Error(wpErr.message);
+
+    // Lightweight public stats (completions + in-progress count).
+    const { data: prog } = await supabaseAdmin
+      .from("user_quest_progress")
+      .select("is_completed")
+      .eq("quest_id", data.id);
+    const completion_count = (prog ?? []).filter((r: any) => r.is_completed).length;
+    const in_progress_count = (prog ?? []).length - completion_count;
+
     return {
       quest: {
         id: q.id,
@@ -144,6 +155,7 @@ export const getPublicQuest = createServerFn({ method: "GET" })
         department_id: q.department_id,
       } as PublicQuest & { description: string | null },
       waypoints: (wps ?? []) as PublicWaypoint[],
+      stats: { completion_count, in_progress_count },
     };
   });
 
@@ -169,6 +181,9 @@ export const getMyQuestProgress = createServerFn({ method: "GET" })
 export const listMyEarnedQuests = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    if (!(await isCivicQuestsEnabled())) {
+      return { points: 0, entries: [], disabled: true as const };
+    }
     const { data, error } = await supabaseAdmin
       .from("user_quest_progress")
       .select(
@@ -183,6 +198,7 @@ export const listMyEarnedQuests = createServerFn({ method: "GET" })
       .maybeSingle();
     return {
       points: (profile?.points as number | undefined) ?? 0,
+      disabled: false as const,
       entries: (data ?? []).map((r: any) => ({
         quest_id: r.quest_id,
         is_completed: !!r.is_completed,
