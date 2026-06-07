@@ -47,12 +47,15 @@ vi.mock("@tanstack/react-router", async () => {
     ),
   );
   Link.displayName = "MockLink";
-  const stubRoute = {
+  const makeRouteFactory = () => (options: any) => ({
+    options,
     useParams: () => __routeState.params,
     useSearch: () => __routeState.search,
     useLoaderData: () => undefined,
     useNavigate: () => () => {},
-  };
+    useRouteContext: () => ({}),
+    addChildren: (c: any) => ({ options, children: c }),
+  });
   return {
     ...actual,
     Link,
@@ -60,9 +63,9 @@ vi.mock("@tanstack/react-router", async () => {
     useNavigate: () => () => {},
     useRouter: () => ({ invalidate: () => {}, navigate: () => {} }),
     useRouterState: () => ({ location: { pathname: "/" } }),
-    createFileRoute: () => () => stubRoute,
-    createRootRoute: () => () => stubRoute,
-    createRoute: () => () => stubRoute,
+    createFileRoute: () => makeRouteFactory(),
+    createRootRoute: makeRouteFactory(),
+    createRoute: makeRouteFactory(),
     redirect: (x: any) => x,
   };
 });
