@@ -180,5 +180,64 @@ export const getDepartmentHub = createServerFn({ method: "GET" })
       events: sessionsRes.data ?? [],
       rooms: Array.from(roomsById.values()),
       gigs,
+      classes,
     };
   });
+
+/** Public list of departments that have at least one public-facing item. */
+export const listPublicDepartments = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const { data: depts, error } = await supabaseAdmin
+      .from("departments")
+      .select("id, name, logo_url")
+      .order("name");
+    if (error) throw new Error(error.message);
+    const list = depts ?? [];
+    if (!list.length) return [];
+
+    const nowIso = new Date().toISOString();
+    const ids = list.map((d: any) => d.id);
+
+    const [eventsCounts, classesCounts, deptRoomsCounts, venueRoomIds] = await Promise.all([
+      supabaseAdmin
+        .from("sessions")
+        .select("department_id")
+        .in("department_id", ids)
+        .gte("start_time", nowIso),
+      supabaseAdmin.from("courses").select("department_id").in("department_id", ids),
+      supabaseAdmin
+        .from("rooms")
+        .select("department_id")
+        .in("department_id", ids),
+      supabaseAdmin
+        .from("venues")
+        .select("department_id")
+        .in("department_id", ids),
+    ]);
+
+    const tally = (rows: any[] | null | undefined) => {
+      const m: Record<string, number> = {};
+      for (const r of rows ?? []) {
+        const k = (r as any).department_id as string | null;
+        if (!k) continue;
+        m[k] = (m[k] ?? 0) + 1;
+      }
+      return m;
+    };
+    const ev = tally(eventsCounts.data);
+    const cl = tally(classesCounts.data);
+    const rm = tally(deptRoomsCounts.data);
+    const vn = tally(venueRoomIds.data);
+
+    return list
+      .map((d: any) => ({
+        id: d.id,
+        name: d.name,
+        logo_url: d.logo_url,
+        upcoming_events: ev[d.id] ?? 0,
+        classes: cl[d.id] ?? 0,
+        rooms: (rm[d.id] ?? 0) + (vn[d.id] ?? 0),
+      }))
+      .filter((d) => d.upcoming_events + d.classes + d.rooms > 0);
+  },
+);
