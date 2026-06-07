@@ -106,6 +106,10 @@ function DepartmentHub() {
                   <>
                     <CalendarDays className="h-5 w-5" /> Upcoming Events
                   </>
+                ) : sectionId === "classes" ? (
+                  <>
+                    <GraduationCap className="h-5 w-5" /> Classes
+                  </>
                 ) : sectionId === "gigs" ? (
                   <>
                     <Music className="h-5 w-5" /> Streetbeats Gigs
