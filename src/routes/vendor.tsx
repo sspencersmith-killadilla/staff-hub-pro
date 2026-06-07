@@ -379,12 +379,12 @@ function DashboardTab({
 function StatusBadge({ status }: { status: string }) {
   const cls =
     status === "approved"
-      ? "bg-[#e4f2e7] text-[#00a91c] border-[#bbf7d0]"
+      ? "bg-[#e4f2e7] text-[#0f6b2e] border-[#bbf7d0]"
       : status === "paid"
         ? "bg-[#005ea2] text-white border-[#005ea2]"
         : status === "cancelled"
           ? "bg-gray-100 text-muted-foreground border-gray-200"
-          : "bg-[#fff3d4] text-[#a57914] border-[#fde047]";
+          : "bg-[#fff3d4] text-[#825e0e] border-[#fde047]";
   return (
     <span
       className={`px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider shadow-sm border ${cls}`}
@@ -492,7 +492,7 @@ function ApplicationCard({
           <span
             className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded border mb-2 inline-block ${
               isSponsor
-                ? "text-[#a57914] bg-[#fef3c7] border-[#fde68a]"
+                ? "text-[#825e0e] bg-[#fef3c7] border-[#fde68a]"
                 : "text-muted-foreground bg-gray-200 border-gray-300"
             }`}
           >
@@ -522,7 +522,7 @@ function ApplicationCard({
                   }}
                   className={`text-xs font-bold border px-3 py-1.5 rounded transition-colors ${
                     isSponsor
-                      ? "text-[#a57914] border-[#a57914] hover:bg-[#a57914] hover:text-white"
+                      ? "text-[#825e0e] border-[#825e0e] hover:bg-[#825e0e] hover:text-white"
                       : "text-[#005ea2] border-[#005ea2] hover:bg-[#005ea2] hover:text-white"
                   }`}
                 >
@@ -536,7 +536,7 @@ function ApplicationCard({
                     setEditing(false);
                     setConfirmCancel(false);
                   }}
-                  className="text-xs font-bold text-white bg-[#00a91c] hover:bg-green-700 border border-[#00a91c] px-3 py-1.5 rounded transition-colors"
+                  className="text-xs font-bold text-white bg-[#0f6b2e] hover:bg-green-700 border border-[#0f6b2e] px-3 py-1.5 rounded transition-colors"
                 >
                   Pay Now
                 </button>
@@ -601,7 +601,7 @@ function ApplicationCard({
         >
           <h3
             className={`text-sm font-black uppercase tracking-wider mb-4 ${
-              isSponsor ? "text-[#a57914]" : "text-[#112e51]"
+              isSponsor ? "text-[#825e0e]" : "text-[#112e51]"
             }`}
           >
             {isSponsor ? "Edit Sponsorship details" : "Edit Application"}
@@ -710,7 +710,7 @@ function ApplicationCard({
                 disabled={editLoading}
                 className={`text-white text-sm font-bold px-5 py-2 rounded transition-colors ${
                   isSponsor
-                    ? "bg-[#a57914] hover:bg-[#825e0e]"
+                    ? "bg-[#825e0e] hover:bg-[#5c4209]"
                     : "bg-[#005ea2] hover:bg-[#1a4480]"
                 }`}
               >
@@ -905,8 +905,8 @@ function ApplyTab({
           }}
           className={`flex-1 py-2 rounded text-sm font-bold transition-all ${
             appType === "sponsor"
-              ? "bg-[#fffdf5] shadow border border-[#e8c872] text-[#a57914]"
-              : "text-muted-foreground hover:text-[#a57914]"
+              ? "bg-[#fffdf5] shadow border border-[#e8c872] text-[#825e0e]"
+              : "text-muted-foreground hover:text-[#825e0e]"
           }`}
         >
           Event Sponsorship
@@ -954,7 +954,7 @@ function ApplyTab({
                         value={tier.id}
                         className={`w-4 h-4 ${
                           appType === "sponsor"
-                            ? "text-[#a57914] focus:ring-[#a57914]"
+                            ? "text-[#825e0e] focus:ring-[#825e0e]"
                             : "text-[#005ea2] focus:ring-[#005ea2]"
                         }`}
                         required
@@ -966,8 +966,8 @@ function ApplyTab({
                     <span
                       className={`font-black ${
                         appType === "sponsor"
-                          ? "text-[#a57914]"
-                          : "text-[#00a91c]"
+                          ? "text-[#825e0e]"
+                          : "text-[#0f6b2e]"
                       }`}
                     >
                       ${tier.price}
@@ -1167,7 +1167,7 @@ function ApplyTab({
                   rows={4}
                   maxLength={2000}
                   placeholder="Tagline or short ad copy that will appear in the printed Program Guidebook if you purchase the Guidebook Ad Space tier."
-                  className="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-[#a57914] outline-none resize-none"
+                  className="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-[#825e0e] outline-none resize-none"
                 />
                 <p className="text-[10px] text-muted-foreground mt-1">
                   Used in the official Program Guidebook ad slots when your
@@ -1181,8 +1181,8 @@ function ApplyTab({
               disabled={loading}
               className={`w-full text-white font-bold py-4 rounded transition-colors shadow-md text-lg mt-4 ${
                 appType === "sponsor"
-                  ? "bg-[#a57914] hover:bg-[#825e0e]"
-                  : "bg-[#00a91c] hover:bg-green-700"
+                  ? "bg-[#825e0e] hover:bg-[#5c4209]"
+                  : "bg-[#0f6b2e] hover:bg-green-700"
               }`}
             >
               {loading
@@ -1268,7 +1268,7 @@ function PaymentPanel({
       </h3>
       <p className="text-sm text-foreground mb-4">
         {tier?.name ?? "Selected tier"} ·{" "}
-        <strong className="text-[#00a91c]">
+        <strong className="text-[#0f6b2e]">
           {price != null ? `$${Number(price).toFixed(2)}` : "—"}
         </strong>
       </p>
@@ -1364,7 +1364,7 @@ function PaymentPanel({
           <button
             type="submit"
             disabled={loading || !agreed}
-            className="bg-[#00a91c] hover:bg-green-700 disabled:bg-gray-300 text-white text-sm font-bold px-5 py-2.5 rounded transition-colors"
+            className="bg-[#0f6b2e] hover:bg-green-700 disabled:bg-gray-300 text-white text-sm font-bold px-5 py-2.5 rounded transition-colors"
           >
             {loading ? "Processing…" : "Submit Payment"}
           </button>
@@ -1435,7 +1435,7 @@ function GuidebookSponsorshipTab({ onSubmitted }: { onSubmitted: () => void }) {
     <div className="grid lg:grid-cols-2 gap-8">
       {/* Opportunity outline */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-        <p className="text-[10px] font-bold text-[#a57914] uppercase tracking-widest mb-2">
+        <p className="text-[10px] font-bold text-[#825e0e] uppercase tracking-widest mb-2">
           Year-Round Visibility
         </p>
         <h2 className="text-3xl font-black text-[#112e51] tracking-tight mb-4">
