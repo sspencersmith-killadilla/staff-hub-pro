@@ -1,26 +1,68 @@
-The issue is routing structure: `/staff/surveys` and `/staff/communications` are currently acting as parent routes, but they render the list page directly and do not include an `<Outlet />`. When the URL changes to `/staff/surveys/:id` or `/staff/communications/:id`, the parent list route stays on screen and the editor child route has nowhere to render.
+# WCAG 2.2 AA Audit & Remediation — Full Site
 
-Plan:
+Two-phase delivery: a written audit report grouped by severity, then code fixes for every feasible Critical and Warning finding. Info-level "best-practice" items will be fixed when the change is mechanical and safe.
 
-1. Convert parent routes into layouts
-   - Update `src/routes/_authenticated/staff/surveys.tsx` to render only `<Outlet />`.
-   - Update `src/routes/_authenticated/staff/communications.tsx` to render only `<Outlet />`.
+## What I'll audit (full site)
 
-2. Move the list pages to index child routes
-   - Create `src/routes/_authenticated/staff/surveys.index.tsx` containing the current Surveys list/new/delete/edit UI.
-   - Create `src/routes/_authenticated/staff/communications.index.tsx` containing the current Communications list/new/delete/edit UI.
-   - Use `createFileRoute("/_authenticated/staff/surveys/")` and `createFileRoute("/_authenticated/staff/communications/")` for those index pages.
+Every route in `src/routes/` — public pages (home, events, classes, venues, community, signup/login, survey responder, unsubscribe) plus the staff portal (`/staff/*`, `/staff/admin/*`) and authenticated user pages (hub, my-tickets, my-permits, etc.). Shared components in `src/components/` are reviewed once and the fixes propagate.
 
-3. Keep editor pages as the detail routes
-   - Leave `src/routes/_authenticated/staff/surveys.$id.tsx` as the actual survey editor.
-   - Leave `src/routes/_authenticated/staff/communications.$id.tsx` as the actual campaign editor.
-   - This will make the existing Edit buttons and post-create navigation render the editor forms instead of just changing the URL.
+## What I'll check (WCAG 2.2 AA)
 
-4. Fix survey analytics nesting if needed
-   - Because `/staff/surveys/$id/analytics` is nested under the survey detail route, adjust the survey detail route so analytics can render correctly rather than being blocked by the editor route.
+**Critical**
+- Images missing `alt`, decorative images missing `alt=""`
+- Icon-only buttons / links without accessible names (`aria-label` or visible text)
+- Form inputs without a `<Label htmlFor>` or `aria-label`; required fields without `aria-required` / error association
+- `onClick` on non-interactive elements (`div`/`span`) without role + keyboard handler
+- `aria-hidden` on focusable ancestors; focus traps with no escape
+- Color used as the only signal for status/errors
 
-5. Verify navigation behavior
-   - Confirm `/staff/surveys` shows the survey list.
-   - Confirm `/staff/surveys/:id` shows the survey editor with title, department, questions, and save controls.
-   - Confirm `/staff/communications` shows the campaign list.
-   - Confirm `/staff/communications/:id` shows the campaign editor with subject, body, department, audience, send/test controls.
+**Warning**
+- Hardcoded color classes (`text-gray-*`, `text-white`, `bg-slate-*`) replaced with semantic tokens (`text-foreground`, `text-muted-foreground`, `bg-card`, …) — wholesale 640 hits to triage; fix every one in user-visible UI
+- Multiple `<main>` per page — collapse to exactly one, lifted into the route layout
+- `h-screen` → `h-dvh` on full-height layouts (mobile viewport bug)
+- Heading order (no `h1`→`h3` jumps, single `h1` per route)
+- Focus-visible rings present on every interactive element
+- Tap targets ≥ 44×44 on mobile (icon buttons get `min-h-11 min-w-11`)
+- `tabIndex` > 0 removed; `autoFocus` only inside dialogs
+- WCAG 2.2 additions: focus appearance (2 px non-obscured outline), target size minimum, dragging alternatives, consistent help, redundant entry on multi-step forms
+- Form errors announced via `role="alert"` / `aria-live`, error text linked with `aria-describedby`
+
+**Info / best practice**
+- Decorative icons get `aria-hidden="true"`
+- Lists use `<ul>`/`<ol>`
+- `lang="en"` on `<html>` (already present — verify)
+- Skip-to-content link in root layout
+- Dynamic toasts already use Sonner (live region) — confirm
+- Redundant ARIA stripped from native elements
+
+## Known hotspots from initial sweep
+
+- Icon buttons missing `aria-label` in: `operating-hours-editor`, `staff/venues`, `staff/index`, `staff/admin.guidebook-canvas`, `staff/admin.social`, `staff/admin.home`, `staff/admin.guidebook-publisher`, `staff/admin.guidebook`, `staff/admin.permits`, `RichTextEditor` toolbar
+- 640 hardcoded color-class usages across components/routes
+- 58 `h-screen` usages → migrate to `h-dvh`
+- Only 11 `aria-label` occurrences project-wide vs. many icon-only controls
+- `tabIndex={0}` on a non-interactive element in `staff/admin.social`
+- Root layout has no skip link
+
+## Deliverables
+
+1. **Audit report** posted in chat: counts by severity, per-area findings (Public, Auth, Staff, Admin, Components), top offending files.
+2. **Code fixes** in passes:
+   - Pass A — Critical: alt text, form labels, icon-button aria-labels, `<main>` deduplication, skip link, semantic landmarks.
+   - Pass B — Warning: hardcoded color → semantic token sweep, `h-screen` → `h-dvh`, focus rings, target sizes, heading order, error association, `tabIndex` cleanup, WCAG 2.2 additions.
+   - Pass C — Info: decorative icon `aria-hidden`, redundant ARIA removal, list semantics.
+3. **Verification**: visual spot-check via preview at desktop + mobile viewports; lint check that build still passes.
+
+## Out of scope
+
+- Third-party embeds (maps, payment iframes) — flagged with mitigation notes, not rewritten.
+- WCAG AAA criteria (7:1 contrast, sign-language alternatives).
+- Server-rendered emails — fixed only if the templates produce visibly inaccessible markup.
+- Manual screen-reader testing (NVDA/VoiceOver) — recommended as a follow-up; I'll set the markup up correctly but can't drive an AT.
+
+## Technical notes
+
+- Color sweep prefers token map: `text-gray-500/600` → `text-muted-foreground`; `text-gray-900/black` → `text-foreground`; `bg-white` → `bg-background`/`bg-card`; `bg-slate-*` chips → `bg-muted`/`bg-secondary`. Status colors (red/green/amber) kept where they encode meaning but paired with text/icon, not color alone.
+- Skip link added once in `src/routes/__root.tsx` `RootComponent`, targeting `#main-content` set on each route's `<main>`.
+- Icon button fix uses shadcn pattern: keep `size="icon"`, add `aria-label="…"`, mark inner Lucide icon `aria-hidden`.
+- Toaster already mounted globally — no live-region changes needed.
