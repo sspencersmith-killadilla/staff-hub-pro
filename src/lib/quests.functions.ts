@@ -336,6 +336,7 @@ export const completeWaypoint = createServerFn({ method: "POST" })
       .parse(i),
   )
   .handler(async ({ data, context }) => {
+    await assertCivicQuestsEnabled();
     let waypointId = data.waypointId ?? null;
     let secret: string | null = null;
 
