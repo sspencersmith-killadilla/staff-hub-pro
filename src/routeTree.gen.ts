@@ -24,12 +24,14 @@ import { Route as ClassesRouteImport } from './routes/classes'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RoomsIndexRouteImport } from './routes/rooms.index'
+import { Route as ExploreIndexRouteImport } from './routes/explore.index'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as VenuesIdRouteImport } from './routes/venues.$id'
 import { Route as SurveyIdRouteImport } from './routes/survey.$id'
 import { Route as StagesIdRouteImport } from './routes/stages.$id'
 import { Route as RoomsIdRouteImport } from './routes/rooms.$id'
 import { Route as GigsIdRouteImport } from './routes/gigs.$id'
+import { Route as ExploreQuestIdRouteImport } from './routes/explore.$questId'
 import { Route as EventsIdRouteImport } from './routes/events.$id'
 import { Route as DepartmentsIdRouteImport } from './routes/departments.$id'
 import { Route as CommunityEventsIdRouteImport } from './routes/community-events.$id'
@@ -72,6 +74,7 @@ import { Route as AuthenticatedStaffCommunicationsIdRouteImport } from './routes
 import { Route as AuthenticatedStaffAdminTenantsRouteImport } from './routes/_authenticated/staff/admin.tenants'
 import { Route as AuthenticatedStaffAdminSocialIntegrationsRouteImport } from './routes/_authenticated/staff/admin.social-integrations'
 import { Route as AuthenticatedStaffAdminSocialRouteImport } from './routes/_authenticated/staff/admin.social'
+import { Route as AuthenticatedStaffAdminQuestsRouteImport } from './routes/_authenticated/staff/admin.quests'
 import { Route as AuthenticatedStaffAdminPermitsRouteImport } from './routes/_authenticated/staff/admin.permits'
 import { Route as AuthenticatedStaffAdminPermissionsRouteImport } from './routes/_authenticated/staff/admin.permissions'
 import { Route as AuthenticatedStaffAdminHomeRouteImport } from './routes/_authenticated/staff/admin.home'
@@ -164,6 +167,11 @@ const RoomsIndexRoute = RoomsIndexRouteImport.update({
   path: '/rooms/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExploreIndexRoute = ExploreIndexRouteImport.update({
+  id: '/explore/',
+  path: '/explore/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EventsIndexRoute = EventsIndexRouteImport.update({
   id: '/events/',
   path: '/events/',
@@ -192,6 +200,11 @@ const RoomsIdRoute = RoomsIdRouteImport.update({
 const GigsIdRoute = GigsIdRouteImport.update({
   id: '/gigs/$id',
   path: '/gigs/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExploreQuestIdRoute = ExploreQuestIdRouteImport.update({
+  id: '/explore/$questId',
+  path: '/explore/$questId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EventsIdRoute = EventsIdRouteImport.update({
@@ -430,6 +443,12 @@ const AuthenticatedStaffAdminSocialRoute =
     path: '/social',
     getParentRoute: () => AuthenticatedStaffAdminRoute,
   } as any)
+const AuthenticatedStaffAdminQuestsRoute =
+  AuthenticatedStaffAdminQuestsRouteImport.update({
+    id: '/quests',
+    path: '/quests',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
 const AuthenticatedStaffAdminPermitsRoute =
   AuthenticatedStaffAdminPermitsRouteImport.update({
     id: '/permits',
@@ -558,12 +577,14 @@ export interface FileRoutesByFullPath {
   '/community-events/$id': typeof CommunityEventsIdRoute
   '/departments/$id': typeof DepartmentsIdRoute
   '/events/$id': typeof EventsIdRoute
+  '/explore/$questId': typeof ExploreQuestIdRoute
   '/gigs/$id': typeof GigsIdRoute
   '/rooms/$id': typeof RoomsIdRoute
   '/stages/$id': typeof StagesIdRoute
   '/survey/$id': typeof SurveyIdRoute
   '/venues/$id': typeof VenuesIdRoute
   '/events/': typeof EventsIndexRoute
+  '/explore/': typeof ExploreIndexRoute
   '/rooms/': typeof RoomsIndexRoute
   '/community/apply': typeof AuthenticatedCommunityApplyRoute
   '/community/manage': typeof AuthenticatedCommunityManageRoute
@@ -597,6 +618,7 @@ export interface FileRoutesByFullPath {
   '/staff/admin/home': typeof AuthenticatedStaffAdminHomeRoute
   '/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
   '/staff/admin/permits': typeof AuthenticatedStaffAdminPermitsRoute
+  '/staff/admin/quests': typeof AuthenticatedStaffAdminQuestsRoute
   '/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
   '/staff/admin/social-integrations': typeof AuthenticatedStaffAdminSocialIntegrationsRoute
   '/staff/admin/tenants': typeof AuthenticatedStaffAdminTenantsRoute
@@ -638,12 +660,14 @@ export interface FileRoutesByTo {
   '/community-events/$id': typeof CommunityEventsIdRoute
   '/departments/$id': typeof DepartmentsIdRoute
   '/events/$id': typeof EventsIdRoute
+  '/explore/$questId': typeof ExploreQuestIdRoute
   '/gigs/$id': typeof GigsIdRoute
   '/rooms/$id': typeof RoomsIdRoute
   '/stages/$id': typeof StagesIdRoute
   '/survey/$id': typeof SurveyIdRoute
   '/venues/$id': typeof VenuesIdRoute
   '/events': typeof EventsIndexRoute
+  '/explore': typeof ExploreIndexRoute
   '/rooms': typeof RoomsIndexRoute
   '/community/apply': typeof AuthenticatedCommunityApplyRoute
   '/community/manage': typeof AuthenticatedCommunityManageRoute
@@ -675,6 +699,7 @@ export interface FileRoutesByTo {
   '/staff/admin/home': typeof AuthenticatedStaffAdminHomeRoute
   '/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
   '/staff/admin/permits': typeof AuthenticatedStaffAdminPermitsRoute
+  '/staff/admin/quests': typeof AuthenticatedStaffAdminQuestsRoute
   '/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
   '/staff/admin/social-integrations': typeof AuthenticatedStaffAdminSocialIntegrationsRoute
   '/staff/admin/tenants': typeof AuthenticatedStaffAdminTenantsRoute
@@ -718,12 +743,14 @@ export interface FileRoutesById {
   '/community-events/$id': typeof CommunityEventsIdRoute
   '/departments/$id': typeof DepartmentsIdRoute
   '/events/$id': typeof EventsIdRoute
+  '/explore/$questId': typeof ExploreQuestIdRoute
   '/gigs/$id': typeof GigsIdRoute
   '/rooms/$id': typeof RoomsIdRoute
   '/stages/$id': typeof StagesIdRoute
   '/survey/$id': typeof SurveyIdRoute
   '/venues/$id': typeof VenuesIdRoute
   '/events/': typeof EventsIndexRoute
+  '/explore/': typeof ExploreIndexRoute
   '/rooms/': typeof RoomsIndexRoute
   '/_authenticated/community/apply': typeof AuthenticatedCommunityApplyRoute
   '/_authenticated/community/manage': typeof AuthenticatedCommunityManageRoute
@@ -757,6 +784,7 @@ export interface FileRoutesById {
   '/_authenticated/staff/admin/home': typeof AuthenticatedStaffAdminHomeRoute
   '/_authenticated/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
   '/_authenticated/staff/admin/permits': typeof AuthenticatedStaffAdminPermitsRoute
+  '/_authenticated/staff/admin/quests': typeof AuthenticatedStaffAdminQuestsRoute
   '/_authenticated/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
   '/_authenticated/staff/admin/social-integrations': typeof AuthenticatedStaffAdminSocialIntegrationsRoute
   '/_authenticated/staff/admin/tenants': typeof AuthenticatedStaffAdminTenantsRoute
@@ -801,12 +829,14 @@ export interface FileRouteTypes {
     | '/community-events/$id'
     | '/departments/$id'
     | '/events/$id'
+    | '/explore/$questId'
     | '/gigs/$id'
     | '/rooms/$id'
     | '/stages/$id'
     | '/survey/$id'
     | '/venues/$id'
     | '/events/'
+    | '/explore/'
     | '/rooms/'
     | '/community/apply'
     | '/community/manage'
@@ -840,6 +870,7 @@ export interface FileRouteTypes {
     | '/staff/admin/home'
     | '/staff/admin/permissions'
     | '/staff/admin/permits'
+    | '/staff/admin/quests'
     | '/staff/admin/social'
     | '/staff/admin/social-integrations'
     | '/staff/admin/tenants'
@@ -881,12 +912,14 @@ export interface FileRouteTypes {
     | '/community-events/$id'
     | '/departments/$id'
     | '/events/$id'
+    | '/explore/$questId'
     | '/gigs/$id'
     | '/rooms/$id'
     | '/stages/$id'
     | '/survey/$id'
     | '/venues/$id'
     | '/events'
+    | '/explore'
     | '/rooms'
     | '/community/apply'
     | '/community/manage'
@@ -918,6 +951,7 @@ export interface FileRouteTypes {
     | '/staff/admin/home'
     | '/staff/admin/permissions'
     | '/staff/admin/permits'
+    | '/staff/admin/quests'
     | '/staff/admin/social'
     | '/staff/admin/social-integrations'
     | '/staff/admin/tenants'
@@ -960,12 +994,14 @@ export interface FileRouteTypes {
     | '/community-events/$id'
     | '/departments/$id'
     | '/events/$id'
+    | '/explore/$questId'
     | '/gigs/$id'
     | '/rooms/$id'
     | '/stages/$id'
     | '/survey/$id'
     | '/venues/$id'
     | '/events/'
+    | '/explore/'
     | '/rooms/'
     | '/_authenticated/community/apply'
     | '/_authenticated/community/manage'
@@ -999,6 +1035,7 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/admin/home'
     | '/_authenticated/staff/admin/permissions'
     | '/_authenticated/staff/admin/permits'
+    | '/_authenticated/staff/admin/quests'
     | '/_authenticated/staff/admin/social'
     | '/_authenticated/staff/admin/social-integrations'
     | '/_authenticated/staff/admin/tenants'
@@ -1036,11 +1073,13 @@ export interface RootRouteChildren {
   CommunityEventsIdRoute: typeof CommunityEventsIdRoute
   DepartmentsIdRoute: typeof DepartmentsIdRoute
   EventsIdRoute: typeof EventsIdRoute
+  ExploreQuestIdRoute: typeof ExploreQuestIdRoute
   GigsIdRoute: typeof GigsIdRoute
   RoomsIdRoute: typeof RoomsIdRoute
   StagesIdRoute: typeof StagesIdRoute
   SurveyIdRoute: typeof SurveyIdRoute
   EventsIndexRoute: typeof EventsIndexRoute
+  ExploreIndexRoute: typeof ExploreIndexRoute
   RoomsIndexRoute: typeof RoomsIndexRoute
   ApiPublicDispatchDueRoute: typeof ApiPublicDispatchDueRoute
   ApiPublicUnsubscribeRoute: typeof ApiPublicUnsubscribeRoute
@@ -1159,6 +1198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RoomsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/explore/': {
+      id: '/explore/'
+      path: '/explore'
+      fullPath: '/explore/'
+      preLoaderRoute: typeof ExploreIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/events/': {
       id: '/events/'
       path: '/events'
@@ -1199,6 +1245,13 @@ declare module '@tanstack/react-router' {
       path: '/gigs/$id'
       fullPath: '/gigs/$id'
       preLoaderRoute: typeof GigsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/explore/$questId': {
+      id: '/explore/$questId'
+      path: '/explore/$questId'
+      fullPath: '/explore/$questId'
+      preLoaderRoute: typeof ExploreQuestIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/events/$id': {
@@ -1495,6 +1548,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffAdminSocialRouteImport
       parentRoute: typeof AuthenticatedStaffAdminRoute
     }
+    '/_authenticated/staff/admin/quests': {
+      id: '/_authenticated/staff/admin/quests'
+      path: '/quests'
+      fullPath: '/staff/admin/quests'
+      preLoaderRoute: typeof AuthenticatedStaffAdminQuestsRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
     '/_authenticated/staff/admin/permits': {
       id: '/_authenticated/staff/admin/permits'
       path: '/permits'
@@ -1643,6 +1703,7 @@ interface AuthenticatedStaffAdminRouteChildren {
   AuthenticatedStaffAdminHomeRoute: typeof AuthenticatedStaffAdminHomeRoute
   AuthenticatedStaffAdminPermissionsRoute: typeof AuthenticatedStaffAdminPermissionsRoute
   AuthenticatedStaffAdminPermitsRoute: typeof AuthenticatedStaffAdminPermitsRoute
+  AuthenticatedStaffAdminQuestsRoute: typeof AuthenticatedStaffAdminQuestsRoute
   AuthenticatedStaffAdminSocialRoute: typeof AuthenticatedStaffAdminSocialRouteWithChildren
   AuthenticatedStaffAdminSocialIntegrationsRoute: typeof AuthenticatedStaffAdminSocialIntegrationsRoute
   AuthenticatedStaffAdminTenantsRoute: typeof AuthenticatedStaffAdminTenantsRoute
@@ -1667,6 +1728,7 @@ const AuthenticatedStaffAdminRouteChildren: AuthenticatedStaffAdminRouteChildren
     AuthenticatedStaffAdminPermissionsRoute:
       AuthenticatedStaffAdminPermissionsRoute,
     AuthenticatedStaffAdminPermitsRoute: AuthenticatedStaffAdminPermitsRoute,
+    AuthenticatedStaffAdminQuestsRoute: AuthenticatedStaffAdminQuestsRoute,
     AuthenticatedStaffAdminSocialRoute:
       AuthenticatedStaffAdminSocialRouteWithChildren,
     AuthenticatedStaffAdminSocialIntegrationsRoute:
@@ -1848,11 +1910,13 @@ const rootRouteChildren: RootRouteChildren = {
   CommunityEventsIdRoute: CommunityEventsIdRoute,
   DepartmentsIdRoute: DepartmentsIdRoute,
   EventsIdRoute: EventsIdRoute,
+  ExploreQuestIdRoute: ExploreQuestIdRoute,
   GigsIdRoute: GigsIdRoute,
   RoomsIdRoute: RoomsIdRoute,
   StagesIdRoute: StagesIdRoute,
   SurveyIdRoute: SurveyIdRoute,
   EventsIndexRoute: EventsIndexRoute,
+  ExploreIndexRoute: ExploreIndexRoute,
   RoomsIndexRoute: RoomsIndexRoute,
   ApiPublicDispatchDueRoute: ApiPublicDispatchDueRoute,
   ApiPublicUnsubscribeRoute: ApiPublicUnsubscribeRoute,
@@ -1866,13 +1930,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

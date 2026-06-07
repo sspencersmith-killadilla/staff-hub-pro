@@ -1,81 +1,62 @@
-# Three Accessibility Follow-Ups
+# Civic Quests & Discovery + Ticket Scanner Standardization
 
-## 1. Screen-reader walkthrough — top 3 flows
+## Part 1 — Database (migration)
 
-I cannot literally drive NVDA or VoiceOver from this environment. What I *can* do is a **structural screen-reader simulation** for each flow: walk the rendered DOM the way a screen reader would announce it (landmarks → headings → labels → focusable order → live regions), flag every mismatch with WCAG references and a recommended fix, then apply the fixes.
+New migration `supabase-migrations/043_civic_quests.sql`:
 
-Flows:
-- **Ticket purchase** — `/events` → `/events/$id` → ticket selection → checkout → confirmation.
-- **Survey response** — `/survey/$id` (load, answer, submit, success/error state).
-- **Vendor application** — `/vendor` (multi-step form, photo upload, review, submit).
+- `quest_completion_type` enum: `qr_scan`, `geo_location`, `honor_system_button`
+- `public.quests` — `id`, `department_id`, `title`, `description`, `badge_image_url`, `is_active` (default false), `points_reward` (int default 0), timestamps
+- `public.quest_waypoints` — `id`, `quest_id` (cascade), `title`, `description`, `completion_type`, `secret_code` nullable, `lat`/`lng`/`radius_m` nullable, `sort_order`
+- `public.user_quest_progress` — `id`, `user_id` (cascade, NOT NULL), `quest_id`, `completed_waypoints jsonb default '[]'`, `is_completed bool`, `completed_at`, unique `(user_id, quest_id)`
+- `public.profiles.points int not null default 0` (new column for future leaderboard)
+- GRANTs + RLS:
+  - `quests`/`quest_waypoints`: SELECT for anon+authenticated where `is_active` (waypoints joined via quest); admin writes via `has_role`.
+  - `user_quest_progress`: row scoped to `auth.uid()`; INSERT requires `user_id = auth.uid()`.
+  - `profiles.points`: existing RLS unchanged; writes only via server fn using `supabaseAdmin`.
+- `secret_code` never selectable by anon/authenticated — public listing server fn projects explicit columns and omits it.
 
-What I'll check on each step:
-- Page has exactly one `<h1>`, sensible heading hierarchy.
-- Single `<main id="main-content">` reachable from the global skip link.
-- Form controls labeled (`<Label htmlFor>`, `aria-label`, or wrapping label) and required fields marked.
-- Validation errors associated via `aria-describedby` and announced via `role="alert"` / `aria-live="assertive"`.
-- Async state changes (loading, success toast, redirect) announced.
-- Focus order matches visual order; focus moves to the right place after step transitions and modal opens.
-- Buttons have visible text or `aria-label`; disabled state isn't communicated by color alone.
-- Image alts: descriptive for content, empty for decorative.
+## Part 2 — Admin Quest Builder
 
-Deliverable: a per-flow report (step-by-step transcript with issues), then a fix pass.
+- Route: `src/routes/_authenticated/staff/admin.quests.tsx` (added to admin nav).
+- `src/lib/quests.functions.ts` — admin CRUD via `requireSupabaseAuth` + `has_role(...,'admin')` check; uses `supabaseAdmin` internally.
+- Datatable: title, department, status, waypoint count, actions.
+- Builder: quest fields + reorderable waypoint list. Per waypoint type:
+  - `qr_scan`: auto-generate `secret_code` (nanoid) on save; render printable QR via `qrcode` encoding exactly `quest_{waypoint_id}_{secret_code}`. Print view shows title + QR.
+  - `geo_location`: lat/lng/radius inputs.
+  - `honor_system_button`: no extra config.
+- Deps: `bun add qrcode @types/qrcode`.
 
-Honesty note: structural simulation catches the vast majority of SR issues, but doesn't replace a live AT pass. I'll recommend the user (or a tester) run NVDA/VoiceOver against the same flows once fixes land.
+## Part 3 — Public `/explore`
 
-## 2. Vendor portal color-contrast audit
+- Discovery: **direct URL / hub only** — no header nav link. Add a "Civic Quests" card on `/hub` that links to `/explore`.
+- Routes:
+  - `src/routes/explore.index.tsx` — adventure-log grid of active quests (public server fn, no secrets).
+  - `src/routes/explore.$questId.tsx` — quest detail + waypoint progress. Signed-out users see "Sign in to track progress" CTA (no redirect, per public-route rules).
+- Waypoint completion via server fn `completeWaypoint({ raw, questId })`:
+  - `qr_scan`: parse `quest_{waypoint_id}_{secret_code}`; server validates secret with `supabaseAdmin`.
+  - `honor_system_button`: confirm → server fn (no secret check).
+  - `geo_location`: pass user coords; server validates haversine ≤ `radius_m`.
+  - On any completion: append waypoint to `completed_waypoints`; if all done set `is_completed=true`, `completed_at=now()`, and increment `profiles.points` by `points_reward` (idempotent — only on the transition to completed).
+- Scanner uses existing `@yudiel/react-qr-scanner` in a modal.
+- Success: `canvas-confetti` burst + sonner toast. Deps: `bun add canvas-confetti @types/canvas-confetti`.
+- Hub badges: extend `src/routes/_authenticated/hub.tsx` to render earned badges (badge_image_url + title) and current `profiles.points` total.
 
-`src/routes/vendor.tsx` uses a fixed gov.uk-style palette outside the theme system. I'll compute WCAG 2.2 contrast ratios for every foreground/background combination actually used in the file, against:
-- **Normal text** — needs ≥ 4.5:1 (AA) / ≥ 7:1 (AAA).
-- **Large text** (≥18pt or 14pt bold) — needs ≥ 3:1 (AA) / ≥ 4.5:1 (AAA).
-- **Non-text UI** (borders, focus rings, icons conveying info) — needs ≥ 3:1.
+## Part 4 — Standardize Staff Ticket Scanner
 
-Palette in use:
-```
-#005ea2  #00a91c  #112e51  #1a4480  #1b1b1b
-#825e0e  #a57914  #aebecf  #bbf7d0  #e4f2e7
-#e8c872  #f0f6ff  #f4f6f9  #fde047  #fde68a
-#fef3c7  #fff3d4  #fffcf2  #fffdf5
-```
+- Ticket QR generation sites (search `my-tickets.tsx` and any ticket QR render) → emit `ticket_{ticket_id}`.
+- `src/routes/_authenticated/staff/attendees.tsx` — update `handleScan` + `handleManual`:
+  - If input `startsWith("quest_")` → red toast `"Invalid Ticket Format"`.
+  - If `startsWith("ticket_")` → strip prefix, run existing check-in.
+  - **Legacy bare-ID fallback for N days**: add `LEGACY_TICKET_CUTOFF` constant (set to today + 30 days) in the route. Until that date, bare UUIDs are still accepted and a yellow warning toast logs "Legacy ticket format — re-issue soon". After the cutoff, bare IDs are rejected with the standard red toast.
 
-Process:
-1. Grep every `text-[#…]` / `bg-[#…]` pair in `vendor.tsx`; collect the actual combinations used.
-2. Write a small Node script to compute the WCAG relative-luminance contrast ratio for each pair.
-3. Produce a table: pair → ratio → AA normal / AA large / non-text → pass or fail.
-4. For each failure, swap to the nearest brand-compatible color that passes (usually darker text or darker fill). Example expected issue: `#825e0e` on `#fff3d4` body text is borderline; `#aebecf` borders on `#f4f6f9` likely under 3:1.
-5. Apply fixes in `vendor.tsx`. Other files in the codebase already use semantic tokens and were covered in the previous audit, so scope stays in this one file.
+## Part 5 — Leaderboard groundwork (no UI yet)
 
-Deliverable: contrast report posted in chat + fixes.
+- `profiles.points` column added in Part 1.
+- Server fn stub `src/lib/leaderboard.functions.ts` with `getTopPoints({ limit })` returning `{user_id, display_name, points}` ordered desc — wired but not yet rendered. Documented in plan for a future `/explore/leaderboard` route.
 
-## 3. Automated `vitest-axe` per-route regression coverage
+## Technical notes
 
-The project has no test setup today. I'll bootstrap one focused on accessibility:
-
-**Setup**
-- Add devDependencies: `vitest`, `@vitest/ui`, `jsdom`, `@testing-library/react`, `@testing-library/jest-dom`, `vitest-axe`, `axe-core`.
-- Add `vitest.config.ts` with `environment: "jsdom"` and a setup file that:
-  - Mocks `@tanstack/react-router` `Link` / `useNavigate` / `Outlet`.
-  - Mocks Supabase clients (`@/integrations/supabase/client`, server functions) so route components don't try to fetch.
-  - Provides a `QueryClient` wrapper.
-- Add `bun test:a11y` script.
-
-**Per-route tests**
-- Generate one test per route file in `src/__tests__/a11y/<route>.test.tsx`.
-- Each test:
-  1. Imports the route's component (not the route object).
-  2. Renders it inside the wrapper with stub loader data (smallest shape that lets it render).
-  3. Calls `axe(container)` and asserts no violations.
-- Coverage: every page in `src/routes/`, both public and authenticated. Routes that hard-require auth render the gated layout in a "signed-in" mock state.
-
-**Limits I'll be upfront about**
-- axe catches roughly 30–40% of real accessibility issues — it's a regression net, not a guarantee of compliance.
-- Routes with complex data shapes will get minimal-data smoke tests; deep state-based variants (filled forms, error states) aren't auto-covered.
-- Test setup adds ~6 dev dependencies and a `vitest.config.ts`. No prod bundle impact.
-
-## Suggested order
-
-1. Vendor contrast audit (smallest, contained — 1 file).
-2. vitest-axe setup + initial test sweep (catches structural issues across all routes immediately).
-3. Manual SR walkthrough on the 3 flows (uses the same setup; deeper fixes informed by what axe missed).
-
-I'll keep going through all three unless you want to skip one.
+- All secret validation, progress writes, and `profiles.points` increments happen server-side; clients never see `secret_code`.
+- Admin gating uses existing `has_role(auth.uid(),'admin')`.
+- Public loaders call public server fns (admin-elevated, projected columns) — never `requireSupabaseAuth` from public routes.
+- Confetti and QR libs imported only inside client components.

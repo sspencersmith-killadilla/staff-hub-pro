@@ -16,7 +16,11 @@ import {
   Shield,
   CalendarHeart,
   FileText,
+  Compass,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { listMyEarnedQuests } from "@/lib/quests.functions";
 
 export const Route = createFileRoute("/_authenticated/hub")({
   head: () => ({
@@ -116,6 +120,14 @@ function HubPage() {
       icon: FileText,
       accent: "from-blue-500 to-indigo-600",
       cta: "Start application",
+    },
+    {
+      title: "Civic Quests",
+      description: "Self-guided adventures around the city. Earn badges and points.",
+      to: "/explore",
+      icon: Compass,
+      accent: "from-amber-500 to-orange-600",
+      cta: "Start exploring",
     },
   ];
 
@@ -258,6 +270,8 @@ function HubPage() {
           </div>
         </Link>
 
+        <QuestBadges />
+
         {idsToRender.map((sid, idx) => {
           const sect = sectionMap[sid];
           if (!sect) return null;
@@ -291,6 +305,58 @@ function HubPage() {
         })}
       </div>
     </div>
+  );
+}
+
+function QuestBadges() {
+  const fetchMine = useServerFn(listMyEarnedQuests);
+  const { data } = useQuery({
+    queryKey: ["my-earned-quests"],
+    queryFn: () => fetchMine(),
+  });
+  const earned = (data?.entries ?? []).filter((e) => e.is_completed);
+  if (!data) return null;
+  return (
+    <section className="mb-10 rounded-xl border-2 border-stone-900 bg-amber-100 p-5 shadow-[4px_4px_0_0_rgba(0,0,0,0.9)]">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-serif text-xl font-black text-stone-900">
+            Quest Badges
+          </h2>
+          <p className="text-xs font-bold uppercase tracking-wider text-stone-700">
+            {data.points} pts · {earned.length} earned
+          </p>
+        </div>
+        <Link
+          to="/explore"
+          className="rounded-md bg-stone-900 px-3 py-2 text-xs font-bold uppercase tracking-wider text-amber-100 hover:bg-stone-700"
+        >
+          Find more →
+        </Link>
+      </div>
+      {earned.length > 0 && (
+        <ul className="mt-4 flex flex-wrap gap-3">
+          {earned.map((e) => (
+            <li
+              key={e.quest_id}
+              className="flex items-center gap-2 rounded-full border-2 border-stone-900 bg-white px-3 py-1"
+              title={e.title}
+            >
+              {e.badge_image_url ? (
+                <img
+                  src={e.badge_image_url}
+                  alt=""
+                  className="h-8 w-8 rounded-full object-cover"
+                />
+              ) : (
+                <Compass className="h-5 w-5 text-amber-700" />
+              )}
+              <span className="text-sm font-bold text-stone-900">{e.title}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 

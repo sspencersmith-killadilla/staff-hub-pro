@@ -83,15 +83,16 @@ function TicketCard({ ticket }: { ticket: MyTicket }) {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
+    const payload = `ticket_${ticket.id}`;
     if (canvasRef.current) {
-      QRCode.toCanvas(canvasRef.current, ticket.id, {
+      QRCode.toCanvas(canvasRef.current, payload, {
         width: 200,
         margin: 2,
         errorCorrectionLevel: "M",
       });
     }
     QRCode.toDataURL(
-      ticket.id,
+      payload,
       { width: 720, margin: 2, errorCorrectionLevel: "M" },
       (e, url) => {
         if (!e) setDataUrl(url);
