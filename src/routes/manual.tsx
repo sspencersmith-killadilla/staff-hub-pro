@@ -1241,23 +1241,37 @@ const sections: Section[] = [
     render: () => (
       <>
         <p>
-          Each department has a public landing page at{" "}
-          <code>/departments/&lt;id&gt;</code> that shows its logo, name, and a
-          curated grid of <strong>upcoming events</strong> and{" "}
-          <strong>bookable rooms</strong> scoped to that department only.
+          Every department has a <strong>public</strong> landing page at{" "}
+          <code>/departments/&lt;id&gt;</code> showing its logo, name, and — all
+          scoped to that one department —{" "}
+          <strong>upcoming events</strong>, <strong>classes</strong>,{" "}
+          <strong>bookable rooms</strong>, and any <strong>Streetbeats gigs</strong>{" "}
+          at its stages. No login required.
         </p>
+        <Callout kind="tip">
+          Don't know the department's ID? Send people to{" "}
+          <code>/departments</code> — the public directory lists every
+          department with a quick count of events, classes, and rooms. For
+          example: open <code>/departments</code>, click <strong>Library</strong>,
+          and you'll see only what the Library offers.
+        </Callout>
         <ul className="my-4 list-disc space-y-2 pl-6 text-sm">
           <li>
             Great for sharing — link the Fire Department's page to send people
             straight to their open houses and training rooms.
           </li>
           <li>
-            Theming (colors, logo) on the hub matches the department's brand,
-            so it doesn't feel like a generic listing.
+            Theming (colors, logo) matches the department's brand, so the page
+            doesn't feel like a generic listing.
           </li>
           <li>
-            Public visitors can click straight from the hub into ticketing or
-            room booking, with the department's policy applied automatically.
+            Visitors can reorder or hide the Events / Classes / Rooms / Gigs
+            sections with the <em>Customize</em> toolbar; the layout is saved
+            per account.
+          </li>
+          <li>
+            Clicking through goes straight into ticketing, class registration,
+            or room booking with the department's policy applied automatically.
           </li>
         </ul>
       </>
