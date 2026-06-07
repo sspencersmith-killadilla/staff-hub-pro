@@ -361,39 +361,43 @@ function CardRow({
               type="button"
               variant="ghost"
               size="icon"
+              aria-label="Edit"
               onClick={() => setEditOpen(true)}
               title="Edit"
             >
-              <Pencil className="h-4 w-4" />
+              <Pencil className="h-4 w-4" aria-hidden="true" />
             </Button>
           )}
           <Button
             type="button"
             variant="ghost"
             size="icon"
+            aria-label={item.hidden ? "Show" : "Hide"}
             onClick={onToggleHidden}
             title={item.hidden ? "Show" : "Hide"}
           >
-            {item.hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            {item.hidden ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
           </Button>
           <Button
             type="button"
             variant="ghost"
             size="icon"
+            aria-label="Insert ad slot below"
             onClick={() => setAdPickerOpen(true)}
             title="Insert ad slot below"
             disabled={data.sponsors.length === 0}
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4" aria-hidden="true" />
           </Button>
           <Button
             type="button"
             variant="ghost"
             size="icon"
+            aria-label="Remove"
             onClick={onRemove}
             title="Remove"
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
       </div>

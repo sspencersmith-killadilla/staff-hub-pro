@@ -321,12 +321,13 @@ function GuidebookSponsorsCard() {
                     type="button"
                     size="icon"
                     variant="ghost"
+                    aria-label={`Delete sponsor ${s.company_name}`}
                     onClick={() => {
                       if (confirm(`Delete sponsor "${s.company_name}"?`)) deleteMut.mutate(s.id);
                     }}
                     title="Delete"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-4 w-4" aria-hidden="true" />
                   </Button>
                 </li>
               ))}
