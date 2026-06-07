@@ -197,6 +197,12 @@ function AdminPage() {
           >
             Civic Quests →
           </Link>
+          <Link
+            to="/staff/quests-report"
+            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
+          >
+            Civic Quests — Report →
+          </Link>
 
 
 
