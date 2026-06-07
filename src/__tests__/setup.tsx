@@ -124,3 +124,13 @@ vi.mock("@/integrations/supabase/client", () => {
     },
   };
 });
+
+// SiteHeader pulls from DepartmentContext / RoleContext / etc. Render a stub.
+vi.mock("@/components/site-header", () => ({
+  SiteHeader: () => <header role="banner" />,
+}));
+
+// requireModule throws redirect outside router context — make it inert
+vi.mock("@/lib/require-module", () => ({
+  requireModule: () => undefined,
+}));
