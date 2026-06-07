@@ -26,7 +26,10 @@ import {
   Share2,
   Mail,
   ClipboardList,
+  MapPin,
+  AlertTriangle,
 } from "lucide-react";
+
 
 import homeImg from "@/assets/manual/home.png";
 import eventsImg from "@/assets/manual/events.png";
