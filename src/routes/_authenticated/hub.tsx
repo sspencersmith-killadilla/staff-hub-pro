@@ -16,7 +16,11 @@ import {
   Shield,
   CalendarHeart,
   FileText,
+  Compass,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { listMyEarnedQuests } from "@/lib/quests.functions";
 
 export const Route = createFileRoute("/_authenticated/hub")({
   head: () => ({
@@ -116,6 +120,14 @@ function HubPage() {
       icon: FileText,
       accent: "from-blue-500 to-indigo-600",
       cta: "Start application",
+    },
+    {
+      title: "Civic Quests",
+      description: "Self-guided adventures around the city. Earn badges and points.",
+      to: "/explore",
+      icon: Compass,
+      accent: "from-amber-500 to-orange-600",
+      cta: "Start exploring",
     },
   ];
 
