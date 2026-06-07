@@ -52,7 +52,7 @@ export const getDepartmentHub = createServerFn({ method: "GET" })
     if (deptErr) throw new Error(deptErr.message);
     if (!dept) throw new Error("Department not found");
 
-    const [sessionsRes, roomsRes, venueRoomsRes, deptStagesRes] = await Promise.all([
+    const [sessionsRes, roomsRes, venueRoomsRes, deptStagesRes, coursesRes] = await Promise.all([
       supabaseAdmin
         .from("sessions")
         .select("id, title, start_time, end_time, image_url, focal_x, focal_y")
@@ -75,16 +75,57 @@ export const getDepartmentHub = createServerFn({ method: "GET" })
         .from("stages")
         .select("id, name, venue:venues!inner(id, name, department_id)")
         .eq("venues.department_id", data.id),
+      supabaseAdmin
+        .from("courses")
+        .select("id, title, description, price, image_url")
+        .eq("department_id", data.id)
+        .limit(48),
     ]);
 
     if (sessionsRes.error) throw new Error(sessionsRes.error.message);
     if (roomsRes.error) throw new Error(roomsRes.error.message);
     if (venueRoomsRes.error) throw new Error(venueRoomsRes.error.message);
     if (deptStagesRes.error) throw new Error(deptStagesRes.error.message);
+    if (coursesRes.error) throw new Error(coursesRes.error.message);
     const roomsById = new Map<string, any>();
     for (const room of [...(roomsRes.data ?? []), ...(venueRoomsRes.data ?? [])]) {
       roomsById.set(String((room as any).id), room);
     }
+
+    // Classes — augment with next upcoming session
+    const courseList = coursesRes.data ?? [];
+    const courseIds = courseList.map((c: any) => c.id);
+    let nextSessionByCourse: Record<string, { start_time: string; end_time: string } | null> = {};
+    if (courseIds.length) {
+      const { data: csRows } = await supabaseAdmin
+        .from("course_sessions")
+        .select("course_id, start_time, end_time")
+        .in("course_id", courseIds)
+        .gte("end_time", nowIso)
+        .order("start_time", { ascending: true });
+      for (const cs of csRows ?? []) {
+        const cid = (cs as any).course_id as string;
+        if (!nextSessionByCourse[cid]) {
+          nextSessionByCourse[cid] = {
+            start_time: (cs as any).start_time,
+            end_time: (cs as any).end_time,
+          };
+        }
+      }
+    }
+    const classes = courseList
+      .map((c: any) => ({
+        id: c.id,
+        title: c.title,
+        description: c.description,
+        price: c.price,
+        image_url: c.image_url,
+        next_session: nextSessionByCourse[c.id] ?? null,
+      }))
+      .filter((c) => c.next_session) // only show classes with upcoming sessions
+      .sort((a, b) =>
+        (a.next_session!.start_time ?? "").localeCompare(b.next_session!.start_time ?? ""),
+      );
 
     // Streetbeats gigs scoped to stages owned by this department.
     const stageIds = (deptStagesRes.data ?? []).map((s: any) => s.id);
@@ -139,5 +180,64 @@ export const getDepartmentHub = createServerFn({ method: "GET" })
       events: sessionsRes.data ?? [],
       rooms: Array.from(roomsById.values()),
       gigs,
+      classes,
     };
   });
+
+/** Public list of departments that have at least one public-facing item. */
+export const listPublicDepartments = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const { data: depts, error } = await supabaseAdmin
+      .from("departments")
+      .select("id, name, logo_url")
+      .order("name");
+    if (error) throw new Error(error.message);
+    const list = depts ?? [];
+    if (!list.length) return [];
+
+    const nowIso = new Date().toISOString();
+    const ids = list.map((d: any) => d.id);
+
+    const [eventsCounts, classesCounts, deptRoomsCounts, venueRoomIds] = await Promise.all([
+      supabaseAdmin
+        .from("sessions")
+        .select("department_id")
+        .in("department_id", ids)
+        .gte("start_time", nowIso),
+      supabaseAdmin.from("courses").select("department_id").in("department_id", ids),
+      supabaseAdmin
+        .from("rooms")
+        .select("department_id")
+        .in("department_id", ids),
+      supabaseAdmin
+        .from("venues")
+        .select("department_id")
+        .in("department_id", ids),
+    ]);
+
+    const tally = (rows: any[] | null | undefined) => {
+      const m: Record<string, number> = {};
+      for (const r of rows ?? []) {
+        const k = (r as any).department_id as string | null;
+        if (!k) continue;
+        m[k] = (m[k] ?? 0) + 1;
+      }
+      return m;
+    };
+    const ev = tally(eventsCounts.data);
+    const cl = tally(classesCounts.data);
+    const rm = tally(deptRoomsCounts.data);
+    const vn = tally(venueRoomIds.data);
+
+    return list
+      .map((d: any) => ({
+        id: d.id,
+        name: d.name,
+        logo_url: d.logo_url,
+        upcoming_events: ev[d.id] ?? 0,
+        classes: cl[d.id] ?? 0,
+        rooms: (rm[d.id] ?? 0) + (vn[d.id] ?? 0),
+      }))
+      .filter((d) => d.upcoming_events + d.classes + d.rooms > 0);
+  },
+);

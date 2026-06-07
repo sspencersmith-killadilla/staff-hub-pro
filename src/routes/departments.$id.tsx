@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
-import { Building2, CalendarDays, DoorOpen, Info, Music } from "lucide-react";
+import { Building2, CalendarDays, DoorOpen, GraduationCap, Info, Music } from "lucide-react";
 import { getDepartmentHub } from "@/lib/departments.functions";
 import { SiteHeader } from "@/components/site-header";
 import { BrandThemeApplier } from "@/components/theme-provider";
@@ -32,12 +32,12 @@ export const Route = createFileRoute("/departments/$id")({
   component: DepartmentHub,
 });
 
-const ALL_SECTIONS = ["events", "gigs", "rooms"] as const;
+const ALL_SECTIONS = ["events", "classes", "gigs", "rooms"] as const;
 
 function DepartmentHub() {
   const { id } = Route.useParams();
   const { data } = useSuspenseQuery(hubQO(id));
-  const { department, events, rooms, gigs = [] } = data as any;
+  const { department, events, rooms, gigs = [], classes = [] } = data as any;
   const [editing, setEditing] = useState(false);
 
   const { visibleIds, orderedIds, hidden, move, toggleHidden, reset } = useLayoutPrefs(
@@ -105,6 +105,10 @@ function DepartmentHub() {
                 {sectionId === "events" ? (
                   <>
                     <CalendarDays className="h-5 w-5" /> Upcoming Events
+                  </>
+                ) : sectionId === "classes" ? (
+                  <>
+                    <GraduationCap className="h-5 w-5" /> Classes
                   </>
                 ) : sectionId === "gigs" ? (
                   <>
@@ -198,6 +202,52 @@ function DepartmentHub() {
                               {new Date(e.start_time).toLocaleString()}
                             </p>
                           )}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )
+              ) : sectionId === "classes" ? (
+                classes.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No upcoming classes for this department.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {classes.map((c: any) => (
+                      <Link
+                        key={c.id}
+                        to="/classes/$id"
+                        params={{ id: c.id }}
+                        className="group overflow-hidden rounded-lg border bg-card transition-shadow hover:shadow-md"
+                        style={{ borderColor: "color-mix(in oklab, var(--primary) 25%, transparent)" }}
+                      >
+                        {c.image_url ? (
+                          <div className="aspect-video w-full overflow-hidden bg-muted">
+                            <img
+                              src={c.image_url}
+                              alt={c.title}
+                              className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                            />
+                          </div>
+                        ) : (
+                          <div className="aspect-video w-full bg-muted" />
+                        )}
+                        <div className="p-4">
+                          <h3 className="line-clamp-2 font-medium text-foreground">{c.title}</h3>
+                          {c.next_session?.start_time && (
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              Next: {new Date(c.next_session.start_time).toLocaleString()}
+                            </p>
+                          )}
+                          <p
+                            className="mt-2 text-xs font-semibold"
+                            style={{ color: "var(--primary)" }}
+                          >
+                            {Number(c.price) > 0
+                              ? `$${Number(c.price).toFixed(2)}`
+                              : "Free"}
+                          </p>
                         </div>
                       </Link>
                     ))}
