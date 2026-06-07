@@ -37,7 +37,7 @@ const ALL_SECTIONS = ["events", "classes", "gigs", "rooms"] as const;
 function DepartmentHub() {
   const { id } = Route.useParams();
   const { data } = useSuspenseQuery(hubQO(id));
-  const { department, events, rooms, gigs = [] } = data as any;
+  const { department, events, rooms, gigs = [], classes = [] } = data as any;
   const [editing, setEditing] = useState(false);
 
   const { visibleIds, orderedIds, hidden, move, toggleHidden, reset } = useLayoutPrefs(
