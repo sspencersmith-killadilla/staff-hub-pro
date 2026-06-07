@@ -42,7 +42,7 @@ type Action = {
   to: string;
   icon: React.ComponentType<{ className?: string }>;
   accent: string;
-  module?: "streetbeats" | "room_reservations" | "community_orgs" | "vendors_sponsors";
+  module?: "streetbeats" | "room_reservations" | "community_orgs" | "vendors_sponsors" | "civic_quests";
   cta: string;
 };
 
