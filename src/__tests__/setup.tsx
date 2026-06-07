@@ -67,15 +67,25 @@ vi.mock("@tanstack/react-router", async () => {
   };
 });
 
-// Mock TanStack Start so useServerFn / createServerFn are inert
-vi.mock("@tanstack/react-start", () => ({
-  useServerFn: (fn: any) => fn ?? (async () => undefined),
-  createServerFn: () => ({
-    middleware: () => ({ inputValidator: () => ({ handler: () => async () => undefined }), handler: () => async () => undefined }),
-    inputValidator: () => ({ handler: () => async () => undefined }),
+// Mock TanStack Start so useServerFn / createServerFn / createMiddleware are inert
+vi.mock("@tanstack/react-start", () => {
+  const chainable: any = {
+    middleware: () => chainable,
+    inputValidator: () => chainable,
     handler: () => async () => undefined,
-  }),
-}));
+    server: () => chainable,
+    client: () => chainable,
+  };
+  return {
+    useServerFn: (fn: any) => fn ?? (async () => undefined),
+    createServerFn: () => chainable,
+    createMiddleware: () => chainable,
+    getRequestHeader: () => undefined,
+    getRequestHeaders: () => ({}),
+    setResponseHeader: () => {},
+    setResponseStatus: () => {},
+  };
+});
 
 // Inert Supabase client
 vi.mock("@/integrations/supabase/client", () => {
