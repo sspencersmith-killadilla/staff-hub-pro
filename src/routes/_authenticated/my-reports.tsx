@@ -34,7 +34,7 @@ function MyReportsPage() {
   });
 
   useEffect(() => {
-    if (!me?.id) return;
+    if (!me?.userId) return;
     const channel = supabase
       .channel(`my-tickets-${me?.userId}`)
       .on(
@@ -51,7 +51,7 @@ function MyReportsPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [me?.id, qc]);
+  }, [me?.userId, qc]);
 
   const tickets = data?.tickets ?? [];
   const updatesByTicket = data?.updates ?? {};
