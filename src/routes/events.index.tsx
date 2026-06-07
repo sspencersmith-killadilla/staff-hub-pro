@@ -176,6 +176,7 @@ function EventsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Event, venue, organizer…"
+              aria-label="Search events"
               className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
             />
           </div>
@@ -186,6 +187,7 @@ function EventsPage() {
             <select
               value={source}
               onChange={(e) => setSource(e.target.value as SourceFilter)}
+              aria-label="Filter by type"
               className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
             >
               <option value="all">All types</option>
@@ -204,6 +206,7 @@ function EventsPage() {
                 setVenue(e.target.value);
                 setSubLocation("all");
               }}
+              aria-label="Filter by venue"
               className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
             >
               <option value="all">All venues</option>
@@ -221,6 +224,7 @@ function EventsPage() {
             <select
               value={subLocation}
               onChange={(e) => setSubLocation(e.target.value)}
+              aria-label="Filter by stage or room"
               className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
               disabled={subLocations.length === 0}
             >
@@ -240,6 +244,7 @@ function EventsPage() {
               type="date"
               value={start}
               onChange={(e) => setStart(e.target.value)}
+              aria-label="From date"
               className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
             />
           </div>
@@ -251,6 +256,7 @@ function EventsPage() {
               type="date"
               value={end}
               onChange={(e) => setEnd(e.target.value)}
+              aria-label="To date"
               className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
             />
           </div>
