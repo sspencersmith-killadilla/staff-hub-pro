@@ -138,7 +138,7 @@ function EventsPage() {
   }, [all, source, venue, subLocation, search, start, end, sort]);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-dvh bg-slate-50">
       <SiteHeader />
       <main className="mx-auto max-w-6xl px-6 py-12">
         <div className="flex flex-wrap items-end justify-between gap-6">

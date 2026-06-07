@@ -37,7 +37,7 @@ function SponsorsDirectory() {
   const keys = Object.keys(grouped);
 
   return (
-    <div className="min-h-screen bg-[#f4f6f9]">
+    <div className="min-h-dvh bg-[#f4f6f9]">
       <SiteHeader />
       <main className="py-12 px-6 md:px-12 font-sans text-[#1b1b1b]">
         <div className="max-w-6xl mx-auto">
@@ -46,7 +46,7 @@ function SponsorsDirectory() {
               <h1 className="text-4xl md:text-5xl font-black text-[#112e51] mb-2 tracking-tight">
                 Community Partners
               </h1>
-              <p className="text-gray-600 text-lg">
+              <p className="text-muted-foreground text-lg">
                 Thank you to the generous sponsors supporting our community events.
               </p>
             </div>
@@ -62,7 +62,7 @@ function SponsorsDirectory() {
             <div className="flex justify-center py-20">
               <div className="animate-pulse flex flex-col items-center">
                 <div className="w-12 h-12 border-4 border-[#e8c872] border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">
+                <p className="text-muted-foreground font-bold uppercase tracking-widest text-sm">
                   Loading Partners…
                 </p>
               </div>
@@ -72,7 +72,7 @@ function SponsorsDirectory() {
               {keys.map((eventTitle) => (
                 <section key={eventTitle}>
                   <div className="mb-8 pl-4 border-l-4 border-[#005ea2]">
-                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">
                       Proud Sponsors Of
                     </p>
                     <h2 className="text-3xl font-black text-[#112e51] leading-tight">
@@ -112,7 +112,7 @@ function SponsorsDirectory() {
             </div>
           ) : (
             <div className="bg-white p-12 text-center rounded-xl border border-gray-200 shadow-sm">
-              <p className="text-gray-500 font-bold text-lg">
+              <p className="text-muted-foreground font-bold text-lg">
                 No active sponsors currently found.
               </p>
               <Link

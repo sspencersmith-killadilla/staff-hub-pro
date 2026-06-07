@@ -697,8 +697,8 @@ function EventsPage() {
                     )}
                   </div>
                   <div className="flex justify-end gap-1">
-                    <Button size="icon" variant="ghost" title="Edit" onClick={() => startEdit(e)}>
-                      <Pencil className="h-4 w-4" />
+                    <Button size="icon" variant="ghost" title="Edit" aria-label={`Edit ${e.title}`} onClick={() => startEdit(e)}>
+                      <Pencil className="h-4 w-4" aria-hidden="true" />
                     </Button>
                     <Button asChild size="sm" variant="outline">
                       <Link to="/staff/events/$id" params={{ id: String(e.id) }}>
@@ -706,8 +706,9 @@ function EventsPage() {
                       </Link>
                     </Button>
                     <Button size="icon" variant="ghost"
+                      aria-label={`Delete ${e.title}`}
                       onClick={() => confirm(`Delete "${e.title}"?`) && del.mutate(e.id)}>
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </div>
                 </div>

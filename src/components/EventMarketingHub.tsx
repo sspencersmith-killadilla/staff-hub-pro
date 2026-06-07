@@ -359,7 +359,7 @@ export default function EventMarketingHub({ event, sponsors, talent, brandCss }:
     const imgSize = tileSize - pad * 2;
     return (
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2 text-center">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2 text-center">
           Presented in partnership with
         </p>
         <div className="flex justify-center items-center" style={{ gap: `${gap}px` }}>
@@ -404,8 +404,8 @@ export default function EventMarketingHub({ event, sponsors, talent, brandCss }:
         <p className="uppercase text-[10px] font-bold tracking-widest text-teal-700 mb-2">Run of Show</p>
         <div className="space-y-1">
           {talent.map((t) => (
-            <p key={t.id} className="text-sm font-bold text-gray-900 leading-tight">
-              • {t.name} <span className="text-gray-400 font-medium">({t.role})</span>
+            <p key={t.id} className="text-sm font-bold text-foreground leading-tight">
+              • {t.name} <span className="text-muted-foreground font-medium">({t.role})</span>
             </p>
           ))}
         </div>
@@ -424,7 +424,7 @@ export default function EventMarketingHub({ event, sponsors, talent, brandCss }:
         #flyer-capture-zone > div, #ig-capture-zone > div, #fb-capture-zone > div { background: var(--marketing-surface) !important; border-color: var(--marketing-border) !important; }
         #flyer-capture-zone h1, #ig-capture-zone h1, #fb-capture-zone h1 { color: var(--marketing-text) !important; }
         #flyer-capture-zone .bg-white, #ig-capture-zone .bg-white, #fb-capture-zone .bg-white { background: var(--marketing-surface) !important; }
-        #flyer-capture-zone .text-gray-900, #ig-capture-zone .text-gray-900, #fb-capture-zone .text-gray-900 { color: var(--marketing-surface-text) !important; }
+        #flyer-capture-zone .text-foreground, #ig-capture-zone .text-foreground, #fb-capture-zone .text-foreground { color: var(--marketing-surface-text) !important; }
         #flyer-capture-zone .border-teal-100, #flyer-capture-zone .border-teal-200, #flyer-capture-zone .border-teal-400,
         #ig-capture-zone .border-teal-100, #ig-capture-zone .border-teal-200, #ig-capture-zone .border-teal-400,
         #fb-capture-zone a, #fb-capture-zone div { border-color: var(--marketing-border) !important; }
@@ -481,7 +481,7 @@ export default function EventMarketingHub({ event, sponsors, talent, brandCss }:
         </div>
       </div>
 
-      <div className="min-h-screen bg-[#093140] flex flex-col items-center p-8 font-['Inter'] antialiased overflow-x-auto">
+      <div className="min-h-dvh bg-[#093140] flex flex-col items-center p-8 font-['Inter'] antialiased overflow-x-auto">
         {/* FLYER 8.5x11 */}
         {activeTab === "flyer" && (
           <div
@@ -522,19 +522,19 @@ export default function EventMarketingHub({ event, sponsors, talent, brandCss }:
                 <div className="grid grid-cols-2 gap-10 flex-1">
                   <div className="flex flex-col gap-6">
                     <div>
-                      <p className="uppercase text-[10px] font-bold tracking-widest text-gray-400 mb-1">
+                      <p className="uppercase text-[10px] font-bold tracking-widest text-muted-foreground mb-1">
                         Featured Presenter
                       </p>
-                      <p className="text-2xl font-black text-gray-900 leading-tight">
+                      <p className="text-2xl font-black text-foreground leading-tight">
                         {event.speaker_name || "Special Guest"}
                       </p>
                     </div>
                     {event.start_time && (
                       <div>
-                        <p className="uppercase text-[10px] font-bold tracking-widest text-gray-400 mb-1">
+                        <p className="uppercase text-[10px] font-bold tracking-widest text-muted-foreground mb-1">
                           Date & Time
                         </p>
-                        <p className="text-lg font-bold text-gray-900 leading-tight">
+                        <p className="text-lg font-bold text-foreground leading-tight">
                           {new Date(event.start_time).toLocaleDateString("en-US", {
                             weekday: "long",
                             month: "long",
@@ -551,13 +551,13 @@ export default function EventMarketingHub({ event, sponsors, talent, brandCss }:
                       </div>
                     )}
                     <div>
-                      <p className="uppercase text-[10px] font-bold tracking-widest text-gray-400 mb-1">
+                      <p className="uppercase text-[10px] font-bold tracking-widest text-muted-foreground mb-1">
                         Location
                       </p>
-                      <p className="text-lg font-bold text-gray-900 leading-tight pr-4">
+                      <p className="text-lg font-bold text-foreground leading-tight pr-4">
                         {locationPrimary}
                       </p>
-                      <p className="text-xs text-gray-500 leading-tight pr-4 mt-1">
+                      <p className="text-xs text-muted-foreground leading-tight pr-4 mt-1">
                         {venueAddress}
                       </p>
                     </div>
@@ -642,19 +642,19 @@ export default function EventMarketingHub({ event, sponsors, talent, brandCss }:
                 </div>
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <p className="uppercase text-[11px] font-bold tracking-widest text-gray-400 mb-1">
+                    <p className="uppercase text-[11px] font-bold tracking-widest text-muted-foreground mb-1">
                       Featured Presenter
                     </p>
-                    <p className="text-2xl font-black text-gray-900 leading-tight">
+                    <p className="text-2xl font-black text-foreground leading-tight">
                       {event.speaker_name || "Special Guest"}
                     </p>
                   </div>
                   {event.start_time && (
                     <div>
-                      <p className="uppercase text-[11px] font-bold tracking-widest text-gray-400 mb-1">
+                      <p className="uppercase text-[11px] font-bold tracking-widest text-muted-foreground mb-1">
                         When
                       </p>
-                      <p className="text-xl font-bold text-gray-900 leading-tight">
+                      <p className="text-xl font-bold text-foreground leading-tight">
                         {new Date(event.start_time).toLocaleDateString("en-US", {
                           weekday: "long",
                           month: "long",

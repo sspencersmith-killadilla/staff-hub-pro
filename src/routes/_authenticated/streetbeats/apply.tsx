@@ -142,13 +142,13 @@ function ApplyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] font-sans">
+    <div className="min-h-dvh bg-[#f8f9fa] font-sans">
       <SiteHeader />
       <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8 space-y-8">
         <div className="flex items-center justify-between">
           <Link
             to="/streetbeats"
-            className="text-sm text-slate-500 hover:text-slate-900"
+            className="text-sm text-muted-foreground hover:text-foreground"
           >
             ← Streetbeats
           </Link>
@@ -158,10 +158,10 @@ function ApplyPage() {
         </div>
 
         <div>
-          <h1 className="text-3xl font-black uppercase tracking-tight text-slate-900">
+          <h1 className="text-3xl font-black uppercase tracking-tight text-foreground">
             My artist profiles
           </h1>
-          <p className="mt-2 max-w-2xl text-sm text-slate-600">
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             One account can hold multiple performer identities. Create a
             separate profile for each act you perform under — staff reviews each
             one individually, and you choose which profile to use when claiming
@@ -170,10 +170,10 @@ function ApplyPage() {
         </div>
 
         {isLoading ? (
-          <p className="text-sm text-slate-500">Loading…</p>
+          <p className="text-sm text-muted-foreground">Loading…</p>
         ) : artists.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center">
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-muted-foreground">
               You haven't created any artist profiles yet.
             </p>
             <Button className="mt-4" onClick={openCreate}>
@@ -260,7 +260,7 @@ function ArtistCard({
           />
           <span
             className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-              STATUS_STYLES[artist.status] ?? "bg-slate-100 text-slate-700"
+              STATUS_STYLES[artist.status] ?? "bg-slate-100 text-foreground"
             }`}
           >
             {artist.status}
@@ -273,12 +273,12 @@ function ArtistCard({
           {artist.full_name}
         </h2>
         {artist.bio && (
-          <p className="mt-2 text-xs text-gray-600 line-clamp-3 whitespace-pre-wrap">
+          <p className="mt-2 text-xs text-muted-foreground line-clamp-3 whitespace-pre-wrap">
             {artist.bio}
           </p>
         )}
         {gigs.length > 0 && (
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 text-xs text-muted-foreground">
             {gigs.length} upcoming gig{gigs.length === 1 ? "" : "s"}
           </p>
         )}
@@ -291,7 +291,7 @@ function ArtistCard({
               to="/artists/$id"
               params={{ id: artist.id }}
               target="_blank"
-              className="inline-flex items-center rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              className="inline-flex items-center rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-slate-50"
             >
               View public ↗
             </Link>
@@ -411,7 +411,7 @@ function ArtistForm({
       </section>
 
       <section className="space-y-3 border-t border-slate-100 pt-4">
-        <h3 className="text-sm font-bold text-slate-900">Music & links</h3>
+        <h3 className="text-sm font-bold text-foreground">Music & links</h3>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Spotify">
             <Input

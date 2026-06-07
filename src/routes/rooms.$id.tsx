@@ -131,7 +131,7 @@ function RoomDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-dvh bg-gradient-to-b from-slate-50 to-white">
       <SiteHeader />
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-8">
         <Link

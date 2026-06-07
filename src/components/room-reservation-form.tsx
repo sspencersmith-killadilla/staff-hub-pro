@@ -98,7 +98,7 @@ export function RoomReservationForm({
   const canSubmit = !!(date && startTime && endTime && name.trim()) && !mutation.isPending;
 
   if (authLoading) {
-    return <p className="text-sm text-gray-500">Loading…</p>;
+    return <p className="text-sm text-muted-foreground">Loading…</p>;
   }
 
   if (!isAuthenticated) {
@@ -134,20 +134,20 @@ export function RoomReservationForm({
         className="space-y-4"
       >
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+          <label className="block text-sm font-medium text-foreground mb-1">Date</label>
           <input
             type="date"
             value={date}
             onChange={(e) => !dateLocked && setDate(e.target.value)}
             readOnly={dateLocked}
-            className={`w-full rounded-lg border px-3 py-2 text-sm ${dateLocked ? "bg-gray-50 border-gray-200 text-gray-700" : "border-gray-300 focus:ring-2 focus:ring-gray-900 focus:outline-none"}`}
+            className={`w-full rounded-lg border px-3 py-2 text-sm ${dateLocked ? "bg-gray-50 border-gray-200 text-foreground" : "border-gray-300 focus:ring-2 focus:ring-gray-900 focus:outline-none"}`}
             required
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Start</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Start</label>
             <input
               type="time" value={startTime}
               onChange={(e) => !timesLocked && setStartTime(e.target.value)}
@@ -156,11 +156,11 @@ export function RoomReservationForm({
               required
             />
             {timesLocked && initialStartHour != null && (
-              <p className="mt-1 text-xs text-gray-500">{toDisplay(initialStartHour)}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{toDisplay(initialStartHour)}</p>
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">End</label>
+            <label className="block text-sm font-medium text-foreground mb-1">End</label>
             <input
               type="time" value={endTime}
               onChange={(e) => !timesLocked && setEndTime(e.target.value)}
@@ -169,13 +169,13 @@ export function RoomReservationForm({
               required
             />
             {timesLocked && initialEndHour != null && (
-              <p className="mt-1 text-xs text-gray-500">{toDisplay(initialEndHour)}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{toDisplay(initialEndHour)}</p>
             )}
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Your name</label>
+          <label className="block text-sm font-medium text-foreground mb-1">Your name</label>
           <input
             type="text" value={name} onChange={(e) => setName(e.target.value)}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-gray-900 focus:outline-none"
@@ -184,17 +184,17 @@ export function RoomReservationForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Email <span className="text-xs text-gray-500">(from your account)</span>
+          <label className="block text-sm font-medium text-foreground mb-1">
+            Email <span className="text-xs text-muted-foreground">(from your account)</span>
           </label>
           <input
             type="email" value={me?.email ?? ""} readOnly
-            className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600"
+            className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-muted-foreground"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Purpose (optional)</label>
+          <label className="block text-sm font-medium text-foreground mb-1">Purpose (optional)</label>
           <textarea
             value={purpose} onChange={(e) => setPurpose(e.target.value)} rows={2}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-gray-900 focus:outline-none"
@@ -226,7 +226,7 @@ export function RoomReservationForm({
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-slate-700" />
+              <ShieldCheck className="h-5 w-5 text-foreground" />
               {deptLabel} room policy
             </DialogTitle>
             <DialogDescription>
@@ -234,11 +234,11 @@ export function RoomReservationForm({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="max-h-64 overflow-y-auto rounded-lg border bg-slate-50 p-4 text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+          <div className="max-h-64 overflow-y-auto rounded-lg border bg-slate-50 p-4 text-sm text-foreground whitespace-pre-wrap leading-relaxed">
             {policyText}
           </div>
 
-          <label className="flex items-start gap-2 text-sm text-slate-800 cursor-pointer">
+          <label className="flex items-start gap-2 text-sm text-foreground cursor-pointer">
             <Checkbox
               checked={policyAgreed}
               onCheckedChange={(v) => setPolicyAgreed(v === true)}
@@ -251,7 +251,7 @@ export function RoomReservationForm({
             className={`rounded-lg border px-3 py-2 text-xs ${
               instantBookable
                 ? "border-emerald-200 bg-emerald-50 text-emerald-900"
-                : "border-slate-200 bg-slate-50 text-slate-700"
+                : "border-slate-200 bg-slate-50 text-foreground"
             }`}
           >
             {instantBookable ? (
@@ -268,7 +268,7 @@ export function RoomReservationForm({
               type="button"
               onClick={() => setPolicyOpen(false)}
               disabled={mutation.isPending}
-              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-foreground hover:bg-slate-50 disabled:opacity-50"
             >
               Cancel
             </button>

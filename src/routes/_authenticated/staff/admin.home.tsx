@@ -561,14 +561,14 @@ function RowActions({
 }) {
   return (
     <div className="flex justify-end gap-1">
-      <Button type="button" size="icon" variant="ghost" onClick={() => onMove(-1)}>
-        <ChevronUp className="h-4 w-4" />
+      <Button type="button" size="icon" variant="ghost" aria-label="Move up" onClick={() => onMove(-1)}>
+        <ChevronUp className="h-4 w-4" aria-hidden="true" />
       </Button>
-      <Button type="button" size="icon" variant="ghost" onClick={() => onMove(1)}>
-        <ChevronDown className="h-4 w-4" />
+      <Button type="button" size="icon" variant="ghost" aria-label="Move down" onClick={() => onMove(1)}>
+        <ChevronDown className="h-4 w-4" aria-hidden="true" />
       </Button>
-      <Button type="button" size="icon" variant="ghost" onClick={onRemove}>
-        <Trash2 className="h-4 w-4 text-destructive" />
+      <Button type="button" size="icon" variant="ghost" aria-label="Remove" onClick={onRemove}>
+        <Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" />
       </Button>
     </div>
   );
@@ -596,8 +596,8 @@ function SectionEditor({
             {section.type.replace("_", " ")}
           </div>
         </div>
-        <Button type="button" size="icon" variant="ghost" onClick={onRemove}>
-          <Trash2 className="h-4 w-4 text-destructive" />
+        <Button type="button" size="icon" variant="ghost" aria-label="Remove" onClick={onRemove}>
+          <Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" />
         </Button>
       </div>
 
@@ -907,13 +907,14 @@ function CtaBandEditor({
             <Input placeholder="URL" value={b.href}
               onChange={(e) => updateBtn(i, "href", e.target.value)} />
             <Button type="button" size="icon" variant="ghost"
+              aria-label="Remove button"
               onClick={() =>
                 onChange({
                   ...section,
                   buttons: section.buttons.filter((_, idx) => idx !== i),
                 })
               }>
-              <Trash2 className="h-4 w-4 text-destructive" />
+              <Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" />
             </Button>
           </div>
         ))}

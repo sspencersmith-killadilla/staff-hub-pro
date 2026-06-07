@@ -88,8 +88,9 @@ export function OperatingHoursEditor({
                 <Input placeholder="Reason (optional)" value={x.reason ?? ""}
                   onChange={(e) => setClosure(i, { reason: e.target.value })} />
                 <Button size="icon" variant="ghost" type="button"
+                  aria-label="Remove closure"
                   onClick={() => removeClosure(i)}>
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </div>
             ))}

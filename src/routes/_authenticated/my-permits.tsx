@@ -51,7 +51,7 @@ function MyPermitsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-dvh bg-slate-50">
       <SiteHeader />
       <div className="mx-auto max-w-4xl px-4 py-10">
         <div className="mb-6 flex items-start justify-between gap-4">

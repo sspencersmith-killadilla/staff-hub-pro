@@ -289,7 +289,7 @@ function PublisherPage() {
   const selected = selectedIdx != null ? items[selectedIdx] : null;
 
   return (
-    <div className="flex flex-col h-screen bg-muted/20">
+    <div className="flex flex-col h-dvh bg-muted/20">
       {/* Toolbar */}
       <header className="border-b bg-background px-4 py-3 flex flex-wrap items-end gap-3">
         <Link to="/staff/admin/guidebook" className="text-sm text-muted-foreground hover:underline self-center mr-2">
@@ -403,25 +403,25 @@ function PublisherPage() {
                           <span className="text-[10px] text-muted-foreground">{spanId(it.span)}</span>
                         </div>
                         <div className="mt-1 flex items-center gap-1">
-                          <Button type="button" size="icon" variant="ghost" className="h-6 w-6"
+                          <Button type="button" size="icon" variant="ghost" className="h-6 w-6" aria-label="Move up"
                             onClick={(e) => { e.stopPropagation(); move(idx, -1); }}>
-                            <ArrowUp className="h-3 w-3" />
+                            <ArrowUp className="h-3 w-3" aria-hidden="true" />
                           </Button>
-                          <Button type="button" size="icon" variant="ghost" className="h-6 w-6"
+                          <Button type="button" size="icon" variant="ghost" className="h-6 w-6" aria-label="Move down"
                             onClick={(e) => { e.stopPropagation(); move(idx, 1); }}>
-                            <ArrowDown className="h-3 w-3" />
+                            <ArrowDown className="h-3 w-3" aria-hidden="true" />
                           </Button>
-                          <Button type="button" size="icon" variant="ghost" className="h-6 w-6"
+                          <Button type="button" size="icon" variant="ghost" className="h-6 w-6" aria-label={it.hidden ? "Show item" : "Hide item"}
                             onClick={(e) => { e.stopPropagation(); toggleHidden(idx); }}>
-                            {it.hidden ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                            {it.hidden ? <EyeOff className="h-3 w-3" aria-hidden="true" /> : <Eye className="h-3 w-3" aria-hidden="true" />}
                           </Button>
-                          <Button type="button" size="icon" variant="ghost" className="h-6 w-6"
+                          <Button type="button" size="icon" variant="ghost" className="h-6 w-6" aria-label="Edit item"
                             onClick={(e) => { e.stopPropagation(); setSelectedIdx(idx); setRightTab("inspector"); }}>
-                            <Pencil className="h-3 w-3" />
+                            <Pencil className="h-3 w-3" aria-hidden="true" />
                           </Button>
-                          <Button type="button" size="icon" variant="ghost" className="h-6 w-6 ml-auto"
+                          <Button type="button" size="icon" variant="ghost" className="h-6 w-6 ml-auto" aria-label="Remove item"
                             onClick={(e) => { e.stopPropagation(); remove(idx); }}>
-                            <Trash2 className="h-3 w-3" />
+                            <Trash2 className="h-3 w-3" aria-hidden="true" />
                           </Button>
                         </div>
                       </li>

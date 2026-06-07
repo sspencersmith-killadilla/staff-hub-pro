@@ -174,7 +174,7 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
       </div>
       <div className="flex-1 pb-2">
         <h4 className="font-semibold text-[#002f49]">{title}</h4>
-        <div className="mt-1 text-sm text-gray-700">{children}</div>
+        <div className="mt-1 text-sm text-foreground">{children}</div>
       </div>
     </li>
   );
@@ -430,11 +430,11 @@ const sections: Section[] = [
           <div className="flex items-center justify-center gap-4 text-xs">
             <div className="rounded-lg border-2 border-[#002f49] bg-white px-4 py-3 text-center font-semibold">
               Your Account
-              <div className="mt-1 text-[10px] font-normal text-gray-500">
+              <div className="mt-1 text-[10px] font-normal text-muted-foreground">
                 one email + password
               </div>
             </div>
-            <div className="text-2xl text-gray-400">→</div>
+            <div className="text-2xl text-muted-foreground">→</div>
             <div className="grid grid-cols-1 gap-2">
               <div className="rounded-md bg-emerald-100 px-3 py-1.5 text-center font-semibold text-emerald-900">
                 🎸 Solo Acoustic <span className="text-[10px]">(approved)</span>
@@ -1195,7 +1195,7 @@ const sections: Section[] = [
                     className="font-bold text-[#002f49]"
                     dangerouslySetInnerHTML={{ __html: d }}
                   />
-                  <div className="mt-1 text-[10px] text-gray-500">
+                  <div className="mt-1 text-[10px] text-muted-foreground">
                     own logo · own brand · own policy · own staff
                   </div>
                 </div>
@@ -1824,7 +1824,7 @@ function ManualPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc]">
+    <div className="min-h-dvh bg-[#f8fafc]">
       <SiteHeader />
 
       <div className="border-b bg-gradient-to-br from-[#002f49] to-[#01456b] text-white">
@@ -1864,7 +1864,7 @@ function ManualPage() {
                           className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${
                             isActive
                               ? "bg-[#002f49] text-white"
-                              : "text-gray-700 hover:bg-gray-100"
+                              : "text-foreground hover:bg-gray-100"
                           }`}
                         >
                           <Icon className="h-4 w-4 shrink-0" />
@@ -1910,7 +1910,7 @@ function ManualPage() {
                     />
                   </div>
                 </div>
-                <div className="prose prose-sm max-w-none text-gray-800">
+                <div className="prose prose-sm max-w-none text-foreground">
                   {s.render()}
                 </div>
               </section>

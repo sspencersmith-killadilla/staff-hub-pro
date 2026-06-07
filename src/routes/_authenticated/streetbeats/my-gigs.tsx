@@ -59,7 +59,7 @@ function MyGigsPage() {
   const hasApproved = artists.some((a: any) => a.status === "approved");
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-dvh bg-slate-50">
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-6 py-12">
         <Link

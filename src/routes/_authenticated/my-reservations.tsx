@@ -50,7 +50,7 @@ function MyReservationsPage() {
   });
   if (isLoading || !data) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-dvh bg-slate-50">
         <SiteHeader />
         <main className="mx-auto max-w-3xl px-6 py-12">
           <p className="text-sm text-slate-500">Loading…</p>
@@ -62,7 +62,7 @@ function MyReservationsPage() {
   const venueById = new Map((data.venues ?? []).map((v: any) => [v.id, v]));
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-dvh bg-slate-50">
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-6 py-12">
         <h1 className="text-3xl font-black uppercase tracking-tight text-slate-900">

@@ -241,13 +241,15 @@ function PermitsAdminPage() {
                             <Button
                               size="icon"
                               variant="ghost"
+                              aria-label={`Edit ${c.label}`}
                               onClick={() => setEditing(c)}
                             >
-                              <Pencil className="h-4 w-4" />
+                              <Pencil className="h-4 w-4" aria-hidden="true" />
                             </Button>
                             <Button
                               size="icon"
                               variant="ghost"
+                              aria-label={`Delete ${c.label}`}
                               onClick={() => {
                                 if (
                                   confirm(
@@ -257,7 +259,7 @@ function PermitsAdminPage() {
                                   delMut.mutate(c.id);
                               }}
                             >
-                              <Trash2 className="h-4 w-4 text-destructive" />
+                              <Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" />
                             </Button>
                           </TableCell>
                         </TableRow>
