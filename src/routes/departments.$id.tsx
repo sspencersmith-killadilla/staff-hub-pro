@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
-import { Building2, CalendarDays, DoorOpen, Info, Music } from "lucide-react";
+import { Building2, CalendarDays, DoorOpen, GraduationCap, Info, Music } from "lucide-react";
 import { getDepartmentHub } from "@/lib/departments.functions";
 import { SiteHeader } from "@/components/site-header";
 import { BrandThemeApplier } from "@/components/theme-provider";

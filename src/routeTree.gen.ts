@@ -28,6 +28,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as RoomsIndexRouteImport } from './routes/rooms.index'
 import { Route as ExploreIndexRouteImport } from './routes/explore.index'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
+import { Route as DepartmentsIndexRouteImport } from './routes/departments.index'
 import { Route as VenuesIdRouteImport } from './routes/venues.$id'
 import { Route as SurveyIdRouteImport } from './routes/survey.$id'
 import { Route as StagesIdRouteImport } from './routes/stages.$id'
@@ -188,6 +189,11 @@ const ExploreIndexRoute = ExploreIndexRouteImport.update({
 const EventsIndexRoute = EventsIndexRouteImport.update({
   id: '/events/',
   path: '/events/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DepartmentsIndexRoute = DepartmentsIndexRouteImport.update({
+  id: '/departments/',
+  path: '/departments/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VenuesIdRoute = VenuesIdRouteImport.update({
@@ -604,6 +610,7 @@ export interface FileRoutesByFullPath {
   '/stages/$id': typeof StagesIdRoute
   '/survey/$id': typeof SurveyIdRoute
   '/venues/$id': typeof VenuesIdRoute
+  '/departments/': typeof DepartmentsIndexRoute
   '/events/': typeof EventsIndexRoute
   '/explore/': typeof ExploreIndexRoute
   '/rooms/': typeof RoomsIndexRoute
@@ -690,6 +697,7 @@ export interface FileRoutesByTo {
   '/stages/$id': typeof StagesIdRoute
   '/survey/$id': typeof SurveyIdRoute
   '/venues/$id': typeof VenuesIdRoute
+  '/departments': typeof DepartmentsIndexRoute
   '/events': typeof EventsIndexRoute
   '/explore': typeof ExploreIndexRoute
   '/rooms': typeof RoomsIndexRoute
@@ -776,6 +784,7 @@ export interface FileRoutesById {
   '/stages/$id': typeof StagesIdRoute
   '/survey/$id': typeof SurveyIdRoute
   '/venues/$id': typeof VenuesIdRoute
+  '/departments/': typeof DepartmentsIndexRoute
   '/events/': typeof EventsIndexRoute
   '/explore/': typeof ExploreIndexRoute
   '/rooms/': typeof RoomsIndexRoute
@@ -865,6 +874,7 @@ export interface FileRouteTypes {
     | '/stages/$id'
     | '/survey/$id'
     | '/venues/$id'
+    | '/departments/'
     | '/events/'
     | '/explore/'
     | '/rooms/'
@@ -951,6 +961,7 @@ export interface FileRouteTypes {
     | '/stages/$id'
     | '/survey/$id'
     | '/venues/$id'
+    | '/departments'
     | '/events'
     | '/explore'
     | '/rooms'
@@ -1036,6 +1047,7 @@ export interface FileRouteTypes {
     | '/stages/$id'
     | '/survey/$id'
     | '/venues/$id'
+    | '/departments/'
     | '/events/'
     | '/explore/'
     | '/rooms/'
@@ -1117,6 +1129,7 @@ export interface RootRouteChildren {
   RoomsIdRoute: typeof RoomsIdRoute
   StagesIdRoute: typeof StagesIdRoute
   SurveyIdRoute: typeof SurveyIdRoute
+  DepartmentsIndexRoute: typeof DepartmentsIndexRoute
   EventsIndexRoute: typeof EventsIndexRoute
   ExploreIndexRoute: typeof ExploreIndexRoute
   RoomsIndexRoute: typeof RoomsIndexRoute
@@ -1263,6 +1276,13 @@ declare module '@tanstack/react-router' {
       path: '/events'
       fullPath: '/events/'
       preLoaderRoute: typeof EventsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/departments/': {
+      id: '/departments/'
+      path: '/departments'
+      fullPath: '/departments/'
+      preLoaderRoute: typeof DepartmentsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/venues/$id': {
@@ -1979,6 +1999,7 @@ const rootRouteChildren: RootRouteChildren = {
   RoomsIdRoute: RoomsIdRoute,
   StagesIdRoute: StagesIdRoute,
   SurveyIdRoute: SurveyIdRoute,
+  DepartmentsIndexRoute: DepartmentsIndexRoute,
   EventsIndexRoute: EventsIndexRoute,
   ExploreIndexRoute: ExploreIndexRoute,
   RoomsIndexRoute: RoomsIndexRoute,
