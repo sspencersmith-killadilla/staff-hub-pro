@@ -356,7 +356,7 @@ export const adminListQuests = createServerFn({ method: "GET" })
   });
 
 const waypointInput = z.object({
-  id: z.string().uuid().optional(),
+  id: z.string().uuid().nullable().optional(),
   title: z.string().min(1).max(200),
   description: z.string().max(2000).nullable().optional(),
   completion_type: z.enum(["qr_scan", "geo_location", "honor_system_button"]),
