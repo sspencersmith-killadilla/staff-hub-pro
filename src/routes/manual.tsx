@@ -304,6 +304,15 @@ const sections: Section[] = [
           <strong>Apply / Add a role</strong>, <strong>Do something</strong>, and{" "}
           <strong>Manage your stuff</strong>.
         </p>
+        <Callout kind="tip">
+          The hub is <strong>signed-in only</strong>. Public visitors who want to
+          see what a single department offers should go to{" "}
+          <code>/departments</code> and pick one (for example, the Library) — see{" "}
+          <a href="#dept-hub" className="underline">
+            Department Hub Pages
+          </a>
+          .
+        </Callout>
         <Figure src={hubImg} caption="The Hub — every program reachable from one screen" />
         <ul className="my-4 list-disc space-y-2 pl-6 text-sm">
           <li>Apply as musician, community org, vendor, or sponsor.</li>
