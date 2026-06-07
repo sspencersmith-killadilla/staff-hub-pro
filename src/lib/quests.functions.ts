@@ -324,7 +324,7 @@ export const completeWaypoint = createServerFn({ method: "POST" })
     }
     // honor_system_button: just accept.
 
-    return recordCompletion(context.userId, data.quest_id ?? data.questId, wp.id);
+    return recordCompletion(context.userId, data.questId, wp.id);
   });
 
 // ─── Admin: list all quests w/ waypoints ─────────────────────────────
