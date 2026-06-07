@@ -191,6 +191,12 @@ function AdminPage() {
           >
             Edit home page →
           </Link>
+          <Link
+            to="/staff/admin/quests"
+            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
+          >
+            Civic Quests →
+          </Link>
 
 
 
