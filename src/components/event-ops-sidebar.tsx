@@ -17,6 +17,7 @@ import {
   Share2,
   Mail,
   ClipboardList,
+  AlertTriangle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -63,6 +64,7 @@ const items: Item[] = [
   { title: "Social Command", url: "/staff/admin/social", icon: Share2, module: "social_command", permission: "page.social_command" },
   { title: "Communications", url: "/staff/communications", icon: Mail, permission: "page.communications" },
   { title: "Surveys", url: "/staff/surveys", icon: ClipboardList, permission: "page.surveys" },
+  { title: "311 Dispatch", url: "/staff/dispatch", icon: AlertTriangle },
   { title: "Platform Settings", url: "/staff/settings", icon: Settings, permission: "page.settings" },
 ];
 
