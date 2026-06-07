@@ -26,7 +26,10 @@ import {
   Share2,
   Mail,
   ClipboardList,
+  MapPin,
+  AlertTriangle,
 } from "lucide-react";
+
 
 import homeImg from "@/assets/manual/home.png";
 import eventsImg from "@/assets/manual/events.png";
@@ -131,7 +134,12 @@ const groups: { label: string; sectionIds: string[] }[] = [
     label: "Civic Quests & Discovery",
     sectionIds: ["quests-overview", "quests-play", "quests-leaderboard", "quests-report", "quests-admin"],
   },
+  {
+    label: "311 Non-Emergency Reporting",
+    sectionIds: ["report-overview", "report-submit", "report-tracker", "report-dispatch"],
+  },
 ];
+
 
 
 function Figure({
@@ -2000,7 +2008,136 @@ const sections: Section[] = [
       </>
     ),
   },
+  {
+    id: "report-overview",
+    title: "311 Reporting — Overview",
+    icon: AlertTriangle,
+    audience: "community",
+    render: () => (
+      <>
+        <p>
+          The <strong>311 Non-Emergency Reporting</strong> module lets
+          residents flag issues like potholes, graffiti, broken streetlights,
+          and park maintenance directly from their phone — with a photo,
+          location, and live status tracking from submission to resolution.
+        </p>
+        <ul className="my-3 list-disc pl-6 text-sm">
+          <li><strong>Intake</strong> at <code>/report</code> — pick a
+            category, add a photo (required), drop a pin or use your
+            location, and submit. Sign-in is required.</li>
+          <li><strong>My Reports</strong> at <code>/my-reports</code> —
+            track every ticket you've submitted with a pizza-tracker style
+            status bar and public staff updates in real time.</li>
+          <li><strong>Staff Dispatch</strong> at{" "}
+            <code>/staff/dispatch</code> — a Kanban board grouping
+            tickets by status, scoped to the staff member's department.</li>
+        </ul>
+        <Callout kind="note">
+          Tickets auto-route to the right department based on the
+          category you choose (e.g. Pothole → Public Works, Graffiti →
+          Code Enforcement). Staff can reassign at any time.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "report-submit",
+    title: "Submitting a Report",
+    icon: MapPin,
+    audience: "community",
+    render: () => (
+      <>
+        <ol className="my-3 space-y-3">
+          <Step n={1} title="Open /report and sign in">
+            A photo and a verified account are required so staff can follow
+            up if they need more information.
+          </Step>
+          <Step n={2} title="Pick a category">
+            Choose from Pothole, Graffiti, Park Maintenance, Streetlight,
+            Trash &amp; Recycling, Sidewalk, or Other. The category
+            determines which department receives the ticket.
+          </Step>
+          <Step n={3} title="Add a photo and a description">
+            Snap a photo from your phone or upload one from your library.
+            Describe what's wrong in 10–2000 characters.
+          </Step>
+          <Step n={4} title="Drop your location">
+            Tap <em>Use my location</em> for one-touch geolocation, or
+            type an address and drag the pin on the map preview to fine-
+            tune.
+          </Step>
+          <Step n={5} title="Submit and track">
+            After submitting you're redirected to <code>/my-reports</code>
+            where the tracker updates in real time as staff change status.
+          </Step>
+        </ol>
+      </>
+    ),
+  },
+  {
+    id: "report-tracker",
+    title: "Tracking Your Reports",
+    icon: ClipboardList,
+    audience: "community",
+    render: () => (
+      <>
+        <p>
+          <code>/my-reports</code> shows every ticket you've submitted with
+          a four-step <strong>pizza tracker</strong>: Submitted → Received →
+          In Progress → Resolved. The tracker updates instantly when staff
+          change the status — no refresh needed.
+        </p>
+        <ul className="my-3 list-disc pl-6 text-sm">
+          <li><strong>Public notes</strong> — when staff post a note marked
+            "public", it appears on your tracker so you know what's
+            happening.</li>
+          <li><strong>Internal notes</strong> stay private to the assigned
+            department.</li>
+          <li><strong>Photo &amp; location</strong> remain visible for your
+            reference and for staff working the ticket.</li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    id: "report-dispatch",
+    title: "Staff Dispatch Board",
+    icon: ClipboardList,
+    audience: "staff",
+    render: () => (
+      <>
+        <p>
+          Staff with department access open <code>/staff/dispatch</code> to
+          work the queue. Tickets are filtered to the department(s) the
+          staff member belongs to (admins see all).
+        </p>
+        <ol className="my-3 space-y-3">
+          <Step n={1} title="Scan the Kanban">
+            Four columns — Submitted, Received, In Progress, Resolved —
+            show ticket cards with category, photo thumbnail, location, and
+            time submitted.
+          </Step>
+          <Step n={2} title="Open a ticket">
+            Click a card to open the detail drawer with the full photo,
+            description, requester email, and an embedded map of the
+            reported location.
+          </Step>
+          <Step n={3} title="Update status and add a note">
+            Change the status to advance the ticket. Add a{" "}
+            <em>public note</em> to update the citizen's tracker, or an{" "}
+            <em>internal note</em> for department-only context. Every
+            update is logged for audit.
+          </Step>
+        </ol>
+        <Callout kind="tip">
+          The board uses Supabase realtime — new tickets and status changes
+          appear without refreshing.
+        </Callout>
+      </>
+    ),
+  },
 ];
+
 
 
 function ManualPage() {
