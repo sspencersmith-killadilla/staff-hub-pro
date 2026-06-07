@@ -17,6 +17,7 @@ import {
   CalendarHeart,
   FileText,
   Compass,
+  AlertTriangle,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -130,6 +131,15 @@ function HubPage() {
       module: "civic_quests",
       cta: "Start exploring",
     },
+    {
+      title: "Report a 311 Issue",
+      description:
+        "Pothole, graffiti, streetlight out, illegal dumping — send it to the right department.",
+      to: "/report",
+      icon: AlertTriangle,
+      accent: "from-amber-500 to-rose-600",
+      cta: "Report an issue",
+    },
   ];
 
   const manageActions: Action[] = [
@@ -176,6 +186,14 @@ function HubPage() {
       icon: FileText,
       accent: "from-blue-500 to-indigo-700",
       cta: "View permits",
+    },
+    {
+      title: "My 311 Reports",
+      description: "Track the status of issues you've reported to the city.",
+      to: "/my-reports",
+      icon: AlertTriangle,
+      accent: "from-amber-500 to-orange-600",
+      cta: "View reports",
     },
   ];
 

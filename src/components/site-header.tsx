@@ -81,6 +81,9 @@ export function SiteHeader() {
           >
             Departments
           </Link>
+          <Link to="/report" className="text-muted-foreground hover:text-foreground">
+            Report 311
+          </Link>
           {isEnabled("room_reservations") && (
             <Link
               to="/rooms"
