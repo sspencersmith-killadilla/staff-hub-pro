@@ -1,7 +1,8 @@
 import "@testing-library/jest-dom/vitest";
 import { vi } from "vitest";
+import React from "react";
 
-// jsdom doesn't implement matchMedia / ResizeObserver / IntersectionObserver
+// jsdom shims
 if (!window.matchMedia) {
   window.matchMedia = (q: string) =>
     ({
@@ -15,12 +16,11 @@ if (!window.matchMedia) {
       dispatchEvent: () => false,
     }) as MediaQueryList;
 }
-class RO {
+(globalThis as any).ResizeObserver ??= class {
   observe() {}
   unobserve() {}
   disconnect() {}
-}
-(globalThis as any).ResizeObserver ??= RO;
+};
 (globalThis as any).IntersectionObserver ??= class {
   observe() {}
   unobserve() {}
@@ -30,21 +30,66 @@ class RO {
   }
 };
 
-// Global Supabase client stub — every route imports this; we keep it inert.
-vi.mock("@/integrations/supabase/client", () => {
-  const chain: any = {
-    select: () => chain,
-    insert: () => chain,
-    update: () => chain,
-    delete: () => chain,
-    eq: () => chain,
-    in: () => chain,
-    order: () => chain,
-    limit: () => chain,
-    maybeSingle: () => Promise.resolve({ data: null, error: null }),
-    single: () => Promise.resolve({ data: null, error: null }),
-    then: (r: any) => r({ data: [], error: null }),
+// Per-test overridable param/search store
+export const __routeState: {
+  params: Record<string, string>;
+  search: Record<string, unknown>;
+} = { params: {}, search: {} };
+
+// Mock TanStack router so route components can render in isolation
+vi.mock("@tanstack/react-router", async () => {
+  const actual = await vi.importActual<any>("@tanstack/react-router");
+  const Link = React.forwardRef<HTMLAnchorElement, any>(
+    ({ to, params, search, children, activeProps, inactiveProps, ...rest }, ref) => (
+      <a ref={ref} href={typeof to === "string" ? to : "#"} {...rest}>
+        {children}
+      </a>
+    ),
+  );
+  Link.displayName = "MockLink";
+  const stubRoute = {
+    useParams: () => __routeState.params,
+    useSearch: () => __routeState.search,
+    useLoaderData: () => undefined,
+    useNavigate: () => () => {},
   };
+  return {
+    ...actual,
+    Link,
+    Outlet: () => null,
+    useNavigate: () => () => {},
+    useRouter: () => ({ invalidate: () => {}, navigate: () => {} }),
+    useRouterState: () => ({ location: { pathname: "/" } }),
+    createFileRoute: () => () => stubRoute,
+    createRootRoute: () => () => stubRoute,
+    createRoute: () => () => stubRoute,
+    redirect: (x: any) => x,
+  };
+});
+
+// Mock TanStack Start so useServerFn / createServerFn are inert
+vi.mock("@tanstack/react-start", () => ({
+  useServerFn: (fn: any) => fn ?? (async () => undefined),
+  createServerFn: () => ({
+    middleware: () => ({ inputValidator: () => ({ handler: () => async () => undefined }), handler: () => async () => undefined }),
+    inputValidator: () => ({ handler: () => async () => undefined }),
+    handler: () => async () => undefined,
+  }),
+}));
+
+// Inert Supabase client
+vi.mock("@/integrations/supabase/client", () => {
+  const chain: any = new Proxy(
+    {},
+    {
+      get(_t, prop) {
+        if (prop === "then") return (r: any) => r({ data: [], error: null });
+        if (prop === "maybeSingle" || prop === "single")
+          return () => Promise.resolve({ data: null, error: null });
+        return () => chain;
+      },
+    },
+  );
   return {
     supabase: {
       from: () => chain,

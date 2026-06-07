@@ -1,95 +1,49 @@
-import { ReactNode } from "react";
+import { ReactElement } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {
-  createRouter,
-  createRootRoute,
-  createRoute,
-  RouterProvider,
-  Outlet,
-} from "@tanstack/react-router";
 import { render } from "@testing-library/react";
 import axe from "axe-core";
+import { __routeState } from "../setup";
 
 /**
- * Render a component inside a minimal in-memory TanStack router + QueryClient
- * and run axe-core against the resulting DOM.
+ * Render a route component in isolation and run axe-core (WCAG 2.2 AA).
+ * Per-route Supabase / server-fn calls are stubbed in setup.ts.
  *
- * Returns the violations array. Assert `violations.length === 0` in the test.
- *
- * Pass `params` / `search` to populate Route.useParams() / Route.useSearch().
+ * Returns axe violation objects. Assert `violations.length === 0`.
  */
-export async function renderAndAudit(
-  component: () => ReactNode,
+export async function auditComponent(
+  ui: ReactElement,
   opts: {
-    path?: string;
     params?: Record<string, string>;
     search?: Record<string, unknown>;
   } = {},
 ) {
-  const path = opts.path ?? "/";
-  const rootRoute = createRootRoute({ component: () => <Outlet /> });
-  const leaf = createRoute({
-    getParentRoute: () => rootRoute,
-    path,
-    component: component as any,
-    validateSearch: () => opts.search ?? {},
-  });
-  const routeTree = rootRoute.addChildren([leaf]);
-  const router = createRouter({
-    routeTree,
-    history: {
-      // memory-history shim
-      location: {
-        pathname: path,
-        search: "",
-        hash: "",
-        href: path,
-        state: {},
-      },
-      length: 1,
-      subscribers: new Set(),
-      subscribe(fn: any) {
-        this.subscribers.add(fn);
-        return () => this.subscribers.delete(fn);
-      },
-      push() {},
-      replace() {},
-      go() {},
-      back() {},
-      forward() {},
-      createHref: (p: string) => p,
-      block: () => () => {},
-      flush: () => {},
-      destroy: () => {},
-      notify: () => {},
-    } as any,
-  });
+  __routeState.params = opts.params ?? {};
+  __routeState.search = opts.search ?? {};
 
   const qc = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
 
   const { container, unmount } = render(
-    <QueryClientProvider client={qc}>
-      <RouterProvider router={router} defaultComponent={component as any} />
-    </QueryClientProvider>,
+    <QueryClientProvider client={qc}>{ui}</QueryClientProvider>,
   );
 
-  // Wait a tick for suspense / queries to settle into their loading state
-  await new Promise((r) => setTimeout(r, 30));
+  await new Promise((r) => setTimeout(r, 50));
 
   const results = await axe.run(container, {
     runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag22aa"] },
+    resultTypes: ["violations"],
   });
   unmount();
   return results.violations;
 }
 
-export function formatViolations(violations: axe.Result[]) {
+export function formatViolations(violations: axe.Result[]): string {
+  if (!violations.length) return "no violations";
   return violations
     .map(
       (v) =>
-        `[${v.impact}] ${v.id}: ${v.help}\n  ${v.nodes.length} node(s)\n  ${v.helpUrl}`,
+        `[${v.impact}] ${v.id}: ${v.help} (${v.nodes.length} node${v.nodes.length === 1 ? "" : "s"})\n  ${v.helpUrl}`,
     )
-    .join("\n\n");
+    .join("\n");
 }
