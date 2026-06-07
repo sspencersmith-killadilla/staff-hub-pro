@@ -1,68 +1,45 @@
-# Make "everything at the Library" a real public view
 
-## Problem
+# Municipal Sales Brochure (PDF)
 
-A public visitor who wants to see only what the Library offers has no single page that shows it. `/hub` is auth-only (the manual is wrong about that), `/departments/<id>` shows events + rooms + gigs but not classes, and there is no public list of departments to pick from.
+A factual, design-forward, multi-page PDF brochure pitched to city managers, town clerks, parks & rec directors, and library directors — positioned as a single replacement for the patchwork of SaaS tools small municipalities currently pay for.
 
-## Goal
+## Deliverable
 
-A visitor can land on the site, click "Departments", pick **Library**, and see — on one page — Library events, classes, rooms, and gigs. No login required.
+A single PDF saved to `/mnt/documents/total-event-system-brochure.pdf`, generated with ReportLab (Python). Output as an artifact the user can download and share.
 
-## Changes
+## Content outline (6 pages, letter size)
 
-### 1. Add a Classes section to the public department hub
+1. **Cover** — Bold wordmark, tagline ("One platform. Every department. Zero per-seat fees."), city silhouette motif, subtitle: "An open-source community event & operations platform for small cities, towns, and nonprofits."
 
-File: `src/routes/departments.$id.tsx` + `src/lib/departments.functions.ts`
+2. **The problem** — Short factual block: most small municipalities juggle 6–10 separate SaaS tools (event ticketing, room booking, permit intake, vendor apps, email marketing, surveys, social scheduler, busker/gig program, class registration, public CMS). Each charges per seat or per transaction.
 
-- Extend `getDepartmentHub` to also fetch upcoming/active classes for the department by calling the existing `courses-public` query path (filter `courses.department_id = <id>`, only published, future or open-enrollment).
-- Add `"classes"` to `ALL_SECTIONS` in the route so it joins events / gigs / rooms in the customizable layout, with its own header (icon: `GraduationCap`), empty state, and card grid linking to `/classes/$id`.
-- Respect the existing `useLayoutPrefs` show/hide/reorder controls.
+3. **One platform, every department** — Two-column feature matrix grouped by audience:
+   - *Community*: events & ticketing, room reservations, class registration, StreetBeats busker program, community org events, vendor/sponsor applications, special-event permits, personal Hub, public department directory, civic quests (optional).
+   - *Staff*: per-department workspaces, event ops, door scanner, approvals queues, reports, marketing hub.
+   - *Admin*: granular permissions, multi-department tenancy, platform module toggles, branding engine, home page CMS, guidebook publisher, social command center, native email campaigns, surveys & analytics.
 
-### 2. Public departments index
+4. **What it replaces** — Side-by-side comparison table: "Typical municipal stack" (Eventbrite + SkedPal + Mailchimp + SurveyMonkey + Hootsuite + Wufoo + …, est. monthly cost) vs. "Total Event System" (one platform, $0 software cost, pay only for optional payment processing).
 
-New file: `src/routes/departments.index.tsx` → URL `/departments`
+5. **Built on modern, durable tech** — Plain-language stack callout (React + Postgres + Cloudflare), runs at $0/month at small-city scale, open source under permissive license, five payment provider options (None / USAePay / Stripe / PayPal / Square), self-hosted or managed.
 
-- Public route, SSR-friendly, with `head()` meta ("Departments — browse by city department").
-- Loader calls a new `listPublicDepartments` server fn in `src/lib/departments.functions.ts` returning `id, name, logo_url, short_description` for departments that have at least one public-facing item (event, class, or bookable room).
-- Renders a responsive card grid; each card links to `/departments/$id` using `<Link to="/departments/$id" params={{ id }}>`.
+6. **Get started** — Three-step path (Fork the repo → Run the SQL migrations → Configure brand & departments), link to REPRODUCTION.md, footer with project URL.
 
-### 3. Header + home wayfinding
+## Visual direction
 
-- `src/components/site-header.tsx`: replace the single hard-coded department link with a "Departments" link to `/departments`.
-- `src/components/home/HomePageView.tsx` (light touch only — presentation): add a "Browse by department" entry point on the home page so a Library visitor has an obvious door in.
+- Palette: **Navy Trust** (`#0f1b3d`, `#1e3a5f`, `#3b6fa0`, `#e8edf3`) with a single warm accent (`#d4842a`) for callouts — feels civic, trustworthy, not generic SaaS blue.
+- Typography: Helvetica-Bold for headers (60–72pt on cover), Helvetica for body (10–11pt). Generous margins, strong grid.
+- Visual motifs: thin rule lines, numbered section markers, small filled circles as bullets, a single hero stat per page ("1 platform replaces 8 tools", "$0/mo at small-city scale", "All 11 modules togglable per department").
+- No stock-photo clichés. Geometric civic motif on cover (skyline silhouette as flat shapes).
 
-### 4. Manual correction
+## Technical approach
 
-File: `src/routes/manual.tsx`
-
-- In the `departments-overview` / `dept-hub` sections, correct the claim that the public uses `/hub`. State explicitly:
-  - `/hub` is the **signed-in** personal dashboard.
-  - `/departments` is the **public** department directory.
-  - `/departments/<id>` is the **public** department hub showing that department's events, classes, rooms, and gigs.
-- Add a one-line example: "To see only Library offerings, go to `/departments` and pick **Library**."
-- Update the section's screenshot caption if needed; reuse the existing `quests.png` pattern (no new asset required unless you want one).
+- Single Python script (`/tmp/brochure.py`) using ReportLab Platypus + Canvas.
+- No external image dependencies — all visuals drawn as vector shapes.
+- After generation: convert to images via `pdftoppm`, visually QA every page for overflow, overlap, alignment, and contrast. Iterate until clean.
+- Emit `<presentation-artifact>` tag for the final PDF.
 
 ## Out of scope
 
-- No schema changes. `courses.department_id`, `events.department_id`, and `venues.department_id` already exist.
-- No changes to the auth-gated `/hub`.
-- No changes to the Civic Quests module or reporting surfaces.
-
-## Technical notes
-
-- `listPublicDepartments` uses `supabaseAdmin` with an explicit safe column projection (`id, name, logo_url, short_description`); no new `TO anon` grants.
-- Classes query in `getDepartmentHub` mirrors the filter logic already in `listPublicCourses` so behavior stays consistent between `/classes?dept=…` and `/departments/<id>`.
-- New routes define `errorComponent` and `notFoundComponent`; loader uses `ensureQueryData` + `useSuspenseQuery`.
-- All new links use `<Link to="/departments/$id" params={{ id }}>` — never `<a href>`.
-
-## Files
-
-Created:
-- `src/routes/departments.index.tsx`
-
-Edited:
-- `src/lib/departments.functions.ts` (add classes to hub payload, add `listPublicDepartments`)
-- `src/routes/departments.$id.tsx` (render Classes section)
-- `src/components/site-header.tsx` (Departments nav link)
-- `src/components/home/HomePageView.tsx` (entry point card — presentation only)
-- `src/routes/manual.tsx` (correct public vs. authenticated hub wording)
+- No code or schema changes to the app.
+- No marketing copy claims that aren't backed by what's in `README.md` / `REPRODUCTION.md`.
+- No pricing for the optional payment processors beyond the published rates already in the README.
