@@ -52,7 +52,7 @@ export const getDepartmentHub = createServerFn({ method: "GET" })
     if (deptErr) throw new Error(deptErr.message);
     if (!dept) throw new Error("Department not found");
 
-    const [sessionsRes, roomsRes, venueRoomsRes, deptStagesRes] = await Promise.all([
+    const [sessionsRes, roomsRes, venueRoomsRes, deptStagesRes, coursesRes] = await Promise.all([
       supabaseAdmin
         .from("sessions")
         .select("id, title, start_time, end_time, image_url, focal_x, focal_y")
@@ -75,6 +75,11 @@ export const getDepartmentHub = createServerFn({ method: "GET" })
         .from("stages")
         .select("id, name, venue:venues!inner(id, name, department_id)")
         .eq("venues.department_id", data.id),
+      supabaseAdmin
+        .from("courses")
+        .select("id, title, description, price, image_url")
+        .eq("department_id", data.id)
+        .limit(48),
     ]);
 
     if (sessionsRes.error) throw new Error(sessionsRes.error.message);
