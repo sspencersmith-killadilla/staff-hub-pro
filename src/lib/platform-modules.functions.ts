@@ -13,7 +13,8 @@ export type ModuleKey =
   | "venues"
   | "social_command"
   | "guidebook"
-  | "events";
+  | "events"
+  | "civic_quests";
 
 export type PlatformModule = {
   key: ModuleKey;
@@ -34,6 +35,7 @@ const DEFAULT_MODULES: PlatformModule[] = [
   { key: "vendors_sponsors", label: "Vendors & Sponsors Portal", description: "Allows businesses to apply for booths and sponsorship packages.", enabled: true },
   { key: "social_command", label: "Social Media Command Center", description: "Cross-platform social scheduling, planner, and integrations.", enabled: true },
   { key: "guidebook", label: "Guidebook Publisher", description: "Magazine-style guidebook editor and PDF export.", enabled: true },
+  { key: "civic_quests", label: "Civic Quests & Discovery", description: "Gamified self-guided adventures: badges, points, QR/geo waypoints, leaderboard, and reports.", enabled: true },
 ];
 
 function mergeWithDefaults(modules?: PlatformModule[] | null) {

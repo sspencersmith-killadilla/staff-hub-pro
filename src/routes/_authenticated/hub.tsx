@@ -42,7 +42,7 @@ type Action = {
   to: string;
   icon: React.ComponentType<{ className?: string }>;
   accent: string;
-  module?: "streetbeats" | "room_reservations" | "community_orgs" | "vendors_sponsors";
+  module?: "streetbeats" | "room_reservations" | "community_orgs" | "vendors_sponsors" | "civic_quests";
   cta: string;
 };
 
@@ -127,6 +127,7 @@ function HubPage() {
       to: "/explore",
       icon: Compass,
       accent: "from-amber-500 to-orange-600",
+      module: "civic_quests",
       cta: "Start exploring",
     },
   ];
@@ -309,11 +310,15 @@ function HubPage() {
 }
 
 function QuestBadges() {
+  const { isEnabled } = useModules();
+  const enabled = isEnabled("civic_quests");
   const fetchMine = useServerFn(listMyEarnedQuests);
   const { data } = useQuery({
     queryKey: ["my-earned-quests"],
     queryFn: () => fetchMine(),
+    enabled,
   });
+  if (!enabled) return null;
   const earned = (data?.entries ?? []).filter((e) => e.is_completed);
   if (!data) return null;
   return (
@@ -327,12 +332,20 @@ function QuestBadges() {
             {data.points} pts · {earned.length} earned
           </p>
         </div>
-        <Link
-          to="/explore"
-          className="rounded-md bg-stone-900 px-3 py-2 text-xs font-bold uppercase tracking-wider text-amber-100 hover:bg-stone-700"
-        >
-          Find more →
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            to="/leaderboard"
+            className="rounded-md border-2 border-stone-900 bg-white px-3 py-2 text-xs font-bold uppercase tracking-wider text-stone-900 hover:bg-stone-100"
+          >
+            Leaderboard
+          </Link>
+          <Link
+            to="/explore"
+            className="rounded-md bg-stone-900 px-3 py-2 text-xs font-bold uppercase tracking-wider text-amber-100 hover:bg-stone-700"
+          >
+            Find more →
+          </Link>
+        </div>
       </div>
       {earned.length > 0 && (
         <ul className="mt-4 flex flex-wrap gap-3">

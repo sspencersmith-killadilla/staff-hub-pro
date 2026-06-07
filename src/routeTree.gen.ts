@@ -19,6 +19,7 @@ import { Route as NoAccessRouteImport } from './routes/no-access'
 import { Route as ManualRouteImport } from './routes/manual'
 import { Route as ManifestDotwebmanifestRouteImport } from './routes/manifest[.]webmanifest'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as CommunityRouteImport } from './routes/community'
 import { Route as ClassesRouteImport } from './routes/classes'
@@ -56,6 +57,7 @@ import { Route as AuthenticatedStaffSurveysRouteImport } from './routes/_authent
 import { Route as AuthenticatedStaffSponsorsRouteImport } from './routes/_authenticated/staff/sponsors'
 import { Route as AuthenticatedStaffSettingsRouteImport } from './routes/_authenticated/staff/settings'
 import { Route as AuthenticatedStaffRoomReservationsRouteImport } from './routes/_authenticated/staff/room-reservations'
+import { Route as AuthenticatedStaffQuestsReportRouteImport } from './routes/_authenticated/staff/quests-report'
 import { Route as AuthenticatedStaffMapRouteImport } from './routes/_authenticated/staff/map'
 import { Route as AuthenticatedStaffCommunityOrganizationsRouteImport } from './routes/_authenticated/staff/community-organizations'
 import { Route as AuthenticatedStaffCommunityMusicRouteImport } from './routes/_authenticated/staff/community-music'
@@ -142,6 +144,11 @@ const ManifestDotwebmanifestRoute = ManifestDotwebmanifestRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeaderboardRoute = LeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -335,6 +342,12 @@ const AuthenticatedStaffRoomReservationsRoute =
   AuthenticatedStaffRoomReservationsRouteImport.update({
     id: '/room-reservations',
     path: '/room-reservations',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
+const AuthenticatedStaffQuestsReportRoute =
+  AuthenticatedStaffQuestsReportRouteImport.update({
+    id: '/quests-report',
+    path: '/quests-report',
     getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
 const AuthenticatedStaffMapRoute = AuthenticatedStaffMapRouteImport.update({
@@ -563,6 +576,7 @@ export interface FileRoutesByFullPath {
   '/classes': typeof ClassesRouteWithChildren
   '/community': typeof CommunityRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/manifest.webmanifest': typeof ManifestDotwebmanifestRoute
   '/manual': typeof ManualRoute
@@ -603,6 +617,7 @@ export interface FileRoutesByFullPath {
   '/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
   '/staff/map': typeof AuthenticatedStaffMapRoute
+  '/staff/quests-report': typeof AuthenticatedStaffQuestsReportRoute
   '/staff/room-reservations': typeof AuthenticatedStaffRoomReservationsRoute
   '/staff/settings': typeof AuthenticatedStaffSettingsRoute
   '/staff/sponsors': typeof AuthenticatedStaffSponsorsRoute
@@ -648,6 +663,7 @@ export interface FileRoutesByTo {
   '/classes': typeof ClassesRouteWithChildren
   '/community': typeof CommunityRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/manifest.webmanifest': typeof ManifestDotwebmanifestRoute
   '/manual': typeof ManualRoute
@@ -686,6 +702,7 @@ export interface FileRoutesByTo {
   '/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
   '/staff/map': typeof AuthenticatedStaffMapRoute
+  '/staff/quests-report': typeof AuthenticatedStaffQuestsReportRoute
   '/staff/room-reservations': typeof AuthenticatedStaffRoomReservationsRoute
   '/staff/settings': typeof AuthenticatedStaffSettingsRoute
   '/staff/sponsors': typeof AuthenticatedStaffSponsorsRoute
@@ -731,6 +748,7 @@ export interface FileRoutesById {
   '/classes': typeof ClassesRouteWithChildren
   '/community': typeof CommunityRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/manifest.webmanifest': typeof ManifestDotwebmanifestRoute
   '/manual': typeof ManualRoute
@@ -771,6 +789,7 @@ export interface FileRoutesById {
   '/_authenticated/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/_authenticated/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
   '/_authenticated/staff/map': typeof AuthenticatedStaffMapRoute
+  '/_authenticated/staff/quests-report': typeof AuthenticatedStaffQuestsReportRoute
   '/_authenticated/staff/room-reservations': typeof AuthenticatedStaffRoomReservationsRoute
   '/_authenticated/staff/settings': typeof AuthenticatedStaffSettingsRoute
   '/_authenticated/staff/sponsors': typeof AuthenticatedStaffSponsorsRoute
@@ -818,6 +837,7 @@ export interface FileRouteTypes {
     | '/classes'
     | '/community'
     | '/forgot-password'
+    | '/leaderboard'
     | '/login'
     | '/manifest.webmanifest'
     | '/manual'
@@ -858,6 +878,7 @@ export interface FileRouteTypes {
     | '/staff/community-music'
     | '/staff/community-organizations'
     | '/staff/map'
+    | '/staff/quests-report'
     | '/staff/room-reservations'
     | '/staff/settings'
     | '/staff/sponsors'
@@ -903,6 +924,7 @@ export interface FileRouteTypes {
     | '/classes'
     | '/community'
     | '/forgot-password'
+    | '/leaderboard'
     | '/login'
     | '/manifest.webmanifest'
     | '/manual'
@@ -941,6 +963,7 @@ export interface FileRouteTypes {
     | '/staff/community-music'
     | '/staff/community-organizations'
     | '/staff/map'
+    | '/staff/quests-report'
     | '/staff/room-reservations'
     | '/staff/settings'
     | '/staff/sponsors'
@@ -985,6 +1008,7 @@ export interface FileRouteTypes {
     | '/classes'
     | '/community'
     | '/forgot-password'
+    | '/leaderboard'
     | '/login'
     | '/manifest.webmanifest'
     | '/manual'
@@ -1025,6 +1049,7 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/community-music'
     | '/_authenticated/staff/community-organizations'
     | '/_authenticated/staff/map'
+    | '/_authenticated/staff/quests-report'
     | '/_authenticated/staff/room-reservations'
     | '/_authenticated/staff/settings'
     | '/_authenticated/staff/sponsors'
@@ -1072,6 +1097,7 @@ export interface RootRouteChildren {
   ClassesRoute: typeof ClassesRouteWithChildren
   CommunityRoute: typeof CommunityRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  LeaderboardRoute: typeof LeaderboardRoute
   LoginRoute: typeof LoginRoute
   ManifestDotwebmanifestRoute: typeof ManifestDotwebmanifestRoute
   ManualRoute: typeof ManualRoute
@@ -1174,6 +1200,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leaderboard': {
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -1433,6 +1466,13 @@ declare module '@tanstack/react-router' {
       path: '/room-reservations'
       fullPath: '/staff/room-reservations'
       preLoaderRoute: typeof AuthenticatedStaffRoomReservationsRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/quests-report': {
+      id: '/_authenticated/staff/quests-report'
+      path: '/quests-report'
+      fullPath: '/staff/quests-report'
+      preLoaderRoute: typeof AuthenticatedStaffQuestsReportRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
     }
     '/_authenticated/staff/map': {
@@ -1823,6 +1863,7 @@ interface AuthenticatedStaffRouteChildren {
   AuthenticatedStaffCommunityMusicRoute: typeof AuthenticatedStaffCommunityMusicRoute
   AuthenticatedStaffCommunityOrganizationsRoute: typeof AuthenticatedStaffCommunityOrganizationsRoute
   AuthenticatedStaffMapRoute: typeof AuthenticatedStaffMapRoute
+  AuthenticatedStaffQuestsReportRoute: typeof AuthenticatedStaffQuestsReportRoute
   AuthenticatedStaffRoomReservationsRoute: typeof AuthenticatedStaffRoomReservationsRoute
   AuthenticatedStaffSettingsRoute: typeof AuthenticatedStaffSettingsRoute
   AuthenticatedStaffSponsorsRoute: typeof AuthenticatedStaffSponsorsRoute
@@ -1845,6 +1886,7 @@ const AuthenticatedStaffRouteChildren: AuthenticatedStaffRouteChildren = {
   AuthenticatedStaffCommunityOrganizationsRoute:
     AuthenticatedStaffCommunityOrganizationsRoute,
   AuthenticatedStaffMapRoute: AuthenticatedStaffMapRoute,
+  AuthenticatedStaffQuestsReportRoute: AuthenticatedStaffQuestsReportRoute,
   AuthenticatedStaffRoomReservationsRoute:
     AuthenticatedStaffRoomReservationsRoute,
   AuthenticatedStaffSettingsRoute: AuthenticatedStaffSettingsRoute,
@@ -1917,6 +1959,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClassesRoute: ClassesRouteWithChildren,
   CommunityRoute: CommunityRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  LeaderboardRoute: LeaderboardRoute,
   LoginRoute: LoginRoute,
   ManifestDotwebmanifestRoute: ManifestDotwebmanifestRoute,
   ManualRoute: ManualRoute,

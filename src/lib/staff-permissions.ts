@@ -61,6 +61,7 @@ export const PAGE_PERMISSIONS = [
   { key: "page.social_command", label: "Social Command Center" },
   { key: "page.communications", label: "Communications (Email Campaigns)" },
   { key: "page.surveys", label: "Surveys & Feedback" },
+  { key: "page.quests_report", label: "Civic Quests — Reporting" },
 ] as const;
 
 export const EVENT_PERMISSIONS = [

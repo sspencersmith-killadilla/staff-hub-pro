@@ -32,6 +32,7 @@ function ExploreIndexPage() {
   });
 
   const quests = data?.quests ?? [];
+  const moduleDisabled = !!data?.disabled;
 
   return (
     <div className="min-h-dvh bg-amber-50">
@@ -50,7 +51,13 @@ function ExploreIndexPage() {
           </div>
         </header>
 
-        {isLoading ? (
+        {moduleDisabled ? (
+          <div className="rounded-xl border-2 border-dashed border-stone-300 bg-white/60 p-12 text-center">
+            <p className="text-stone-700">
+              The Civic Quests module is currently turned off. Check back later!
+            </p>
+          </div>
+        ) : isLoading ? (
           <p className="text-sm text-stone-500">Loading quests…</p>
         ) : quests.length === 0 ? (
           <div className="rounded-xl border-2 border-dashed border-stone-300 bg-white/60 p-12 text-center">
