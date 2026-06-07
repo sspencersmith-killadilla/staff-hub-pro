@@ -86,10 +86,46 @@ export const getDepartmentHub = createServerFn({ method: "GET" })
     if (roomsRes.error) throw new Error(roomsRes.error.message);
     if (venueRoomsRes.error) throw new Error(venueRoomsRes.error.message);
     if (deptStagesRes.error) throw new Error(deptStagesRes.error.message);
+    if (coursesRes.error) throw new Error(coursesRes.error.message);
     const roomsById = new Map<string, any>();
     for (const room of [...(roomsRes.data ?? []), ...(venueRoomsRes.data ?? [])]) {
       roomsById.set(String((room as any).id), room);
     }
+
+    // Classes — augment with next upcoming session
+    const courseList = coursesRes.data ?? [];
+    const courseIds = courseList.map((c: any) => c.id);
+    let nextSessionByCourse: Record<string, { start_time: string; end_time: string } | null> = {};
+    if (courseIds.length) {
+      const { data: csRows } = await supabaseAdmin
+        .from("course_sessions")
+        .select("course_id, start_time, end_time")
+        .in("course_id", courseIds)
+        .gte("end_time", nowIso)
+        .order("start_time", { ascending: true });
+      for (const cs of csRows ?? []) {
+        const cid = (cs as any).course_id as string;
+        if (!nextSessionByCourse[cid]) {
+          nextSessionByCourse[cid] = {
+            start_time: (cs as any).start_time,
+            end_time: (cs as any).end_time,
+          };
+        }
+      }
+    }
+    const classes = courseList
+      .map((c: any) => ({
+        id: c.id,
+        title: c.title,
+        description: c.description,
+        price: c.price,
+        image_url: c.image_url,
+        next_session: nextSessionByCourse[c.id] ?? null,
+      }))
+      .filter((c) => c.next_session) // only show classes with upcoming sessions
+      .sort((a, b) =>
+        (a.next_session!.start_time ?? "").localeCompare(b.next_session!.start_time ?? ""),
+      );
 
     // Streetbeats gigs scoped to stages owned by this department.
     const stageIds = (deptStagesRes.data ?? []).map((s: any) => s.id);
