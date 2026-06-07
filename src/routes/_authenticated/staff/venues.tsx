@@ -294,8 +294,9 @@ function StageRow({ venueId, stage }: { venueId: number; stage: any }) {
         {save.isPending ? "Saving…" : "Save"}
       </Button>
       <Button size="icon" variant="ghost"
+        aria-label={`Delete stage ${stage.name}`}
         onClick={() => confirm(`Delete stage "${stage.name}"?`) && del.mutate()}>
-        <Trash2 className="h-4 w-4" />
+        <Trash2 className="h-4 w-4" aria-hidden="true" />
       </Button>
     </li>
   );
@@ -386,8 +387,9 @@ function RoomRow({ venueId, room, depts }: { venueId: number; room: any; depts: 
           {save.isPending ? "Saving…" : "Save"}
         </Button>
         <Button size="icon" variant="ghost"
+          aria-label={`Delete room ${room.name}`}
           onClick={() => confirm(`Delete room "${room.name}"?`) && del.mutate()}>
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-4 w-4" aria-hidden="true" />
         </Button>
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-600">
