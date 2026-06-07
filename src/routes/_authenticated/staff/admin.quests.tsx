@@ -101,6 +101,7 @@ function AdminQuestsPage() {
             title: w.title.trim(),
             description: w.description.trim() || null,
             completion_type: w.completion_type,
+            secret_code: w.secret_code,
             lat: w.lat ? Number(w.lat) : null,
             lng: w.lng ? Number(w.lng) : null,
             radius_m: w.radius_m ? Number(w.radius_m) : null,
