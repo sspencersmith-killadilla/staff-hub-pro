@@ -360,6 +360,7 @@ const waypointInput = z.object({
   title: z.string().min(1).max(200),
   description: z.string().max(2000).nullable().optional(),
   completion_type: z.enum(["qr_scan", "geo_location", "honor_system_button"]),
+  secret_code: z.string().min(1).max(128).nullable().optional(),
   lat: z.number().nullable().optional(),
   lng: z.number().nullable().optional(),
   radius_m: z.number().int().min(5).max(5000).nullable().optional(),
@@ -416,12 +417,13 @@ export const adminSaveQuest = createServerFn({ method: "POST" })
     // Replace waypoints (delete-then-insert keeps the editor simple).
     await supabaseAdmin.from("quest_waypoints").delete().eq("quest_id", questId);
     const inserts = data.waypoints.map((w) => ({
+      id: w.id ?? crypto.randomUUID(),
       quest_id: questId!,
       title: w.title,
       description: w.description ?? null,
       completion_type: w.completion_type,
       secret_code:
-        w.completion_type === "qr_scan" ? nanoid(10) : null,
+        w.completion_type === "qr_scan" ? (w.secret_code ?? nanoid(10)) : null,
       lat: w.lat ?? null,
       lng: w.lng ?? null,
       radius_m: w.radius_m ?? null,
