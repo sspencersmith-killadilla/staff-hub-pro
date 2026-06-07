@@ -31,6 +31,7 @@ import { Route as SurveyIdRouteImport } from './routes/survey.$id'
 import { Route as StagesIdRouteImport } from './routes/stages.$id'
 import { Route as RoomsIdRouteImport } from './routes/rooms.$id'
 import { Route as GigsIdRouteImport } from './routes/gigs.$id'
+import { Route as ExploreQuestIdRouteImport } from './routes/explore.$questId'
 import { Route as EventsIdRouteImport } from './routes/events.$id'
 import { Route as DepartmentsIdRouteImport } from './routes/departments.$id'
 import { Route as CommunityEventsIdRouteImport } from './routes/community-events.$id'
@@ -199,6 +200,11 @@ const RoomsIdRoute = RoomsIdRouteImport.update({
 const GigsIdRoute = GigsIdRouteImport.update({
   id: '/gigs/$id',
   path: '/gigs/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExploreQuestIdRoute = ExploreQuestIdRouteImport.update({
+  id: '/explore/$questId',
+  path: '/explore/$questId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EventsIdRoute = EventsIdRouteImport.update({
@@ -571,6 +577,7 @@ export interface FileRoutesByFullPath {
   '/community-events/$id': typeof CommunityEventsIdRoute
   '/departments/$id': typeof DepartmentsIdRoute
   '/events/$id': typeof EventsIdRoute
+  '/explore/$questId': typeof ExploreQuestIdRoute
   '/gigs/$id': typeof GigsIdRoute
   '/rooms/$id': typeof RoomsIdRoute
   '/stages/$id': typeof StagesIdRoute
@@ -653,6 +660,7 @@ export interface FileRoutesByTo {
   '/community-events/$id': typeof CommunityEventsIdRoute
   '/departments/$id': typeof DepartmentsIdRoute
   '/events/$id': typeof EventsIdRoute
+  '/explore/$questId': typeof ExploreQuestIdRoute
   '/gigs/$id': typeof GigsIdRoute
   '/rooms/$id': typeof RoomsIdRoute
   '/stages/$id': typeof StagesIdRoute
@@ -735,6 +743,7 @@ export interface FileRoutesById {
   '/community-events/$id': typeof CommunityEventsIdRoute
   '/departments/$id': typeof DepartmentsIdRoute
   '/events/$id': typeof EventsIdRoute
+  '/explore/$questId': typeof ExploreQuestIdRoute
   '/gigs/$id': typeof GigsIdRoute
   '/rooms/$id': typeof RoomsIdRoute
   '/stages/$id': typeof StagesIdRoute
@@ -820,6 +829,7 @@ export interface FileRouteTypes {
     | '/community-events/$id'
     | '/departments/$id'
     | '/events/$id'
+    | '/explore/$questId'
     | '/gigs/$id'
     | '/rooms/$id'
     | '/stages/$id'
@@ -902,6 +912,7 @@ export interface FileRouteTypes {
     | '/community-events/$id'
     | '/departments/$id'
     | '/events/$id'
+    | '/explore/$questId'
     | '/gigs/$id'
     | '/rooms/$id'
     | '/stages/$id'
@@ -983,6 +994,7 @@ export interface FileRouteTypes {
     | '/community-events/$id'
     | '/departments/$id'
     | '/events/$id'
+    | '/explore/$questId'
     | '/gigs/$id'
     | '/rooms/$id'
     | '/stages/$id'
@@ -1061,6 +1073,7 @@ export interface RootRouteChildren {
   CommunityEventsIdRoute: typeof CommunityEventsIdRoute
   DepartmentsIdRoute: typeof DepartmentsIdRoute
   EventsIdRoute: typeof EventsIdRoute
+  ExploreQuestIdRoute: typeof ExploreQuestIdRoute
   GigsIdRoute: typeof GigsIdRoute
   RoomsIdRoute: typeof RoomsIdRoute
   StagesIdRoute: typeof StagesIdRoute
@@ -1232,6 +1245,13 @@ declare module '@tanstack/react-router' {
       path: '/gigs/$id'
       fullPath: '/gigs/$id'
       preLoaderRoute: typeof GigsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/explore/$questId': {
+      id: '/explore/$questId'
+      path: '/explore/$questId'
+      fullPath: '/explore/$questId'
+      preLoaderRoute: typeof ExploreQuestIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/events/$id': {
@@ -1890,6 +1910,7 @@ const rootRouteChildren: RootRouteChildren = {
   CommunityEventsIdRoute: CommunityEventsIdRoute,
   DepartmentsIdRoute: DepartmentsIdRoute,
   EventsIdRoute: EventsIdRoute,
+  ExploreQuestIdRoute: ExploreQuestIdRoute,
   GigsIdRoute: GigsIdRoute,
   RoomsIdRoute: RoomsIdRoute,
   StagesIdRoute: StagesIdRoute,
