@@ -1,68 +1,81 @@
-# WCAG 2.2 AA Audit & Remediation — Full Site
+# Three Accessibility Follow-Ups
 
-Two-phase delivery: a written audit report grouped by severity, then code fixes for every feasible Critical and Warning finding. Info-level "best-practice" items will be fixed when the change is mechanical and safe.
+## 1. Screen-reader walkthrough — top 3 flows
 
-## What I'll audit (full site)
+I cannot literally drive NVDA or VoiceOver from this environment. What I *can* do is a **structural screen-reader simulation** for each flow: walk the rendered DOM the way a screen reader would announce it (landmarks → headings → labels → focusable order → live regions), flag every mismatch with WCAG references and a recommended fix, then apply the fixes.
 
-Every route in `src/routes/` — public pages (home, events, classes, venues, community, signup/login, survey responder, unsubscribe) plus the staff portal (`/staff/*`, `/staff/admin/*`) and authenticated user pages (hub, my-tickets, my-permits, etc.). Shared components in `src/components/` are reviewed once and the fixes propagate.
+Flows:
+- **Ticket purchase** — `/events` → `/events/$id` → ticket selection → checkout → confirmation.
+- **Survey response** — `/survey/$id` (load, answer, submit, success/error state).
+- **Vendor application** — `/vendor` (multi-step form, photo upload, review, submit).
 
-## What I'll check (WCAG 2.2 AA)
+What I'll check on each step:
+- Page has exactly one `<h1>`, sensible heading hierarchy.
+- Single `<main id="main-content">` reachable from the global skip link.
+- Form controls labeled (`<Label htmlFor>`, `aria-label`, or wrapping label) and required fields marked.
+- Validation errors associated via `aria-describedby` and announced via `role="alert"` / `aria-live="assertive"`.
+- Async state changes (loading, success toast, redirect) announced.
+- Focus order matches visual order; focus moves to the right place after step transitions and modal opens.
+- Buttons have visible text or `aria-label`; disabled state isn't communicated by color alone.
+- Image alts: descriptive for content, empty for decorative.
 
-**Critical**
-- Images missing `alt`, decorative images missing `alt=""`
-- Icon-only buttons / links without accessible names (`aria-label` or visible text)
-- Form inputs without a `<Label htmlFor>` or `aria-label`; required fields without `aria-required` / error association
-- `onClick` on non-interactive elements (`div`/`span`) without role + keyboard handler
-- `aria-hidden` on focusable ancestors; focus traps with no escape
-- Color used as the only signal for status/errors
+Deliverable: a per-flow report (step-by-step transcript with issues), then a fix pass.
 
-**Warning**
-- Hardcoded color classes (`text-gray-*`, `text-white`, `bg-slate-*`) replaced with semantic tokens (`text-foreground`, `text-muted-foreground`, `bg-card`, …) — wholesale 640 hits to triage; fix every one in user-visible UI
-- Multiple `<main>` per page — collapse to exactly one, lifted into the route layout
-- `h-screen` → `h-dvh` on full-height layouts (mobile viewport bug)
-- Heading order (no `h1`→`h3` jumps, single `h1` per route)
-- Focus-visible rings present on every interactive element
-- Tap targets ≥ 44×44 on mobile (icon buttons get `min-h-11 min-w-11`)
-- `tabIndex` > 0 removed; `autoFocus` only inside dialogs
-- WCAG 2.2 additions: focus appearance (2 px non-obscured outline), target size minimum, dragging alternatives, consistent help, redundant entry on multi-step forms
-- Form errors announced via `role="alert"` / `aria-live`, error text linked with `aria-describedby`
+Honesty note: structural simulation catches the vast majority of SR issues, but doesn't replace a live AT pass. I'll recommend the user (or a tester) run NVDA/VoiceOver against the same flows once fixes land.
 
-**Info / best practice**
-- Decorative icons get `aria-hidden="true"`
-- Lists use `<ul>`/`<ol>`
-- `lang="en"` on `<html>` (already present — verify)
-- Skip-to-content link in root layout
-- Dynamic toasts already use Sonner (live region) — confirm
-- Redundant ARIA stripped from native elements
+## 2. Vendor portal color-contrast audit
 
-## Known hotspots from initial sweep
+`src/routes/vendor.tsx` uses a fixed gov.uk-style palette outside the theme system. I'll compute WCAG 2.2 contrast ratios for every foreground/background combination actually used in the file, against:
+- **Normal text** — needs ≥ 4.5:1 (AA) / ≥ 7:1 (AAA).
+- **Large text** (≥18pt or 14pt bold) — needs ≥ 3:1 (AA) / ≥ 4.5:1 (AAA).
+- **Non-text UI** (borders, focus rings, icons conveying info) — needs ≥ 3:1.
 
-- Icon buttons missing `aria-label` in: `operating-hours-editor`, `staff/venues`, `staff/index`, `staff/admin.guidebook-canvas`, `staff/admin.social`, `staff/admin.home`, `staff/admin.guidebook-publisher`, `staff/admin.guidebook`, `staff/admin.permits`, `RichTextEditor` toolbar
-- 640 hardcoded color-class usages across components/routes
-- 58 `h-screen` usages → migrate to `h-dvh`
-- Only 11 `aria-label` occurrences project-wide vs. many icon-only controls
-- `tabIndex={0}` on a non-interactive element in `staff/admin.social`
-- Root layout has no skip link
+Palette in use:
+```
+#005ea2  #00a91c  #112e51  #1a4480  #1b1b1b
+#825e0e  #a57914  #aebecf  #bbf7d0  #e4f2e7
+#e8c872  #f0f6ff  #f4f6f9  #fde047  #fde68a
+#fef3c7  #fff3d4  #fffcf2  #fffdf5
+```
 
-## Deliverables
+Process:
+1. Grep every `text-[#…]` / `bg-[#…]` pair in `vendor.tsx`; collect the actual combinations used.
+2. Write a small Node script to compute the WCAG relative-luminance contrast ratio for each pair.
+3. Produce a table: pair → ratio → AA normal / AA large / non-text → pass or fail.
+4. For each failure, swap to the nearest brand-compatible color that passes (usually darker text or darker fill). Example expected issue: `#825e0e` on `#fff3d4` body text is borderline; `#aebecf` borders on `#f4f6f9` likely under 3:1.
+5. Apply fixes in `vendor.tsx`. Other files in the codebase already use semantic tokens and were covered in the previous audit, so scope stays in this one file.
 
-1. **Audit report** posted in chat: counts by severity, per-area findings (Public, Auth, Staff, Admin, Components), top offending files.
-2. **Code fixes** in passes:
-   - Pass A — Critical: alt text, form labels, icon-button aria-labels, `<main>` deduplication, skip link, semantic landmarks.
-   - Pass B — Warning: hardcoded color → semantic token sweep, `h-screen` → `h-dvh`, focus rings, target sizes, heading order, error association, `tabIndex` cleanup, WCAG 2.2 additions.
-   - Pass C — Info: decorative icon `aria-hidden`, redundant ARIA removal, list semantics.
-3. **Verification**: visual spot-check via preview at desktop + mobile viewports; lint check that build still passes.
+Deliverable: contrast report posted in chat + fixes.
 
-## Out of scope
+## 3. Automated `vitest-axe` per-route regression coverage
 
-- Third-party embeds (maps, payment iframes) — flagged with mitigation notes, not rewritten.
-- WCAG AAA criteria (7:1 contrast, sign-language alternatives).
-- Server-rendered emails — fixed only if the templates produce visibly inaccessible markup.
-- Manual screen-reader testing (NVDA/VoiceOver) — recommended as a follow-up; I'll set the markup up correctly but can't drive an AT.
+The project has no test setup today. I'll bootstrap one focused on accessibility:
 
-## Technical notes
+**Setup**
+- Add devDependencies: `vitest`, `@vitest/ui`, `jsdom`, `@testing-library/react`, `@testing-library/jest-dom`, `vitest-axe`, `axe-core`.
+- Add `vitest.config.ts` with `environment: "jsdom"` and a setup file that:
+  - Mocks `@tanstack/react-router` `Link` / `useNavigate` / `Outlet`.
+  - Mocks Supabase clients (`@/integrations/supabase/client`, server functions) so route components don't try to fetch.
+  - Provides a `QueryClient` wrapper.
+- Add `bun test:a11y` script.
 
-- Color sweep prefers token map: `text-gray-500/600` → `text-muted-foreground`; `text-gray-900/black` → `text-foreground`; `bg-white` → `bg-background`/`bg-card`; `bg-slate-*` chips → `bg-muted`/`bg-secondary`. Status colors (red/green/amber) kept where they encode meaning but paired with text/icon, not color alone.
-- Skip link added once in `src/routes/__root.tsx` `RootComponent`, targeting `#main-content` set on each route's `<main>`.
-- Icon button fix uses shadcn pattern: keep `size="icon"`, add `aria-label="…"`, mark inner Lucide icon `aria-hidden`.
-- Toaster already mounted globally — no live-region changes needed.
+**Per-route tests**
+- Generate one test per route file in `src/__tests__/a11y/<route>.test.tsx`.
+- Each test:
+  1. Imports the route's component (not the route object).
+  2. Renders it inside the wrapper with stub loader data (smallest shape that lets it render).
+  3. Calls `axe(container)` and asserts no violations.
+- Coverage: every page in `src/routes/`, both public and authenticated. Routes that hard-require auth render the gated layout in a "signed-in" mock state.
+
+**Limits I'll be upfront about**
+- axe catches roughly 30–40% of real accessibility issues — it's a regression net, not a guarantee of compliance.
+- Routes with complex data shapes will get minimal-data smoke tests; deep state-based variants (filled forms, error states) aren't auto-covered.
+- Test setup adds ~6 dev dependencies and a `vitest.config.ts`. No prod bundle impact.
+
+## Suggested order
+
+1. Vendor contrast audit (smallest, contained — 1 file).
+2. vitest-axe setup + initial test sweep (catches structural issues across all routes immediately).
+3. Manual SR walkthrough on the 3 flows (uses the same setup; deeper fixes informed by what axe missed).
+
+I'll keep going through all three unless you want to skip one.
