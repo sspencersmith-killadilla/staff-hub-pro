@@ -17,7 +17,10 @@ export type PublicWaypoint = {
   lng: number | null;
   radius_m: number | null;
   sort_order: number;
+  image_url: string | null;
+  image_alt: string | null;
 };
+
 
 export type PublicQuest = {
   id: string;
@@ -131,11 +134,12 @@ export const getPublicQuest = createServerFn({ method: "GET" })
     const { data: wps, error: wpErr } = await supabaseAdmin
       .from("quest_waypoints")
       .select(
-        "id, quest_id, title, description, completion_type, lat, lng, radius_m, sort_order",
+        "id, quest_id, title, description, completion_type, lat, lng, radius_m, sort_order, image_url, image_alt",
       )
       .eq("quest_id", data.id)
       .order("sort_order", { ascending: true });
     if (wpErr) throw new Error(wpErr.message);
+
 
     // Lightweight public stats (completions + in-progress count).
     const { data: prog } = await supabaseAdmin
