@@ -355,3 +355,367 @@ export const deleteIssueCategory = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+
+// =========================================================================
+// === MULTI-DEPARTMENT ASSIGNMENT =========================================
+// =========================================================================
+export type TicketDepartmentRow = {
+  department_id: string;
+  is_primary: boolean;
+  department?: { id: string; name: string } | null;
+};
+
+export const listTicketDepartments = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ ticket_id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("ticket_departments")
+      .select("department_id, is_primary, department:departments!ticket_departments_department_id_fkey(id, name)")
+      .eq("ticket_id", data.ticket_id);
+    if (error) throw new Error(error.message);
+    return (rows ?? []) as unknown as TicketDepartmentRow[];
+  });
+
+export const setTicketDepartments = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) =>
+    z.object({
+      ticket_id: z.string().uuid(),
+      department_ids: z.array(z.string().uuid()).min(1).max(10),
+      primary_department_id: z.string().uuid(),
+    }).parse(i),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    if (!data.department_ids.includes(data.primary_department_id)) {
+      throw new Error("Primary department must be in the assigned list");
+    }
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error: delErr } = await supabaseAdmin
+      .from("ticket_departments").delete().eq("ticket_id", data.ticket_id);
+    if (delErr) throw new Error(delErr.message);
+    const rows = data.department_ids.map((id) => ({
+      ticket_id: data.ticket_id,
+      department_id: id,
+      is_primary: id === data.primary_department_id,
+      added_by: context.userId,
+    }));
+    const { error: insErr } = await supabaseAdmin.from("ticket_departments").insert(rows);
+    if (insErr) throw new Error(insErr.message);
+    return { ok: true as const };
+  });
+
+// =========================================================================
+// === ASSIGNEES (staff users + raw email invites) =========================
+// =========================================================================
+export type TicketAssigneeRow = {
+  id: string;
+  ticket_id: string;
+  staff_user_id: string | null;
+  invited_email: string | null;
+  assigned_at: string;
+  accepted_at: string | null;
+  email?: string | null;
+  full_name?: string | null;
+};
+
+export const listTicketAssignees = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ ticket_id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("ticket_assignees")
+      .select("id, ticket_id, staff_user_id, invited_email, assigned_at, accepted_at")
+      .eq("ticket_id", data.ticket_id)
+      .order("assigned_at", { ascending: true });
+    if (error) throw new Error(error.message);
+    const list = (rows ?? []) as TicketAssigneeRow[];
+    const ids = list.map((r) => r.staff_user_id).filter((x): x is string => !!x);
+    if (ids.length === 0) return list;
+    const { data: users } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+    const byId = new Map(users.users.map((u) => [u.id, u]));
+    const { data: profs } = await supabaseAdmin
+      .from("profiles").select("id, full_name").in("id", ids);
+    const profById = new Map((profs ?? []).map((p: any) => [p.id, p]));
+    return list.map((r) => ({
+      ...r,
+      email: r.staff_user_id ? byId.get(r.staff_user_id)?.email ?? null : r.invited_email,
+      full_name: r.staff_user_id ? (profById.get(r.staff_user_id) as any)?.full_name ?? null : null,
+    }));
+  });
+
+export const listAssignableStaff = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: roles }, { data: deptRoles }] = await Promise.all([
+      supabaseAdmin.from("user_roles").select("user_id"),
+      supabaseAdmin.from("department_roles").select("user_id"),
+    ]);
+    const ids = Array.from(new Set([
+      ...((roles ?? []).map((r: any) => r.user_id as string)),
+      ...((deptRoles ?? []).map((r: any) => r.user_id as string)),
+    ]));
+    if (ids.length === 0) return [];
+    const { data: users } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+    const byId = new Map(users.users.map((u) => [u.id, u]));
+    const { data: profs } = await supabaseAdmin
+      .from("profiles").select("id, full_name").in("id", ids);
+    const profById = new Map((profs ?? []).map((p: any) => [p.id, p]));
+    return ids
+      .map((id) => ({
+        user_id: id,
+        email: byId.get(id)?.email ?? null,
+        full_name: (profById.get(id) as any)?.full_name ?? null,
+      }))
+      .filter((u) => !!u.email)
+      .sort((a, b) => (a.full_name ?? a.email!).localeCompare(b.full_name ?? b.email!));
+  });
+
+export const assignTicket = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) =>
+    z.object({
+      ticket_id: z.string().uuid(),
+      staff_user_id: z.string().uuid().nullable().optional(),
+      email: z.string().trim().email().max(255).nullable().optional(),
+    }).parse(i),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    if (!data.staff_user_id && !data.email) throw new Error("Provide a staff user or email");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    let staffId = data.staff_user_id ?? null;
+    let invitedEmail: string | null = null;
+    if (!staffId && data.email) {
+      const targetEmail = data.email.toLowerCase();
+      const { data: users } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+      const existing = users.users.find((u) => u.email?.toLowerCase() === targetEmail);
+      if (existing) staffId = existing.id;
+      else invitedEmail = data.email;
+    }
+
+    const { error } = await supabaseAdmin.from("ticket_assignees").insert({
+      ticket_id: data.ticket_id,
+      staff_user_id: staffId,
+      invited_email: invitedEmail,
+      assigned_by: context.userId,
+    });
+    if (error) {
+      if ((error as any).code === "23505") return { ok: true as const, already: true };
+      throw new Error(error.message);
+    }
+    return { ok: true as const };
+  });
+
+export const unassignTicket = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("ticket_assignees").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+// =========================================================================
+// === DUPLICATE LINKING ===================================================
+// =========================================================================
+export type DuplicateCandidate = TicketRow & { distance_m: number | null };
+
+export const findPossibleDuplicates = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ ticket_id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: source, error } = await supabaseAdmin
+      .from("tickets")
+      .select("id, category_id, latitude, longitude, created_at")
+      .eq("id", data.ticket_id).single();
+    if (error) throw new Error(error.message);
+
+    const sinceDays = 30;
+    const sourceTs = new Date(source.created_at as string).getTime();
+    const since = new Date(sourceTs - sinceDays * 86400000).toISOString();
+    const until = new Date(sourceTs + sinceDays * 86400000).toISOString();
+
+    let q = supabaseAdmin
+      .from("tickets")
+      .select("id, user_id, category_id, description, location_address, latitude, longitude, photo_url, status, assigned_department_id, created_at, updated_at, category:issue_categories(id, name, icon, description, default_department_id)")
+      .eq("category_id", source.category_id as string)
+      .neq("id", data.ticket_id)
+      .neq("status", "resolved")
+      .gte("created_at", since)
+      .lte("created_at", until)
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (source.latitude != null && source.longitude != null) {
+      const d = 0.003;
+      q = q
+        .gte("latitude", (source.latitude as number) - d)
+        .lte("latitude", (source.latitude as number) + d)
+        .gte("longitude", (source.longitude as number) - d)
+        .lte("longitude", (source.longitude as number) + d);
+    }
+    const { data: rows } = await q;
+
+    const sLat = source.latitude as number | null;
+    const sLng = source.longitude as number | null;
+    const cands: DuplicateCandidate[] = (rows ?? []).map((t: any) => {
+      let dist: number | null = null;
+      if (sLat != null && sLng != null && t.latitude != null && t.longitude != null) {
+        const dx = (t.longitude - sLng) * 111000 * Math.cos((sLat * Math.PI) / 180);
+        const dy = (t.latitude - sLat) * 111000;
+        dist = Math.round(Math.sqrt(dx * dx + dy * dy));
+      }
+      return { ...t, distance_m: dist };
+    });
+    cands.sort((a, b) => (a.distance_m ?? 1e9) - (b.distance_m ?? 1e9));
+
+    const { data: dupes } = await supabaseAdmin
+      .from("ticket_duplicates")
+      .select("id, primary_ticket_id, duplicate_ticket_id, linked_at")
+      .or(`primary_ticket_id.eq.${data.ticket_id},duplicate_ticket_id.eq.${data.ticket_id}`);
+
+    return { candidates: cands, links: dupes ?? [] };
+  });
+
+export const linkDuplicate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) =>
+    z.object({
+      primary_ticket_id: z.string().uuid(),
+      duplicate_ticket_id: z.string().uuid(),
+    }).parse(i),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    if (data.primary_ticket_id === data.duplicate_ticket_id) {
+      throw new Error("A ticket cannot duplicate itself");
+    }
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("ticket_duplicates").insert({
+      primary_ticket_id: data.primary_ticket_id,
+      duplicate_ticket_id: data.duplicate_ticket_id,
+      linked_by: context.userId,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+export const unlinkDuplicate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("ticket_duplicates").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+// =========================================================================
+// === COST LINE ITEMS =====================================================
+// =========================================================================
+export type TicketCostRow = {
+  id: string;
+  ticket_id: string;
+  kind: "labor" | "materials" | "equipment" | "other";
+  description: string | null;
+  hours: number | null;
+  rate: number | null;
+  amount: number;
+  incurred_on: string;
+  logged_by: string | null;
+  created_at: string;
+};
+
+export const listTicketCosts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ ticket_id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("ticket_costs")
+      .select("id, ticket_id, kind, description, hours, rate, amount, incurred_on, logged_by, created_at")
+      .eq("ticket_id", data.ticket_id)
+      .order("incurred_on", { ascending: false })
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return (rows ?? []) as TicketCostRow[];
+  });
+
+export const addTicketCost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) =>
+    z.object({
+      ticket_id: z.string().uuid(),
+      kind: z.enum(["labor", "materials", "equipment", "other"]),
+      description: z.string().max(500).nullable().optional(),
+      hours: z.number().min(0).max(1000).nullable().optional(),
+      rate: z.number().min(0).max(10000).nullable().optional(),
+      amount: z.number().min(0).max(1000000),
+      incurred_on: z.string().max(20).optional(),
+    }).parse(i),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("ticket_costs").insert({
+      ticket_id: data.ticket_id,
+      kind: data.kind,
+      description: data.description ?? null,
+      hours: data.hours ?? null,
+      rate: data.rate ?? null,
+      amount: data.amount,
+      incurred_on: data.incurred_on || new Date().toISOString().slice(0, 10),
+      logged_by: context.userId,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+export const deleteTicketCost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("ticket_costs").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+// =========================================================================
+// === STAFF: my assigned tickets ==========================================
+// =========================================================================
+export const listMyAssignedTickets = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: assigns } = await supabaseAdmin
+      .from("ticket_assignees")
+      .select("ticket_id")
+      .eq("staff_user_id", context.userId);
+    const ids = Array.from(new Set((assigns ?? []).map((a: any) => a.ticket_id as string)));
+    if (ids.length === 0) return [];
+    const { data, error } = await supabaseAdmin
+      .from("tickets")
+      .select("id, status, description, location_address, photo_url, created_at, category:issue_categories(id, name)")
+      .in("id", ids)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as any[];
+  });
