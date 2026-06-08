@@ -1,42 +1,32 @@
-## Goal
-Replace the separate `/my-tickets` page with a unified `/wallet` that houses Event Tickets, Prize Tickets, and Raffle Entries in one place.
+# Plan (revised): Operator Info Sheets + Companion Video
 
-## UX
+Good catch — adding **311 Reports & Dispatch** and the **Homepage Content Editor** to the lineup. Both are first-class operator surfaces (`/staff/dispatch`, `/staff/admin/issue-categories`, `/staff/admin/home`) and deserve their own pages.
 
-Single page at `/wallet` with three tabbed sections:
+## Updated module list (14 sheets, 1 page each)
 
-1. **Event Tickets** — current `my-tickets` content (QR for door check-in, seat info, session details)
-2. **Prize Tickets** — quest reward tickets (QR for sponsor/City Hall redemption)
-3. **Raffle Entries** — entries with draw date, prize, winner state
+1. Events & Box Office
+2. Venues
+3. Room Reservations
+4. Classes
+5. Vendors & Sponsors
+6. Community Organizations
+7. StreetBeats (busker permits)
+8. Social Command
+9. Guidebook
+10. Civic Quests & Discovery
+11. Prizes & Raffles
+12. My Wallet (Events / Prizes / Raffles)
+13. **311 Reports & Dispatch** — citizen issue intake, categories, dispatch queue, status updates
+14. **Homepage Content Editor** — tenant-overridable home page sections, hero, featured cards, prominence toggles
 
-Header summary chip row: "3 event tickets · 2 prizes · 5 raffle entries" so users see everything at a glance.
+Note: items 13–14 are operator tools that aren't in `use-modules.ts` toggle registry; their sheets will note "Always-on / not module-toggleable" in the toggle slot.
 
-Empty states per tab link to the relevant discovery surface (Events / Civic Quests).
+## Everything else unchanged
 
-## Routing
+- Same 1-page template (purpose, what it does, key routes, workflow, roles, integrations, what it replaces, toggle key).
+- PDF generated with `reportlab` + Inter, matching brochure styling. Output: `/mnt/documents/operator-info-sheets.pdf` (cover + index + 14 module pages = 16 pages).
+- Companion Remotion video extended to 14 module beats (~4s each) + intro/outro → ~65s total. Output: `/mnt/documents/total-event-system-walkthrough.mp4`.
+- Full visual QA on every PDF page and key video frames before delivering.
+- No source files in the project repo are modified — both are artifacts only.
 
-- Keep `/wallet` as the canonical URL.
-- Turn `/my-tickets` into a redirect to `/wallet?tab=events` so old links, emails, and bookmarks still work.
-- Update all in-app links currently pointing to `/my-tickets` (Hub, post-purchase confirmation, header menu) to `/wallet`.
-
-## Header / Hub
-
-- Header menu: keep single "My Wallet" link (already added). Remove any "My Tickets" entry that duplicates it.
-- Hub dashboard: update the "My Tickets" card label/icon to "My Wallet" with a sub-count breakdown.
-
-## Manual
-
-Update the manual section so "My Tickets" is folded under "My Wallet" with three subsections matching the tabs.
-
-## Files to touch
-
-- `src/routes/_authenticated/wallet.tsx` — add Tabs, lift in event ticket card from my-tickets, default tab from `?tab=` search param
-- `src/routes/_authenticated/my-tickets.tsx` — replace component with `<Navigate to="/wallet" search={{ tab: "events" }} replace />`
-- `src/components/site-header.tsx` — ensure no duplicate "My Tickets" link
-- `src/routes/_authenticated/hub.tsx` — rename card, point to `/wallet`
-- Any post-purchase confirmation / email templates linking to `/my-tickets` → `/wallet`
-- `src/routes/manual.tsx` — restructure tickets/wallet sections
-
-## Out of scope
-- No backend changes; both data sources already exist (`listMyTickets` from attendees + `listMyTickets` from quest-prizes + `listMyRaffles`). Will alias the quest one on import to avoid the name collision.
-- No visual redesign of the existing ticket card — just relocated into a tab.
+Ready to switch to build mode?
