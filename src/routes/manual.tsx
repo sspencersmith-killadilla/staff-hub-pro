@@ -1856,8 +1856,12 @@ const sections: Section[] = [
           <li><strong>Explore</strong> at <code>/explore</code> — browse every
             published quest with its theme, length, and reward.</li>
           <li><strong>Quest detail</strong> at <code>/explore/&lt;id&gt;</code>
-            — see the full waypoint list, social proof ("127 explorers
-            completed this · 38 in progress"), and start the quest.</li>
+            — see the full waypoint list with hero images, a live progress
+            bar, social proof ("127 explorers completed this · 38 in
+            progress"), and start the quest.</li>
+          <li><strong>My Wallet</strong> at <code>/wallet</code> — every prize
+            ticket and raffle entry you've earned, with scannable QR codes
+            for pickup.</li>
           <li><strong>Leaderboard</strong> at <code>/leaderboard</code> —
             public top-100 ranking with a podium for the top 3 and a "your
             rank" pill for signed-in players.</li>
