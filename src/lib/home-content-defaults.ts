@@ -16,8 +16,8 @@ export const DEFAULT_HOME_CONTENT: HomeContent = {
   hero_primary_cta_href: null,
   hero_secondary_ctas: [
     { label: "Upcoming Events", href: "/events", style: "primary" },
-    { label: "Report an Issue (311)", href: "/report" },
-    { label: "Civic Quests", href: "/explore", requires_module: "civic_quests" },
+    { label: "Report an Issue (311)", href: "/report", style: "primary" },
+    { label: "Civic Quests", href: "/explore", style: "primary", requires_module: "civic_quests" },
     { label: "Businesses Hub", href: "/vendor", requires_module: "vendors_sponsors" },
     { label: "Organizations Portal", href: "/community", requires_module: "community_orgs" },
     { label: "StreetBeats Portal", href: "/streetbeats", requires_module: "streetbeats" },
