@@ -193,3 +193,30 @@ function timeAgo(iso: string): string {
   if (h < 24) return `${h}h`;
   return `${Math.floor(h / 24)}d`;
 }
+
+import { Link } from "@tanstack/react-router";
+
+function FilterPill({
+  to,
+  current,
+  children,
+}: {
+  to: "all" | "me";
+  current: string;
+  children: React.ReactNode;
+}) {
+  const active = current === to;
+  return (
+    <Link
+      to="/staff/dispatch"
+      search={{ assignee: to } as any}
+      className={`rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors ${
+        active
+          ? "bg-[#002f49] text-white"
+          : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+      }`}
+    >
+      {children}
+    </Link>
+  );
+}
