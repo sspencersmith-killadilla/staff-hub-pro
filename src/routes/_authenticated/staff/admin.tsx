@@ -548,3 +548,82 @@ function EditStaffDialog({
     </Dialog>
   );
 }
+
+// ---------- Grouped admin navigation -----------------------------------
+type NavLink = { to: string; label: string; desc: string };
+type NavGroup = { title: string; tint: string; links: NavLink[] };
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    title: "People & access",
+    tint: "border-blue-500",
+    links: [
+      { to: "/staff/admin/permissions", label: "Permissions", desc: "Roles and module access." },
+      { to: "/staff/admin/departments", label: "Departments", desc: "Add, edit, or remove departments." },
+      { to: "/staff/admin/tenants", label: "Tenants", desc: "Top-level organizations on this portal." },
+    ],
+  },
+  {
+    title: "Citizen-facing content",
+    tint: "border-emerald-500",
+    links: [
+      { to: "/staff/admin/home", label: "Home page", desc: "Hero, callouts, and portal cards." },
+      { to: "/staff/admin/branding", label: "Global branding", desc: "Site-wide colors and logo." },
+      { to: "/staff/admin/issue-categories", label: "311 categories", desc: "Edit dropdown options and route to departments." },
+      { to: "/staff/admin/guidebook", label: "Guidebook", desc: "Generate the citizen guidebook." },
+    ],
+  },
+  {
+    title: "Programs",
+    tint: "border-amber-500",
+    links: [
+      { to: "/staff/admin/quests", label: "Civic Quests", desc: "Manage quests, stops, and rewards." },
+      { to: "/staff/quests-report", label: "Quests report", desc: "Check-ins and leaderboard analytics." },
+      { to: "/staff/admin/permits", label: "Permit settings", desc: "Configure permit application flows." },
+    ],
+  },
+  {
+    title: "Integrations & messaging",
+    tint: "border-violet-500",
+    links: [
+      { to: "/staff/admin/email-settings", label: "Email settings", desc: "Transactional and template settings." },
+      { to: "/staff/admin/social-integrations", label: "Social integrations", desc: "Connect social accounts." },
+      { to: "/staff/admin/analytics", label: "Executive analytics", desc: "Org-wide usage and trends." },
+    ],
+  },
+];
+
+function AdminNavGrid() {
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      {NAV_GROUPS.map((g) => (
+        <Card key={g.title} className={`border-l-4 ${g.tint}`}>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">{g.title}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="divide-y">
+              {g.links.map((l) => (
+                <li key={l.to}>
+                  <Link
+                    to={l.to}
+                    className="group flex items-start justify-between gap-3 py-2.5 hover:bg-muted/40 rounded -mx-2 px-2"
+                  >
+                    <div>
+                      <div className="text-sm font-medium group-hover:text-primary">
+                        {l.label}
+                      </div>
+                      <div className="text-xs text-muted-foreground">{l.desc}</div>
+                    </div>
+                    <span className="text-muted-foreground text-sm">→</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
