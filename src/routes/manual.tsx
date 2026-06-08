@@ -1896,19 +1896,88 @@ const sections: Section[] = [
             here afterward.
           </Step>
           <Step n={3} title="Check in at each waypoint">
-            Travel to the waypoint, then use <em>Check in</em>. Some
-            waypoints require a code, photo, or proximity confirmation
-            depending on how staff configured them.
+            Travel to the waypoint and tap the action that matches its type:
+            <ul className="my-2 list-disc pl-6">
+              <li><strong>QR scan</strong> — opens the camera scanner and
+                checks you in when the printed waypoint QR is read.</li>
+              <li><strong>Geo-location</strong> — uses your device location
+                and confirms you're within the configured radius.</li>
+              <li><strong>Honor system</strong> — a single tap to confirm
+                you're there.</li>
+            </ul>
+            Each waypoint may show a hero image and hint to help you find
+            the spot. The progress bar at the top updates after every
+            check-in.
           </Step>
-          <Step n={4} title="Earn the badge and climb the leaderboard">
-            Completing the final waypoint awards the quest badge and adds
-            the quest's points to your leaderboard score. Your badges appear
-            on the Hub and the public leaderboard.
+          <Step n={4} title="Earn the badge, prize ticket, and raffle entries">
+            Completing the final waypoint awards the quest badge, adds the
+            quest's points to your leaderboard score, and (if staff
+            attached one) mints a <strong>virtual prize ticket</strong> in
+            your wallet plus any <strong>raffle entries</strong> for open
+            raffles linked to the quest. A confetti burst and an in-app
+            banner link you straight to <code>/wallet</code>.
           </Step>
         </ol>
       </>
     ),
   },
+  {
+    id: "quests-wallet",
+    title: "My Wallet — Prize Tickets",
+    icon: Ticket,
+    audience: "community",
+    render: () => (
+      <>
+        <p>
+          Every prize you earn from a completed quest lands in{" "}
+          <code>/wallet</code> as a virtual ticket with a unique serial and
+          scannable QR code. Show it at the pickup location to redeem.
+        </p>
+        <ul className="my-3 list-disc pl-6 text-sm">
+          <li><strong>Status badges</strong> — Issued (ready to redeem),
+            Redeemed (already picked up), or Void.</li>
+          <li><strong>Prize details</strong> — name, sponsor (for partner
+            prizes), and pickup location are shown on the ticket card.</li>
+          <li><strong>QR code</strong> — tap a ticket to enlarge the QR for
+            scanning at City Hall or the sponsoring business.</li>
+          <li><strong>Mixed catalog</strong> — prizes can be fulfilled by
+            the city directly or by a sponsoring business. Either way the
+            ticket flow is identical.</li>
+        </ul>
+        <Callout kind="tip">
+          Tickets never expire automatically. If a prize runs out of stock
+          before you redeem, staff will reach out via the email on your
+          profile.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "quests-raffles",
+    title: "Raffle Entries",
+    icon: Sparkles,
+    audience: "community",
+    render: () => (
+      <>
+        <p>
+          Some quests grant entries into a city-wide <strong>raffle</strong>
+          rather than (or in addition to) a guaranteed prize. Every time
+          you complete a quest linked to an open raffle, your entry count
+          for that raffle goes up.
+        </p>
+        <ul className="my-3 list-disc pl-6 text-sm">
+          <li>Open the <em>Raffle entries</em> panel on <code>/wallet</code>
+            to see each active raffle, how many entries you hold, the
+            prize, and the scheduled draw date.</li>
+          <li>When staff draw the raffle, winners are notified and the
+            ticket appears in their wallet just like a quest prize.</li>
+          <li>You can keep earning entries until the raffle's status
+            changes from <em>Open</em> to <em>Drawn</em>.</li>
+        </ul>
+      </>
+    ),
+  },
+
   {
     id: "quests-leaderboard",
     title: "Public Leaderboard",
