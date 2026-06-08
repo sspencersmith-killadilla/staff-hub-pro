@@ -122,94 +122,24 @@ function AdminPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10 space-y-8">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">Manage staff</h1>
-          <p className="text-sm text-muted-foreground">
-            Invite staff and admins, change roles, or remove accounts.
-          </p>
-        </div>
-        <div className="flex flex-col items-end gap-1">
-          <Link
-            to="/staff/admin/permissions"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Manage permissions →
-          </Link>
-          <Link
-            to="/staff/admin/departments"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Manage departments →
-          </Link>
-          <Link
-            to="/staff/admin/guidebook"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Generate guidebook →
-          </Link>
-          <Link
-            to="/staff/admin/social-integrations"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Social integrations →
-          </Link>
-          <Link
-            to="/staff/admin/email-settings"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Email settings →
-          </Link>
-          <Link
-            to="/staff/admin/permits"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Permit settings →
-          </Link>
-          <Link
-            to="/staff/admin/analytics"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Executive analytics →
-          </Link>
-          <Link
-            to="/staff/admin/branding"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Global branding →
-          </Link>
-          <Link
-            to="/staff/admin/tenants"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Manage tenants →
-          </Link>
-          <Link
-            to="/staff/admin/home"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Edit home page →
-          </Link>
-          <Link
-            to="/staff/admin/quests"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Civic Quests →
-          </Link>
-          <Link
-            to="/staff/quests-report"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Civic Quests — Report →
-          </Link>
-
-
-
-
-
-        </div>
+    <div className="mx-auto max-w-6xl px-4 py-10 space-y-8">
+      <div>
+        <h1 className="text-2xl font-semibold">Admin console</h1>
+        <p className="text-sm text-muted-foreground">
+          Configure your organization, manage staff, and adjust what citizens
+          see across the portal.
+        </p>
       </div>
+
+      <AdminNavGrid />
+
+      <div>
+        <h2 className="text-xl font-semibold">Manage staff</h2>
+        <p className="text-sm text-muted-foreground">
+          Invite staff and admins, change roles, or remove accounts.
+        </p>
+      </div>
+
 
 
       <Card>
