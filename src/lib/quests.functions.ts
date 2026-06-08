@@ -425,9 +425,10 @@ export const adminListQuests = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("quests")
       .select(
-        "id, title, description, badge_image_url, is_active, points_reward, department_id, created_at, quest_waypoints(id, quest_id, title, description, completion_type, secret_code, lat, lng, radius_m, sort_order)",
+        "id, title, description, badge_image_url, is_active, points_reward, department_id, created_at, quest_waypoints(id, quest_id, title, description, completion_type, secret_code, lat, lng, radius_m, sort_order, image_url, image_alt)",
       )
       .order("created_at", { ascending: false });
+
     if (error) throw new Error(error.message);
     const quests: AdminQuest[] = (data ?? []).map((q: any) => ({
       id: q.id,
@@ -455,7 +456,10 @@ const waypointInput = z.object({
   lng: z.number().nullable().optional(),
   radius_m: z.number().int().min(5).max(5000).nullable().optional(),
   sort_order: z.number().int().min(0).max(1000),
+  image_url: z.string().max(1000).nullable().optional(),
+  image_alt: z.string().max(300).nullable().optional(),
 });
+
 
 // ─── Admin: upsert quest (with waypoints) ────────────────────────────
 export const adminSaveQuest = createServerFn({ method: "POST" })
@@ -518,7 +522,10 @@ export const adminSaveQuest = createServerFn({ method: "POST" })
       lng: w.lng ?? null,
       radius_m: w.radius_m ?? null,
       sort_order: w.sort_order,
+      image_url: w.image_url ?? null,
+      image_alt: w.image_alt ?? null,
     }));
+
     if (inserts.length) {
       const { error } = await supabaseAdmin
         .from("quest_waypoints")
