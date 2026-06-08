@@ -297,13 +297,40 @@ async function recordCompletion(
     }
   }
 
+  // Mint prize ticket + grant raffle entries on the transition to completed.
+  let ticket_id: string | null = null;
+  let raffle_entries_granted = 0;
+  if (becomes) {
+    try {
+      const { data: tid } = await supabaseAdmin.rpc("mint_quest_prize_ticket", {
+        _user_id: userId,
+        _quest_id: questId,
+      });
+      ticket_id = (tid as string | null) ?? null;
+    } catch (e) {
+      console.error("[quests] mint_quest_prize_ticket failed", e);
+    }
+    try {
+      const { data: granted } = await supabaseAdmin.rpc(
+        "grant_raffle_entries_for_quest",
+        { _user_id: userId, _quest_id: questId },
+      );
+      raffle_entries_granted = (granted as number | null) ?? 0;
+    } catch (e) {
+      console.error("[quests] grant_raffle_entries_for_quest failed", e);
+    }
+  }
+
   return {
     already: false as const,
     is_completed: justCompleted,
     completed: next,
     just_completed_quest: becomes,
+    ticket_id,
+    raffle_entries_granted,
   };
 }
+
 
 function haversineMeters(
   a: { lat: number; lng: number },
