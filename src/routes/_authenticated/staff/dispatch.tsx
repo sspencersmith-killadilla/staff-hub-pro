@@ -1,11 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { listDispatchTickets, type TicketRow } from "@/lib/tickets.functions";
+import {
+  listDispatchTickets,
+  listTicketsAssignedToMe,
+  type TicketRow,
+} from "@/lib/tickets.functions";
 import { TicketDetailDrawer } from "@/components/tickets/TicketDetailDrawer";
 import { supabase } from "@/integrations/supabase/client";
 import { MapPin, Clock } from "lucide-react";
+import { z } from "zod";
 
 const COLUMNS = [
   { key: "submitted", label: "Submitted", tone: "border-slate-300 bg-slate-50" },
@@ -14,7 +19,12 @@ const COLUMNS = [
   { key: "resolved", label: "Resolved", tone: "border-emerald-300 bg-emerald-50" },
 ] as const;
 
+const dispatchSearchSchema = z.object({
+  assignee: z.enum(["all", "me"]).optional(),
+});
+
 export const Route = createFileRoute("/_authenticated/staff/dispatch")({
+  validateSearch: dispatchSearchSchema,
   head: () => ({
     meta: [{ title: "311 Dispatch · Staff" }],
   }),
@@ -23,10 +33,14 @@ export const Route = createFileRoute("/_authenticated/staff/dispatch")({
 
 function DispatchPage() {
   const qc = useQueryClient();
+  const search = useSearch({ from: "/_authenticated/staff/dispatch" });
+  const assigneeFilter = search.assignee ?? "all";
   const fetchAll = useServerFn(listDispatchTickets);
+  const fetchMine = useServerFn(listTicketsAssignedToMe);
   const { data, isLoading } = useQuery({
-    queryKey: ["dispatch-tickets"],
-    queryFn: () => fetchAll(),
+    queryKey: ["dispatch-tickets", assigneeFilter],
+    queryFn: () =>
+      assigneeFilter === "me" ? fetchMine() : fetchAll(),
   });
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
