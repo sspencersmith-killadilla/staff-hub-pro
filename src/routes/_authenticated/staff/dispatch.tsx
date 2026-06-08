@@ -100,12 +100,16 @@ function DispatchPage() {
               Issue Reports
             </h1>
           </div>
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search address, description, category…"
-            className="w-72 rounded-md border px-3 py-2 text-sm"
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <FilterPill to="all" current={assigneeFilter}>All</FilterPill>
+            <FilterPill to="me" current={assigneeFilter}>Assigned to me</FilterPill>
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search address, description, category…"
+              className="w-72 rounded-md border px-3 py-2 text-sm"
+            />
+          </div>
         </div>
       </header>
 
