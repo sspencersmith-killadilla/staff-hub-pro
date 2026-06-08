@@ -11,30 +11,58 @@ Built on **TanStack Start** (React 19 + Vite 7), **Supabase** (Postgres + Auth +
 ## What's in the platform
 
 ### For community members
-- **Events & ticketing** — browse sessions, buy tickets (multiple payment providers supported), receive QR codes.
-- **Room reservations** — request meeting rooms, track approval state.
-- **StreetBeats** — register as a busker, claim and share gig flyers.
-- **Community organizations & events** — orgs can publish their own events.
-- **Vendor & sponsor applications** — apply per-event with documents and payment.
-- **Special-event permits** — submit and track city permit applications.
-- **Personal Hub** — single page showing your tickets, applications, reservations, and favorites.
+- **Events & ticketing** — browse sessions, buy tickets (multiple payment providers supported), receive QR codes, manage waitlists, and check schedules per attendee seat.
+- **Classes & courses** — multi-session class catalog with instructor pages and per-session enrollment.
+- **Venues, stages & rooms** — public-facing venue pages with operating hours, focal-point images, and tag-based filtering.
+- **Room reservations** — request meeting rooms, see availability calendars, track approval state.
+- **StreetBeats** — register as a busker, apply for slots, claim and share gig flyers.
+- **Community organizations & events** — HOAs, nonprofits, and schools join, manage members, and publish their own events.
+- **Vendor & sponsor applications** — apply per-event (or standalone sponsorship packages) with documents and payment.
+- **Special-event permits** — submit, attach documents, and track city permit applications.
+- **311 Reports** — submit non-emergency citizen issues with category, photo, and location; track status from "My Reports".
+- **Civic Quests & Discovery** — gamified self-guided adventures with QR scan, geo-location, or honor-system waypoints, badges, points, and a public leaderboard.
+- **Prizes & Raffles** — redeem points in the prize shop, enter raffles, and view winners.
+- **Favorites** — heart events, venues, artists, classes, and orgs; see them all in one place.
+- **Artists & performers** — public artist profiles linked to sessions and gigs.
+- **My Wallet / Personal Hub** — single hub showing tickets, applications, reservations, permits, reports, schedule, gigs, and favorites.
+- **Public surveys** — anonymous feedback forms at `/survey/$id`.
+- **Installable PWA** — manifest + service-worker-ready, installable on mobile and desktop.
+- **Auth** — email/password, password reset, optional Google / Apple / GitHub OAuth.
 
 ### For staff
-- **Per-department workspace** — sidebar scoped to your active department.
-- **Event ops** — sessions, stages, attendees, door scanner, reports, marketing.
-- **Approvals** — vendor/sponsor/room/permit queues.
-- **Cross-department visibility** — for super admins.
+- **Per-department workspace** — sidebar scoped to your active department, switchable for super admins.
+- **Event ops** — sessions, stages, attendees, door scanner, event dashboards, marketing hub, and per-event reports.
+- **Box office** — ticket sales, seat assignment, waitlist promotion, refunds, and QR check-in.
+- **Approvals queues** — vendor, sponsor, room reservation, community org, and special-event permit reviews.
+- **311 Dispatch** — operator queue for incoming citizen reports with categories, assignment, and status updates.
+- **Classes management** — courses, instructors, multi-session scheduling, rosters.
+- **Community music** — StreetBeats applicants, gig calendar, flyer claims.
+- **Community organizations** — review org applications, manage membership.
+- **Communications** — TipTap email campaigns, audience segments, scheduled sends, open/click tracking, unsubscribe handling.
+- **Surveys** — author/edit surveys, view per-question analytics with Recharts.
+- **Social Command Center** — drag-and-drop calendar publishing to Facebook, Instagram, and LinkedIn via per-department OAuth.
+- **Map view** — geospatial view of events, venues, and 311 reports.
+- **Quests reporting & prize redemption** — quest completion reports and an in-person redemption console.
+- **Per-event marketing hub** — auto-generated promo copy, image generation, and share links.
 
 ### For admins
-- **Granular permissions** — page-level + per-event grants/revokes.
-- **Multi-department tenancy** — each department gets its own theme, modules, and roles.
-- **Platform modules** — turn features on/off per department.
-- **Branding engine** — colors, fonts, logos per tenant.
-- **Home page CMS** — editable hero, sections, tenant overrides.
-- **Guidebook publisher** — public-facing program PDFs.
-- **Social Command Center** — schedule posts to Facebook, Instagram, and LinkedIn from one calendar.
-- **Communications** — native email campaigns (Resend), audience segments, scheduling, unsubscribe handling.
-- **Surveys & Feedback** — native survey builder with anonymous responses and Recharts analytics.
+- **Granular permissions** — page-level keys (`page.events`, `page.communications`, …) plus per-event grants/revokes; department roles override automatically.
+- **Multi-department tenancy** — each department gets its own theme, modules, roles, sub-domain, and home page overrides.
+- **Platform module toggles** — turn features on/off (events, box office, venues, classes, room reservations, community orgs, StreetBeats, vendors/sponsors, social command, guidebook, civic quests).
+- **Branding engine** — colors, fonts, logos, favicons per tenant; pluggable AI-driven image generation for hero/auto images.
+- **Homepage Content Editor** — editable hero, featured cards, prominence toggles, and tenant overrides.
+- **Issue categories admin** — manage 311 category taxonomy.
+- **Quest authoring** — quests, waypoints (QR / geo / honor), badge art, point rewards, prizes, and raffles.
+- **Guidebook publisher** — magazine-style guidebook canvas editor with PDF export.
+- **Tenants & departments admin** — create departments, assign owners, manage logos.
+- **Email integration settings** — Resend domains, sender identities, and tracking.
+- **Social integrations** — Meta (Facebook/Instagram) and LinkedIn OAuth app configuration.
+- **Analytics** — built-in dashboards over events, attendance, vendors, campaigns, and quests.
+- **Global settings** — site-wide defaults and feature flags.
+- **Special-event permit admin** — review, approve, and track city permits.
+- **Visual user manual** — in-app at `/manual`, audience-tagged for community / staff / admin.
+
+
 
 ---
 
@@ -110,7 +138,7 @@ supabase-migrations/              # Numbered SQL migrations (run in order)
 
 ## Database migrations
 
-All schema lives under `supabase-migrations/` as numbered SQL files. Apply them in order via the Supabase SQL editor or `psql`. Latest migration: **`038_communications_surveys.sql`**.
+All schema lives under `supabase-migrations/` as numbered SQL files. Apply them in order via the Supabase SQL editor or `psql`. Latest migration: **`052_quest_raffles.sql`**.
 
 See [REPRODUCTION.md §4](./REPRODUCTION.md#part-4--create-your-free-database-supabase) for the full bootstrap order.
 
@@ -150,6 +178,22 @@ See [REPRODUCTION.md §4](./REPRODUCTION.md#part-4--create-your-free-database-su
 ### Payments (`src/lib/payments.functions.ts`)
 - USAePay wired in by default (`src/lib/usaepay.server.ts`).
 - Pluggable via a `PAYMENT_PROVIDER` env switch — see REPRODUCTION.md for Stripe/PayPal/Square drop-ins.
+
+### Civic Quests & Discovery (`src/lib/quests.functions.ts`)
+- Quests with ordered waypoints; completion via QR scan, geo-fence radius, or honor-system button.
+- Points accrue to `profiles.points` and feed the public leaderboard (`/leaderboard`).
+- Prize shop redemption (`src/lib/quest-prizes.functions.ts`) and raffle entries (`src/lib/raffles.functions.ts`) with a staff redemption console.
+
+### 311 Reports & Dispatch (`src/lib/tickets.functions.ts` + `src/routes/_authenticated/staff/dispatch.tsx`)
+- Citizen submission with category, photo, and geo-location.
+- Operator dispatch queue with category admin (`/staff/admin/issue-categories`) and status updates.
+
+### Homepage Content Editor (`src/lib/home-content.functions.ts`)
+- Per-tenant overrides of hero, featured sections, and prominence toggles.
+- Edited at `/staff/admin/home`; rendered by `src/components/home/HomePageView.tsx`.
+
+### Branding Engine (`src/lib/branding/*`)
+- Per-department color/font/logo tokens, favicon pipeline, and AI-generated auto images.
 
 ---
 
