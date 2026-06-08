@@ -179,6 +179,22 @@ See [REPRODUCTION.md §4](./REPRODUCTION.md#part-4--create-your-free-database-su
 - USAePay wired in by default (`src/lib/usaepay.server.ts`).
 - Pluggable via a `PAYMENT_PROVIDER` env switch — see REPRODUCTION.md for Stripe/PayPal/Square drop-ins.
 
+### Civic Quests & Discovery (`src/lib/quests.functions.ts`)
+- Quests with ordered waypoints; completion via QR scan, geo-fence radius, or honor-system button.
+- Points accrue to `profiles.points` and feed the public leaderboard (`/leaderboard`).
+- Prize shop redemption (`src/lib/quest-prizes.functions.ts`) and raffle entries (`src/lib/raffles.functions.ts`) with a staff redemption console.
+
+### 311 Reports & Dispatch (`src/lib/tickets.functions.ts` + `src/routes/_authenticated/staff/dispatch.tsx`)
+- Citizen submission with category, photo, and geo-location.
+- Operator dispatch queue with category admin (`/staff/admin/issue-categories`) and status updates.
+
+### Homepage Content Editor (`src/lib/home-content.functions.ts`)
+- Per-tenant overrides of hero, featured sections, and prominence toggles.
+- Edited at `/staff/admin/home`; rendered by `src/components/home/HomePageView.tsx`.
+
+### Branding Engine (`src/lib/branding/*`)
+- Per-department color/font/logo tokens, favicon pipeline, and AI-generated auto images.
+
 ---
 
 ## User documentation
