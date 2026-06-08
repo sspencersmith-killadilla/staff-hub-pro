@@ -44,7 +44,7 @@ function DispatchPage() {
   });
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     const channel = supabase
@@ -72,7 +72,7 @@ function DispatchPage() {
       in_progress: [],
       resolved: [],
     };
-    const q = search.trim().toLowerCase();
+    const q = query.trim().toLowerCase();
     for (const t of data?.tickets ?? []) {
       if (
         q &&
@@ -86,7 +86,7 @@ function DispatchPage() {
       out[t.status]?.push(t);
     }
     return out;
-  }, [data, search]);
+  }, [data, query]);
 
   return (
     <div className="flex h-full flex-col">
