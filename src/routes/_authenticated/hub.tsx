@@ -22,6 +22,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listMyEarnedQuests } from "@/lib/quests.functions";
+import { countMyOpenAssignments } from "@/lib/tickets.functions";
 
 export const Route = createFileRoute("/_authenticated/hub")({
   head: () => ({
