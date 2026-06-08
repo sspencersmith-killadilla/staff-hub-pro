@@ -1,11 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useSearch, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { listDispatchTickets, type TicketRow } from "@/lib/tickets.functions";
+import {
+  listDispatchTickets,
+  listTicketsAssignedToMe,
+  type TicketRow,
+} from "@/lib/tickets.functions";
 import { TicketDetailDrawer } from "@/components/tickets/TicketDetailDrawer";
 import { supabase } from "@/integrations/supabase/client";
 import { MapPin, Clock } from "lucide-react";
+import { z } from "zod";
 
 const COLUMNS = [
   { key: "submitted", label: "Submitted", tone: "border-slate-300 bg-slate-50" },
@@ -14,7 +19,12 @@ const COLUMNS = [
   { key: "resolved", label: "Resolved", tone: "border-emerald-300 bg-emerald-50" },
 ] as const;
 
+const dispatchSearchSchema = z.object({
+  assignee: z.enum(["all", "me"]).optional(),
+});
+
 export const Route = createFileRoute("/_authenticated/staff/dispatch")({
+  validateSearch: dispatchSearchSchema,
   head: () => ({
     meta: [{ title: "311 Dispatch · Staff" }],
   }),
@@ -23,14 +33,18 @@ export const Route = createFileRoute("/_authenticated/staff/dispatch")({
 
 function DispatchPage() {
   const qc = useQueryClient();
+  const search = useSearch({ from: "/_authenticated/staff/dispatch" });
+  const assigneeFilter = search.assignee ?? "all";
   const fetchAll = useServerFn(listDispatchTickets);
+  const fetchMine = useServerFn(listTicketsAssignedToMe);
   const { data, isLoading } = useQuery({
-    queryKey: ["dispatch-tickets"],
-    queryFn: () => fetchAll(),
+    queryKey: ["dispatch-tickets", assigneeFilter],
+    queryFn: () =>
+      assigneeFilter === "me" ? fetchMine() : fetchAll(),
   });
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     const channel = supabase
@@ -58,7 +72,7 @@ function DispatchPage() {
       in_progress: [],
       resolved: [],
     };
-    const q = search.trim().toLowerCase();
+    const q = query.trim().toLowerCase();
     for (const t of data?.tickets ?? []) {
       if (
         q &&
@@ -72,7 +86,7 @@ function DispatchPage() {
       out[t.status]?.push(t);
     }
     return out;
-  }, [data, search]);
+  }, [data, query]);
 
   return (
     <div className="flex h-full flex-col">
@@ -86,12 +100,16 @@ function DispatchPage() {
               Issue Reports
             </h1>
           </div>
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search address, description, category…"
-            className="w-72 rounded-md border px-3 py-2 text-sm"
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <FilterPill to="all" current={assigneeFilter}>All</FilterPill>
+            <FilterPill to="me" current={assigneeFilter}>Assigned to me</FilterPill>
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search address, description, category…"
+              className="w-72 rounded-md border px-3 py-2 text-sm"
+            />
+          </div>
         </div>
       </header>
 
@@ -174,4 +192,31 @@ function timeAgo(iso: string): string {
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}h`;
   return `${Math.floor(h / 24)}d`;
+}
+
+
+
+function FilterPill({
+  to,
+  current,
+  children,
+}: {
+  to: "all" | "me";
+  current: string;
+  children: React.ReactNode;
+}) {
+  const active = current === to;
+  return (
+    <Link
+      to="/staff/dispatch"
+      search={{ assignee: to } as any}
+      className={`rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors ${
+        active
+          ? "bg-[#002f49] text-white"
+          : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+      }`}
+    >
+      {children}
+    </Link>
+  );
 }

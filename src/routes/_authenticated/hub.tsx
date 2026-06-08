@@ -22,6 +22,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listMyEarnedQuests } from "@/lib/quests.functions";
+import { countMyOpenAssignments } from "@/lib/tickets.functions";
 
 export const Route = createFileRoute("/_authenticated/hub")({
   head: () => ({
@@ -292,6 +293,8 @@ function HubPage() {
 
         <QuestBadges />
 
+        {isStaff && <MyAssignmentsCard />}
+
         {idsToRender.map((sid, idx) => {
           const sect = sectionMap[sid];
           if (!sect) return null;
@@ -426,6 +429,47 @@ function ActionCard({ action }: { action: Action }) {
       </p>
       <span className="mt-4 text-xs font-bold uppercase tracking-wider text-[#002f49] group-hover:underline">
         {action.cta} →
+      </span>
+    </Link>
+  );
+}
+
+function MyAssignmentsCard() {
+  const fetchCount = useServerFn(countMyOpenAssignments);
+  const { data } = useQuery({
+    queryKey: ["my-311-assignments-count"],
+    queryFn: () => fetchCount(),
+    staleTime: 30_000,
+  });
+  const total = data?.total ?? 0;
+  return (
+    <Link
+      to="/staff/dispatch"
+      search={{ assignee: "me" } as any}
+      className="mb-10 flex items-center justify-between gap-6 overflow-hidden rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:p-6"
+    >
+      <div className="flex items-center gap-4">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow">
+          <AlertTriangle className="h-6 w-6" />
+        </div>
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-amber-700">
+            Staff · 311
+          </p>
+          <h2 className="mt-1 text-xl font-black tracking-tight text-[#002f49]">
+            My 311 Assignments
+          </h2>
+          <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+            {total === 0
+              ? "No open issue reports assigned to you right now."
+              : `${total} open report${total === 1 ? "" : "s"} waiting on you${
+                  data?.in_progress ? ` (${data.in_progress} in progress)` : ""
+                }.`}
+          </p>
+        </div>
+      </div>
+      <span className="hidden shrink-0 rounded-md bg-[#002f49] px-3 py-2 text-xs font-bold uppercase tracking-wider text-white sm:inline-block">
+        Open dispatch →
       </span>
     </Link>
   );
