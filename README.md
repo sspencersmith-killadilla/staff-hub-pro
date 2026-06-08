@@ -138,7 +138,7 @@ supabase-migrations/              # Numbered SQL migrations (run in order)
 
 ## Database migrations
 
-All schema lives under `supabase-migrations/` as numbered SQL files. Apply them in order via the Supabase SQL editor or `psql`. Latest migration: **`038_communications_surveys.sql`**.
+All schema lives under `supabase-migrations/` as numbered SQL files. Apply them in order via the Supabase SQL editor or `psql`. Latest migration: **`052_quest_raffles.sql`**.
 
 See [REPRODUCTION.md §4](./REPRODUCTION.md#part-4--create-your-free-database-supabase) for the full bootstrap order.
 
