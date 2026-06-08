@@ -132,7 +132,18 @@ const groups: { label: string; sectionIds: string[] }[] = [
   },
   {
     label: "Civic Quests & Discovery",
-    sectionIds: ["quests-overview", "quests-play", "quests-leaderboard", "quests-report", "quests-admin"],
+    sectionIds: [
+      "quests-overview",
+      "quests-play",
+      "quests-wallet",
+      "quests-raffles",
+      "quests-leaderboard",
+      "quests-report",
+      "quests-admin",
+      "quests-admin-prizes",
+      "quests-admin-raffles",
+      "quests-staff-redeem",
+    ],
   },
   {
     label: "311 Non-Emergency Reporting",
