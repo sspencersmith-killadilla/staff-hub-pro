@@ -373,29 +373,61 @@ const sections: Section[] = [
   },
   {
     id: "tickets",
-    title: "Buying &amp; Managing Tickets",
+    title: "My Wallet — Tickets, Prizes &amp; Raffles",
     icon: Ticket,
     audience: "community",
     render: () => (
       <>
         <p>
-          From any event page, choose a ticket tier and check out. Your tickets
-          live in <strong>My Wallet</strong> at <code>/wallet</code> (Events
-          tab) as scannable QR codes — alongside quest prize tickets and raffle
-          entries.
+          <strong>My Wallet</strong> at <code>/wallet</code> is the single
+          place for everything you've earned or purchased. It replaces the
+          old <code>/my-tickets</code> page (that URL still works and
+          redirects here). A summary row at the top shows your counts at a
+          glance, and three tabs split the contents:
         </p>
-        <ol className="my-6 space-y-4">
+        <ul className="my-4 list-disc space-y-2 pl-6">
+          <li>
+            <strong>Events</strong> — event tickets you've reserved or
+            purchased, each with a scannable QR for door check-in. Groups get
+            one QR per seat, and you can download any QR as a PNG.
+          </li>
+          <li>
+            <strong>Prizes</strong> — virtual prize tickets earned by
+            completing Civic Quests. Tap <em>Show QR to redeem</em> and
+            present it at the listed pickup location (City Hall or a
+            sponsor). Status chips show <em>issued</em>, <em>redeemed</em>,
+            or <em>void</em>.
+          </li>
+          <li>
+            <strong>Raffles</strong> — your entries into active raffles, with
+            prize, draw date, and entry count. Winners see a 🎉 banner once
+            the draw is run.
+          </li>
+        </ul>
+        <h4 className="mt-6 font-semibold text-[#002f49]">
+          Buying an event ticket
+        </h4>
+        <ol className="my-4 space-y-4">
           <Step n={1} title="Pick a tier and quantity">
             Free tickets reserve a seat. Paid tiers route through secure
             checkout.
           </Step>
-          <Step n={2} title="Show the QR at the door">
+          <Step n={2} title="Find it under Wallet → Events">
+            Open <code>/wallet</code> and stay on the Events tab — every
+            ticket renders with its QR, holder name, tier, and venue.
+          </Step>
+          <Step n={3} title="Show the QR at the door">
             Staff scan it on arrival. Each seat gets its own QR for groups.
           </Step>
-          <Step n={3} title="Join a waitlist if sold out">
+          <Step n={4} title="Join a waitlist if sold out">
             You'll get notified automatically if a seat opens.
           </Step>
         </ol>
+        <p className="mt-4 text-sm text-muted-foreground">
+          Deep-link tip: append <code>?tab=prizes</code> or
+          <code>?tab=raffles</code> to jump straight to a section, e.g. from a
+          confirmation email after a quest completion.
+        </p>
       </>
     ),
   },
