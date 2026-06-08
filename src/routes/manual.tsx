@@ -380,7 +380,9 @@ const sections: Section[] = [
       <>
         <p>
           From any event page, choose a ticket tier and check out. Your tickets
-          live at <code>/my-tickets</code> as scannable QR codes.
+          live in <strong>My Wallet</strong> at <code>/wallet</code> (Events
+          tab) as scannable QR codes — alongside quest prize tickets and raffle
+          entries.
         </p>
         <ol className="my-6 space-y-4">
           <Step n={1} title="Pick a tier and quantity">
