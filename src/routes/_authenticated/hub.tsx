@@ -144,12 +144,13 @@ function HubPage() {
 
   const manageActions: Action[] = [
     {
-      title: "My Tickets",
-      description: "Your purchased and reserved event tickets.",
-      to: "/my-tickets",
+      title: "My Wallet",
+      description:
+        "Event tickets, quest prize tickets, and raffle entries — all in one place.",
+      to: "/wallet",
       icon: Ticket,
       accent: "from-emerald-500 to-green-600",
-      cta: "View tickets",
+      cta: "Open wallet",
     },
 
     {
