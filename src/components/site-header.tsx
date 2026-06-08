@@ -124,6 +124,9 @@ export function SiteHeader() {
                   My Hub
                 </SheetLink>
               )}
+              {isAuthenticated && (
+                <SheetLink to="/wallet">My Wallet</SheetLink>
+              )}
               {isStaff && memberships.length > 1 && (
                 <div className="mt-2">
                   <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
