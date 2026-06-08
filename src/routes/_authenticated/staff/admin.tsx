@@ -578,10 +578,14 @@ const NAV_GROUPS: NavGroup[] = [
     tint: "border-amber-500",
     links: [
       { to: "/staff/admin/quests", label: "Civic Quests", desc: "Manage quests, stops, and rewards." },
+      { to: "/staff/admin/prizes", label: "Prize catalog", desc: "City- and sponsor-fulfilled prizes." },
+      { to: "/staff/admin/raffles", label: "Raffles", desc: "Award entries from quests, draw winners." },
       { to: "/staff/quests-report", label: "Quests report", desc: "Check-ins and leaderboard analytics." },
+      { to: "/staff/redeem", label: "Redeem tickets", desc: "Scan a citizen QR to redeem a prize." },
       { to: "/staff/admin/permits", label: "Permit settings", desc: "Configure permit application flows." },
     ],
   },
+
   {
     title: "Integrations & messaging",
     tint: "border-violet-500",

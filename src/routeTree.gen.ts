@@ -41,6 +41,7 @@ import { Route as DepartmentsIdRouteImport } from './routes/departments.$id'
 import { Route as CommunityEventsIdRouteImport } from './routes/community-events.$id'
 import { Route as ClassesIdRouteImport } from './routes/classes.$id'
 import { Route as ArtistsIdRouteImport } from './routes/artists.$id'
+import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
 import { Route as AuthenticatedMyTicketsRouteImport } from './routes/_authenticated/my-tickets'
 import { Route as AuthenticatedMyScheduleRouteImport } from './routes/_authenticated/my-schedule'
@@ -60,6 +61,7 @@ import { Route as AuthenticatedStaffSurveysRouteImport } from './routes/_authent
 import { Route as AuthenticatedStaffSponsorsRouteImport } from './routes/_authenticated/staff/sponsors'
 import { Route as AuthenticatedStaffSettingsRouteImport } from './routes/_authenticated/staff/settings'
 import { Route as AuthenticatedStaffRoomReservationsRouteImport } from './routes/_authenticated/staff/room-reservations'
+import { Route as AuthenticatedStaffRedeemRouteImport } from './routes/_authenticated/staff/redeem'
 import { Route as AuthenticatedStaffQuestsReportRouteImport } from './routes/_authenticated/staff/quests-report'
 import { Route as AuthenticatedStaffMapRouteImport } from './routes/_authenticated/staff/map'
 import { Route as AuthenticatedStaffDispatchRouteImport } from './routes/_authenticated/staff/dispatch'
@@ -81,7 +83,9 @@ import { Route as AuthenticatedStaffCommunicationsIdRouteImport } from './routes
 import { Route as AuthenticatedStaffAdminTenantsRouteImport } from './routes/_authenticated/staff/admin.tenants'
 import { Route as AuthenticatedStaffAdminSocialIntegrationsRouteImport } from './routes/_authenticated/staff/admin.social-integrations'
 import { Route as AuthenticatedStaffAdminSocialRouteImport } from './routes/_authenticated/staff/admin.social'
+import { Route as AuthenticatedStaffAdminRafflesRouteImport } from './routes/_authenticated/staff/admin.raffles'
 import { Route as AuthenticatedStaffAdminQuestsRouteImport } from './routes/_authenticated/staff/admin.quests'
+import { Route as AuthenticatedStaffAdminPrizesRouteImport } from './routes/_authenticated/staff/admin.prizes'
 import { Route as AuthenticatedStaffAdminPermitsRouteImport } from './routes/_authenticated/staff/admin.permits'
 import { Route as AuthenticatedStaffAdminPermissionsRouteImport } from './routes/_authenticated/staff/admin.permissions'
 import { Route as AuthenticatedStaffAdminIssueCategoriesRouteImport } from './routes/_authenticated/staff/admin.issue-categories'
@@ -260,6 +264,11 @@ const ArtistsIdRoute = ArtistsIdRouteImport.update({
   path: '/artists/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
   id: '/staff',
   path: '/staff',
@@ -362,6 +371,12 @@ const AuthenticatedStaffRoomReservationsRoute =
   AuthenticatedStaffRoomReservationsRouteImport.update({
     id: '/room-reservations',
     path: '/room-reservations',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
+const AuthenticatedStaffRedeemRoute =
+  AuthenticatedStaffRedeemRouteImport.update({
+    id: '/redeem',
+    path: '/redeem',
     getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
 const AuthenticatedStaffQuestsReportRoute =
@@ -488,10 +503,22 @@ const AuthenticatedStaffAdminSocialRoute =
     path: '/social',
     getParentRoute: () => AuthenticatedStaffAdminRoute,
   } as any)
+const AuthenticatedStaffAdminRafflesRoute =
+  AuthenticatedStaffAdminRafflesRouteImport.update({
+    id: '/raffles',
+    path: '/raffles',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
 const AuthenticatedStaffAdminQuestsRoute =
   AuthenticatedStaffAdminQuestsRouteImport.update({
     id: '/quests',
     path: '/quests',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
+const AuthenticatedStaffAdminPrizesRoute =
+  AuthenticatedStaffAdminPrizesRouteImport.update({
+    id: '/prizes',
+    path: '/prizes',
     getParentRoute: () => AuthenticatedStaffAdminRoute,
   } as any)
 const AuthenticatedStaffAdminPermitsRoute =
@@ -627,6 +654,7 @@ export interface FileRoutesByFullPath {
   '/my-schedule': typeof AuthenticatedMyScheduleRoute
   '/my-tickets': typeof AuthenticatedMyTicketsRoute
   '/staff': typeof AuthenticatedStaffRouteWithChildren
+  '/wallet': typeof AuthenticatedWalletRoute
   '/artists/$id': typeof ArtistsIdRoute
   '/classes/$id': typeof ClassesIdRoute
   '/community-events/$id': typeof CommunityEventsIdRoute
@@ -654,6 +682,7 @@ export interface FileRoutesByFullPath {
   '/staff/dispatch': typeof AuthenticatedStaffDispatchRoute
   '/staff/map': typeof AuthenticatedStaffMapRoute
   '/staff/quests-report': typeof AuthenticatedStaffQuestsReportRoute
+  '/staff/redeem': typeof AuthenticatedStaffRedeemRoute
   '/staff/room-reservations': typeof AuthenticatedStaffRoomReservationsRoute
   '/staff/settings': typeof AuthenticatedStaffSettingsRoute
   '/staff/sponsors': typeof AuthenticatedStaffSponsorsRoute
@@ -677,7 +706,9 @@ export interface FileRoutesByFullPath {
   '/staff/admin/issue-categories': typeof AuthenticatedStaffAdminIssueCategoriesRoute
   '/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
   '/staff/admin/permits': typeof AuthenticatedStaffAdminPermitsRoute
+  '/staff/admin/prizes': typeof AuthenticatedStaffAdminPrizesRoute
   '/staff/admin/quests': typeof AuthenticatedStaffAdminQuestsRoute
+  '/staff/admin/raffles': typeof AuthenticatedStaffAdminRafflesRoute
   '/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
   '/staff/admin/social-integrations': typeof AuthenticatedStaffAdminSocialIntegrationsRoute
   '/staff/admin/tenants': typeof AuthenticatedStaffAdminTenantsRoute
@@ -718,6 +749,7 @@ export interface FileRoutesByTo {
   '/my-reservations': typeof AuthenticatedMyReservationsRoute
   '/my-schedule': typeof AuthenticatedMyScheduleRoute
   '/my-tickets': typeof AuthenticatedMyTicketsRoute
+  '/wallet': typeof AuthenticatedWalletRoute
   '/artists/$id': typeof ArtistsIdRoute
   '/classes/$id': typeof ClassesIdRoute
   '/community-events/$id': typeof CommunityEventsIdRoute
@@ -744,6 +776,7 @@ export interface FileRoutesByTo {
   '/staff/dispatch': typeof AuthenticatedStaffDispatchRoute
   '/staff/map': typeof AuthenticatedStaffMapRoute
   '/staff/quests-report': typeof AuthenticatedStaffQuestsReportRoute
+  '/staff/redeem': typeof AuthenticatedStaffRedeemRoute
   '/staff/room-reservations': typeof AuthenticatedStaffRoomReservationsRoute
   '/staff/settings': typeof AuthenticatedStaffSettingsRoute
   '/staff/sponsors': typeof AuthenticatedStaffSponsorsRoute
@@ -766,7 +799,9 @@ export interface FileRoutesByTo {
   '/staff/admin/issue-categories': typeof AuthenticatedStaffAdminIssueCategoriesRoute
   '/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
   '/staff/admin/permits': typeof AuthenticatedStaffAdminPermitsRoute
+  '/staff/admin/prizes': typeof AuthenticatedStaffAdminPrizesRoute
   '/staff/admin/quests': typeof AuthenticatedStaffAdminQuestsRoute
+  '/staff/admin/raffles': typeof AuthenticatedStaffAdminRafflesRoute
   '/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
   '/staff/admin/social-integrations': typeof AuthenticatedStaffAdminSocialIntegrationsRoute
   '/staff/admin/tenants': typeof AuthenticatedStaffAdminTenantsRoute
@@ -809,6 +844,7 @@ export interface FileRoutesById {
   '/_authenticated/my-schedule': typeof AuthenticatedMyScheduleRoute
   '/_authenticated/my-tickets': typeof AuthenticatedMyTicketsRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRouteWithChildren
+  '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/artists/$id': typeof ArtistsIdRoute
   '/classes/$id': typeof ClassesIdRoute
   '/community-events/$id': typeof CommunityEventsIdRoute
@@ -836,6 +872,7 @@ export interface FileRoutesById {
   '/_authenticated/staff/dispatch': typeof AuthenticatedStaffDispatchRoute
   '/_authenticated/staff/map': typeof AuthenticatedStaffMapRoute
   '/_authenticated/staff/quests-report': typeof AuthenticatedStaffQuestsReportRoute
+  '/_authenticated/staff/redeem': typeof AuthenticatedStaffRedeemRoute
   '/_authenticated/staff/room-reservations': typeof AuthenticatedStaffRoomReservationsRoute
   '/_authenticated/staff/settings': typeof AuthenticatedStaffSettingsRoute
   '/_authenticated/staff/sponsors': typeof AuthenticatedStaffSponsorsRoute
@@ -859,7 +896,9 @@ export interface FileRoutesById {
   '/_authenticated/staff/admin/issue-categories': typeof AuthenticatedStaffAdminIssueCategoriesRoute
   '/_authenticated/staff/admin/permissions': typeof AuthenticatedStaffAdminPermissionsRoute
   '/_authenticated/staff/admin/permits': typeof AuthenticatedStaffAdminPermitsRoute
+  '/_authenticated/staff/admin/prizes': typeof AuthenticatedStaffAdminPrizesRoute
   '/_authenticated/staff/admin/quests': typeof AuthenticatedStaffAdminQuestsRoute
+  '/_authenticated/staff/admin/raffles': typeof AuthenticatedStaffAdminRafflesRoute
   '/_authenticated/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
   '/_authenticated/staff/admin/social-integrations': typeof AuthenticatedStaffAdminSocialIntegrationsRoute
   '/_authenticated/staff/admin/tenants': typeof AuthenticatedStaffAdminTenantsRoute
@@ -903,6 +942,7 @@ export interface FileRouteTypes {
     | '/my-schedule'
     | '/my-tickets'
     | '/staff'
+    | '/wallet'
     | '/artists/$id'
     | '/classes/$id'
     | '/community-events/$id'
@@ -930,6 +970,7 @@ export interface FileRouteTypes {
     | '/staff/dispatch'
     | '/staff/map'
     | '/staff/quests-report'
+    | '/staff/redeem'
     | '/staff/room-reservations'
     | '/staff/settings'
     | '/staff/sponsors'
@@ -953,7 +994,9 @@ export interface FileRouteTypes {
     | '/staff/admin/issue-categories'
     | '/staff/admin/permissions'
     | '/staff/admin/permits'
+    | '/staff/admin/prizes'
     | '/staff/admin/quests'
+    | '/staff/admin/raffles'
     | '/staff/admin/social'
     | '/staff/admin/social-integrations'
     | '/staff/admin/tenants'
@@ -994,6 +1037,7 @@ export interface FileRouteTypes {
     | '/my-reservations'
     | '/my-schedule'
     | '/my-tickets'
+    | '/wallet'
     | '/artists/$id'
     | '/classes/$id'
     | '/community-events/$id'
@@ -1020,6 +1064,7 @@ export interface FileRouteTypes {
     | '/staff/dispatch'
     | '/staff/map'
     | '/staff/quests-report'
+    | '/staff/redeem'
     | '/staff/room-reservations'
     | '/staff/settings'
     | '/staff/sponsors'
@@ -1042,7 +1087,9 @@ export interface FileRouteTypes {
     | '/staff/admin/issue-categories'
     | '/staff/admin/permissions'
     | '/staff/admin/permits'
+    | '/staff/admin/prizes'
     | '/staff/admin/quests'
+    | '/staff/admin/raffles'
     | '/staff/admin/social'
     | '/staff/admin/social-integrations'
     | '/staff/admin/tenants'
@@ -1084,6 +1131,7 @@ export interface FileRouteTypes {
     | '/_authenticated/my-schedule'
     | '/_authenticated/my-tickets'
     | '/_authenticated/staff'
+    | '/_authenticated/wallet'
     | '/artists/$id'
     | '/classes/$id'
     | '/community-events/$id'
@@ -1111,6 +1159,7 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/dispatch'
     | '/_authenticated/staff/map'
     | '/_authenticated/staff/quests-report'
+    | '/_authenticated/staff/redeem'
     | '/_authenticated/staff/room-reservations'
     | '/_authenticated/staff/settings'
     | '/_authenticated/staff/sponsors'
@@ -1134,7 +1183,9 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/admin/issue-categories'
     | '/_authenticated/staff/admin/permissions'
     | '/_authenticated/staff/admin/permits'
+    | '/_authenticated/staff/admin/prizes'
     | '/_authenticated/staff/admin/quests'
+    | '/_authenticated/staff/admin/raffles'
     | '/_authenticated/staff/admin/social'
     | '/_authenticated/staff/admin/social-integrations'
     | '/_authenticated/staff/admin/tenants'
@@ -1420,6 +1471,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ArtistsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/wallet': {
+      id: '/_authenticated/wallet'
+      path: '/wallet'
+      fullPath: '/wallet'
+      preLoaderRoute: typeof AuthenticatedWalletRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/staff': {
       id: '/_authenticated/staff'
       path: '/staff'
@@ -1551,6 +1609,13 @@ declare module '@tanstack/react-router' {
       path: '/room-reservations'
       fullPath: '/staff/room-reservations'
       preLoaderRoute: typeof AuthenticatedStaffRoomReservationsRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/redeem': {
+      id: '/_authenticated/staff/redeem'
+      path: '/redeem'
+      fullPath: '/staff/redeem'
+      preLoaderRoute: typeof AuthenticatedStaffRedeemRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
     }
     '/_authenticated/staff/quests-report': {
@@ -1700,11 +1765,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffAdminSocialRouteImport
       parentRoute: typeof AuthenticatedStaffAdminRoute
     }
+    '/_authenticated/staff/admin/raffles': {
+      id: '/_authenticated/staff/admin/raffles'
+      path: '/raffles'
+      fullPath: '/staff/admin/raffles'
+      preLoaderRoute: typeof AuthenticatedStaffAdminRafflesRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
     '/_authenticated/staff/admin/quests': {
       id: '/_authenticated/staff/admin/quests'
       path: '/quests'
       fullPath: '/staff/admin/quests'
       preLoaderRoute: typeof AuthenticatedStaffAdminQuestsRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
+    '/_authenticated/staff/admin/prizes': {
+      id: '/_authenticated/staff/admin/prizes'
+      path: '/prizes'
+      fullPath: '/staff/admin/prizes'
+      preLoaderRoute: typeof AuthenticatedStaffAdminPrizesRouteImport
       parentRoute: typeof AuthenticatedStaffAdminRoute
     }
     '/_authenticated/staff/admin/permits': {
@@ -1863,7 +1942,9 @@ interface AuthenticatedStaffAdminRouteChildren {
   AuthenticatedStaffAdminIssueCategoriesRoute: typeof AuthenticatedStaffAdminIssueCategoriesRoute
   AuthenticatedStaffAdminPermissionsRoute: typeof AuthenticatedStaffAdminPermissionsRoute
   AuthenticatedStaffAdminPermitsRoute: typeof AuthenticatedStaffAdminPermitsRoute
+  AuthenticatedStaffAdminPrizesRoute: typeof AuthenticatedStaffAdminPrizesRoute
   AuthenticatedStaffAdminQuestsRoute: typeof AuthenticatedStaffAdminQuestsRoute
+  AuthenticatedStaffAdminRafflesRoute: typeof AuthenticatedStaffAdminRafflesRoute
   AuthenticatedStaffAdminSocialRoute: typeof AuthenticatedStaffAdminSocialRouteWithChildren
   AuthenticatedStaffAdminSocialIntegrationsRoute: typeof AuthenticatedStaffAdminSocialIntegrationsRoute
   AuthenticatedStaffAdminTenantsRoute: typeof AuthenticatedStaffAdminTenantsRoute
@@ -1890,7 +1971,9 @@ const AuthenticatedStaffAdminRouteChildren: AuthenticatedStaffAdminRouteChildren
     AuthenticatedStaffAdminPermissionsRoute:
       AuthenticatedStaffAdminPermissionsRoute,
     AuthenticatedStaffAdminPermitsRoute: AuthenticatedStaffAdminPermitsRoute,
+    AuthenticatedStaffAdminPrizesRoute: AuthenticatedStaffAdminPrizesRoute,
     AuthenticatedStaffAdminQuestsRoute: AuthenticatedStaffAdminQuestsRoute,
+    AuthenticatedStaffAdminRafflesRoute: AuthenticatedStaffAdminRafflesRoute,
     AuthenticatedStaffAdminSocialRoute:
       AuthenticatedStaffAdminSocialRouteWithChildren,
     AuthenticatedStaffAdminSocialIntegrationsRoute:
@@ -1967,6 +2050,7 @@ interface AuthenticatedStaffRouteChildren {
   AuthenticatedStaffDispatchRoute: typeof AuthenticatedStaffDispatchRoute
   AuthenticatedStaffMapRoute: typeof AuthenticatedStaffMapRoute
   AuthenticatedStaffQuestsReportRoute: typeof AuthenticatedStaffQuestsReportRoute
+  AuthenticatedStaffRedeemRoute: typeof AuthenticatedStaffRedeemRoute
   AuthenticatedStaffRoomReservationsRoute: typeof AuthenticatedStaffRoomReservationsRoute
   AuthenticatedStaffSettingsRoute: typeof AuthenticatedStaffSettingsRoute
   AuthenticatedStaffSponsorsRoute: typeof AuthenticatedStaffSponsorsRoute
@@ -1991,6 +2075,7 @@ const AuthenticatedStaffRouteChildren: AuthenticatedStaffRouteChildren = {
   AuthenticatedStaffDispatchRoute: AuthenticatedStaffDispatchRoute,
   AuthenticatedStaffMapRoute: AuthenticatedStaffMapRoute,
   AuthenticatedStaffQuestsReportRoute: AuthenticatedStaffQuestsReportRoute,
+  AuthenticatedStaffRedeemRoute: AuthenticatedStaffRedeemRoute,
   AuthenticatedStaffRoomReservationsRoute:
     AuthenticatedStaffRoomReservationsRoute,
   AuthenticatedStaffSettingsRoute: AuthenticatedStaffSettingsRoute,
@@ -2013,6 +2098,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMyScheduleRoute: typeof AuthenticatedMyScheduleRoute
   AuthenticatedMyTicketsRoute: typeof AuthenticatedMyTicketsRoute
   AuthenticatedStaffRoute: typeof AuthenticatedStaffRouteWithChildren
+  AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
   AuthenticatedCommunityApplyRoute: typeof AuthenticatedCommunityApplyRoute
   AuthenticatedCommunityManageRoute: typeof AuthenticatedCommunityManageRoute
   AuthenticatedStreetbeatsApplyRoute: typeof AuthenticatedStreetbeatsApplyRoute
@@ -2027,6 +2113,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMyScheduleRoute: AuthenticatedMyScheduleRoute,
   AuthenticatedMyTicketsRoute: AuthenticatedMyTicketsRoute,
   AuthenticatedStaffRoute: AuthenticatedStaffRouteWithChildren,
+  AuthenticatedWalletRoute: AuthenticatedWalletRoute,
   AuthenticatedCommunityApplyRoute: AuthenticatedCommunityApplyRoute,
   AuthenticatedCommunityManageRoute: AuthenticatedCommunityManageRoute,
   AuthenticatedStreetbeatsApplyRoute: AuthenticatedStreetbeatsApplyRoute,
