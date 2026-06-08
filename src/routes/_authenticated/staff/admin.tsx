@@ -122,94 +122,24 @@ function AdminPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10 space-y-8">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">Manage staff</h1>
-          <p className="text-sm text-muted-foreground">
-            Invite staff and admins, change roles, or remove accounts.
-          </p>
-        </div>
-        <div className="flex flex-col items-end gap-1">
-          <Link
-            to="/staff/admin/permissions"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Manage permissions →
-          </Link>
-          <Link
-            to="/staff/admin/departments"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Manage departments →
-          </Link>
-          <Link
-            to="/staff/admin/guidebook"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Generate guidebook →
-          </Link>
-          <Link
-            to="/staff/admin/social-integrations"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Social integrations →
-          </Link>
-          <Link
-            to="/staff/admin/email-settings"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Email settings →
-          </Link>
-          <Link
-            to="/staff/admin/permits"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Permit settings →
-          </Link>
-          <Link
-            to="/staff/admin/analytics"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Executive analytics →
-          </Link>
-          <Link
-            to="/staff/admin/branding"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Global branding →
-          </Link>
-          <Link
-            to="/staff/admin/tenants"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Manage tenants →
-          </Link>
-          <Link
-            to="/staff/admin/home"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Edit home page →
-          </Link>
-          <Link
-            to="/staff/admin/quests"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Civic Quests →
-          </Link>
-          <Link
-            to="/staff/quests-report"
-            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
-          >
-            Civic Quests — Report →
-          </Link>
-
-
-
-
-
-        </div>
+    <div className="mx-auto max-w-6xl px-4 py-10 space-y-8">
+      <div>
+        <h1 className="text-2xl font-semibold">Admin console</h1>
+        <p className="text-sm text-muted-foreground">
+          Configure your organization, manage staff, and adjust what citizens
+          see across the portal.
+        </p>
       </div>
+
+      <AdminNavGrid />
+
+      <div>
+        <h2 className="text-xl font-semibold">Manage staff</h2>
+        <p className="text-sm text-muted-foreground">
+          Invite staff and admins, change roles, or remove accounts.
+        </p>
+      </div>
+
 
 
       <Card>
@@ -618,3 +548,82 @@ function EditStaffDialog({
     </Dialog>
   );
 }
+
+// ---------- Grouped admin navigation -----------------------------------
+type NavLink = { to: string; label: string; desc: string };
+type NavGroup = { title: string; tint: string; links: NavLink[] };
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    title: "People & access",
+    tint: "border-blue-500",
+    links: [
+      { to: "/staff/admin/permissions", label: "Permissions", desc: "Roles and module access." },
+      { to: "/staff/admin/departments", label: "Departments", desc: "Add, edit, or remove departments." },
+      { to: "/staff/admin/tenants", label: "Tenants", desc: "Top-level organizations on this portal." },
+    ],
+  },
+  {
+    title: "Citizen-facing content",
+    tint: "border-emerald-500",
+    links: [
+      { to: "/staff/admin/home", label: "Home page", desc: "Hero, callouts, and portal cards." },
+      { to: "/staff/admin/branding", label: "Global branding", desc: "Site-wide colors and logo." },
+      { to: "/staff/admin/issue-categories", label: "311 categories", desc: "Edit dropdown options and route to departments." },
+      { to: "/staff/admin/guidebook", label: "Guidebook", desc: "Generate the citizen guidebook." },
+    ],
+  },
+  {
+    title: "Programs",
+    tint: "border-amber-500",
+    links: [
+      { to: "/staff/admin/quests", label: "Civic Quests", desc: "Manage quests, stops, and rewards." },
+      { to: "/staff/quests-report", label: "Quests report", desc: "Check-ins and leaderboard analytics." },
+      { to: "/staff/admin/permits", label: "Permit settings", desc: "Configure permit application flows." },
+    ],
+  },
+  {
+    title: "Integrations & messaging",
+    tint: "border-violet-500",
+    links: [
+      { to: "/staff/admin/email-settings", label: "Email settings", desc: "Transactional and template settings." },
+      { to: "/staff/admin/social-integrations", label: "Social integrations", desc: "Connect social accounts." },
+      { to: "/staff/admin/analytics", label: "Executive analytics", desc: "Org-wide usage and trends." },
+    ],
+  },
+];
+
+function AdminNavGrid() {
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      {NAV_GROUPS.map((g) => (
+        <Card key={g.title} className={`border-l-4 ${g.tint}`}>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">{g.title}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="divide-y">
+              {g.links.map((l) => (
+                <li key={l.to}>
+                  <Link
+                    to={l.to}
+                    className="group flex items-start justify-between gap-3 py-2.5 hover:bg-muted/40 rounded -mx-2 px-2"
+                  >
+                    <div>
+                      <div className="text-sm font-medium group-hover:text-primary">
+                        {l.label}
+                      </div>
+                      <div className="text-xs text-muted-foreground">{l.desc}</div>
+                    </div>
+                    <span className="text-muted-foreground text-sm">→</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
