@@ -509,9 +509,11 @@ export const assignTicket = createServerFn({ method: "POST" })
         staff_user_id: staffId,
         invited_email: invitedEmail,
         assigned_by: context.userId,
+        accepted_at: staffId ? new Date().toISOString() : null,
       })
       .select("id")
       .single();
+
     if (error) {
       if ((error as any).code === "23505") return { ok: true as const, already: true };
       throw new Error(error.message);
