@@ -151,8 +151,14 @@ function QuestDetailPage() {
               <p className="mt-3 text-xs font-bold uppercase tracking-wider text-stone-700">
                 {done} / {total} waypoints · +{quest.points_reward} pts
               </p>
+              <div className="mt-2 h-2 w-full overflow-hidden rounded-full border border-stone-900 bg-amber-50">
+                <div
+                  className="h-full bg-emerald-600 transition-all duration-500"
+                  style={{ width: `${total ? (done / total) * 100 : 0}%` }}
+                />
+              </div>
               {data.stats && (data.stats.completion_count + data.stats.in_progress_count) > 0 && (
-                <p className="mt-1 text-xs text-stone-600">
+                <p className="mt-2 text-xs text-stone-600">
                   {data.stats.completion_count} explorer
                   {data.stats.completion_count === 1 ? "" : "s"} completed this
                   {data.stats.in_progress_count > 0 && (
