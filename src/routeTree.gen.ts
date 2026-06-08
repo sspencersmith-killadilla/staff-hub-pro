@@ -72,6 +72,7 @@ import { Route as AuthenticatedStaffCommunityEventsRouteImport } from './routes/
 import { Route as AuthenticatedStaffCommunicationsRouteImport } from './routes/_authenticated/staff/communications'
 import { Route as AuthenticatedStaffClassesRouteImport } from './routes/_authenticated/staff/classes'
 import { Route as AuthenticatedStaffAttendeesRouteImport } from './routes/_authenticated/staff/attendees'
+import { Route as AuthenticatedStaffAssetsRouteImport } from './routes/_authenticated/staff/assets'
 import { Route as AuthenticatedStaffAdminRouteImport } from './routes/_authenticated/staff/admin'
 import { Route as AuthenticatedCommunityManageRouteImport } from './routes/_authenticated/community/manage'
 import { Route as AuthenticatedCommunityApplyRouteImport } from './routes/_authenticated/community/apply'
@@ -81,6 +82,7 @@ import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/p
 import { Route as AuthenticatedStaffSurveysIdRouteImport } from './routes/_authenticated/staff/surveys.$id'
 import { Route as AuthenticatedStaffEventsIdRouteImport } from './routes/_authenticated/staff/events.$id'
 import { Route as AuthenticatedStaffCommunicationsIdRouteImport } from './routes/_authenticated/staff/communications.$id'
+import { Route as AuthenticatedStaffAssetsIdRouteImport } from './routes/_authenticated/staff/assets.$id'
 import { Route as AuthenticatedStaffAdminTenantsRouteImport } from './routes/_authenticated/staff/admin.tenants'
 import { Route as AuthenticatedStaffAdminSocialIntegrationsRouteImport } from './routes/_authenticated/staff/admin.social-integrations'
 import { Route as AuthenticatedStaffAdminSocialRouteImport } from './routes/_authenticated/staff/admin.social'
@@ -439,6 +441,12 @@ const AuthenticatedStaffAttendeesRoute =
     path: '/attendees',
     getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
+const AuthenticatedStaffAssetsRoute =
+  AuthenticatedStaffAssetsRouteImport.update({
+    id: '/assets',
+    path: '/assets',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
 const AuthenticatedStaffAdminRoute = AuthenticatedStaffAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -491,6 +499,12 @@ const AuthenticatedStaffCommunicationsIdRoute =
     id: '/$id',
     path: '/$id',
     getParentRoute: () => AuthenticatedStaffCommunicationsRoute,
+  } as any)
+const AuthenticatedStaffAssetsIdRoute =
+  AuthenticatedStaffAssetsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedStaffAssetsRoute,
   } as any)
 const AuthenticatedStaffAdminTenantsRoute =
   AuthenticatedStaffAdminTenantsRouteImport.update({
@@ -680,6 +694,7 @@ export interface FileRoutesByFullPath {
   '/community/apply': typeof AuthenticatedCommunityApplyRoute
   '/community/manage': typeof AuthenticatedCommunityManageRoute
   '/staff/admin': typeof AuthenticatedStaffAdminRouteWithChildren
+  '/staff/assets': typeof AuthenticatedStaffAssetsRouteWithChildren
   '/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
   '/staff/classes': typeof AuthenticatedStaffClassesRoute
   '/staff/communications': typeof AuthenticatedStaffCommunicationsRouteWithChildren
@@ -720,6 +735,7 @@ export interface FileRoutesByFullPath {
   '/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
   '/staff/admin/social-integrations': typeof AuthenticatedStaffAdminSocialIntegrationsRoute
   '/staff/admin/tenants': typeof AuthenticatedStaffAdminTenantsRoute
+  '/staff/assets/$id': typeof AuthenticatedStaffAssetsIdRoute
   '/staff/communications/$id': typeof AuthenticatedStaffCommunicationsIdRoute
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
   '/staff/surveys/$id': typeof AuthenticatedStaffSurveysIdRouteWithChildren
@@ -776,6 +792,7 @@ export interface FileRoutesByTo {
   '/community/apply': typeof AuthenticatedCommunityApplyRoute
   '/community/manage': typeof AuthenticatedCommunityManageRoute
   '/staff/admin': typeof AuthenticatedStaffAdminRouteWithChildren
+  '/staff/assets': typeof AuthenticatedStaffAssetsRouteWithChildren
   '/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
   '/staff/classes': typeof AuthenticatedStaffClassesRoute
   '/staff/community-events': typeof AuthenticatedStaffCommunityEventsRoute
@@ -814,6 +831,7 @@ export interface FileRoutesByTo {
   '/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
   '/staff/admin/social-integrations': typeof AuthenticatedStaffAdminSocialIntegrationsRoute
   '/staff/admin/tenants': typeof AuthenticatedStaffAdminTenantsRoute
+  '/staff/assets/$id': typeof AuthenticatedStaffAssetsIdRoute
   '/staff/communications/$id': typeof AuthenticatedStaffCommunicationsIdRoute
   '/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
@@ -872,6 +890,7 @@ export interface FileRoutesById {
   '/_authenticated/community/apply': typeof AuthenticatedCommunityApplyRoute
   '/_authenticated/community/manage': typeof AuthenticatedCommunityManageRoute
   '/_authenticated/staff/admin': typeof AuthenticatedStaffAdminRouteWithChildren
+  '/_authenticated/staff/assets': typeof AuthenticatedStaffAssetsRouteWithChildren
   '/_authenticated/staff/attendees': typeof AuthenticatedStaffAttendeesRoute
   '/_authenticated/staff/classes': typeof AuthenticatedStaffClassesRoute
   '/_authenticated/staff/communications': typeof AuthenticatedStaffCommunicationsRouteWithChildren
@@ -912,6 +931,7 @@ export interface FileRoutesById {
   '/_authenticated/staff/admin/social': typeof AuthenticatedStaffAdminSocialRouteWithChildren
   '/_authenticated/staff/admin/social-integrations': typeof AuthenticatedStaffAdminSocialIntegrationsRoute
   '/_authenticated/staff/admin/tenants': typeof AuthenticatedStaffAdminTenantsRoute
+  '/_authenticated/staff/assets/$id': typeof AuthenticatedStaffAssetsIdRoute
   '/_authenticated/staff/communications/$id': typeof AuthenticatedStaffCommunicationsIdRoute
   '/_authenticated/staff/events/$id': typeof AuthenticatedStaffEventsIdRoute
   '/_authenticated/staff/surveys/$id': typeof AuthenticatedStaffSurveysIdRouteWithChildren
@@ -971,6 +991,7 @@ export interface FileRouteTypes {
     | '/community/apply'
     | '/community/manage'
     | '/staff/admin'
+    | '/staff/assets'
     | '/staff/attendees'
     | '/staff/classes'
     | '/staff/communications'
@@ -1011,6 +1032,7 @@ export interface FileRouteTypes {
     | '/staff/admin/social'
     | '/staff/admin/social-integrations'
     | '/staff/admin/tenants'
+    | '/staff/assets/$id'
     | '/staff/communications/$id'
     | '/staff/events/$id'
     | '/staff/surveys/$id'
@@ -1067,6 +1089,7 @@ export interface FileRouteTypes {
     | '/community/apply'
     | '/community/manage'
     | '/staff/admin'
+    | '/staff/assets'
     | '/staff/attendees'
     | '/staff/classes'
     | '/staff/community-events'
@@ -1105,6 +1128,7 @@ export interface FileRouteTypes {
     | '/staff/admin/social'
     | '/staff/admin/social-integrations'
     | '/staff/admin/tenants'
+    | '/staff/assets/$id'
     | '/staff/communications/$id'
     | '/staff/events/$id'
     | '/api/public/manifest/webmanifest'
@@ -1162,6 +1186,7 @@ export interface FileRouteTypes {
     | '/_authenticated/community/apply'
     | '/_authenticated/community/manage'
     | '/_authenticated/staff/admin'
+    | '/_authenticated/staff/assets'
     | '/_authenticated/staff/attendees'
     | '/_authenticated/staff/classes'
     | '/_authenticated/staff/communications'
@@ -1202,6 +1227,7 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/admin/social'
     | '/_authenticated/staff/admin/social-integrations'
     | '/_authenticated/staff/admin/tenants'
+    | '/_authenticated/staff/assets/$id'
     | '/_authenticated/staff/communications/$id'
     | '/_authenticated/staff/events/$id'
     | '/_authenticated/staff/surveys/$id'
@@ -1702,6 +1728,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffAttendeesRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
     }
+    '/_authenticated/staff/assets': {
+      id: '/_authenticated/staff/assets'
+      path: '/assets'
+      fullPath: '/staff/assets'
+      preLoaderRoute: typeof AuthenticatedStaffAssetsRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
     '/_authenticated/staff/admin': {
       id: '/_authenticated/staff/admin'
       path: '/admin'
@@ -1764,6 +1797,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/staff/communications/$id'
       preLoaderRoute: typeof AuthenticatedStaffCommunicationsIdRouteImport
       parentRoute: typeof AuthenticatedStaffCommunicationsRoute
+    }
+    '/_authenticated/staff/assets/$id': {
+      id: '/_authenticated/staff/assets/$id'
+      path: '/$id'
+      fullPath: '/staff/assets/$id'
+      preLoaderRoute: typeof AuthenticatedStaffAssetsIdRouteImport
+      parentRoute: typeof AuthenticatedStaffAssetsRoute
     }
     '/_authenticated/staff/admin/tenants': {
       id: '/_authenticated/staff/admin/tenants'
@@ -2007,6 +2047,20 @@ const AuthenticatedStaffAdminRouteWithChildren =
     AuthenticatedStaffAdminRouteChildren,
   )
 
+interface AuthenticatedStaffAssetsRouteChildren {
+  AuthenticatedStaffAssetsIdRoute: typeof AuthenticatedStaffAssetsIdRoute
+}
+
+const AuthenticatedStaffAssetsRouteChildren: AuthenticatedStaffAssetsRouteChildren =
+  {
+    AuthenticatedStaffAssetsIdRoute: AuthenticatedStaffAssetsIdRoute,
+  }
+
+const AuthenticatedStaffAssetsRouteWithChildren =
+  AuthenticatedStaffAssetsRoute._addFileChildren(
+    AuthenticatedStaffAssetsRouteChildren,
+  )
+
 interface AuthenticatedStaffCommunicationsRouteChildren {
   AuthenticatedStaffCommunicationsIdRoute: typeof AuthenticatedStaffCommunicationsIdRoute
   AuthenticatedStaffCommunicationsIndexRoute: typeof AuthenticatedStaffCommunicationsIndexRoute
@@ -2062,6 +2116,7 @@ const AuthenticatedStaffSurveysRouteWithChildren =
 
 interface AuthenticatedStaffRouteChildren {
   AuthenticatedStaffAdminRoute: typeof AuthenticatedStaffAdminRouteWithChildren
+  AuthenticatedStaffAssetsRoute: typeof AuthenticatedStaffAssetsRouteWithChildren
   AuthenticatedStaffAttendeesRoute: typeof AuthenticatedStaffAttendeesRoute
   AuthenticatedStaffClassesRoute: typeof AuthenticatedStaffClassesRoute
   AuthenticatedStaffCommunicationsRoute: typeof AuthenticatedStaffCommunicationsRouteWithChildren
@@ -2084,6 +2139,7 @@ interface AuthenticatedStaffRouteChildren {
 
 const AuthenticatedStaffRouteChildren: AuthenticatedStaffRouteChildren = {
   AuthenticatedStaffAdminRoute: AuthenticatedStaffAdminRouteWithChildren,
+  AuthenticatedStaffAssetsRoute: AuthenticatedStaffAssetsRouteWithChildren,
   AuthenticatedStaffAttendeesRoute: AuthenticatedStaffAttendeesRoute,
   AuthenticatedStaffClassesRoute: AuthenticatedStaffClassesRoute,
   AuthenticatedStaffCommunicationsRoute:

@@ -1,52 +1,43 @@
-## Why iOS shows a blue "O" tile
+# 311 Module Upgrades
 
-iOS Safari grabs the home-screen icon at the exact moment you tap **Add to Home Screen** — and it only looks at `<link rel="apple-touch-icon">` in the **initial HTML** that the server sent. It does **not** wait for React to run, and it does **not** read the icons listed in `manifest.webmanifest` on iOS.
+## 1. Assignment to staff (with email invite)
+- New table `ticket_assignees`: `ticket_id`, `staff_user_id` (nullable), `invited_email` (nullable), `assigned_by`, `assigned_at`, `accepted_at`.
+- Dispatch detail drawer: searchable picker of existing staff (shows name + email). "Invite by email" field for unknown addresses.
+- Inviting a raw email:
+  - If the email matches an existing auth user → link as `staff_user_id`.
+  - Otherwise insert pending row with `invited_email`, send notification email via existing Lovable email infra with a sign-in link; on first sign-in the row is auto-claimed (matched by email).
+- Primary assignee = first row; "My assigned tickets" view on staff dashboard filtered by `auth.uid()`.
 
-Right now our apple-touch-icon link is injected client-side by `GlobalBrandProvider` after React boots. By the time it lands in the DOM, Safari has already decided there is no icon — so it falls back to its auto-generated tile: brand-color background + first letter of the page title (the "O" you're seeing is from "Oneonta" / your city name).
+## 2. Multi-department assignment
+- New table `ticket_departments`: `ticket_id`, `department_id`, `is_primary`, `added_by`. Keep legacy `tickets.assigned_department_id` as the primary mirror for backward compatibility (trigger keeps it in sync with `is_primary=true`).
+- Dispatch UI: multi-select department chips on the ticket. RLS broadened so any linked department's staff can read/write.
+- `can_read/write_department` checks updated to also consult `ticket_departments`.
 
-The manifest icons we serve are correct; iOS just ignores them for home-screen installs.
+## 3. Duplicate detection (staff-only linking)
+- New table `ticket_duplicates`: `primary_ticket_id`, `duplicate_ticket_id`, `linked_by`, `linked_at`, unique on the pair.
+- Detail drawer "Possible duplicates" panel: server fn returns tickets with same `category_id`, within ~150m (Haversine on lat/lng), created within ±30 days, not already resolved. Staff click "Link as duplicate of…" or "Mark this as primary".
+- A ticket marked duplicate gets status auto-mirrored from its primary (trigger), and updates posted on the primary surface on the citizen view of the duplicate too.
+- Dispatch board shows a small badge (`+N`) on tickets with linked duplicates.
 
-## Fix
+## 4. Asset catalog + history
+- New tables:
+  - `assets`: `id`, `name`, `asset_type` (enum: streetlight, sign, hydrant, bench, tree, playground, other), `external_ref`, `address`, `latitude`, `longitude`, `install_date`, `department_id`, `notes`, `active`.
+  - `tickets.asset_id` (nullable FK).
+- Dispatch detail drawer: asset picker with auto-suggest — server fn returns nearest active assets within 100m, optionally filtered by category→asset_type mapping. Staff can also create a new asset on the fly.
+- New staff route `/staff/assets`: searchable list + asset detail page showing all tickets ever linked, total cost, last service date.
 
-Put the apple-touch-icon (and the manifest link) into the server-rendered HTML so they're present on the very first byte Safari sees.
+## 5. Labor & repair cost tracking
+- New table `ticket_costs`: `id`, `ticket_id`, `kind` (enum: labor, materials, equipment, other), `description`, `hours` (nullable), `rate` (nullable), `amount` (computed: `coalesce(hours*rate, 0) + materials_amount`), `incurred_on`, `logged_by`, `created_at`. Simplified: store `amount` directly plus optional `hours`/`rate` for labor.
+- Detail drawer "Costs" tab: add line items, see running total. Resolved view shows breakdown.
+- Asset detail rolls up lifetime cost = sum of `ticket_costs.amount` across all linked tickets.
 
-### 1. Add a stable icon endpoint
-
-Create `src/routes/api/public/apple-touch-icon[.]png.ts` — a `GET` route that:
-
-- Reads `favicon_180_url` (falling back to `favicon_512_url`, then `favicon_url`) from `global_settings` using `supabaseAdmin`.
-- Returns a `302` redirect to that URL.
-- Sends `Cache-Control: public, max-age=300` so iOS refetches reasonably often but doesn't hammer the DB.
-- If no icon is configured, redirects to a sensible default PNG (or returns 404 so iOS uses its fallback only when nothing is set).
-
-This gives iOS a single, stable, server-resolved URL (`/apple-touch-icon.png`) regardless of which CDN URL the admin uploaded.
-
-### 2. Reference it from `__root.tsx` `head()`
-
-In `src/routes/__root.tsx`, extend the existing `head()` return with `links` entries that ship in the initial HTML:
-
-- `{ rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" }`
-- `{ rel: "apple-touch-icon-precomposed", href: "/apple-touch-icon.png" }` (older iOS)
-- `{ rel: "manifest", href: "/api/public/manifest.webmanifest" }` (if not already present in HTML — currently only injected at runtime)
-- `{ rel: "icon", href: "/favicon.ico" }` as a baseline so first paint isn't blank
-
-Keep the existing client-side `GlobalBrandProvider` logic — it stays useful for live updates after the admin changes branding without a reload.
-
-### 3. (Optional polish) Apple meta tags
-
-While we're in the root head, add these so the installed app feels right on iOS:
-
-- `<meta name="apple-mobile-web-app-capable" content="yes">`
-- `<meta name="apple-mobile-web-app-status-bar-style" content="default">`
-- `<meta name="apple-mobile-web-app-title" content="{city_name}">` — note this needs to be in initial HTML too if we want the home-screen label to match the brand. Easiest: hardcode "Total Event System" or read from an env var; making it fully dynamic would need SSR loader work in `__root.tsx`.
-
-## What the user needs to do after this ships
-
-iOS aggressively caches the home-screen icon. Existing installs that show the blue "O" must be **removed from the home screen and re-added** to pick up the new icon. New installs will work immediately.
+## 6. Staff dashboard tweaks
+- Dispatch page filters: by assignee (me / anyone / unassigned), by department (multi), by duplicate-of-primary toggle.
+- Ticket card shows assignee avatar/initials + dept chips + cost total + asset name when set.
 
 ## Technical notes
-
-- Endpoint must live under `/api/public/*` so it's reachable without auth on the published site.
-- Use `supabaseAdmin` (service role) — no user context is available for a raw asset fetch.
-- iOS ignores SVG for `apple-touch-icon`; the 180×180 PNG we already generate in the favicon pipeline is the right source.
-- Do not add a service worker as part of this fix — manifest-only is enough for home-screen installability.
+- All new tables: GRANTs to `authenticated` + `service_role`, RLS scoped via `is_department_super_admin` and the new multi-dept helpers.
+- Realtime publication added for `ticket_assignees`, `ticket_departments`, `ticket_duplicates`, `ticket_costs`.
+- New server functions in `src/lib/tickets.functions.ts` (and a new `src/lib/assets.functions.ts`): `assignTicket`, `unassignTicket`, `inviteAssigneeByEmail`, `setTicketDepartments`, `findPossibleDuplicates`, `linkDuplicate`, `unlinkDuplicate`, `suggestAssetsForTicket`, `linkAssetToTicket`, `createAsset`, `listAssets`, `getAssetHistory`, `addTicketCost`, `deleteTicketCost`.
+- Citizen-facing `/my-reports` and `/report` flows are unchanged except duplicates surface a "Linked to existing report" banner on the tracker.
+- One migration file `053_tickets_311_upgrades.sql` containing all schema + RLS + grants + triggers.
