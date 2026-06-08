@@ -173,19 +173,45 @@ function QuestDetailPage() {
           </div>
         )}
 
+        {isComplete && (
+          <div className="mt-6 rounded-xl border-2 border-emerald-700 bg-emerald-50 p-5">
+            <p className="font-bold text-emerald-900">
+              🎉 Quest complete! Check{" "}
+              <Link to="/wallet" className="underline">
+                My Wallet
+              </Link>{" "}
+              for your prize ticket and raffle entries.
+            </p>
+          </div>
+        )}
+
         <ol className="mt-6 space-y-3">
           {waypoints.map((wp, i) => {
             const completed = completedSet.has(wp.id);
+            const typeMeta =
+              wp.completion_type === "qr_scan"
+                ? { label: "QR scan", accent: "bg-amber-200 text-amber-900", Icon: QrCode }
+                : wp.completion_type === "geo_location"
+                  ? { label: `Check-in${wp.radius_m ? ` · ${wp.radius_m}m` : ""}`, accent: "bg-emerald-200 text-emerald-900", Icon: MapPin }
+                  : { label: "Honor system", accent: "bg-indigo-200 text-indigo-900", Icon: HandHeart };
+            const TypeIcon = typeMeta.Icon;
             return (
               <li
                 key={wp.id}
-                className={`rounded-lg border-2 p-4 ${
+                className={`overflow-hidden rounded-lg border-2 ${
                   completed
                     ? "border-emerald-700 bg-emerald-50"
                     : "border-stone-900 bg-white"
                 }`}
               >
-                <div className="flex items-start gap-3">
+                {wp.image_url && (
+                  <img
+                    src={wp.image_url}
+                    alt={wp.image_alt ?? ""}
+                    className={`h-40 w-full object-cover ${completed ? "" : ""}`}
+                  />
+                )}
+                <div className="flex items-start gap-3 p-4">
                   <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-stone-900 bg-amber-100 font-black text-stone-900">
                     {completed ? (
                       <CheckCircle2 className="h-5 w-5 text-emerald-700" />
@@ -194,7 +220,12 @@ function QuestDetailPage() {
                     )}
                   </span>
                   <div className="flex-1">
-                    <h3 className="font-bold text-stone-900">{wp.title}</h3>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-bold text-stone-900">{wp.title}</h3>
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${typeMeta.accent}`}>
+                        <TypeIcon className="h-3 w-3" /> {typeMeta.label}
+                      </span>
+                    </div>
                     {wp.description && (
                       <p className="mt-1 text-sm text-stone-700">
                         {wp.description}
@@ -234,6 +265,7 @@ function QuestDetailPage() {
             );
           })}
         </ol>
+
 
         {scannerOpenFor && (
           <div
