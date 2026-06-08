@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
+import { cn } from "@/lib/utils";
 import { Home, LogOut, Building2, Check, Menu } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useModules } from "@/hooks/use-modules";
