@@ -132,7 +132,18 @@ const groups: { label: string; sectionIds: string[] }[] = [
   },
   {
     label: "Civic Quests & Discovery",
-    sectionIds: ["quests-overview", "quests-play", "quests-leaderboard", "quests-report", "quests-admin"],
+    sectionIds: [
+      "quests-overview",
+      "quests-play",
+      "quests-wallet",
+      "quests-raffles",
+      "quests-leaderboard",
+      "quests-report",
+      "quests-admin",
+      "quests-admin-prizes",
+      "quests-admin-raffles",
+      "quests-staff-redeem",
+    ],
   },
   {
     label: "311 Non-Emergency Reporting",
@@ -1845,8 +1856,12 @@ const sections: Section[] = [
           <li><strong>Explore</strong> at <code>/explore</code> — browse every
             published quest with its theme, length, and reward.</li>
           <li><strong>Quest detail</strong> at <code>/explore/&lt;id&gt;</code>
-            — see the full waypoint list, social proof ("127 explorers
-            completed this · 38 in progress"), and start the quest.</li>
+            — see the full waypoint list with hero images, a live progress
+            bar, social proof ("127 explorers completed this · 38 in
+            progress"), and start the quest.</li>
+          <li><strong>My Wallet</strong> at <code>/wallet</code> — every prize
+            ticket and raffle entry you've earned, with scannable QR codes
+            for pickup.</li>
           <li><strong>Leaderboard</strong> at <code>/leaderboard</code> —
             public top-100 ranking with a podium for the top 3 and a "your
             rank" pill for signed-in players.</li>
@@ -1881,19 +1896,88 @@ const sections: Section[] = [
             here afterward.
           </Step>
           <Step n={3} title="Check in at each waypoint">
-            Travel to the waypoint, then use <em>Check in</em>. Some
-            waypoints require a code, photo, or proximity confirmation
-            depending on how staff configured them.
+            Travel to the waypoint and tap the action that matches its type:
+            <ul className="my-2 list-disc pl-6">
+              <li><strong>QR scan</strong> — opens the camera scanner and
+                checks you in when the printed waypoint QR is read.</li>
+              <li><strong>Geo-location</strong> — uses your device location
+                and confirms you're within the configured radius.</li>
+              <li><strong>Honor system</strong> — a single tap to confirm
+                you're there.</li>
+            </ul>
+            Each waypoint may show a hero image and hint to help you find
+            the spot. The progress bar at the top updates after every
+            check-in.
           </Step>
-          <Step n={4} title="Earn the badge and climb the leaderboard">
-            Completing the final waypoint awards the quest badge and adds
-            the quest's points to your leaderboard score. Your badges appear
-            on the Hub and the public leaderboard.
+          <Step n={4} title="Earn the badge, prize ticket, and raffle entries">
+            Completing the final waypoint awards the quest badge, adds the
+            quest's points to your leaderboard score, and (if staff
+            attached one) mints a <strong>virtual prize ticket</strong> in
+            your wallet plus any <strong>raffle entries</strong> for open
+            raffles linked to the quest. A confetti burst and an in-app
+            banner link you straight to <code>/wallet</code>.
           </Step>
         </ol>
       </>
     ),
   },
+  {
+    id: "quests-wallet",
+    title: "My Wallet — Prize Tickets",
+    icon: Ticket,
+    audience: "community",
+    render: () => (
+      <>
+        <p>
+          Every prize you earn from a completed quest lands in{" "}
+          <code>/wallet</code> as a virtual ticket with a unique serial and
+          scannable QR code. Show it at the pickup location to redeem.
+        </p>
+        <ul className="my-3 list-disc pl-6 text-sm">
+          <li><strong>Status badges</strong> — Issued (ready to redeem),
+            Redeemed (already picked up), or Void.</li>
+          <li><strong>Prize details</strong> — name, sponsor (for partner
+            prizes), and pickup location are shown on the ticket card.</li>
+          <li><strong>QR code</strong> — tap a ticket to enlarge the QR for
+            scanning at City Hall or the sponsoring business.</li>
+          <li><strong>Mixed catalog</strong> — prizes can be fulfilled by
+            the city directly or by a sponsoring business. Either way the
+            ticket flow is identical.</li>
+        </ul>
+        <Callout kind="tip">
+          Tickets never expire automatically. If a prize runs out of stock
+          before you redeem, staff will reach out via the email on your
+          profile.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "quests-raffles",
+    title: "Raffle Entries",
+    icon: Sparkles,
+    audience: "community",
+    render: () => (
+      <>
+        <p>
+          Some quests grant entries into a city-wide <strong>raffle</strong>
+          rather than (or in addition to) a guaranteed prize. Every time
+          you complete a quest linked to an open raffle, your entry count
+          for that raffle goes up.
+        </p>
+        <ul className="my-3 list-disc pl-6 text-sm">
+          <li>Open the <em>Raffle entries</em> panel on <code>/wallet</code>
+            to see each active raffle, how many entries you hold, the
+            prize, and the scheduled draw date.</li>
+          <li>When staff draw the raffle, winners are notified and the
+            ticket appears in their wallet just like a quest prize.</li>
+          <li>You can keep earning entries until the raffle's status
+            changes from <em>Open</em> to <em>Drawn</em>.</li>
+        </ul>
+      </>
+    ),
+  },
+
   {
     id: "quests-leaderboard",
     title: "Public Leaderboard",
@@ -1990,8 +2074,13 @@ const sections: Section[] = [
         <ul className="my-3 list-disc pl-6 text-sm">
           <li>Create a quest with a theme, reward badge, point value, and
             cover image.</li>
-          <li>Add waypoints in order — each with a title, location, check-in
-            method, and optional hint or photo.</li>
+          <li>Add waypoints in order — each with a title, check-in method
+            (QR scan, geo-location, or honor system), optional hint, and a{" "}
+            <strong>hero image</strong> you can either upload or generate
+            with the built-in AI illustrator.</li>
+          <li><strong>Attach prizes</strong> directly in the quest editor —
+            tick any prize from the catalog and finishers automatically
+            receive a virtual ticket on completion.</li>
           <li>Publish to make the quest visible on <code>/explore</code>, or
             keep it as a draft while you finalize content.</li>
         </ul>
@@ -2002,9 +2091,135 @@ const sections: Section[] = [
             whole module.</li>
           <li><code>page.quests_report</code> — staff permission for the
             reporting page.</li>
-          <li>Quest management inherits the existing admin role; no new
-            admin-side permission was added.</li>
+          <li>Quest management, prize catalog, and raffle administration
+            inherit the existing admin role.</li>
+          <li>Ticket redemption at <code>/staff/redeem</code> is open to
+            anyone with the staff or admin role.</li>
         </ul>
+      </>
+    ),
+  },
+  {
+    id: "quests-admin-prizes",
+    title: "Admin — Prize Catalog",
+    icon: Sparkles,
+    audience: "admin",
+    render: () => (
+      <>
+        <p>
+          The prize catalog at <code>/staff/admin/prizes</code> is a single
+          inventory of every reward a citizen can win — both city-owned
+          rewards and items contributed by sponsoring businesses (a "mixed
+          catalog").
+        </p>
+        <h4 className="mt-6 font-semibold text-[#002f49]">Create a prize</h4>
+        <ol className="my-3 space-y-3">
+          <Step n={1} title="Open the prize editor">
+            Click <em>+ New prize</em> on the catalog page.
+          </Step>
+          <Step n={2} title="Fill in the basics">
+            Name, description, image (upload or AI-generate), and pickup
+            location.
+          </Step>
+          <Step n={3} title="Choose who fulfils it">
+            <strong>City</strong> for rewards handed out at City Hall, or{" "}
+            <strong>Sponsor</strong> for a partner business — in which case
+            also fill in the sponsor name so the citizen sees who supplied
+            the prize.
+          </Step>
+          <Step n={4} title="Set inventory">
+            Optional total and remaining quantity. Leave blank for
+            unlimited stock.
+          </Step>
+          <Step n={5} title="Attach to a quest or raffle">
+            From <em>Admin → Civic Quests</em> tick the prize in the
+            quest editor, or from <em>Admin → Raffles</em> select it as the
+            raffle prize.
+          </Step>
+        </ol>
+        <Callout kind="tip">
+          Deactivating a prize hides it from new quest editors and raffle
+          pickers but leaves already-issued tickets intact and redeemable.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "quests-admin-raffles",
+    title: "Admin — Raffles",
+    icon: Sparkles,
+    audience: "admin",
+    render: () => (
+      <>
+        <p>
+          Raffles at <code>/staff/admin/raffles</code> let you award a
+          prize by random draw instead of (or in addition to) the
+          guaranteed prize tickets a quest hands out.
+        </p>
+        <ol className="my-3 space-y-3">
+          <Step n={1} title="Create the raffle">
+            Set a title, description, image, prize, number of winners, and
+            scheduled draw date.
+          </Step>
+          <Step n={2} title="Link the quests that grant entries">
+            Pick one or more published quests. Every time a citizen
+            completes a linked quest, they get one entry (or more if the
+            quest is configured to grant multiple).
+          </Step>
+          <Step n={3} title="Watch entries roll in">
+            The admin page shows each open raffle with a running count of
+            entries and unique participants.
+          </Step>
+          <Step n={4} title="Draw winners">
+            Click <em>Draw winners</em> when the raffle closes. The system
+            picks the configured number of winners at random, marks the
+            raffle <em>Drawn</em>, and mints a prize ticket for each
+            winner — which shows up in their <code>/wallet</code>.
+          </Step>
+        </ol>
+        <Callout kind="warn">
+          Draws are final. Once <em>Draw winners</em> is clicked the
+          raffle locks and no further entries are accepted.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "quests-staff-redeem",
+    title: "Staff — Redeeming Prize Tickets",
+    icon: Ticket,
+    audience: "staff",
+    render: () => (
+      <>
+        <p>
+          When a citizen presents a prize ticket, staff verify and redeem
+          it at <code>/staff/redeem</code>. Any user with the staff or
+          admin role can use the page.
+        </p>
+        <ol className="my-3 space-y-3">
+          <Step n={1} title="Scan the QR or paste the serial">
+            The page opens a camera scanner by default. If the camera
+            isn't available, paste the serial number printed under the QR
+            into the manual-entry field.
+          </Step>
+          <Step n={2} title="Verify the ticket">
+            The lookup shows the prize, the citizen's name, the issuing
+            quest or raffle, and the current status (Issued, Redeemed, or
+            Void). Already-redeemed tickets are clearly flagged so they
+            can't be reused.
+          </Step>
+          <Step n={3} title="Mark as redeemed">
+            Confirm the pickup and click <em>Mark redeemed</em>. The
+            ticket flips to <em>Redeemed</em> in the citizen's wallet
+            immediately, with your user ID and timestamp recorded for
+            audit.
+          </Step>
+        </ol>
+        <Callout kind="tip">
+          Sponsor-fulfilled prizes follow the same flow — the sponsoring
+          business's staff use the same page (any staff account works) and
+          the ticket records who redeemed it.
+        </Callout>
       </>
     ),
   },
