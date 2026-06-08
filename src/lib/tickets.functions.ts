@@ -266,3 +266,92 @@ export const geocodeAddress = createServerFn({ method: "POST" })
       address: (result?.formatted_address as string) ?? null,
     };
   });
+
+// --- ADMIN: manage issue categories ---------------------------------------
+async function assertAdminUser(userId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (!data) throw new Error("Forbidden: admin role required");
+}
+
+export type AdminIssueCategory = IssueCategory & {
+  sort_order: number;
+  active: boolean;
+};
+
+export const listIssueCategoriesAdmin = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<AdminIssueCategory[]> => {
+    await assertAdminUser(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("issue_categories")
+      .select("id, name, description, icon, default_department_id, sort_order, active")
+      .order("sort_order", { ascending: true })
+      .order("name", { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as AdminIssueCategory[];
+  });
+
+const upsertCategorySchema = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string().trim().min(1).max(120),
+  description: z.string().max(2000).nullable().optional(),
+  icon: z.string().max(80).nullable().optional(),
+  default_department_id: z.string().uuid().nullable().optional(),
+  sort_order: z.number().int().min(0).max(9999).default(0),
+  active: z.boolean().default(true),
+});
+
+export const upsertIssueCategory = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => upsertCategorySchema.parse(i))
+  .handler(async ({ data, context }) => {
+    await assertAdminUser(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const payload = {
+      name: data.name,
+      description: data.description ?? null,
+      icon: data.icon ?? null,
+      default_department_id: data.default_department_id ?? null,
+      sort_order: data.sort_order,
+      active: data.active,
+    };
+    if (data.id) {
+      const { data: row, error } = await supabaseAdmin
+        .from("issue_categories")
+        .update(payload)
+        .eq("id", data.id)
+        .select("id, name, description, icon, default_department_id, sort_order, active")
+        .single();
+      if (error) throw new Error(error.message);
+      return row as AdminIssueCategory;
+    }
+    const { data: row, error } = await supabaseAdmin
+      .from("issue_categories")
+      .insert(payload)
+      .select("id, name, description, icon, default_department_id, sort_order, active")
+      .single();
+    if (error) throw new Error(error.message);
+    return row as AdminIssueCategory;
+  });
+
+export const deleteIssueCategory = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertAdminUser(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("issue_categories")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
