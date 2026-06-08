@@ -1,5 +1,6 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { Home, LogOut, Building2, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Home, LogOut, Building2, Check, Menu } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useModules } from "@/hooks/use-modules";
 import { useDepartment } from "@/contexts/department-context";
@@ -13,6 +14,41 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+
+function SheetLink({
+  to,
+  params,
+  children,
+  className,
+}: {
+  to: string;
+  params?: Record<string, string>;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <SheetClose asChild>
+      <Link
+        to={to}
+        params={params as any}
+        className={cn(
+          "rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+          className,
+        )}
+      >
+        {children}
+      </Link>
+    </SheetClose>
+  );
+}
 
 export function SiteHeader() {
   const { me, isAuthenticated, isStaff, isAdmin, logout } = useAuth();
@@ -61,121 +97,87 @@ export function SiteHeader() {
           </Link>
         </div>
 
-        {/* Right Side: Navigation */}
-        <nav className="flex items-center gap-3 text-sm">
-          <Link
-            to="/events"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            Events
-          </Link>
-          <Link
-            to="/classes"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            Classes
-          </Link>
-          <Link
-            to="/departments"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            Departments
-          </Link>
-          <Link to="/report" className="text-muted-foreground hover:text-foreground">
-            Report 311
-          </Link>
-          {isEnabled("room_reservations") && (
-            <Link
-              to="/rooms"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Rooms
-            </Link>
-          )}
-          {isEnabled("streetbeats") && (
-            <Link
-              to="/streetbeats"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Streetbeats
-            </Link>
-          )}
-          {isAuthenticated && (
-            <Link
-              to="/hub"
-              className="font-semibold text-foreground hover:underline"
-            >
-              My Hub
-            </Link>
-          )}
-          {isStaff && memberships.length > 1 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="outline" className="h-8 gap-1">
-                  <Building2 className="h-3.5 w-3.5" />
-                  <span className="max-w-[140px] truncate">
-                    {activeDepartment?.name ?? "Department"}
+        {/* Right Side: Hamburger Navigation */}
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" aria-label="Open menu">
+              <Menu className="h-6 w-6" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-72 sm:w-80">
+            <SheetHeader>
+              <SheetTitle>Menu</SheetTitle>
+            </SheetHeader>
+            <nav className="mt-6 flex flex-col gap-1">
+              <SheetLink to="/events">Events</SheetLink>
+              <SheetLink to="/classes">Classes</SheetLink>
+              <SheetLink to="/departments">Departments</SheetLink>
+              <SheetLink to="/report">Report 311</SheetLink>
+              {isEnabled("room_reservations") && (
+                <SheetLink to="/rooms">Rooms</SheetLink>
+              )}
+              {isEnabled("streetbeats") && (
+                <SheetLink to="/streetbeats">Streetbeats</SheetLink>
+              )}
+              {isAuthenticated && (
+                <SheetLink to="/hub" className="font-semibold">
+                  My Hub
+                </SheetLink>
+              )}
+              {isStaff && memberships.length > 1 && (
+                <div className="mt-2">
+                  <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Active Department
+                  </p>
+                  {memberships.map((m) => (
+                    <button
+                      key={m.department.id}
+                      onClick={() => setActiveDepartmentId(m.department.id)}
+                      className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground ${
+                        activeDepartment?.id === m.department.id
+                          ? "bg-accent/50 text-accent-foreground"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      <span className="flex flex-col items-start">
+                        <span>{m.department.name}</span>
+                        <span className="text-xs text-muted-foreground">{m.role}</span>
+                      </span>
+                      {activeDepartment?.id === m.department.id && (
+                        <Check className="h-4 w-4 text-primary" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {isStaff && (
+                <SheetLink to="/staff">Staff Portal</SheetLink>
+              )}
+              {activeDepartment && (
+                <SheetLink to="/departments/$id" params={{ id: activeDepartment.id }}>
+                  Dept Hub
+                </SheetLink>
+              )}
+              {isAdmin && <SheetLink to="/staff/admin">Admin</SheetLink>}
+              <div className="my-2 h-px bg-border" />
+              {isAuthenticated ? (
+                <>
+                  <span className="px-3 py-2 text-xs text-muted-foreground">
+                    {me?.email}
                   </span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Active Department</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {memberships.map((m) => (
-                  <DropdownMenuItem
-                    key={m.department.id}
-                    onSelect={() => setActiveDepartmentId(m.department.id)}
-                    className="flex items-center justify-between"
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
                   >
-                    <span className="flex flex-col">
-                      <span className="text-sm">{m.department.name}</span>
-                      <span className="text-xs text-muted-foreground">{m.role}</span>
-                    </span>
-                    {activeDepartment?.id === m.department.id && (
-                      <Check className="h-4 w-4 text-primary" />
-                    )}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-          {isStaff && (
-            <Link to="/staff" className="text-muted-foreground hover:text-foreground">
-              Staff Portal
-            </Link>
-          )}
-          {activeDepartment && (
-            <Link
-              to="/departments/$id"
-              params={{ id: activeDepartment.id }}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Dept Hub
-            </Link>
-          )}
-          {isAdmin && (
-            <Link
-              to="/staff/admin"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Admin
-            </Link>
-          )}
-          {isAuthenticated ? (
-            <>
-              <span className="hidden text-xs text-muted-foreground sm:inline">
-                {me?.email}
-              </span>
-              <Button size="sm" variant="ghost" onClick={handleLogout}>
-                <LogOut className="mr-1 h-4 w-4" /> Log out
-              </Button>
-            </>
-          ) : (
-            <Link to="/login">
-              <Button size="sm">Log in</Button>
-            </Link>
-          )}
-        </nav>
+                    <LogOut className="h-4 w-4" /> Log out
+                  </button>
+                </>
+              ) : (
+                <SheetLink to="/login">Log in</SheetLink>
+              )}
+            </nav>
+          </SheetContent>
+        </Sheet>
       </div>
     </header>
   );
