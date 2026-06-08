@@ -65,6 +65,7 @@ const items: Item[] = [
   { title: "Communications", url: "/staff/communications", icon: Mail, permission: "page.communications" },
   { title: "Surveys", url: "/staff/surveys", icon: ClipboardList, permission: "page.surveys" },
   { title: "311 Dispatch", url: "/staff/dispatch", icon: AlertTriangle },
+  { title: "311 Assets", url: "/staff/assets", icon: AlertTriangle },
   { title: "Platform Settings", url: "/staff/settings", icon: Settings, permission: "page.settings" },
 ];
 
