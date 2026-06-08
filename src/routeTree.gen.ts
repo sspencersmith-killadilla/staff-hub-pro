@@ -53,6 +53,7 @@ import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authentic
 import { Route as EventsPermitsApplyRouteImport } from './routes/events.permits.apply'
 import { Route as ApiPublicUnsubscribeRouteImport } from './routes/api/public/unsubscribe'
 import { Route as ApiPublicDispatchDueRouteImport } from './routes/api/public/dispatch-due'
+import { Route as ApiPublicAppleTouchIconDotpngRouteImport } from './routes/api/public/apple-touch-icon[.]png'
 import { Route as AuthenticatedStreetbeatsMyGigsRouteImport } from './routes/_authenticated/streetbeats/my-gigs'
 import { Route as AuthenticatedStreetbeatsApplyRouteImport } from './routes/_authenticated/streetbeats/apply'
 import { Route as AuthenticatedStaffVenuesRouteImport } from './routes/_authenticated/staff/venues'
@@ -325,6 +326,12 @@ const ApiPublicDispatchDueRoute = ApiPublicDispatchDueRouteImport.update({
   path: '/api/public/dispatch-due',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicAppleTouchIconDotpngRoute =
+  ApiPublicAppleTouchIconDotpngRouteImport.update({
+    id: '/api/public/apple-touch-icon.png',
+    path: '/api/public/apple-touch-icon.png',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedStreetbeatsMyGigsRoute =
   AuthenticatedStreetbeatsMyGigsRouteImport.update({
     id: '/streetbeats/my-gigs',
@@ -691,6 +698,7 @@ export interface FileRoutesByFullPath {
   '/staff/venues': typeof AuthenticatedStaffVenuesRoute
   '/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
   '/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
+  '/api/public/apple-touch-icon.png': typeof ApiPublicAppleTouchIconDotpngRoute
   '/api/public/dispatch-due': typeof ApiPublicDispatchDueRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/events/permits/apply': typeof EventsPermitsApplyRoute
@@ -784,6 +792,7 @@ export interface FileRoutesByTo {
   '/staff/venues': typeof AuthenticatedStaffVenuesRoute
   '/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
   '/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
+  '/api/public/apple-touch-icon.png': typeof ApiPublicAppleTouchIconDotpngRoute
   '/api/public/dispatch-due': typeof ApiPublicDispatchDueRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/events/permits/apply': typeof EventsPermitsApplyRoute
@@ -881,6 +890,7 @@ export interface FileRoutesById {
   '/_authenticated/staff/venues': typeof AuthenticatedStaffVenuesRoute
   '/_authenticated/streetbeats/apply': typeof AuthenticatedStreetbeatsApplyRoute
   '/_authenticated/streetbeats/my-gigs': typeof AuthenticatedStreetbeatsMyGigsRoute
+  '/api/public/apple-touch-icon.png': typeof ApiPublicAppleTouchIconDotpngRoute
   '/api/public/dispatch-due': typeof ApiPublicDispatchDueRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/events/permits/apply': typeof EventsPermitsApplyRoute
@@ -979,6 +989,7 @@ export interface FileRouteTypes {
     | '/staff/venues'
     | '/streetbeats/apply'
     | '/streetbeats/my-gigs'
+    | '/api/public/apple-touch-icon.png'
     | '/api/public/dispatch-due'
     | '/api/public/unsubscribe'
     | '/events/permits/apply'
@@ -1072,6 +1083,7 @@ export interface FileRouteTypes {
     | '/staff/venues'
     | '/streetbeats/apply'
     | '/streetbeats/my-gigs'
+    | '/api/public/apple-touch-icon.png'
     | '/api/public/dispatch-due'
     | '/api/public/unsubscribe'
     | '/events/permits/apply'
@@ -1168,6 +1180,7 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/venues'
     | '/_authenticated/streetbeats/apply'
     | '/_authenticated/streetbeats/my-gigs'
+    | '/api/public/apple-touch-icon.png'
     | '/api/public/dispatch-due'
     | '/api/public/unsubscribe'
     | '/events/permits/apply'
@@ -1235,6 +1248,7 @@ export interface RootRouteChildren {
   EventsIndexRoute: typeof EventsIndexRoute
   ExploreIndexRoute: typeof ExploreIndexRoute
   RoomsIndexRoute: typeof RoomsIndexRoute
+  ApiPublicAppleTouchIconDotpngRoute: typeof ApiPublicAppleTouchIconDotpngRoute
   ApiPublicDispatchDueRoute: typeof ApiPublicDispatchDueRoute
   ApiPublicUnsubscribeRoute: typeof ApiPublicUnsubscribeRoute
   EventsPermitsApplyRoute: typeof EventsPermitsApplyRoute
@@ -1553,6 +1567,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/dispatch-due'
       fullPath: '/api/public/dispatch-due'
       preLoaderRoute: typeof ApiPublicDispatchDueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/apple-touch-icon.png': {
+      id: '/api/public/apple-touch-icon.png'
+      path: '/api/public/apple-touch-icon.png'
+      fullPath: '/api/public/apple-touch-icon.png'
+      preLoaderRoute: typeof ApiPublicAppleTouchIconDotpngRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/streetbeats/my-gigs': {
@@ -2177,6 +2198,7 @@ const rootRouteChildren: RootRouteChildren = {
   EventsIndexRoute: EventsIndexRoute,
   ExploreIndexRoute: ExploreIndexRoute,
   RoomsIndexRoute: RoomsIndexRoute,
+  ApiPublicAppleTouchIconDotpngRoute: ApiPublicAppleTouchIconDotpngRoute,
   ApiPublicDispatchDueRoute: ApiPublicDispatchDueRoute,
   ApiPublicUnsubscribeRoute: ApiPublicUnsubscribeRoute,
   EventsPermitsApplyRoute: EventsPermitsApplyRoute,
