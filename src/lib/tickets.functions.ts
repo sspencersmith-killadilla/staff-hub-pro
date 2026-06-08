@@ -502,17 +502,70 @@ export const assignTicket = createServerFn({ method: "POST" })
       else invitedEmail = data.email;
     }
 
-    const { error } = await supabaseAdmin.from("ticket_assignees").insert({
-      ticket_id: data.ticket_id,
-      staff_user_id: staffId,
-      invited_email: invitedEmail,
-      assigned_by: context.userId,
-    });
+    const { data: inserted, error } = await supabaseAdmin
+      .from("ticket_assignees")
+      .insert({
+        ticket_id: data.ticket_id,
+        staff_user_id: staffId,
+        invited_email: invitedEmail,
+        assigned_by: context.userId,
+      })
+      .select("id")
+      .single();
     if (error) {
       if ((error as any).code === "23505") return { ok: true as const, already: true };
       throw new Error(error.message);
     }
-    return { ok: true as const };
+
+    // If we resolved to a real user, grant scoped staff + dept access now.
+    if (staffId) {
+      const { error: grantErr } = await supabaseAdmin.rpc("grant_assignee_access", {
+        _ticket_id: data.ticket_id,
+        _user_id: staffId,
+      });
+      if (grantErr) console.error("grant_assignee_access failed", grantErr.message);
+    }
+    return { ok: true as const, id: inserted?.id as string | undefined };
+  });
+
+// --- STAFF: tickets where I am an accepted assignee -----------------------
+export const listTicketsAssignedToMe = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("ticket_assignees")
+      .select(
+        "ticket_id, ticket:tickets!ticket_assignees_ticket_id_fkey(id, user_id, category_id, description, location_address, latitude, longitude, photo_url, status, assigned_department_id, created_at, updated_at, category:issue_categories(id, name, icon, description, default_department_id), department:departments!tickets_assigned_department_id_fkey(id, name))",
+      )
+      .eq("staff_user_id", context.userId)
+      .not("accepted_at", "is", null);
+    if (error) throw new Error(error.message);
+    const tickets = ((data ?? []) as any[])
+      .map((r) => r.ticket as TicketRow | null)
+      .filter((t): t is TicketRow => !!t);
+    return { tickets };
+  });
+
+export const countMyOpenAssignments = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("ticket_assignees")
+      .select("ticket:tickets!ticket_assignees_ticket_id_fkey(status)")
+      .eq("staff_user_id", context.userId)
+      .not("accepted_at", "is", null);
+    if (error) throw new Error(error.message);
+    let open = 0;
+    let in_progress = 0;
+    for (const row of (data ?? []) as any[]) {
+      const status = row.ticket?.status as string | undefined;
+      if (!status || status === "resolved") continue;
+      if (status === "in_progress") in_progress += 1;
+      else open += 1;
+    }
+    return { open, in_progress, total: open + in_progress };
   });
 
 export const unassignTicket = createServerFn({ method: "POST" })
