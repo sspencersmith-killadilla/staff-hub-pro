@@ -293,6 +293,8 @@ function HubPage() {
 
         <QuestBadges />
 
+        {isStaff && <MyAssignmentsCard />}
+
         {idsToRender.map((sid, idx) => {
           const sect = sectionMap[sid];
           if (!sect) return null;
