@@ -104,11 +104,14 @@ export function SiteHeader() {
               <Menu className="h-6 w-6" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-72 sm:w-80">
-            <SheetHeader>
+          <SheetContent
+            side="right"
+            className="flex w-72 flex-col p-0 sm:w-80"
+          >
+            <SheetHeader className="border-b px-6 pb-4 pt-6">
               <SheetTitle>Menu</SheetTitle>
             </SheetHeader>
-            <nav className="mt-6 flex flex-col gap-1">
+            <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-6 py-4">
               <SheetLink to="/events">Events</SheetLink>
               <SheetLink to="/classes">Classes</SheetLink>
               <SheetLink to="/departments">Departments</SheetLink>
