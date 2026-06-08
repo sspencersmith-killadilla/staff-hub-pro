@@ -23,6 +23,33 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
+function SheetLink({
+  to,
+  params,
+  children,
+  className,
+}: {
+  to: string;
+  params?: Record<string, string>;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <SheetClose asChild>
+      <Link
+        to={to}
+        params={params as any}
+        className={cn(
+          "rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+          className,
+        )}
+      >
+        {children}
+      </Link>
+    </SheetClose>
+  );
+}
+
 export function SiteHeader() {
   const { me, isAuthenticated, isStaff, isAdmin, logout } = useAuth();
   const { isEnabled } = useModules();
