@@ -719,3 +719,14 @@ export const listMyAssignedTickets = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return (data ?? []) as any[];
   });
+
+export const listDepartmentsForStaff = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("departments").select("id, name").order("name", { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { id: string; name: string }[];
+  });
