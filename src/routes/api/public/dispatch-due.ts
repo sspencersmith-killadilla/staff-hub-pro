@@ -7,7 +7,10 @@ export const Route = createFileRoute("/api/public/dispatch-due")({
       POST: async ({ request }) => {
         const secret = request.headers.get("x-dispatch-secret");
         const expected = process.env.DISPATCH_SECRET;
-        if (expected && secret !== expected) {
+        if (!expected) {
+          return new Response("Server misconfiguration", { status: 500 });
+        }
+        if (secret !== expected) {
           return new Response("Unauthorized", { status: 401 });
         }
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
