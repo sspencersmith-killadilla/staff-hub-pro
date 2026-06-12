@@ -1,10 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { randomBytes, createHash } from "crypto";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+async function getAdminClient() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin;
+}
+
 async function isGlobalAdmin(userId: string): Promise<boolean> {
+  const supabaseAdmin = await getAdminClient();
   const { data, error } = await supabaseAdmin
     .from("user_roles")
     .select("role")
@@ -17,6 +22,7 @@ async function isGlobalAdmin(userId: string): Promise<boolean> {
 
 async function listManageableDepartmentIds(userId: string): Promise<string[] | "all"> {
   if (await isGlobalAdmin(userId)) return "all";
+  const supabaseAdmin = await getAdminClient();
   const { data, error } = await supabaseAdmin
     .from("department_roles")
     .select("department_id")
@@ -31,6 +37,7 @@ async function assertCanManage(departmentId: string, userId: string) {
   if (ids !== "all" && !ids.includes(departmentId)) {
     throw new Error("Forbidden: admin or department admin role required");
   }
+  const supabaseAdmin = await getAdminClient();
   const { data, error } = await supabaseAdmin
     .from("departments")
     .select("id")
