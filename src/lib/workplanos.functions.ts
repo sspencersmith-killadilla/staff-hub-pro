@@ -191,3 +191,8 @@ export const listManageableTenants = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return data ?? [];
   });
+
+export const canManageWpoIntegration = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => userCanManage(context.userId));
+

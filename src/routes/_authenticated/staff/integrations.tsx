@@ -4,7 +4,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Plug, Copy, KeyRound, AlertTriangle } from "lucide-react";
-import { getMyRoles } from "@/lib/auth.functions";
 import { waitForSupabaseSession } from "@/integrations/supabase/auth-ready";
 import {
   getWpoIntegration,
@@ -13,6 +12,7 @@ import {
   disableWpoIntegration,
   listWpoDispatches,
   listManageableTenants,
+  canManageWpoIntegration,
 } from "@/lib/workplanos.functions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,12 +31,12 @@ export const Route = createFileRoute("/_authenticated/staff/integrations")({
     if (typeof window === "undefined") return;
     const session = await waitForSupabaseSession();
     if (!session?.user) throw redirect({ to: "/login" });
-    const me = await getMyRoles();
-    const ok = me.roles.includes("admin") || me.roles.includes("dept_admin");
+    const ok = await canManageWpoIntegration();
     if (!ok) throw redirect({ to: "/staff" });
   },
   component: StaffIntegrationsPage,
 });
+
 
 function copyText(text: string, label: string) {
   if (typeof navigator !== "undefined" && navigator.clipboard) {
