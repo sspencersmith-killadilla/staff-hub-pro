@@ -592,7 +592,7 @@ const NAV_GROUPS: NavGroup[] = [
     links: [
       { to: "/staff/admin/email-settings", label: "Email settings", desc: "Transactional and template settings." },
       { to: "/staff/admin/social-integrations", label: "Social integrations", desc: "Connect social accounts." },
-      { to: "/staff/integrations", label: "WorkPlanOS integration", desc: "Per-tenant WPO sync and webhooks." },
+      { to: "/staff/integrations", label: "WorkPlanOS integration", desc: "Per-department WPO sync and webhooks." },
       { to: "/staff/admin/analytics", label: "Executive analytics", desc: "Org-wide usage and trends." },
     ],
   },
