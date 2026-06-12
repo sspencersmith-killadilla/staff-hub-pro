@@ -1,10 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { randomBytes, createHash } from "crypto";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+async function getAdminClient() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin;
+}
+
 async function isGlobalAdmin(userId: string): Promise<boolean> {
+  const supabaseAdmin = await getAdminClient();
   const { data, error } = await supabaseAdmin
     .from("user_roles")
     .select("role")
@@ -17,6 +22,7 @@ async function isGlobalAdmin(userId: string): Promise<boolean> {
 
 async function listManageableDepartmentIds(userId: string): Promise<string[] | "all"> {
   if (await isGlobalAdmin(userId)) return "all";
+  const supabaseAdmin = await getAdminClient();
   const { data, error } = await supabaseAdmin
     .from("department_roles")
     .select("department_id")
@@ -31,6 +37,7 @@ async function assertCanManage(departmentId: string, userId: string) {
   if (ids !== "all" && !ids.includes(departmentId)) {
     throw new Error("Forbidden: admin or department admin role required");
   }
+  const supabaseAdmin = await getAdminClient();
   const { data, error } = await supabaseAdmin
     .from("departments")
     .select("id")
@@ -86,6 +93,7 @@ export const getWpoIntegration = createServerFn({ method: "GET" })
   .inputValidator((i) => z.object({ departmentId: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
     await assertCanManage(data.departmentId, context.userId);
+    const supabaseAdmin = await getAdminClient();
     const { data: row, error } = await supabaseAdmin
       .from("workplanos_integration")
       .select("*")
@@ -109,6 +117,7 @@ export const saveWpoIntegration = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertCanManage(data.departmentId, context.userId);
+    const supabaseAdmin = await getAdminClient();
     const patch: Record<string, unknown> = {
       department_id: data.departmentId,
       wpo_base_url: data.wpo_base_url,
@@ -132,6 +141,7 @@ export const rotateWpoSecret = createServerFn({ method: "POST" })
   .inputValidator((i) => z.object({ departmentId: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
     await assertCanManage(data.departmentId, context.userId);
+    const supabaseAdmin = await getAdminClient();
     const secret = `wpo_${randomBytes(32).toString("hex")}`;
     const hash = createHash("sha256").update(secret).digest("hex");
 
@@ -158,6 +168,7 @@ export const disableWpoIntegration = createServerFn({ method: "POST" })
   .inputValidator((i) => z.object({ departmentId: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
     await assertCanManage(data.departmentId, context.userId);
+    const supabaseAdmin = await getAdminClient();
     const { error } = await supabaseAdmin
       .from("workplanos_integration")
       .update({ enabled: false, updated_at: new Date().toISOString() })
@@ -171,6 +182,7 @@ export const listWpoDispatches = createServerFn({ method: "GET" })
   .inputValidator((i) => z.object({ departmentId: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
     await assertCanManage(data.departmentId, context.userId);
+    const supabaseAdmin = await getAdminClient();
     const { data: rows, error } = await supabaseAdmin
       .from("integration_dispatches")
       .select("id, direction, status_code, error, attempts, event_id, created_at")
@@ -185,6 +197,7 @@ export const listManageableDepartments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const ids = await listManageableDepartmentIds(context.userId);
+    const supabaseAdmin = await getAdminClient();
     let query = supabaseAdmin
       .from("departments")
       .select("id, name")
