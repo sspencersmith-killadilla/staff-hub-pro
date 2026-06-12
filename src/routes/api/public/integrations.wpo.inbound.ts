@@ -9,18 +9,18 @@ export const Route = createFileRoute("/api/public/integrations/wpo/inbound")({
           "@/integrations/supabase/client.server"
         );
 
-        const orgId = request.headers.get("x-wpo-workspace");
+        const tenantId = request.headers.get("x-wpo-tenant");
         const signature = request.headers.get("x-wpo-signature") ?? "";
         const rawBody = await request.text();
 
-        if (!orgId) {
-          return new Response("Missing x-wpo-workspace", { status: 400 });
+        if (!tenantId) {
+          return new Response("Missing x-wpo-tenant", { status: 400 });
         }
 
         const { data: integ, error: integErr } = await supabaseAdmin
           .from("workplanos_integration")
-          .select("org_id, shared_secret, enabled")
-          .eq("org_id", orgId)
+          .select("tenant_id, shared_secret, enabled")
+          .eq("tenant_id", tenantId)
           .maybeSingle();
 
         if (integErr) {
@@ -42,7 +42,7 @@ export const Route = createFileRoute("/api/public/integrations/wpo/inbound")({
 
         if (!sigOk) {
           await supabaseAdmin.from("integration_dispatches").insert({
-            org_id: orgId,
+            tenant_id: tenantId,
             direction: "inbound",
             payload: null,
             status_code: 401,
@@ -56,7 +56,7 @@ export const Route = createFileRoute("/api/public/integrations/wpo/inbound")({
           payload = rawBody ? JSON.parse(rawBody) : null;
         } catch {
           await supabaseAdmin.from("integration_dispatches").insert({
-            org_id: orgId,
+            tenant_id: tenantId,
             direction: "inbound",
             payload: null,
             status_code: 400,
@@ -66,7 +66,7 @@ export const Route = createFileRoute("/api/public/integrations/wpo/inbound")({
         }
 
         await supabaseAdmin.from("integration_dispatches").insert({
-          org_id: orgId,
+          tenant_id: tenantId,
           direction: "inbound",
           payload: payload as object,
           status_code: 200,

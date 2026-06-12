@@ -1,64 +1,67 @@
+
 ## Goal
 
-Make ticket assignment actually do something: grant scoped access, notify the assignee, surface their work, and (for raw-email invites) email them a signup link.
+Replace the per-organization WorkPlanOS integration with a **per-tenant** integration managed from the staff admin console. Both **admin** and **dept_admin** roles can configure it. The existing per-org page (`/org/$orgId/integrations`) is removed.
 
-## 1. Auto-grant scoped staff access on assignment
+## What changes
 
-When `assignTicket` runs (or when `claim_ticket_assignee_invites` fires after a late signup):
+### 1. Database (`supabase-migrations/058_wpo_tenant_scope.sql`)
 
-- Ensure the assignee has the **`staff`** app role (insert into `user_roles` if missing — never elevate to `admin`).
-- Add the assignee as a **`viewer`** member of every department currently on `ticket_departments` for that ticket (insert into the existing department-membership table, skip if already a member at viewer-or-higher).
-- Both writes happen via a new SECURITY DEFINER SQL function `grant_assignee_access(ticket_id, user_id)` called from the server fn and from the email-claim trigger.
+Re-key the three WPO tables from `org_id` → `tenant_id` and rewrite RLS for staff roles:
 
-Result: assignees show up on the dispatch board (which already filters by department), can read ticket detail, updates, costs, and the linked asset.
+- `workplanos_integration`:
+  - Drop existing FK + unique on `org_id`, drop existing RLS policies.
+  - Rename `org_id` → `tenant_id uuid references public.tenants(id) on delete cascade`, unique.
+  - New policies (using existing `public.has_role`):
+    - Read/write allowed when `has_role(auth.uid(),'admin')` OR `has_role(auth.uid(),'dept_admin')`.
+    - service_role keeps full access.
+- `event_external_refs`: unchanged (per-event mapping, not tenant-scoped).
+- `integration_dispatches`: rename `org_id` → `tenant_id`, update policies the same way.
+- Re-confirm GRANTs (`authenticated`, `service_role`).
+- Drop any seed/test rows tied to old `org_id` since the feature is unreleased.
 
-**Out of scope:** no write/admin escalation. Viewer access is the floor; admins can promote individuals later through the normal staff UI.
+### 2. Server functions (`src/lib/workplanos.functions.ts`)
 
-## 2. Email invite for unknown emails
+- Replace `assertOrgOwner(orgId, userId)` with `assertCanManageWpo(tenantId, userId)` that:
+  - Verifies the tenant exists.
+  - Checks user has `admin` or `dept_admin` role via `has_role` (RPC or direct table check using `supabaseAdmin`).
+- Rename params `orgId` → `tenantId` on:
+  - `getWpoIntegration`, `saveWpoIntegration`, `rotateWpoSecret`, `disableWpoIntegration`, `listWpoDispatches`.
+- Replace `listMyOwnedOrgs` with `listManageableTenants`: returns `public.tenants` rows when caller is admin or dept_admin (admins see all; dept_admins also see all since the integration is tenant-wide config).
+- Secret masking, hash storage, one-time plaintext return — unchanged.
 
-In `assignTicket`, when the input resolves to a raw `invited_email`:
+### 3. Inbound webhook (`src/routes/api/public/integrations.wpo.inbound.ts`)
 
-- Send a single app email via Lovable's email infra (`sendTransactionalEmail`) to that address with a "You've been assigned a 311 report" template containing the ticket category, short description, and a signup link to `/signup?invite=ticket&redirect=/staff/dispatch`.
-- Use `idempotencyKey = ticket-assignee-invite-<assignee_row_id>` so re-inviting the same email on the same ticket doesn't resend.
-- On signup, the existing `claim_ticket_assignee_invites` trigger links the row; we extend it to also call `grant_assignee_access`.
+- Change required header from `x-wpo-workspace: <org_id>` to `x-wpo-tenant: <tenant_id>` (keep the old name as a fallback for one release if desired — default plan: hard switch since unreleased).
+- Lookup `workplanos_integration` by `tenant_id`. HMAC verification logic unchanged.
+- Logging writes `tenant_id` into `integration_dispatches`.
 
-Prerequisite: confirm Lovable Cloud email domain is set up; if not, run the standard email setup before scaffolding the template.
+### 4. New staff page (`src/routes/_authenticated/staff/admin.integrations.tsx`)
 
-## 3. "Assigned to me" on the dispatch board
+- Route: `/staff/admin/integrations`.
+- `beforeLoad`: require session + `admin` OR `dept_admin` role (mirror `admin.tsx` gate, but allow either).
+- UI:
+  - Tenant selector (auto-selects if only one tenant exists).
+  - WorkPlanOS card identical to the old org page: base URL, workspace ID, Save, Generate/Rotate secret, Disable, one-time secret reveal, masked current secret.
+  - Inbound webhook block showing:
+    - URL: `<origin>/api/public/integrations/wpo/inbound`
+    - Header `x-wpo-tenant: <tenant_id>`
+    - Header `x-wpo-signature: sha256=<hmac_sha256(shared_secret, raw_body)>`
+  - Recent dispatches table (last 50, polled).
+- Add an "Integrations" tile to `AdminNavGrid` (in `admin.home.tsx` or wherever it lives) linking here.
 
-In `listDispatchTickets`:
+### 5. Removals
 
-- Add a new server fn `listTicketsAssignedToMe` that returns tickets where `ticket_assignees.staff_user_id = auth.uid()` and `accepted_at is not null`, regardless of department membership (RLS still applies via the new viewer membership from step 1, so this is consistent).
-- Dispatch board gets a filter pill: **All / Assigned to me / Unassigned**. The "Assigned to me" count is shown as a badge next to the pill.
+- Delete `src/routes/_authenticated/org.$orgId.integrations.tsx`.
+- Any internal links to that route (none expected — verify with a quick search).
 
-## 4. "My 311 Assignments" card in `/hub` — staff-only
+## Non-goals
 
-In `src/routes/_authenticated/hub.tsx`:
+- No changes to `event_external_refs` shape or outbound dispatch flow.
+- No new auth provider; uses existing `has_role` + `requireSupabaseAuth`.
+- No UI for assigning specific tenants to specific dept_admins — both roles can configure any tenant. Can be tightened later if needed.
 
-- Add a new card `MyAssignmentsCard` rendered **only when `isStaff` is true** (the hook already exposes `isStaff = roles.includes('staff') || roles.includes('admin')`). Wrap the JSX in `{isStaff && (...)}` so citizens never see it, even if they somehow have a pending invite row.
-- The card uses `useQuery` over a new server fn `countMyOpenAssignments` (returns `{ open, in_progress }`). Numbers + a "Open dispatch" link to `/staff/dispatch?assignee=me`.
-- Also gate by `isEnabled('tickets_311')` if that module key exists; otherwise unconditional for staff.
+## Risk / migration notes
 
-## 5. Optional notifications (lightweight)
-
-- On `assignTicket` for an existing staff user: send an app email "You were assigned ticket #…" using the same email infra, idempotency keyed on assignee row id.
-- On `addTicketUpdate` with `status_change`: send an email to every accepted assignee on that ticket (idempotency key per update id + assignee).
-- No in-app toast/realtime push in this pass — keep scope tight. (Realtime is already enabled on the tables; a future pass can subscribe.)
-
-## Files touched
-
-- `supabase-migrations/054_311_assignment_access.sql` — new: `grant_assignee_access` fn + extend `claim_ticket_assignee_invites` trigger to call it; backfill grants for existing accepted assignees.
-- `src/lib/tickets.functions.ts` — extend `assignTicket` to call `grant_assignee_access` + send invite/notification email; add `listTicketsAssignedToMe`, `countMyOpenAssignments`.
-- `src/components/tickets/TicketDetailDrawer.tsx` — copy update: "Assigning grants viewer access to this ticket's department(s)."
-- `src/routes/_authenticated/staff/dispatch.tsx` (or wherever the board lives) — add Assigned-to-me / Unassigned filter pills.
-- `src/routes/_authenticated/hub.tsx` — add `MyAssignmentsCard`, render only when `isStaff`.
-- `src/lib/email-templates/ticket-assignment-invite.tsx` — new email template (only if email infra is already configured; otherwise run setup first).
-- `src/lib/email-templates/ticket-assignment-notification.tsx` — new email template for already-staff assignees + status updates.
-- `src/lib/email-templates/registry.ts` — register new templates.
-
-## Out of scope
-
-- No new department or role types.
-- No changes to citizen-facing flows or `/my-reports`.
-- No realtime push, browser notifications, or SMS.
-- No bulk reassignment or escalation rules.
+- Feature is freshly added in migration 057, so the column rename is safe. If any rows exist locally, they'll be dropped — call out in chat after applying.
+- After this lands, any external WPO instance already configured against `x-wpo-workspace` must be updated to send `x-wpo-tenant` and regenerate the secret. Since nothing's live yet, this is documentation-only.

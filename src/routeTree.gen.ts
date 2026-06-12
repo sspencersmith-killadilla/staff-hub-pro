@@ -65,6 +65,7 @@ import { Route as AuthenticatedStaffRoomReservationsRouteImport } from './routes
 import { Route as AuthenticatedStaffRedeemRouteImport } from './routes/_authenticated/staff/redeem'
 import { Route as AuthenticatedStaffQuestsReportRouteImport } from './routes/_authenticated/staff/quests-report'
 import { Route as AuthenticatedStaffMapRouteImport } from './routes/_authenticated/staff/map'
+import { Route as AuthenticatedStaffIntegrationsRouteImport } from './routes/_authenticated/staff/integrations'
 import { Route as AuthenticatedStaffDispatchRouteImport } from './routes/_authenticated/staff/dispatch'
 import { Route as AuthenticatedStaffCommunityOrganizationsRouteImport } from './routes/_authenticated/staff/community-organizations'
 import { Route as AuthenticatedStaffCommunityMusicRouteImport } from './routes/_authenticated/staff/community-music'
@@ -100,7 +101,6 @@ import { Route as AuthenticatedStaffAdminEmailSettingsRouteImport } from './rout
 import { Route as AuthenticatedStaffAdminDepartmentsRouteImport } from './routes/_authenticated/staff/admin.departments'
 import { Route as AuthenticatedStaffAdminBrandingRouteImport } from './routes/_authenticated/staff/admin.branding'
 import { Route as AuthenticatedStaffAdminAnalyticsRouteImport } from './routes/_authenticated/staff/admin.analytics'
-import { Route as AuthenticatedOrgOrgIdIntegrationsRouteImport } from './routes/_authenticated/org.$orgId.integrations'
 import { Route as AuthenticatedStaffSurveysIdIndexRouteImport } from './routes/_authenticated/staff/surveys.$id.index'
 import { Route as ApiPublicOauthMetaCallbackRouteImport } from './routes/api/public/oauth/meta/callback'
 import { Route as ApiPublicOauthLinkedinCallbackRouteImport } from './routes/api/public/oauth/linkedin/callback'
@@ -401,6 +401,12 @@ const AuthenticatedStaffMapRoute = AuthenticatedStaffMapRouteImport.update({
   path: '/map',
   getParentRoute: () => AuthenticatedStaffRoute,
 } as any)
+const AuthenticatedStaffIntegrationsRoute =
+  AuthenticatedStaffIntegrationsRouteImport.update({
+    id: '/integrations',
+    path: '/integrations',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
 const AuthenticatedStaffDispatchRoute =
   AuthenticatedStaffDispatchRouteImport.update({
     id: '/dispatch',
@@ -610,12 +616,6 @@ const AuthenticatedStaffAdminAnalyticsRoute =
     path: '/analytics',
     getParentRoute: () => AuthenticatedStaffAdminRoute,
   } as any)
-const AuthenticatedOrgOrgIdIntegrationsRoute =
-  AuthenticatedOrgOrgIdIntegrationsRouteImport.update({
-    id: '/org/$orgId/integrations',
-    path: '/org/$orgId/integrations',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedStaffSurveysIdIndexRoute =
   AuthenticatedStaffSurveysIdIndexRouteImport.update({
     id: '/',
@@ -716,6 +716,7 @@ export interface FileRoutesByFullPath {
   '/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
   '/staff/dispatch': typeof AuthenticatedStaffDispatchRoute
+  '/staff/integrations': typeof AuthenticatedStaffIntegrationsRoute
   '/staff/map': typeof AuthenticatedStaffMapRoute
   '/staff/quests-report': typeof AuthenticatedStaffQuestsReportRoute
   '/staff/redeem': typeof AuthenticatedStaffRedeemRoute
@@ -732,7 +733,6 @@ export interface FileRoutesByFullPath {
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/events/permits/apply': typeof EventsPermitsApplyRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
-  '/org/$orgId/integrations': typeof AuthenticatedOrgOrgIdIntegrationsRoute
   '/staff/admin/analytics': typeof AuthenticatedStaffAdminAnalyticsRoute
   '/staff/admin/branding': typeof AuthenticatedStaffAdminBrandingRoute
   '/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
@@ -815,6 +815,7 @@ export interface FileRoutesByTo {
   '/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
   '/staff/dispatch': typeof AuthenticatedStaffDispatchRoute
+  '/staff/integrations': typeof AuthenticatedStaffIntegrationsRoute
   '/staff/map': typeof AuthenticatedStaffMapRoute
   '/staff/quests-report': typeof AuthenticatedStaffQuestsReportRoute
   '/staff/redeem': typeof AuthenticatedStaffRedeemRoute
@@ -830,7 +831,6 @@ export interface FileRoutesByTo {
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/events/permits/apply': typeof EventsPermitsApplyRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
-  '/org/$orgId/integrations': typeof AuthenticatedOrgOrgIdIntegrationsRoute
   '/staff/admin/analytics': typeof AuthenticatedStaffAdminAnalyticsRoute
   '/staff/admin/branding': typeof AuthenticatedStaffAdminBrandingRoute
   '/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
@@ -916,6 +916,7 @@ export interface FileRoutesById {
   '/_authenticated/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/_authenticated/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
   '/_authenticated/staff/dispatch': typeof AuthenticatedStaffDispatchRoute
+  '/_authenticated/staff/integrations': typeof AuthenticatedStaffIntegrationsRoute
   '/_authenticated/staff/map': typeof AuthenticatedStaffMapRoute
   '/_authenticated/staff/quests-report': typeof AuthenticatedStaffQuestsReportRoute
   '/_authenticated/staff/redeem': typeof AuthenticatedStaffRedeemRoute
@@ -932,7 +933,6 @@ export interface FileRoutesById {
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/events/permits/apply': typeof EventsPermitsApplyRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
-  '/_authenticated/org/$orgId/integrations': typeof AuthenticatedOrgOrgIdIntegrationsRoute
   '/_authenticated/staff/admin/analytics': typeof AuthenticatedStaffAdminAnalyticsRoute
   '/_authenticated/staff/admin/branding': typeof AuthenticatedStaffAdminBrandingRoute
   '/_authenticated/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
@@ -1019,6 +1019,7 @@ export interface FileRouteTypes {
     | '/staff/community-music'
     | '/staff/community-organizations'
     | '/staff/dispatch'
+    | '/staff/integrations'
     | '/staff/map'
     | '/staff/quests-report'
     | '/staff/redeem'
@@ -1035,7 +1036,6 @@ export interface FileRouteTypes {
     | '/api/public/unsubscribe'
     | '/events/permits/apply'
     | '/staff/'
-    | '/org/$orgId/integrations'
     | '/staff/admin/analytics'
     | '/staff/admin/branding'
     | '/staff/admin/departments'
@@ -1118,6 +1118,7 @@ export interface FileRouteTypes {
     | '/staff/community-music'
     | '/staff/community-organizations'
     | '/staff/dispatch'
+    | '/staff/integrations'
     | '/staff/map'
     | '/staff/quests-report'
     | '/staff/redeem'
@@ -1133,7 +1134,6 @@ export interface FileRouteTypes {
     | '/api/public/unsubscribe'
     | '/events/permits/apply'
     | '/staff'
-    | '/org/$orgId/integrations'
     | '/staff/admin/analytics'
     | '/staff/admin/branding'
     | '/staff/admin/departments'
@@ -1218,6 +1218,7 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/community-music'
     | '/_authenticated/staff/community-organizations'
     | '/_authenticated/staff/dispatch'
+    | '/_authenticated/staff/integrations'
     | '/_authenticated/staff/map'
     | '/_authenticated/staff/quests-report'
     | '/_authenticated/staff/redeem'
@@ -1234,7 +1235,6 @@ export interface FileRouteTypes {
     | '/api/public/unsubscribe'
     | '/events/permits/apply'
     | '/_authenticated/staff/'
-    | '/_authenticated/org/$orgId/integrations'
     | '/_authenticated/staff/admin/analytics'
     | '/_authenticated/staff/admin/branding'
     | '/_authenticated/staff/admin/departments'
@@ -1706,6 +1706,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffMapRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
     }
+    '/_authenticated/staff/integrations': {
+      id: '/_authenticated/staff/integrations'
+      path: '/integrations'
+      fullPath: '/staff/integrations'
+      preLoaderRoute: typeof AuthenticatedStaffIntegrationsRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
     '/_authenticated/staff/dispatch': {
       id: '/_authenticated/staff/dispatch'
       path: '/dispatch'
@@ -1951,13 +1958,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffAdminAnalyticsRouteImport
       parentRoute: typeof AuthenticatedStaffAdminRoute
     }
-    '/_authenticated/org/$orgId/integrations': {
-      id: '/_authenticated/org/$orgId/integrations'
-      path: '/org/$orgId/integrations'
-      fullPath: '/org/$orgId/integrations'
-      preLoaderRoute: typeof AuthenticatedOrgOrgIdIntegrationsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/staff/surveys/$id/': {
       id: '/_authenticated/staff/surveys/$id/'
       path: '/'
@@ -2165,6 +2165,7 @@ interface AuthenticatedStaffRouteChildren {
   AuthenticatedStaffCommunityMusicRoute: typeof AuthenticatedStaffCommunityMusicRoute
   AuthenticatedStaffCommunityOrganizationsRoute: typeof AuthenticatedStaffCommunityOrganizationsRoute
   AuthenticatedStaffDispatchRoute: typeof AuthenticatedStaffDispatchRoute
+  AuthenticatedStaffIntegrationsRoute: typeof AuthenticatedStaffIntegrationsRoute
   AuthenticatedStaffMapRoute: typeof AuthenticatedStaffMapRoute
   AuthenticatedStaffQuestsReportRoute: typeof AuthenticatedStaffQuestsReportRoute
   AuthenticatedStaffRedeemRoute: typeof AuthenticatedStaffRedeemRoute
@@ -2191,6 +2192,7 @@ const AuthenticatedStaffRouteChildren: AuthenticatedStaffRouteChildren = {
   AuthenticatedStaffCommunityOrganizationsRoute:
     AuthenticatedStaffCommunityOrganizationsRoute,
   AuthenticatedStaffDispatchRoute: AuthenticatedStaffDispatchRoute,
+  AuthenticatedStaffIntegrationsRoute: AuthenticatedStaffIntegrationsRoute,
   AuthenticatedStaffMapRoute: AuthenticatedStaffMapRoute,
   AuthenticatedStaffQuestsReportRoute: AuthenticatedStaffQuestsReportRoute,
   AuthenticatedStaffRedeemRoute: AuthenticatedStaffRedeemRoute,
@@ -2221,7 +2223,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCommunityManageRoute: typeof AuthenticatedCommunityManageRoute
   AuthenticatedStreetbeatsApplyRoute: typeof AuthenticatedStreetbeatsApplyRoute
   AuthenticatedStreetbeatsMyGigsRoute: typeof AuthenticatedStreetbeatsMyGigsRoute
-  AuthenticatedOrgOrgIdIntegrationsRoute: typeof AuthenticatedOrgOrgIdIntegrationsRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -2237,8 +2238,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCommunityManageRoute: AuthenticatedCommunityManageRoute,
   AuthenticatedStreetbeatsApplyRoute: AuthenticatedStreetbeatsApplyRoute,
   AuthenticatedStreetbeatsMyGigsRoute: AuthenticatedStreetbeatsMyGigsRoute,
-  AuthenticatedOrgOrgIdIntegrationsRoute:
-    AuthenticatedOrgOrgIdIntegrationsRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -2312,13 +2311,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
