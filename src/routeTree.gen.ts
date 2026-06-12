@@ -104,7 +104,7 @@ import { Route as AuthenticatedStaffAdminAnalyticsRouteImport } from './routes/_
 import { Route as AuthenticatedStaffSurveysIdIndexRouteImport } from './routes/_authenticated/staff/surveys.$id.index'
 import { Route as ApiPublicOauthMetaCallbackRouteImport } from './routes/api/public/oauth/meta/callback'
 import { Route as ApiPublicOauthLinkedinCallbackRouteImport } from './routes/api/public/oauth/linkedin/callback'
-import { Route as ApiPublicIntegrationsWpoInboundRouteImport } from './routes/api/public/integrations.wpo.inbound'
+import { Route as ApiPublicIntegrationsWpoInboundRouteImport } from './routes/api/public/integrations/wpo/inbound'
 import { Route as AuthenticatedStaffSurveysIdAnalyticsRouteImport } from './routes/_authenticated/staff/surveys.$id.analytics'
 import { Route as AuthenticatedStaffAdminSocialConnectionsRouteImport } from './routes/_authenticated/staff/admin.social.connections'
 import { Route as ApiPublicEmailTrackOpenRidRouteImport } from './routes/api/public/email.track.open.$rid'
