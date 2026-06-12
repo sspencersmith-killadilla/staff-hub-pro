@@ -104,6 +104,7 @@ import { Route as AuthenticatedStaffAdminAnalyticsRouteImport } from './routes/_
 import { Route as AuthenticatedStaffSurveysIdIndexRouteImport } from './routes/_authenticated/staff/surveys.$id.index'
 import { Route as ApiPublicOauthMetaCallbackRouteImport } from './routes/api/public/oauth/meta/callback'
 import { Route as ApiPublicOauthLinkedinCallbackRouteImport } from './routes/api/public/oauth/linkedin/callback'
+import { Route as ApiPublicIntegrationsWpoInboundRouteImport } from './routes/api/public/integrations/wpo/inbound'
 import { Route as AuthenticatedStaffSurveysIdAnalyticsRouteImport } from './routes/_authenticated/staff/surveys.$id.analytics'
 import { Route as AuthenticatedStaffAdminSocialConnectionsRouteImport } from './routes/_authenticated/staff/admin.social.connections'
 import { Route as ApiPublicEmailTrackOpenRidRouteImport } from './routes/api/public/email.track.open.$rid'
@@ -633,6 +634,12 @@ const ApiPublicOauthLinkedinCallbackRoute =
     path: '/api/public/oauth/linkedin/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicIntegrationsWpoInboundRoute =
+  ApiPublicIntegrationsWpoInboundRouteImport.update({
+    id: '/api/public/integrations/wpo/inbound',
+    path: '/api/public/integrations/wpo/inbound',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedStaffSurveysIdAnalyticsRoute =
   AuthenticatedStaffSurveysIdAnalyticsRouteImport.update({
     id: '/analytics',
@@ -752,6 +759,7 @@ export interface FileRoutesByFullPath {
   '/staff/surveys/': typeof AuthenticatedStaffSurveysIndexRoute
   '/staff/admin/social/connections': typeof AuthenticatedStaffAdminSocialConnectionsRoute
   '/staff/surveys/$id/analytics': typeof AuthenticatedStaffSurveysIdAnalyticsRoute
+  '/api/public/integrations/wpo/inbound': typeof ApiPublicIntegrationsWpoInboundRoute
   '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
   '/staff/surveys/$id/': typeof AuthenticatedStaffSurveysIdIndexRoute
@@ -848,6 +856,7 @@ export interface FileRoutesByTo {
   '/staff/surveys': typeof AuthenticatedStaffSurveysIndexRoute
   '/staff/admin/social/connections': typeof AuthenticatedStaffAdminSocialConnectionsRoute
   '/staff/surveys/$id/analytics': typeof AuthenticatedStaffSurveysIdAnalyticsRoute
+  '/api/public/integrations/wpo/inbound': typeof ApiPublicIntegrationsWpoInboundRoute
   '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
   '/staff/surveys/$id': typeof AuthenticatedStaffSurveysIdIndexRoute
@@ -950,6 +959,7 @@ export interface FileRoutesById {
   '/_authenticated/staff/surveys/': typeof AuthenticatedStaffSurveysIndexRoute
   '/_authenticated/staff/admin/social/connections': typeof AuthenticatedStaffAdminSocialConnectionsRoute
   '/_authenticated/staff/surveys/$id/analytics': typeof AuthenticatedStaffSurveysIdAnalyticsRoute
+  '/api/public/integrations/wpo/inbound': typeof ApiPublicIntegrationsWpoInboundRoute
   '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
   '/_authenticated/staff/surveys/$id/': typeof AuthenticatedStaffSurveysIdIndexRoute
@@ -1052,6 +1062,7 @@ export interface FileRouteTypes {
     | '/staff/surveys/'
     | '/staff/admin/social/connections'
     | '/staff/surveys/$id/analytics'
+    | '/api/public/integrations/wpo/inbound'
     | '/api/public/oauth/linkedin/callback'
     | '/api/public/oauth/meta/callback'
     | '/staff/surveys/$id/'
@@ -1148,6 +1159,7 @@ export interface FileRouteTypes {
     | '/staff/surveys'
     | '/staff/admin/social/connections'
     | '/staff/surveys/$id/analytics'
+    | '/api/public/integrations/wpo/inbound'
     | '/api/public/oauth/linkedin/callback'
     | '/api/public/oauth/meta/callback'
     | '/staff/surveys/$id'
@@ -1249,6 +1261,7 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/surveys/'
     | '/_authenticated/staff/admin/social/connections'
     | '/_authenticated/staff/surveys/$id/analytics'
+    | '/api/public/integrations/wpo/inbound'
     | '/api/public/oauth/linkedin/callback'
     | '/api/public/oauth/meta/callback'
     | '/_authenticated/staff/surveys/$id/'
@@ -1292,6 +1305,7 @@ export interface RootRouteChildren {
   ApiPublicUnsubscribeRoute: typeof ApiPublicUnsubscribeRoute
   EventsPermitsApplyRoute: typeof EventsPermitsApplyRoute
   ApiPublicManifestWebmanifestRoute: typeof ApiPublicManifestWebmanifestRoute
+  ApiPublicIntegrationsWpoInboundRoute: typeof ApiPublicIntegrationsWpoInboundRoute
   ApiPublicOauthLinkedinCallbackRoute: typeof ApiPublicOauthLinkedinCallbackRoute
   ApiPublicOauthMetaCallbackRoute: typeof ApiPublicOauthMetaCallbackRoute
   ApiPublicEmailTrackClickRidRoute: typeof ApiPublicEmailTrackClickRidRoute
@@ -1965,6 +1979,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicOauthLinkedinCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/integrations/wpo/inbound': {
+      id: '/api/public/integrations/wpo/inbound'
+      path: '/api/public/integrations/wpo/inbound'
+      fullPath: '/api/public/integrations/wpo/inbound'
+      preLoaderRoute: typeof ApiPublicIntegrationsWpoInboundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/staff/surveys/$id/analytics': {
       id: '/_authenticated/staff/surveys/$id/analytics'
       path: '/analytics'
@@ -2281,6 +2302,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicUnsubscribeRoute: ApiPublicUnsubscribeRoute,
   EventsPermitsApplyRoute: EventsPermitsApplyRoute,
   ApiPublicManifestWebmanifestRoute: ApiPublicManifestWebmanifestRoute,
+  ApiPublicIntegrationsWpoInboundRoute: ApiPublicIntegrationsWpoInboundRoute,
   ApiPublicOauthLinkedinCallbackRoute: ApiPublicOauthLinkedinCallbackRoute,
   ApiPublicOauthMetaCallbackRoute: ApiPublicOauthMetaCallbackRoute,
   ApiPublicEmailTrackClickRidRoute: ApiPublicEmailTrackClickRidRoute,
