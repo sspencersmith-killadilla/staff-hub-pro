@@ -26,6 +26,16 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
+type DepartmentOption = { id: string; name: string };
+
+type DispatchRow = {
+  id: string;
+  direction: string;
+  status_code: number | null;
+  error: string | null;
+  created_at: string;
+};
+
 export const Route = createFileRoute("/_authenticated/staff/integrations")({
   beforeLoad: async () => {
     if (typeof window === "undefined") return;
@@ -131,7 +141,7 @@ function StaffIntegrationsPage() {
 
   if (deptsQ.isLoading) return <div className="p-6 text-sm">Loading…</div>;
 
-  const departments = deptsQ.data ?? [];
+  const departments = (deptsQ.data ?? []) as DepartmentOption[];
   if (departments.length === 0) {
     return (
       <div className="p-6 max-w-2xl space-y-2">
@@ -293,7 +303,7 @@ function StaffIntegrationsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {(dispQ.data ?? []).map((d) => (
+                    {((dispQ.data ?? []) as DispatchRow[]).map((d) => (
                       <TableRow key={d.id}>
                         <TableCell className="whitespace-nowrap text-xs">
                           {new Date(d.created_at).toLocaleString()}
