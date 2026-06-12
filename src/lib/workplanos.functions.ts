@@ -5,14 +5,26 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 async function userCanManage(userId: string): Promise<boolean> {
-  const { data, error } = await supabaseAdmin
+  const { data: adminRow, error: adminErr } = await supabaseAdmin
     .from("user_roles")
     .select("role")
     .eq("user_id", userId)
-    .in("role", ["admin", "dept_admin"]);
-  if (error) throw new Error(error.message);
-  return (data?.length ?? 0) > 0;
+    .eq("role", "admin")
+    .maybeSingle();
+  if (adminErr) throw new Error(adminErr.message);
+  if (adminRow) return true;
+
+  const { data: deptRow, error: deptErr } = await supabaseAdmin
+    .from("user_department_roles")
+    .select("id")
+    .eq("user_id", userId)
+    .in("role", ["super_admin", "dept_admin"])
+    .limit(1)
+    .maybeSingle();
+  if (deptErr) throw new Error(deptErr.message);
+  return !!deptRow;
 }
+
 
 async function assertCanManageWpo(tenantId: string, userId: string) {
   if (!(await userCanManage(userId))) {
