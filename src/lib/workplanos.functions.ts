@@ -4,39 +4,40 @@ import { randomBytes, createHash } from "crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-async function userCanManage(userId: string): Promise<boolean> {
-  const { data: adminRow, error: adminErr } = await supabaseAdmin
+async function isGlobalAdmin(userId: string): Promise<boolean> {
+  const { data, error } = await supabaseAdmin
     .from("user_roles")
     .select("role")
     .eq("user_id", userId)
     .eq("role", "admin")
     .maybeSingle();
-  if (adminErr) throw new Error(adminErr.message);
-  if (adminRow) return true;
-
-  const { data: deptRow, error: deptErr } = await supabaseAdmin
-    .from("user_department_roles")
-    .select("id")
-    .eq("user_id", userId)
-    .in("role", ["super_admin", "dept_admin"])
-    .limit(1)
-    .maybeSingle();
-  if (deptErr) throw new Error(deptErr.message);
-  return !!deptRow;
+  if (error) throw new Error(error.message);
+  return !!data;
 }
 
+async function listManageableDepartmentIds(userId: string): Promise<string[] | "all"> {
+  if (await isGlobalAdmin(userId)) return "all";
+  const { data, error } = await supabaseAdmin
+    .from("department_roles")
+    .select("department_id")
+    .eq("user_id", userId)
+    .in("role", ["super_admin", "dept_admin"]);
+  if (error) throw new Error(error.message);
+  return Array.from(new Set((data ?? []).map((r: any) => r.department_id as string)));
+}
 
-async function assertCanManageWpo(tenantId: string, userId: string) {
-  if (!(await userCanManage(userId))) {
-    throw new Error("Forbidden: admin or dept_admin role required");
+async function assertCanManage(departmentId: string, userId: string) {
+  const ids = await listManageableDepartmentIds(userId);
+  if (ids !== "all" && !ids.includes(departmentId)) {
+    throw new Error("Forbidden: admin or department admin role required");
   }
   const { data, error } = await supabaseAdmin
-    .from("tenants")
+    .from("departments")
     .select("id")
-    .eq("id", tenantId)
+    .eq("id", departmentId)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  if (!data) throw new Error("Tenant not found");
+  if (!data) throw new Error("Department not found");
 }
 
 function maskSecret(secret: string): string {
@@ -45,7 +46,7 @@ function maskSecret(secret: string): string {
 }
 
 type IntegrationView = {
-  tenant_id: string;
+  department_id: string;
   wpo_base_url: string;
   wpo_workspace_id: string | null;
   enabled: boolean;
@@ -55,10 +56,10 @@ type IntegrationView = {
   updated_at: string | null;
 };
 
-function toView(row: any | null, tenantId: string): IntegrationView {
+function toView(row: any | null, departmentId: string): IntegrationView {
   if (!row) {
     return {
-      tenant_id: tenantId,
+      department_id: departmentId,
       wpo_base_url: "https://workplanos.lovable.app",
       wpo_workspace_id: null,
       enabled: false,
@@ -69,7 +70,7 @@ function toView(row: any | null, tenantId: string): IntegrationView {
     };
   }
   return {
-    tenant_id: row.tenant_id,
+    department_id: row.department_id,
     wpo_base_url: row.wpo_base_url,
     wpo_workspace_id: row.wpo_workspace_id ?? null,
     enabled: !!row.enabled,
@@ -82,16 +83,16 @@ function toView(row: any | null, tenantId: string): IntegrationView {
 
 export const getWpoIntegration = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i) => z.object({ tenantId: z.string().uuid() }).parse(i))
+  .inputValidator((i) => z.object({ departmentId: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
-    await assertCanManageWpo(data.tenantId, context.userId);
+    await assertCanManage(data.departmentId, context.userId);
     const { data: row, error } = await supabaseAdmin
       .from("workplanos_integration")
       .select("*")
-      .eq("tenant_id", data.tenantId)
+      .eq("department_id", data.departmentId)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return toView(row, data.tenantId);
+    return toView(row, data.departmentId);
   });
 
 export const saveWpoIntegration = createServerFn({ method: "POST" })
@@ -99,7 +100,7 @@ export const saveWpoIntegration = createServerFn({ method: "POST" })
   .inputValidator((i) =>
     z
       .object({
-        tenantId: z.string().uuid(),
+        departmentId: z.string().uuid(),
         wpo_base_url: z.string().url().max(500),
         wpo_workspace_id: z.string().trim().max(200).nullable().optional(),
         enabled: z.boolean().optional(),
@@ -107,9 +108,9 @@ export const saveWpoIntegration = createServerFn({ method: "POST" })
       .parse(i),
   )
   .handler(async ({ data, context }) => {
-    await assertCanManageWpo(data.tenantId, context.userId);
+    await assertCanManage(data.departmentId, context.userId);
     const patch: Record<string, unknown> = {
-      tenant_id: data.tenantId,
+      department_id: data.departmentId,
       wpo_base_url: data.wpo_base_url,
       wpo_workspace_id: data.wpo_workspace_id ?? null,
       created_by: context.userId,
@@ -119,18 +120,18 @@ export const saveWpoIntegration = createServerFn({ method: "POST" })
 
     const { data: row, error } = await supabaseAdmin
       .from("workplanos_integration")
-      .upsert(patch, { onConflict: "tenant_id" })
+      .upsert(patch, { onConflict: "department_id" })
       .select("*")
       .single();
     if (error) throw new Error(error.message);
-    return toView(row, data.tenantId);
+    return toView(row, data.departmentId);
   });
 
 export const rotateWpoSecret = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i) => z.object({ tenantId: z.string().uuid() }).parse(i))
+  .inputValidator((i) => z.object({ departmentId: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
-    await assertCanManageWpo(data.tenantId, context.userId);
+    await assertCanManage(data.departmentId, context.userId);
     const secret = `wpo_${randomBytes(32).toString("hex")}`;
     const hash = createHash("sha256").update(secret).digest("hex");
 
@@ -138,14 +139,14 @@ export const rotateWpoSecret = createServerFn({ method: "POST" })
       .from("workplanos_integration")
       .upsert(
         {
-          tenant_id: data.tenantId,
+          department_id: data.departmentId,
           shared_secret: secret,
           shared_secret_hash: hash,
           enabled: true,
           created_by: context.userId,
           updated_at: new Date().toISOString(),
         },
-        { onConflict: "tenant_id" },
+        { onConflict: "department_id" },
       );
     if (error) throw new Error(error.message);
 
@@ -154,45 +155,52 @@ export const rotateWpoSecret = createServerFn({ method: "POST" })
 
 export const disableWpoIntegration = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i) => z.object({ tenantId: z.string().uuid() }).parse(i))
+  .inputValidator((i) => z.object({ departmentId: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
-    await assertCanManageWpo(data.tenantId, context.userId);
+    await assertCanManage(data.departmentId, context.userId);
     const { error } = await supabaseAdmin
       .from("workplanos_integration")
       .update({ enabled: false, updated_at: new Date().toISOString() })
-      .eq("tenant_id", data.tenantId);
+      .eq("department_id", data.departmentId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
 
 export const listWpoDispatches = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i) => z.object({ tenantId: z.string().uuid() }).parse(i))
+  .inputValidator((i) => z.object({ departmentId: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
-    await assertCanManageWpo(data.tenantId, context.userId);
+    await assertCanManage(data.departmentId, context.userId);
     const { data: rows, error } = await supabaseAdmin
       .from("integration_dispatches")
       .select("id, direction, status_code, error, attempts, event_id, created_at")
-      .eq("tenant_id", data.tenantId)
+      .eq("department_id", data.departmentId)
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) throw new Error(error.message);
     return rows ?? [];
   });
 
-export const listManageableTenants = createServerFn({ method: "GET" })
+export const listManageableDepartments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    if (!(await userCanManage(context.userId))) return [];
-    const { data, error } = await supabaseAdmin
-      .from("tenants")
-      .select("id, name, slug")
+    const ids = await listManageableDepartmentIds(context.userId);
+    let query = supabaseAdmin
+      .from("departments")
+      .select("id, name")
       .order("name");
+    if (ids !== "all") {
+      if (ids.length === 0) return [];
+      query = query.in("id", ids);
+    }
+    const { data, error } = await query;
     if (error) throw new Error(error.message);
     return data ?? [];
   });
 
 export const canManageWpoIntegration = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => userCanManage(context.userId));
-
+  .handler(async ({ context }) => {
+    const ids = await listManageableDepartmentIds(context.userId);
+    return ids === "all" || ids.length > 0;
+  });

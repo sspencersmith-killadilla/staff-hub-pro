@@ -11,7 +11,7 @@ import {
   rotateWpoSecret,
   disableWpoIntegration,
   listWpoDispatches,
-  listManageableTenants,
+  listManageableDepartments,
   canManageWpoIntegration,
 } from "@/lib/workplanos.functions";
 import { Button } from "@/components/ui/button";
@@ -49,36 +49,36 @@ function copyText(text: string, label: string) {
 
 function StaffIntegrationsPage() {
   const qc = useQueryClient();
-  const listTenants = useServerFn(listManageableTenants);
+  const listDepts = useServerFn(listManageableDepartments);
   const getInteg = useServerFn(getWpoIntegration);
   const save = useServerFn(saveWpoIntegration);
   const rotate = useServerFn(rotateWpoSecret);
   const disable = useServerFn(disableWpoIntegration);
   const listDisp = useServerFn(listWpoDispatches);
 
-  const tenantsQ = useQuery({
-    queryKey: ["wpo-manageable-tenants"],
-    queryFn: () => listTenants(),
+  const deptsQ = useQuery({
+    queryKey: ["wpo-manageable-departments"],
+    queryFn: () => listDepts(),
   });
 
-  const [tenantId, setTenantId] = useState<string>("");
+  const [departmentId, setDepartmentId] = useState<string>("");
 
   useEffect(() => {
-    if (!tenantId && tenantsQ.data && tenantsQ.data.length > 0) {
-      setTenantId(tenantsQ.data[0].id);
+    if (!departmentId && deptsQ.data && deptsQ.data.length > 0) {
+      setDepartmentId(deptsQ.data[0].id);
     }
-  }, [tenantsQ.data, tenantId]);
+  }, [deptsQ.data, departmentId]);
 
   const integQ = useQuery({
-    queryKey: ["wpo-integration", tenantId],
-    queryFn: () => getInteg({ data: { tenantId } }),
-    enabled: !!tenantId,
+    queryKey: ["wpo-integration", departmentId],
+    queryFn: () => getInteg({ data: { departmentId } }),
+    enabled: !!departmentId,
   });
 
   const dispQ = useQuery({
-    queryKey: ["wpo-dispatches", tenantId],
-    queryFn: () => listDisp({ data: { tenantId } }),
-    enabled: !!tenantId,
+    queryKey: ["wpo-dispatches", departmentId],
+    queryFn: () => listDisp({ data: { departmentId } }),
+    enabled: !!departmentId,
     refetchInterval: 15_000,
   });
 
@@ -97,7 +97,7 @@ function StaffIntegrationsPage() {
     mutationFn: (enabled?: boolean) =>
       save({
         data: {
-          tenantId,
+          departmentId,
           wpo_base_url: baseUrl.trim(),
           wpo_workspace_id: workspaceId.trim() || null,
           enabled,
@@ -105,40 +105,40 @@ function StaffIntegrationsPage() {
       }),
     onSuccess: () => {
       toast.success("Settings saved");
-      qc.invalidateQueries({ queryKey: ["wpo-integration", tenantId] });
+      qc.invalidateQueries({ queryKey: ["wpo-integration", departmentId] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const rotateMut = useMutation({
-    mutationFn: () => rotate({ data: { tenantId } }),
+    mutationFn: () => rotate({ data: { departmentId } }),
     onSuccess: (res) => {
       setNewSecret(res.secret);
       toast.success("Shared secret generated");
-      qc.invalidateQueries({ queryKey: ["wpo-integration", tenantId] });
+      qc.invalidateQueries({ queryKey: ["wpo-integration", departmentId] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const disableMut = useMutation({
-    mutationFn: () => disable({ data: { tenantId } }),
+    mutationFn: () => disable({ data: { departmentId } }),
     onSuccess: () => {
       toast.success("Integration disabled");
-      qc.invalidateQueries({ queryKey: ["wpo-integration", tenantId] });
+      qc.invalidateQueries({ queryKey: ["wpo-integration", departmentId] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (tenantsQ.isLoading) return <div className="p-6 text-sm">Loading…</div>;
+  if (deptsQ.isLoading) return <div className="p-6 text-sm">Loading…</div>;
 
-  const tenants = tenantsQ.data ?? [];
-  if (tenants.length === 0) {
+  const departments = deptsQ.data ?? [];
+  if (departments.length === 0) {
     return (
       <div className="p-6 max-w-2xl space-y-2">
         <h1 className="text-2xl font-semibold">Integrations</h1>
         <p className="text-sm text-muted-foreground">
-          No tenants exist yet. Create one in{" "}
-          <a className="underline" href="/staff/admin/tenants">Admin → Tenants</a> first.
+          You don't have permission to manage any department integrations.
+          Ask an admin to grant you <code>super_admin</code> or <code>dept_admin</code> on a department.
         </p>
       </div>
     );
@@ -155,23 +155,23 @@ function StaffIntegrationsPage() {
           <Plug className="h-7 w-7 text-primary" /> Integrations
         </h1>
         <p className="text-muted-foreground mt-1">
-          Connect external systems to a tenant on this portal.
+          Connect external systems to a department on this portal.
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Tenant</CardTitle>
+          <CardTitle className="text-base">Department</CardTitle>
         </CardHeader>
         <CardContent>
-          <Select value={tenantId} onValueChange={setTenantId}>
+          <Select value={departmentId} onValueChange={setDepartmentId}>
             <SelectTrigger className="w-full max-w-sm">
-              <SelectValue placeholder="Select a tenant" />
+              <SelectValue placeholder="Select a department" />
             </SelectTrigger>
             <SelectContent>
-              {tenants.map((t) => (
-                <SelectItem key={t.id} value={t.id}>
-                  {t.name} <span className="text-muted-foreground">({t.slug})</span>
+              {departments.map((d) => (
+                <SelectItem key={d.id} value={d.id}>
+                  {d.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -179,7 +179,7 @@ function StaffIntegrationsPage() {
         </CardContent>
       </Card>
 
-      {tenantId && (
+      {departmentId && (
         <>
           <Card>
             <CardHeader>
@@ -266,7 +266,7 @@ function StaffIntegrationsPage() {
                   Configure WorkPlanOS to send events to this URL with the headers below.
                 </p>
                 <FieldCopy label="Webhook URL" value={inboundUrl} />
-                <FieldCopy label="Header: x-wpo-tenant" value={tenantId} />
+                <FieldCopy label="Header: x-wpo-department" value={departmentId} />
                 <FieldCopy
                   label="Header: x-wpo-signature"
                   value="sha256=<hmac_sha256(shared_secret, raw_body)>"

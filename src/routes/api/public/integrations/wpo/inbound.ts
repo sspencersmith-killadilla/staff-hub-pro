@@ -32,22 +32,19 @@ export const Route = createFileRoute("/api/public/integrations/wpo/inbound")({
           "@/integrations/supabase/client.server"
         );
 
-        // The integration is keyed by tenant_id (was org_id pre-058).
-        // Header name kept as x-wpo-workspace for backwards compat.
-        const workspaceId =
-          request.headers.get("x-wpo-workspace") ??
-          request.headers.get("x-wpo-tenant");
+        // The integration is keyed by department_id (was tenant_id pre-060).
+        const departmentId = request.headers.get("x-wpo-department");
         const signature = request.headers.get("x-wpo-signature") ?? "";
         const rawBody = await request.text();
 
-        if (!workspaceId) {
-          return new Response("Missing x-wpo-workspace", { status: 400 });
+        if (!departmentId) {
+          return new Response("Missing x-wpo-department", { status: 400 });
         }
 
         const { data: integ, error: integErr } = await supabaseAdmin
           .from("workplanos_integration")
-          .select("tenant_id, shared_secret, enabled")
-          .eq("tenant_id", workspaceId)
+          .select("department_id, shared_secret, enabled")
+          .eq("department_id", departmentId)
           .maybeSingle();
 
         if (integErr) return new Response("Lookup failed", { status: 500 });
@@ -68,7 +65,7 @@ export const Route = createFileRoute("/api/public/integrations/wpo/inbound")({
 
         if (!sigOk) {
           await supabaseAdmin.from("integration_dispatches").insert({
-            tenant_id: workspaceId,
+            department_id: departmentId,
             direction: "inbound",
             payload: null,
             status_code: 401,
@@ -84,7 +81,7 @@ export const Route = createFileRoute("/api/public/integrations/wpo/inbound")({
           parsed = payloadSchema.parse(json);
         } catch (e) {
           await supabaseAdmin.from("integration_dispatches").insert({
-            tenant_id: workspaceId,
+            department_id: departmentId,
             direction: "inbound",
             payload: null,
             status_code: 400,
@@ -96,7 +93,7 @@ export const Route = createFileRoute("/api/public/integrations/wpo/inbound")({
         // Ping
         if (parsed.type === "ping") {
           await supabaseAdmin.from("integration_dispatches").insert({
-            tenant_id: workspaceId,
+            department_id: departmentId,
             direction: "inbound",
             payload: parsed,
             status_code: 200,
@@ -114,7 +111,7 @@ export const Route = createFileRoute("/api/public/integrations/wpo/inbound")({
 
         if (refErr) {
           await supabaseAdmin.from("integration_dispatches").insert({
-            tenant_id: workspaceId,
+            department_id: departmentId,
             direction: "inbound",
             payload: parsed,
             status_code: 500,
@@ -125,13 +122,32 @@ export const Route = createFileRoute("/api/public/integrations/wpo/inbound")({
 
         if (!ref) {
           await supabaseAdmin.from("integration_dispatches").insert({
-            tenant_id: workspaceId,
+            department_id: departmentId,
             direction: "inbound",
             payload: parsed,
             status_code: 200,
             error: "unlinked",
           });
           // 200 so WPO does not retry forever.
+          return Response.json({ ok: true, linked: false });
+        }
+
+        // Safety: ensure linked event belongs to this department.
+        const { data: ev } = await supabaseAdmin
+          .from("events")
+          .select("id, department_id")
+          .eq("id", ref.event_id)
+          .maybeSingle();
+
+        if (!ev || (ev.department_id && ev.department_id !== departmentId)) {
+          await supabaseAdmin.from("integration_dispatches").insert({
+            department_id: departmentId,
+            direction: "inbound",
+            event_id: ref.event_id,
+            payload: parsed,
+            status_code: 200,
+            error: "department_mismatch",
+          });
           return Response.json({ ok: true, linked: false });
         }
 
@@ -160,7 +176,7 @@ export const Route = createFileRoute("/api/public/integrations/wpo/inbound")({
             .eq("id", ref.event_id);
           if (updErr) {
             await supabaseAdmin.from("integration_dispatches").insert({
-              tenant_id: workspaceId,
+              department_id: departmentId,
               direction: "inbound",
               event_id: ref.event_id,
               payload: parsed,
@@ -179,7 +195,7 @@ export const Route = createFileRoute("/api/public/integrations/wpo/inbound")({
         });
 
         await supabaseAdmin.from("integration_dispatches").insert({
-          tenant_id: workspaceId,
+          department_id: departmentId,
           direction: "inbound",
           event_id: ref.event_id,
           payload: parsed,
