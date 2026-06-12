@@ -100,9 +100,11 @@ import { Route as AuthenticatedStaffAdminEmailSettingsRouteImport } from './rout
 import { Route as AuthenticatedStaffAdminDepartmentsRouteImport } from './routes/_authenticated/staff/admin.departments'
 import { Route as AuthenticatedStaffAdminBrandingRouteImport } from './routes/_authenticated/staff/admin.branding'
 import { Route as AuthenticatedStaffAdminAnalyticsRouteImport } from './routes/_authenticated/staff/admin.analytics'
+import { Route as AuthenticatedOrgOrgIdIntegrationsRouteImport } from './routes/_authenticated/org.$orgId.integrations'
 import { Route as AuthenticatedStaffSurveysIdIndexRouteImport } from './routes/_authenticated/staff/surveys.$id.index'
 import { Route as ApiPublicOauthMetaCallbackRouteImport } from './routes/api/public/oauth/meta/callback'
 import { Route as ApiPublicOauthLinkedinCallbackRouteImport } from './routes/api/public/oauth/linkedin/callback'
+import { Route as ApiPublicIntegrationsWpoInboundRouteImport } from './routes/api/public/integrations.wpo.inbound'
 import { Route as AuthenticatedStaffSurveysIdAnalyticsRouteImport } from './routes/_authenticated/staff/surveys.$id.analytics'
 import { Route as AuthenticatedStaffAdminSocialConnectionsRouteImport } from './routes/_authenticated/staff/admin.social.connections'
 import { Route as ApiPublicEmailTrackOpenRidRouteImport } from './routes/api/public/email.track.open.$rid'
@@ -608,6 +610,12 @@ const AuthenticatedStaffAdminAnalyticsRoute =
     path: '/analytics',
     getParentRoute: () => AuthenticatedStaffAdminRoute,
   } as any)
+const AuthenticatedOrgOrgIdIntegrationsRoute =
+  AuthenticatedOrgOrgIdIntegrationsRouteImport.update({
+    id: '/org/$orgId/integrations',
+    path: '/org/$orgId/integrations',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedStaffSurveysIdIndexRoute =
   AuthenticatedStaffSurveysIdIndexRouteImport.update({
     id: '/',
@@ -624,6 +632,12 @@ const ApiPublicOauthLinkedinCallbackRoute =
   ApiPublicOauthLinkedinCallbackRouteImport.update({
     id: '/api/public/oauth/linkedin/callback',
     path: '/api/public/oauth/linkedin/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicIntegrationsWpoInboundRoute =
+  ApiPublicIntegrationsWpoInboundRouteImport.update({
+    id: '/api/public/integrations/wpo/inbound',
+    path: '/api/public/integrations/wpo/inbound',
     getParentRoute: () => rootRouteImport,
   } as any)
 const AuthenticatedStaffSurveysIdAnalyticsRoute =
@@ -718,6 +732,7 @@ export interface FileRoutesByFullPath {
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/events/permits/apply': typeof EventsPermitsApplyRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
+  '/org/$orgId/integrations': typeof AuthenticatedOrgOrgIdIntegrationsRoute
   '/staff/admin/analytics': typeof AuthenticatedStaffAdminAnalyticsRoute
   '/staff/admin/branding': typeof AuthenticatedStaffAdminBrandingRoute
   '/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
@@ -744,6 +759,7 @@ export interface FileRoutesByFullPath {
   '/staff/surveys/': typeof AuthenticatedStaffSurveysIndexRoute
   '/staff/admin/social/connections': typeof AuthenticatedStaffAdminSocialConnectionsRoute
   '/staff/surveys/$id/analytics': typeof AuthenticatedStaffSurveysIdAnalyticsRoute
+  '/api/public/integrations/wpo/inbound': typeof ApiPublicIntegrationsWpoInboundRoute
   '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
   '/staff/surveys/$id/': typeof AuthenticatedStaffSurveysIdIndexRoute
@@ -814,6 +830,7 @@ export interface FileRoutesByTo {
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/events/permits/apply': typeof EventsPermitsApplyRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
+  '/org/$orgId/integrations': typeof AuthenticatedOrgOrgIdIntegrationsRoute
   '/staff/admin/analytics': typeof AuthenticatedStaffAdminAnalyticsRoute
   '/staff/admin/branding': typeof AuthenticatedStaffAdminBrandingRoute
   '/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
@@ -839,6 +856,7 @@ export interface FileRoutesByTo {
   '/staff/surveys': typeof AuthenticatedStaffSurveysIndexRoute
   '/staff/admin/social/connections': typeof AuthenticatedStaffAdminSocialConnectionsRoute
   '/staff/surveys/$id/analytics': typeof AuthenticatedStaffSurveysIdAnalyticsRoute
+  '/api/public/integrations/wpo/inbound': typeof ApiPublicIntegrationsWpoInboundRoute
   '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
   '/staff/surveys/$id': typeof AuthenticatedStaffSurveysIdIndexRoute
@@ -914,6 +932,7 @@ export interface FileRoutesById {
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/events/permits/apply': typeof EventsPermitsApplyRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
+  '/_authenticated/org/$orgId/integrations': typeof AuthenticatedOrgOrgIdIntegrationsRoute
   '/_authenticated/staff/admin/analytics': typeof AuthenticatedStaffAdminAnalyticsRoute
   '/_authenticated/staff/admin/branding': typeof AuthenticatedStaffAdminBrandingRoute
   '/_authenticated/staff/admin/departments': typeof AuthenticatedStaffAdminDepartmentsRoute
@@ -940,6 +959,7 @@ export interface FileRoutesById {
   '/_authenticated/staff/surveys/': typeof AuthenticatedStaffSurveysIndexRoute
   '/_authenticated/staff/admin/social/connections': typeof AuthenticatedStaffAdminSocialConnectionsRoute
   '/_authenticated/staff/surveys/$id/analytics': typeof AuthenticatedStaffSurveysIdAnalyticsRoute
+  '/api/public/integrations/wpo/inbound': typeof ApiPublicIntegrationsWpoInboundRoute
   '/api/public/oauth/linkedin/callback': typeof ApiPublicOauthLinkedinCallbackRoute
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
   '/_authenticated/staff/surveys/$id/': typeof AuthenticatedStaffSurveysIdIndexRoute
@@ -1015,6 +1035,7 @@ export interface FileRouteTypes {
     | '/api/public/unsubscribe'
     | '/events/permits/apply'
     | '/staff/'
+    | '/org/$orgId/integrations'
     | '/staff/admin/analytics'
     | '/staff/admin/branding'
     | '/staff/admin/departments'
@@ -1041,6 +1062,7 @@ export interface FileRouteTypes {
     | '/staff/surveys/'
     | '/staff/admin/social/connections'
     | '/staff/surveys/$id/analytics'
+    | '/api/public/integrations/wpo/inbound'
     | '/api/public/oauth/linkedin/callback'
     | '/api/public/oauth/meta/callback'
     | '/staff/surveys/$id/'
@@ -1111,6 +1133,7 @@ export interface FileRouteTypes {
     | '/api/public/unsubscribe'
     | '/events/permits/apply'
     | '/staff'
+    | '/org/$orgId/integrations'
     | '/staff/admin/analytics'
     | '/staff/admin/branding'
     | '/staff/admin/departments'
@@ -1136,6 +1159,7 @@ export interface FileRouteTypes {
     | '/staff/surveys'
     | '/staff/admin/social/connections'
     | '/staff/surveys/$id/analytics'
+    | '/api/public/integrations/wpo/inbound'
     | '/api/public/oauth/linkedin/callback'
     | '/api/public/oauth/meta/callback'
     | '/staff/surveys/$id'
@@ -1210,6 +1234,7 @@ export interface FileRouteTypes {
     | '/api/public/unsubscribe'
     | '/events/permits/apply'
     | '/_authenticated/staff/'
+    | '/_authenticated/org/$orgId/integrations'
     | '/_authenticated/staff/admin/analytics'
     | '/_authenticated/staff/admin/branding'
     | '/_authenticated/staff/admin/departments'
@@ -1236,6 +1261,7 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/surveys/'
     | '/_authenticated/staff/admin/social/connections'
     | '/_authenticated/staff/surveys/$id/analytics'
+    | '/api/public/integrations/wpo/inbound'
     | '/api/public/oauth/linkedin/callback'
     | '/api/public/oauth/meta/callback'
     | '/_authenticated/staff/surveys/$id/'
@@ -1279,6 +1305,7 @@ export interface RootRouteChildren {
   ApiPublicUnsubscribeRoute: typeof ApiPublicUnsubscribeRoute
   EventsPermitsApplyRoute: typeof EventsPermitsApplyRoute
   ApiPublicManifestWebmanifestRoute: typeof ApiPublicManifestWebmanifestRoute
+  ApiPublicIntegrationsWpoInboundRoute: typeof ApiPublicIntegrationsWpoInboundRoute
   ApiPublicOauthLinkedinCallbackRoute: typeof ApiPublicOauthLinkedinCallbackRoute
   ApiPublicOauthMetaCallbackRoute: typeof ApiPublicOauthMetaCallbackRoute
   ApiPublicEmailTrackClickRidRoute: typeof ApiPublicEmailTrackClickRidRoute
@@ -1924,6 +1951,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffAdminAnalyticsRouteImport
       parentRoute: typeof AuthenticatedStaffAdminRoute
     }
+    '/_authenticated/org/$orgId/integrations': {
+      id: '/_authenticated/org/$orgId/integrations'
+      path: '/org/$orgId/integrations'
+      fullPath: '/org/$orgId/integrations'
+      preLoaderRoute: typeof AuthenticatedOrgOrgIdIntegrationsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/staff/surveys/$id/': {
       id: '/_authenticated/staff/surveys/$id/'
       path: '/'
@@ -1943,6 +1977,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/oauth/linkedin/callback'
       fullPath: '/api/public/oauth/linkedin/callback'
       preLoaderRoute: typeof ApiPublicOauthLinkedinCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/integrations/wpo/inbound': {
+      id: '/api/public/integrations/wpo/inbound'
+      path: '/api/public/integrations/wpo/inbound'
+      fullPath: '/api/public/integrations/wpo/inbound'
+      preLoaderRoute: typeof ApiPublicIntegrationsWpoInboundRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/staff/surveys/$id/analytics': {
@@ -2180,6 +2221,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCommunityManageRoute: typeof AuthenticatedCommunityManageRoute
   AuthenticatedStreetbeatsApplyRoute: typeof AuthenticatedStreetbeatsApplyRoute
   AuthenticatedStreetbeatsMyGigsRoute: typeof AuthenticatedStreetbeatsMyGigsRoute
+  AuthenticatedOrgOrgIdIntegrationsRoute: typeof AuthenticatedOrgOrgIdIntegrationsRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -2195,6 +2237,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCommunityManageRoute: AuthenticatedCommunityManageRoute,
   AuthenticatedStreetbeatsApplyRoute: AuthenticatedStreetbeatsApplyRoute,
   AuthenticatedStreetbeatsMyGigsRoute: AuthenticatedStreetbeatsMyGigsRoute,
+  AuthenticatedOrgOrgIdIntegrationsRoute:
+    AuthenticatedOrgOrgIdIntegrationsRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -2259,6 +2303,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicUnsubscribeRoute: ApiPublicUnsubscribeRoute,
   EventsPermitsApplyRoute: EventsPermitsApplyRoute,
   ApiPublicManifestWebmanifestRoute: ApiPublicManifestWebmanifestRoute,
+  ApiPublicIntegrationsWpoInboundRoute: ApiPublicIntegrationsWpoInboundRoute,
   ApiPublicOauthLinkedinCallbackRoute: ApiPublicOauthLinkedinCallbackRoute,
   ApiPublicOauthMetaCallbackRoute: ApiPublicOauthMetaCallbackRoute,
   ApiPublicEmailTrackClickRidRoute: ApiPublicEmailTrackClickRidRoute,
