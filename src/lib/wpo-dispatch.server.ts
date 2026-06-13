@@ -17,7 +17,10 @@ export type DispatchResult =
 const TIMEOUT_MS = 8000;
 
 function withOrigin(path: string): string {
-  const origin = process.env.PUBLIC_APP_URL || process.env.APP_URL || "";
+  const origin =
+    process.env.PUBLIC_APP_URL ||
+    process.env.APP_URL ||
+    "https://totaleventsystemsolutions.lovable.app";
   if (!origin) return path;
   return `${origin.replace(/\/$/, "")}${path}`;
 }
