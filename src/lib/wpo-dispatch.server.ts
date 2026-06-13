@@ -32,25 +32,18 @@ async function loadAdmin() {
 
 async function buildEventPayload(eventId: string) {
   const supabaseAdmin = await loadAdmin();
-  const { data: ev, error } = await supabaseAdmin
-    .from("events")
+
+  // Query sessions FIRST — that's where TESS staff events live.
+  const { data: sess, error: sessErr } = await supabaseAdmin
+    .from("sessions")
     .select(
-      "id, title, start_time, location, department_id, wpo_status, wpo_assignee_id, approval_status",
+      "id, title, start_time, department_id, staff_owner_id, rooms(name, venues(name)), stages(name, venues(name))",
     )
     .eq("id", eventId)
     .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!ev) {
-    const { data: sess, error: sessErr } = await supabaseAdmin
-      .from("sessions")
-      .select(
-        "id, title, start_time, department_id, staff_owner_id, rooms(name, venues(name)), stages(name, venues(name))",
-      )
-      .eq("id", eventId)
-      .maybeSingle();
-    if (sessErr) throw new Error(sessErr.message);
-    if (!sess) throw new Error("Event not found");
+  if (sessErr) throw new Error(sessErr.message);
 
+  if (sess) {
     let assigneeEmail: string | null = null;
     if (sess.staff_owner_id) {
       const { data: u } = await supabaseAdmin
@@ -80,26 +73,25 @@ async function buildEventPayload(eventId: string) {
     };
   }
 
-  // Resolve assignee email (best-effort)
-  let assigneeEmail: string | null = null;
-  if (ev.wpo_assignee_id) {
-    const { data: u } = await supabaseAdmin
-      .rpc("find_user_email_by_id", { _user_id: ev.wpo_assignee_id })
-      .single<string>();
-    assigneeEmail = (u as unknown as string) ?? null;
-  }
+  // Legacy fallback: community events table. Only select columns that exist.
+  const { data: ev, error } = await supabaseAdmin
+    .from("events")
+    .select("id, title, start_time, location, department_id, approval_status")
+    .eq("id", eventId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!ev) throw new Error("Event not found");
 
   const deepLink = withOrigin(`/events/${ev.id}`);
-
   return {
-    department_id: ev.department_id as string | null,
+    department_id: (ev as any).department_id as string | null,
     body: {
       id: ev.id,
       title: ev.title,
       starts_at: ev.start_time,
-      venue: ev.location,
-      status: ev.wpo_status ?? ev.approval_status ?? null,
-      assignee_email: assigneeEmail,
+      venue: (ev as any).location ?? null,
+      status: (ev as any).approval_status ?? null,
+      assignee_email: null,
       url: deepLink,
     },
   };
