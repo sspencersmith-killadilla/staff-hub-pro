@@ -132,7 +132,7 @@ export const listRecentWpoDispatches = createServerFn({ method: "GET" })
     let q = supabaseAdmin
       .from("integration_dispatches")
       .select(
-        "id, direction, status_code, error, attempts, event_id, department_id, created_at, next_retry_at",
+        "id, direction, status_code, error, attempts, event_id, department_id, created_at, next_retry_at, payload",
       )
       .order("created_at", { ascending: false })
       .limit(50);

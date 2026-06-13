@@ -132,6 +132,7 @@ export async function dispatchToWpo(args: {
   };
 
   try {
+    console.log(`[wpo] dispatch start type=${type} eventId=${eventId}`);
     const built = args.bodyOverride
       ? { department_id: args.departmentId ?? null, body: args.bodyOverride as any }
       : await buildEventPayload(eventId);
@@ -150,11 +151,20 @@ export async function dispatchToWpo(args: {
     if (integErr) throw new Error(integErr.message);
 
     if (!integ || !integ.enabled) {
+      console.log(`[wpo] skip: integration disabled for dept=${department_id}`);
+      await logFailure(department_id, { type, eventId, body }, "integration disabled");
       return { skipped: true, reason: "integration disabled" };
     }
     if (!integ.wpo_base_url || !integ.shared_secret) {
+      console.log(`[wpo] skip: missing base_url/secret for dept=${department_id}`);
+      await logFailure(
+        department_id,
+        { type, eventId, body },
+        "integration missing base_url or secret",
+      );
       return { skipped: true, reason: "integration missing base_url or secret" };
     }
+    console.log(`[wpo] POST ${integ.wpo_base_url} dept=${department_id}`);
 
     const url = `${integ.wpo_base_url.replace(/\/$/, "")}/api/public/integrations/tess/inbound`;
     const outboundBody =

@@ -173,13 +173,18 @@ function StaffIntegrationsPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-3xl">
-      <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Plug className="h-7 w-7 text-primary" /> Integrations
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Connect external systems to a department on this portal.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Plug className="h-7 w-7 text-primary" /> Integrations
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Connect external systems to a department on this portal.
+          </p>
+        </div>
+        <Button asChild variant="outline" size="sm">
+          <a href="/staff/integration-dispatches">View all dispatches →</a>
+        </Button>
       </div>
 
       <Card>

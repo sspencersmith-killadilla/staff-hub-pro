@@ -66,6 +66,7 @@ import { Route as AuthenticatedStaffRedeemRouteImport } from './routes/_authenti
 import { Route as AuthenticatedStaffQuestsReportRouteImport } from './routes/_authenticated/staff/quests-report'
 import { Route as AuthenticatedStaffMapRouteImport } from './routes/_authenticated/staff/map'
 import { Route as AuthenticatedStaffIntegrationsRouteImport } from './routes/_authenticated/staff/integrations'
+import { Route as AuthenticatedStaffIntegrationDispatchesRouteImport } from './routes/_authenticated/staff/integration-dispatches'
 import { Route as AuthenticatedStaffDispatchRouteImport } from './routes/_authenticated/staff/dispatch'
 import { Route as AuthenticatedStaffCommunityOrganizationsRouteImport } from './routes/_authenticated/staff/community-organizations'
 import { Route as AuthenticatedStaffCommunityMusicRouteImport } from './routes/_authenticated/staff/community-music'
@@ -407,6 +408,12 @@ const AuthenticatedStaffIntegrationsRoute =
     path: '/integrations',
     getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
+const AuthenticatedStaffIntegrationDispatchesRoute =
+  AuthenticatedStaffIntegrationDispatchesRouteImport.update({
+    id: '/integration-dispatches',
+    path: '/integration-dispatches',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
 const AuthenticatedStaffDispatchRoute =
   AuthenticatedStaffDispatchRouteImport.update({
     id: '/dispatch',
@@ -716,6 +723,7 @@ export interface FileRoutesByFullPath {
   '/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
   '/staff/dispatch': typeof AuthenticatedStaffDispatchRoute
+  '/staff/integration-dispatches': typeof AuthenticatedStaffIntegrationDispatchesRoute
   '/staff/integrations': typeof AuthenticatedStaffIntegrationsRoute
   '/staff/map': typeof AuthenticatedStaffMapRoute
   '/staff/quests-report': typeof AuthenticatedStaffQuestsReportRoute
@@ -815,6 +823,7 @@ export interface FileRoutesByTo {
   '/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
   '/staff/dispatch': typeof AuthenticatedStaffDispatchRoute
+  '/staff/integration-dispatches': typeof AuthenticatedStaffIntegrationDispatchesRoute
   '/staff/integrations': typeof AuthenticatedStaffIntegrationsRoute
   '/staff/map': typeof AuthenticatedStaffMapRoute
   '/staff/quests-report': typeof AuthenticatedStaffQuestsReportRoute
@@ -916,6 +925,7 @@ export interface FileRoutesById {
   '/_authenticated/staff/community-music': typeof AuthenticatedStaffCommunityMusicRoute
   '/_authenticated/staff/community-organizations': typeof AuthenticatedStaffCommunityOrganizationsRoute
   '/_authenticated/staff/dispatch': typeof AuthenticatedStaffDispatchRoute
+  '/_authenticated/staff/integration-dispatches': typeof AuthenticatedStaffIntegrationDispatchesRoute
   '/_authenticated/staff/integrations': typeof AuthenticatedStaffIntegrationsRoute
   '/_authenticated/staff/map': typeof AuthenticatedStaffMapRoute
   '/_authenticated/staff/quests-report': typeof AuthenticatedStaffQuestsReportRoute
@@ -1019,6 +1029,7 @@ export interface FileRouteTypes {
     | '/staff/community-music'
     | '/staff/community-organizations'
     | '/staff/dispatch'
+    | '/staff/integration-dispatches'
     | '/staff/integrations'
     | '/staff/map'
     | '/staff/quests-report'
@@ -1118,6 +1129,7 @@ export interface FileRouteTypes {
     | '/staff/community-music'
     | '/staff/community-organizations'
     | '/staff/dispatch'
+    | '/staff/integration-dispatches'
     | '/staff/integrations'
     | '/staff/map'
     | '/staff/quests-report'
@@ -1218,6 +1230,7 @@ export interface FileRouteTypes {
     | '/_authenticated/staff/community-music'
     | '/_authenticated/staff/community-organizations'
     | '/_authenticated/staff/dispatch'
+    | '/_authenticated/staff/integration-dispatches'
     | '/_authenticated/staff/integrations'
     | '/_authenticated/staff/map'
     | '/_authenticated/staff/quests-report'
@@ -1713,6 +1726,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffIntegrationsRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
     }
+    '/_authenticated/staff/integration-dispatches': {
+      id: '/_authenticated/staff/integration-dispatches'
+      path: '/integration-dispatches'
+      fullPath: '/staff/integration-dispatches'
+      preLoaderRoute: typeof AuthenticatedStaffIntegrationDispatchesRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
     '/_authenticated/staff/dispatch': {
       id: '/_authenticated/staff/dispatch'
       path: '/dispatch'
@@ -2165,6 +2185,7 @@ interface AuthenticatedStaffRouteChildren {
   AuthenticatedStaffCommunityMusicRoute: typeof AuthenticatedStaffCommunityMusicRoute
   AuthenticatedStaffCommunityOrganizationsRoute: typeof AuthenticatedStaffCommunityOrganizationsRoute
   AuthenticatedStaffDispatchRoute: typeof AuthenticatedStaffDispatchRoute
+  AuthenticatedStaffIntegrationDispatchesRoute: typeof AuthenticatedStaffIntegrationDispatchesRoute
   AuthenticatedStaffIntegrationsRoute: typeof AuthenticatedStaffIntegrationsRoute
   AuthenticatedStaffMapRoute: typeof AuthenticatedStaffMapRoute
   AuthenticatedStaffQuestsReportRoute: typeof AuthenticatedStaffQuestsReportRoute
@@ -2192,6 +2213,8 @@ const AuthenticatedStaffRouteChildren: AuthenticatedStaffRouteChildren = {
   AuthenticatedStaffCommunityOrganizationsRoute:
     AuthenticatedStaffCommunityOrganizationsRoute,
   AuthenticatedStaffDispatchRoute: AuthenticatedStaffDispatchRoute,
+  AuthenticatedStaffIntegrationDispatchesRoute:
+    AuthenticatedStaffIntegrationDispatchesRoute,
   AuthenticatedStaffIntegrationsRoute: AuthenticatedStaffIntegrationsRoute,
   AuthenticatedStaffMapRoute: AuthenticatedStaffMapRoute,
   AuthenticatedStaffQuestsReportRoute: AuthenticatedStaffQuestsReportRoute,
