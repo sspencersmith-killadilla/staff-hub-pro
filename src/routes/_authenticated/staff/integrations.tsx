@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Plug, Copy, KeyRound, AlertTriangle } from "lucide-react";
+import { Plug, Copy, KeyRound, AlertTriangle, RotateCw } from "lucide-react";
 import { waitForSupabaseSession } from "@/integrations/supabase/auth-ready";
 import {
   getWpoIntegration,
@@ -14,6 +14,7 @@ import {
   listManageableDepartments,
   canManageWpoIntegration,
 } from "@/lib/workplanos.functions";
+import { retryWpoDispatch } from "@/lib/wpo-dispatch.functions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -65,6 +66,7 @@ function StaffIntegrationsPage() {
   const rotate = useServerFn(rotateWpoSecret);
   const disable = useServerFn(disableWpoIntegration);
   const listDisp = useServerFn(listWpoDispatches);
+  const retryDispatch = useServerFn(retryWpoDispatch);
 
   const deptsQ = useQuery({
     queryKey: ["wpo-manageable-departments"],
@@ -135,6 +137,17 @@ function StaffIntegrationsPage() {
     onSuccess: () => {
       toast.success("Integration disabled");
       qc.invalidateQueries({ queryKey: ["wpo-integration", departmentId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const retryMut = useMutation({
+    mutationFn: (dispatchId: string) => retryDispatch({ data: { dispatchId } }),
+    onSuccess: (res: any) => {
+      if (res?.ok) toast.success("Retry sent");
+      else if (res?.skipped) toast.message(`Skipped: ${res.reason}`);
+      else toast.error(`WPO error: ${res?.error ?? "unknown"}`);
+      qc.invalidateQueries({ queryKey: ["wpo-dispatches", departmentId] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -287,7 +300,7 @@ function StaffIntegrationsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Recent dispatches</CardTitle>
+              <CardTitle>Recent sync activity</CardTitle>
             </CardHeader>
             <CardContent>
               {(dispQ.data?.length ?? 0) === 0 ? (
@@ -300,33 +313,47 @@ function StaffIntegrationsPage() {
                       <TableHead>Direction</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Error</TableHead>
+                      <TableHead className="w-[80px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {((dispQ.data ?? []) as DispatchRow[]).map((d) => (
-                      <TableRow key={d.id}>
-                        <TableCell className="whitespace-nowrap text-xs">
-                          {new Date(d.created_at).toLocaleString()}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{d.direction}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <span
-                            className={
-                              d.status_code && d.status_code >= 400
-                                ? "text-destructive font-medium"
-                                : ""
-                            }
-                          >
-                            {d.status_code ?? "—"}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-xs text-muted-foreground max-w-[300px] truncate">
-                          {d.error ?? ""}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {((dispQ.data ?? []) as DispatchRow[]).map((d) => {
+                      const failed =
+                        d.status_code != null && d.status_code >= 400;
+                      const canRetry = d.direction === "outbound" && failed;
+                      return (
+                        <TableRow key={d.id}>
+                          <TableCell className="whitespace-nowrap text-xs">
+                            {new Date(d.created_at).toLocaleString()}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{d.direction}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span
+                              className={failed ? "text-destructive font-medium" : ""}
+                            >
+                              {d.status_code ?? "—"}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground max-w-[300px] truncate">
+                            {d.error ?? ""}
+                          </TableCell>
+                          <TableCell>
+                            {canRetry && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => retryMut.mutate(d.id)}
+                                disabled={retryMut.isPending}
+                              >
+                                <RotateCw className="h-3.5 w-3.5 mr-1" /> Retry
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               )}

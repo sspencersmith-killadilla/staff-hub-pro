@@ -106,6 +106,14 @@ export const setCommunityEventStatus = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .eq("is_community", true);
     if (error) throw new Error(error.message);
+    const { dispatchToWpoSafe } = await import("@/lib/wpo-dispatch.server");
+    dispatchToWpoSafe({
+      eventId: data.id,
+      type:
+        data.status === "cancelled" || data.status === "rejected"
+          ? "event.cancelled"
+          : "event.updated",
+    });
     return { ok: true };
   });
 

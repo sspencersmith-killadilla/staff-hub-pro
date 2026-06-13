@@ -3,12 +3,13 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Check, X, Trash2, MapPin, CalendarDays } from "lucide-react";
+import { Check, X, Trash2, MapPin, CalendarDays, Send } from "lucide-react";
 import {
   listCommunityEventsStaff,
   setCommunityEventStatus,
   deleteCommunityEventStaff,
 } from "@/lib/community.functions";
+import { resendWpoEvent } from "@/lib/wpo-dispatch.functions";
 import { Button } from "@/components/ui/button";
 
 import { requireModule } from "@/lib/require-module";
@@ -39,6 +40,7 @@ function CommunityEventsPage() {
   const fetchEvents = useServerFn(listCommunityEventsStaff);
   const setStatus = useServerFn(setCommunityEventStatus);
   const remove = useServerFn(deleteCommunityEventStaff);
+  const resend = useServerFn(resendWpoEvent);
   const { data: events, isLoading } = useQuery({
     queryKey: ["staff", "community", "events"],
     queryFn: () => fetchEvents(),
@@ -66,6 +68,16 @@ function CommunityEventsPage() {
     onSuccess: () => {
       toast.success("Deleted");
       invalidate();
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed"),
+  });
+  const resendMut = useMutation({
+    mutationFn: (id: string) =>
+      resend({ data: { eventId: id, type: "event.updated" } }),
+    onSuccess: (res: any) => {
+      if (res?.skipped) toast.message(`Skipped: ${res.reason}`);
+      else if (res?.ok) toast.success("Sent to WorkPlanOS");
+      else toast.error(`WPO error: ${res?.error ?? "unknown"}`);
     },
     onError: (e: any) => toast.error(e?.message ?? "Failed"),
   });
@@ -188,6 +200,15 @@ function CommunityEventsPage() {
                         <X className="mr-1 h-4 w-4" /> Reject
                       </Button>
                     )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => resendMut.mutate(e.id)}
+                      disabled={resendMut.isPending}
+                      title="Resend this event to WorkPlanOS"
+                    >
+                      <Send className="mr-1 h-4 w-4" /> Resend to WPO
+                    </Button>
                     <Button
                       size="sm"
                       variant="ghost"
