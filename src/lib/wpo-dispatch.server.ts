@@ -59,17 +59,18 @@ async function buildEventPayload(eventId: string) {
     const venue = room?.name ?? stage?.name ?? roomVenue?.name ?? stageVenue?.name ?? null;
     const deepLink = withOrigin(`/events/${sess.id}`);
 
+    const sessBody: Record<string, unknown> = {
+      id: sess.id,
+      title: sess.title,
+      starts_at: sess.start_time,
+      venue,
+      status: "scheduled",
+      url: deepLink,
+    };
+    if (assigneeEmail) sessBody.assignee_email = assigneeEmail;
     return {
       department_id: sess.department_id as string | null,
-      body: {
-        id: sess.id,
-        title: sess.title,
-        starts_at: sess.start_time,
-        venue,
-        status: "scheduled",
-        assignee_email: assigneeEmail,
-        url: deepLink,
-      },
+      body: sessBody,
     };
   }
 
