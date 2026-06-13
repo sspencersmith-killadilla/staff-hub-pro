@@ -374,7 +374,7 @@ export const updateMyCommunityEvent = createServerFn({ method: "POST" })
       .eq("is_community", true);
     if (error) throw new Error(error.message);
     const { dispatchToWpoSafe } = await import("@/lib/wpo-dispatch.server");
-    dispatchToWpoSafe({ eventId: data.id, type: "event.updated" });
+    await dispatchToWpoSafe({ eventId: data.id, type: "event.updated" });
     return { ok: true };
   });
 
