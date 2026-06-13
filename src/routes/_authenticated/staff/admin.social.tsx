@@ -325,10 +325,10 @@ function SocialCommandCenter() {
             <CardContent>
               <ScrollArea className="h-[600px] pr-2">
                 <div className="space-y-2">
-                  {(events as EventLite[]).length === 0 && (
-                    <p className="text-sm text-muted-foreground">No events available.</p>
+                  {upcomingEvents.length === 0 && (
+                    <p className="text-sm text-muted-foreground">No upcoming events.</p>
                   )}
-                  {(events as EventLite[]).map((ev) => (
+                  {upcomingEvents.map((ev) => (
                     <DraggableEvent key={ev.id} event={ev} />
                   ))}
                 </div>
