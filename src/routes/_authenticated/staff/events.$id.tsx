@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Download, Upload } from "lucide-react";
+import { resendWpoEvent } from "@/lib/wpo-dispatch.functions";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useAuth } from "@/hooks/use-auth";
 import type { PermissionKey } from "@/lib/staff-permissions";
@@ -263,6 +264,15 @@ function EventDashboard() {
     },
     onError: (e: Error) => showToast(e.message, "error"),
   });
+  const mResendWpo = useMutation({
+    mutationFn: () => resendWpoEvent({ data: { eventId: id, type: "event.updated" } }),
+    onSuccess: (res: any) => {
+      if (res?.skipped) showToast(`WPO skipped: ${res.reason}`, "warning");
+      else if (res?.ok) showToast("Sent to WorkPlanOS");
+      else showToast(`WPO error: ${res?.error ?? "unknown"}`, "error");
+    },
+    onError: (e: Error) => showToast(e.message, "error"),
+  });
 
   // Local UI state
   const [editingTicket, setEditingTicket] = useState<any>(null);
@@ -383,12 +393,21 @@ function EventDashboard() {
             )}
 
           </div>
-          <button
-            onClick={() => window.print()}
-            className="text-xs font-bold uppercase tracking-widest px-3 py-2 border border-white/30 rounded hover:bg-white/10"
-          >
-            Print Run of Show
-          </button>
+          <div className="flex flex-wrap justify-end gap-2">
+            <button
+              onClick={() => mResendWpo.mutate()}
+              disabled={mResendWpo.isPending}
+              className="text-xs font-bold uppercase tracking-widest px-3 py-2 border border-white/30 rounded hover:bg-white/10 disabled:opacity-50"
+            >
+              {mResendWpo.isPending ? "Sending…" : "Resend to WorkPlanOS"}
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="text-xs font-bold uppercase tracking-widest px-3 py-2 border border-white/30 rounded hover:bg-white/10"
+            >
+              Print Run of Show
+            </button>
+          </div>
         </div>
         <nav className="px-8 flex gap-1 overflow-x-auto">
           {navItems.map(({ key, label, badge }) => (

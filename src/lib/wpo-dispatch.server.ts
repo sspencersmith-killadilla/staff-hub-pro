@@ -17,7 +17,10 @@ export type DispatchResult =
 const TIMEOUT_MS = 8000;
 
 function withOrigin(path: string): string {
-  const origin = process.env.PUBLIC_APP_URL || process.env.APP_URL || "";
+  const origin =
+    process.env.PUBLIC_APP_URL ||
+    process.env.APP_URL ||
+    "https://totaleventsystemsolutions.lovable.app";
   if (!origin) return path;
   return `${origin.replace(/\/$/, "")}${path}`;
 }
@@ -37,7 +40,45 @@ async function buildEventPayload(eventId: string) {
     .eq("id", eventId)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  if (!ev) throw new Error("Event not found");
+  if (!ev) {
+    const { data: sess, error: sessErr } = await supabaseAdmin
+      .from("sessions")
+      .select(
+        "id, title, start_time, department_id, staff_owner_id, rooms(name, venues(name)), stages(name, venues(name))",
+      )
+      .eq("id", eventId)
+      .maybeSingle();
+    if (sessErr) throw new Error(sessErr.message);
+    if (!sess) throw new Error("Event not found");
+
+    let assigneeEmail: string | null = null;
+    if (sess.staff_owner_id) {
+      const { data: u } = await supabaseAdmin
+        .rpc("find_user_email_by_id", { _user_id: sess.staff_owner_id })
+        .single<string>();
+      assigneeEmail = (u as unknown as string) ?? null;
+    }
+
+    const room = Array.isArray(sess.rooms) ? sess.rooms[0] : sess.rooms;
+    const stage = Array.isArray(sess.stages) ? sess.stages[0] : sess.stages;
+    const roomVenue = Array.isArray(room?.venues) ? room?.venues[0] : room?.venues;
+    const stageVenue = Array.isArray(stage?.venues) ? stage?.venues[0] : stage?.venues;
+    const venue = room?.name ?? stage?.name ?? roomVenue?.name ?? stageVenue?.name ?? null;
+    const deepLink = withOrigin(`/events/${sess.id}`);
+
+    return {
+      department_id: sess.department_id as string | null,
+      body: {
+        id: sess.id,
+        title: sess.title,
+        starts_at: sess.start_time,
+        venue,
+        status: "scheduled",
+        assignee_email: assigneeEmail,
+        url: deepLink,
+      },
+    };
+  }
 
   // Resolve assignee email (best-effort)
   let assigneeEmail: string | null = null;
@@ -47,14 +88,6 @@ async function buildEventPayload(eventId: string) {
       .single<string>();
     assigneeEmail = (u as unknown as string) ?? null;
   }
-
-  // Pull external URL if present
-  const { data: ref } = await supabaseAdmin
-    .from("event_external_refs")
-    .select("external_url")
-    .eq("event_id", ev.id)
-    .eq("source", "wpo")
-    .maybeSingle();
 
   const deepLink = withOrigin(`/events/${ev.id}`);
 
@@ -67,7 +100,7 @@ async function buildEventPayload(eventId: string) {
       venue: ev.location,
       status: ev.wpo_status ?? ev.approval_status ?? null,
       assignee_email: assigneeEmail,
-      url: ref?.external_url || deepLink,
+      url: deepLink,
     },
   };
 }
@@ -76,12 +109,13 @@ export async function dispatchToWpo(args: {
   eventId: string;
   type: WpoOutboundType;
   bodyOverride?: Record<string, unknown>;
+  departmentId?: string | null;
 }): Promise<DispatchResult> {
   const supabaseAdmin = await loadAdmin();
   const { eventId, type } = args;
 
   const { department_id, body } = args.bodyOverride
-    ? { department_id: null, body: args.bodyOverride as any }
+    ? { department_id: args.departmentId ?? null, body: args.bodyOverride as any }
     : await buildEventPayload(eventId);
 
   if (!department_id) {
@@ -103,13 +137,17 @@ export async function dispatchToWpo(args: {
   }
 
   const url = `${integ.wpo_base_url.replace(/\/$/, "")}/api/public/integrations/tess/inbound`;
-  const payload = { type, event: body };
+  const outboundBody =
+    typeof (body as any).url === "string" && (body as any).url.startsWith("/")
+      ? { ...body, url: withOrigin((body as any).url) }
+      : body;
+  const payload = { type, event: outboundBody };
   const raw = JSON.stringify(payload);
   const signature =
     "sha256=" + createHmac("sha256", integ.shared_secret).update(raw).digest("hex");
 
   // Pre-insert the dispatch row so we always have an id to update
-  const { data: pre, error: preErr } = await supabaseAdmin
+  let { data: pre, error: preErr } = await supabaseAdmin
     .from("integration_dispatches")
     .insert({
       department_id,
@@ -120,7 +158,25 @@ export async function dispatchToWpo(args: {
     })
     .select("id")
     .single();
-  if (preErr || !pre) throw new Error(preErr?.message ?? "Failed to log dispatch");
+  if (preErr || !pre) {
+    // Older databases constrained event_id to legacy community events only.
+    // Retry without event_id so city schedule sessions can still reach WPO.
+    const retry = await supabaseAdmin
+      .from("integration_dispatches")
+      .insert({
+        department_id,
+        direction: "outbound",
+        payload,
+        attempts: 1,
+        error: `event_id log omitted: ${preErr?.message ?? "unknown"}`.slice(0, 500),
+      })
+      .select("id")
+      .single();
+    if (retry.error || !retry.data) {
+      throw new Error(retry.error?.message ?? "Failed to log dispatch");
+    }
+    pre = retry.data;
+  }
 
   let status = 0;
   let errMsg: string | null = null;
@@ -170,11 +226,25 @@ export async function dispatchToWpo(args: {
 export async function dispatchToWpoSafe(args: {
   eventId: string;
   type: WpoOutboundType;
+  bodyOverride?: Record<string, unknown>;
+  departmentId?: string | null;
 }): Promise<void> {
-  try {
-    await dispatchToWpo(args);
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error("[wpo] outbound dispatch failed:", err);
+  const task = dispatchToWpo(args)
+    .then((result) => {
+      if ("ok" in result && !result.ok) {
+        console.warn("[wpo] outbound dispatch returned error:", result);
+      }
+    })
+    .catch((err) => {
+      // eslint-disable-next-line no-console
+      console.error("[wpo] outbound dispatch failed:", err);
+    });
+  const edgeRuntime = (globalThis as typeof globalThis & {
+    EdgeRuntime?: { waitUntil?: (promise: Promise<unknown>) => void };
+  }).EdgeRuntime;
+  if (edgeRuntime?.waitUntil) {
+    edgeRuntime.waitUntil(task);
+    return;
   }
+  await task;
 }

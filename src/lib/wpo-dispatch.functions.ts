@@ -40,12 +40,21 @@ async function assertCanManageDepartment(departmentId: string, userId: string) {
 
 async function assertCanManageEvent(eventId: string, userId: string) {
   const supabaseAdmin = await loadAdmin();
-  const { data: ev, error } = await supabaseAdmin
+  let { data: ev, error } = await supabaseAdmin
     .from("events")
     .select("id, department_id")
     .eq("id", eventId)
     .maybeSingle();
   if (error) throw new Error(error.message);
+  if (!ev) {
+    const sessionLookup = await supabaseAdmin
+      .from("sessions")
+      .select("id, department_id")
+      .eq("id", eventId)
+      .maybeSingle();
+    if (sessionLookup.error) throw new Error(sessionLookup.error.message);
+    ev = sessionLookup.data;
+  }
   if (!ev) throw new Error("Event not found");
   if (!ev.department_id) {
     // No department scope — only global admins can resend.
