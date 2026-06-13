@@ -312,7 +312,9 @@ export const createMyCommunityEvent = createServerFn({ method: "POST" })
         description: data.description ?? null,
       });
     }
-    const { error } = await supabaseAdmin.from("events").insert({
+    const { data: inserted, error } = await supabaseAdmin
+      .from("events")
+      .insert({
       title: data.title,
       description: data.description ?? null,
       start_time: startIso,
@@ -328,8 +330,14 @@ export const createMyCommunityEvent = createServerFn({ method: "POST" })
       image_url: imageUrl,
       image_focal_x: data.image_focal_x ?? 50,
       image_focal_y: data.image_focal_y ?? 50,
-    });
+      })
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
+    if (inserted?.id) {
+      const { dispatchToWpoSafe } = await import("@/lib/wpo-dispatch.server");
+      dispatchToWpoSafe({ eventId: inserted.id, type: "event.created" });
+    }
     return { ok: true };
   });
 
@@ -365,6 +373,8 @@ export const updateMyCommunityEvent = createServerFn({ method: "POST" })
       .eq("organization_id", org.id)
       .eq("is_community", true);
     if (error) throw new Error(error.message);
+    const { dispatchToWpoSafe } = await import("@/lib/wpo-dispatch.server");
+    dispatchToWpoSafe({ eventId: data.id, type: "event.updated" });
     return { ok: true };
   });
 
@@ -382,6 +392,8 @@ export const cancelMyCommunityEvent = createServerFn({ method: "POST" })
       .eq("organization_id", org.id)
       .eq("is_community", true);
     if (error) throw new Error(error.message);
+    const { dispatchToWpoSafe } = await import("@/lib/wpo-dispatch.server");
+    dispatchToWpoSafe({ eventId: data.id, type: "event.cancelled" });
     return { ok: true };
   });
 
