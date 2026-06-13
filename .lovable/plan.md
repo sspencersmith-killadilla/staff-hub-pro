@@ -1,11 +1,25 @@
-## Hide past events from the Social Command sidebar
+## Goal
+Improve the event-attendee audience segment dropdown in the communications campaign builder so staff can quickly identify events by date and aren't overwhelmed by stale entries.
 
-**Problem:** The "Events" sidebar in Social Command Center (`src/routes/_authenticated/staff/admin.social.tsx`) lists every event, including past ones. They clutter the draggable list. Scheduled posts on past dates should still appear on the calendar.
+## What to change
+File: `src/routes/_authenticated/staff/communications.$id.tsx` (AddSegment component, event-attendees sub-select)
 
-**Change (one file):** `src/routes/_authenticated/staff/admin.social.tsx`
+1. **Add date to label**
+   - Render each option as: `MM/DD/YYYY — Event Title` (or similar readable format)
+   - Uses `e.start_time` already present on session rows
 
-Filter the event list rendered in the sidebar (`DraggableEvent` mapping, around line 331) to exclude events whose `start_time` is in the past. Add a `useMemo` that returns events where `start_time` is missing/null (treat as upcoming/TBD) OR `new Date(start_time) >= startOfToday()`, sorted by `start_time` ascending so the next-up event is on top.
+2. **Sort most-recent first**
+   - Sort filtered events descending by `start_time`
+   - Events with no `start_time` appear at the bottom
 
-The calendar grid (`postsByDate` / `DroppableDay`) is unchanged — scheduled posts continue to render on whatever date they were scheduled for, including past dates. The `events` lookup used to label posts with `eventTitle` (line 173) still uses the full unfiltered query, so past-event posts keep their titles.
+3. **1-month lookback filter**
+   - Only include events whose `start_time` is >= 30 days before today (or `start_time` is null — keep undated events so they remain selectable)
+   - Events older than 1 month are hidden from the dropdown entirely
 
-**Out of scope:** No backend, schema, or business-logic changes. Pure UI filter.
+No backend or schema changes needed. The `events` array is already fetched client-side via `useQuery` from `listEvents()`.
+
+## Acceptance
+- Dropdown labels show date + title
+- Most recent event sits at top of list
+- Events older than 1 month are omitted
+- Existing campaign saving / audience logic is untouched
