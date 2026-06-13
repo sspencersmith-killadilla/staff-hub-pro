@@ -33,11 +33,44 @@ async function loadAdmin() {
 async function buildEventPayload(eventId: string) {
   const supabaseAdmin = await loadAdmin();
 
+  // Compute ticket inventory from ticket_tiers (capacity) + attendees (sold).
+  // Returns nulls if there are no tiers configured for the session.
+  async function getTicketInventory(
+    sessionId: string,
+  ): Promise<{ tickets_available: number | null; tickets_sold: number | null }> {
+    try {
+      const { data: tiers } = await supabaseAdmin
+        .from("ticket_tiers")
+        .select("id, capacity")
+        .eq("session_id", sessionId);
+      if (!tiers || tiers.length === 0) {
+        return { tickets_available: null, tickets_sold: null };
+      }
+      const tierIds = tiers.map((t: any) => t.id);
+      const { data: atts } = await supabaseAdmin
+        .from("attendees")
+        .select("ticket_tier_id, quantity")
+        .in("ticket_tier_id", tierIds);
+      const sold = (atts ?? []).reduce(
+        (sum: number, a: any) => sum + (a.quantity ?? 1),
+        0,
+      );
+      const capacity = tiers.reduce(
+        (sum: number, t: any) => sum + Number(t.capacity ?? 0),
+        0,
+      );
+      const available = capacity > 0 ? Math.max(capacity - sold, 0) : null;
+      return { tickets_available: available, tickets_sold: sold };
+    } catch {
+      return { tickets_available: null, tickets_sold: null };
+    }
+  }
+
   // Query sessions FIRST — that's where TESS staff events live.
   const { data: sess, error: sessErr } = await supabaseAdmin
     .from("sessions")
     .select(
-      "id, title, start_time, department_id, staff_owner_id, rooms(name, venues(name)), stages(name, venues(name))",
+      "id, title, start_time, end_time, department_id, staff_owner_id, rooms(name, venues(name)), stages(name, venues(name))",
     )
     .eq("id", eventId)
     .maybeSingle();
@@ -46,10 +79,14 @@ async function buildEventPayload(eventId: string) {
   if (sess) {
     let assigneeEmail: string | null = null;
     if (sess.staff_owner_id) {
-      const { data: u } = await supabaseAdmin
-        .rpc("find_user_email_by_id", { _user_id: sess.staff_owner_id })
-        .single<string>();
-      assigneeEmail = (u as unknown as string) ?? null;
+      try {
+        const { data: u } = await supabaseAdmin
+          .rpc("find_user_email_by_id", { _user_id: sess.staff_owner_id })
+          .single<string>();
+        assigneeEmail = (u as unknown as string) ?? null;
+      } catch {
+        assigneeEmail = null;
+      }
     }
 
     const room = Array.isArray(sess.rooms) ? sess.rooms[0] : sess.rooms;
@@ -59,25 +96,33 @@ async function buildEventPayload(eventId: string) {
     const venue = room?.name ?? stage?.name ?? roomVenue?.name ?? stageVenue?.name ?? null;
     const deepLink = withOrigin(`/events/${sess.id}`);
 
-    const sessBody: Record<string, unknown> = {
-      id: sess.id,
-      title: sess.title,
-      starts_at: sess.start_time,
-      venue,
-      status: "scheduled",
-      url: deepLink,
-    };
-    if (assigneeEmail) sessBody.assignee_email = assigneeEmail;
+    const { tickets_available, tickets_sold } = await getTicketInventory(sess.id);
+
     return {
       department_id: sess.department_id as string | null,
-      body: sessBody,
+      body: {
+        id: sess.id,
+        title: sess.title,
+        starts_at: (sess as any).start_time ?? null,
+        ends_at: (sess as any).end_time ?? null,
+        doors_at: null,
+        venue,
+        status: "scheduled",
+        assignee_email: assigneeEmail,
+        tickets_available,
+        tickets_sold,
+        notes: null,
+        url: deepLink,
+      },
     };
   }
 
   // Legacy fallback: community events table. Only select columns that exist.
   const { data: ev, error } = await supabaseAdmin
     .from("events")
-    .select("id, title, start_time, location, department_id, approval_status")
+    .select(
+      "id, title, description, start_time, end_time, location, department_id, approval_status",
+    )
     .eq("id", eventId)
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -89,9 +134,15 @@ async function buildEventPayload(eventId: string) {
     body: {
       id: ev.id,
       title: ev.title,
-      starts_at: ev.start_time,
+      starts_at: (ev as any).start_time ?? null,
+      ends_at: (ev as any).end_time ?? null,
+      doors_at: null,
       venue: (ev as any).location ?? null,
       status: (ev as any).approval_status ?? null,
+      assignee_email: null,
+      tickets_available: null,
+      tickets_sold: null,
+      notes: (ev as any).description ?? null,
       url: deepLink,
     },
   };
