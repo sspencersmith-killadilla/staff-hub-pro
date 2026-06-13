@@ -203,6 +203,18 @@ function SocialCommandCenter() {
     return out;
   }, [cursor]);
 
+  const upcomingEvents = useMemo(() => {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    return (events as EventLite[])
+      .filter((e) => !e.start_time || new Date(e.start_time) >= start)
+      .sort((a, b) => {
+        if (!a.start_time) return 1;
+        if (!b.start_time) return -1;
+        return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
+      });
+  }, [events]);
+
   const postsByDate = useMemo(() => {
     const m = new Map<string, ScheduledPost[]>();
     for (const p of posts) {
