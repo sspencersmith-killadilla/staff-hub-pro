@@ -107,7 +107,7 @@ export const setCommunityEventStatus = createServerFn({ method: "POST" })
       .eq("is_community", true);
     if (error) throw new Error(error.message);
     const { dispatchToWpoSafe } = await import("@/lib/wpo-dispatch.server");
-    dispatchToWpoSafe({
+    await dispatchToWpoSafe({
       eventId: data.id,
       type:
         data.status === "cancelled" || data.status === "rejected"

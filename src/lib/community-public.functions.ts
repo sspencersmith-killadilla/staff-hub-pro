@@ -336,7 +336,7 @@ export const createMyCommunityEvent = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (inserted?.id) {
       const { dispatchToWpoSafe } = await import("@/lib/wpo-dispatch.server");
-      dispatchToWpoSafe({ eventId: inserted.id, type: "event.created" });
+      await dispatchToWpoSafe({ eventId: inserted.id, type: "event.created" });
     }
     return { ok: true };
   });
@@ -374,7 +374,7 @@ export const updateMyCommunityEvent = createServerFn({ method: "POST" })
       .eq("is_community", true);
     if (error) throw new Error(error.message);
     const { dispatchToWpoSafe } = await import("@/lib/wpo-dispatch.server");
-    dispatchToWpoSafe({ eventId: data.id, type: "event.updated" });
+    await dispatchToWpoSafe({ eventId: data.id, type: "event.updated" });
     return { ok: true };
   });
 
@@ -393,7 +393,7 @@ export const cancelMyCommunityEvent = createServerFn({ method: "POST" })
       .eq("is_community", true);
     if (error) throw new Error(error.message);
     const { dispatchToWpoSafe } = await import("@/lib/wpo-dispatch.server");
-    dispatchToWpoSafe({ eventId: data.id, type: "event.cancelled" });
+    await dispatchToWpoSafe({ eventId: data.id, type: "event.cancelled" });
     return { ok: true };
   });
 
