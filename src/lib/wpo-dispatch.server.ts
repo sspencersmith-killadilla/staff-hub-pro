@@ -92,7 +92,6 @@ async function buildEventPayload(eventId: string) {
       starts_at: ev.start_time,
       venue: (ev as any).location ?? null,
       status: (ev as any).approval_status ?? null,
-      assignee_email: null,
       url: deepLink,
     },
   };
