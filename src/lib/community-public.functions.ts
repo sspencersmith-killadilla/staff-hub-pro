@@ -393,7 +393,7 @@ export const cancelMyCommunityEvent = createServerFn({ method: "POST" })
       .eq("is_community", true);
     if (error) throw new Error(error.message);
     const { dispatchToWpoSafe } = await import("@/lib/wpo-dispatch.server");
-    dispatchToWpoSafe({ eventId: data.id, type: "event.cancelled" });
+    await dispatchToWpoSafe({ eventId: data.id, type: "event.cancelled" });
     return { ok: true };
   });
 
