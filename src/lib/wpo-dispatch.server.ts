@@ -76,12 +76,13 @@ export async function dispatchToWpo(args: {
   eventId: string;
   type: WpoOutboundType;
   bodyOverride?: Record<string, unknown>;
+  departmentId?: string | null;
 }): Promise<DispatchResult> {
   const supabaseAdmin = await loadAdmin();
   const { eventId, type } = args;
 
   const { department_id, body } = args.bodyOverride
-    ? { department_id: null, body: args.bodyOverride as any }
+    ? { department_id: args.departmentId ?? null, body: args.bodyOverride as any }
     : await buildEventPayload(eventId);
 
   if (!department_id) {
@@ -109,7 +110,7 @@ export async function dispatchToWpo(args: {
     "sha256=" + createHmac("sha256", integ.shared_secret).update(raw).digest("hex");
 
   // Pre-insert the dispatch row so we always have an id to update
-  const { data: pre, error: preErr } = await supabaseAdmin
+  let { data: pre, error: preErr } = await supabaseAdmin
     .from("integration_dispatches")
     .insert({
       department_id,
@@ -120,7 +121,25 @@ export async function dispatchToWpo(args: {
     })
     .select("id")
     .single();
-  if (preErr || !pre) throw new Error(preErr?.message ?? "Failed to log dispatch");
+  if (preErr || !pre) {
+    // Older databases constrained event_id to legacy community events only.
+    // Retry without event_id so city schedule sessions can still reach WPO.
+    const retry = await supabaseAdmin
+      .from("integration_dispatches")
+      .insert({
+        department_id,
+        direction: "outbound",
+        payload,
+        attempts: 1,
+        error: `event_id log omitted: ${preErr?.message ?? "unknown"}`.slice(0, 500),
+      })
+      .select("id")
+      .single();
+    if (retry.error || !retry.data) {
+      throw new Error(retry.error?.message ?? "Failed to log dispatch");
+    }
+    pre = retry.data;
+  }
 
   let status = 0;
   let errMsg: string | null = null;
@@ -170,11 +189,25 @@ export async function dispatchToWpo(args: {
 export async function dispatchToWpoSafe(args: {
   eventId: string;
   type: WpoOutboundType;
+  bodyOverride?: Record<string, unknown>;
+  departmentId?: string | null;
 }): Promise<void> {
-  try {
-    await dispatchToWpo(args);
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error("[wpo] outbound dispatch failed:", err);
+  const task = dispatchToWpo(args)
+    .then((result) => {
+      if ("ok" in result && !result.ok) {
+        console.warn("[wpo] outbound dispatch returned error:", result);
+      }
+    })
+    .catch((err) => {
+      // eslint-disable-next-line no-console
+      console.error("[wpo] outbound dispatch failed:", err);
+    });
+  const edgeRuntime = (globalThis as typeof globalThis & {
+    EdgeRuntime?: { waitUntil?: (promise: Promise<unknown>) => void };
+  }).EdgeRuntime;
+  if (edgeRuntime?.waitUntil) {
+    edgeRuntime.waitUntil(task);
+    return;
   }
+  await task;
 }

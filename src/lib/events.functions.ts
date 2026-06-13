@@ -234,6 +234,10 @@ export const createEvent = createServerFn({ method: "POST" })
         if (updated) finalRow = updated;
       }
     }
+    if (finalRow?.id) {
+      const { dispatchToWpoSafe } = await import("@/lib/wpo-dispatch.server");
+      await dispatchToWpoSafe({ eventId: finalRow.id, type: "event.created" });
+    }
     return fromSessionRow(finalRow);
   });
 
@@ -288,6 +292,8 @@ export const updateEvent = createServerFn({ method: "POST" })
       .select()
       .single();
     if (error) throw new Error(error.message);
+    const { dispatchToWpoSafe } = await import("@/lib/wpo-dispatch.server");
+    await dispatchToWpoSafe({ eventId: data.id, type: "event.updated" });
     return fromSessionRow(row);
   });
 
@@ -328,10 +334,27 @@ export const deleteEvent = createServerFn({ method: "POST" })
     await assertStaff(context.userId);
     const { data: existing } = await supabaseAdmin
       .from("sessions")
-      .select("department_id")
+      .select("id, title, start_time, department_id")
       .eq("id", data.id)
       .maybeSingle();
     await assertCanManageDepartment(context.userId, existing?.department_id ?? null);
+    if (existing?.department_id) {
+      const { dispatchToWpoSafe } = await import("@/lib/wpo-dispatch.server");
+      await dispatchToWpoSafe({
+        eventId: data.id,
+        type: "event.cancelled",
+        departmentId: existing.department_id,
+        bodyOverride: {
+          id: data.id,
+          title: existing.title ?? "Cancelled event",
+          starts_at: existing.start_time ?? null,
+          venue: null,
+          status: "cancelled",
+          assignee_email: null,
+          url: `/events/${data.id}`,
+        },
+      });
+    }
     const { error } = await supabaseAdmin.from("sessions").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
