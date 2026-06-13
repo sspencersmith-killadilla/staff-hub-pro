@@ -414,7 +414,28 @@ function AddSegment({
         <Select value={eventId} onValueChange={setEventId}>
           <SelectTrigger className="h-8"><SelectValue placeholder="Pick event" /></SelectTrigger>
           <SelectContent>
-            {events.map((e: any) => <SelectItem key={e.id} value={e.id}>{e.title}</SelectItem>)}
+            {(() => {
+              const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+              const filtered = (events as any[]).filter((e) => {
+                if (!e.start_time) return true;
+                const t = new Date(e.start_time).getTime();
+                return Number.isFinite(t) && t >= cutoff;
+              });
+              filtered.sort((a, b) => {
+                const ta = a.start_time ? new Date(a.start_time).getTime() : -Infinity;
+                const tb = b.start_time ? new Date(b.start_time).getTime() : -Infinity;
+                return tb - ta;
+              });
+              if (filtered.length === 0) {
+                return <div className="px-2 py-1.5 text-xs text-muted-foreground">No recent events</div>;
+              }
+              return filtered.map((e: any) => {
+                const label = e.start_time
+                  ? `${new Date(e.start_time).toLocaleDateString()} — ${e.title}`
+                  : e.title;
+                return <SelectItem key={e.id} value={e.id}>{label}</SelectItem>;
+              });
+            })()}
           </SelectContent>
         </Select>
       )}
