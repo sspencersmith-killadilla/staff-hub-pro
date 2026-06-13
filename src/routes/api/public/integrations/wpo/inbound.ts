@@ -143,17 +143,17 @@ export const Route = createFileRoute("/api/public/integrations/wpo/inbound")({
         }
 
         // Resolve assignee email -> user id (best-effort, case-insensitive)
-        async function resolveAssignee(): Promise<string | null | undefined> {
-          if (item.assignee_email === undefined || item.assignee_email === null)
-            return undefined; // no change
-          if (item.assignee_email === "") return null; // explicit unset
+        const resolveAssignee = async (): Promise<string | null | undefined> => {
+          const email = item.assignee_email;
+          if (email === undefined || email === null) return undefined; // no change
+          if (email === "") return null; // explicit unset
           const { data: uid } = await supabaseAdmin.rpc(
             "find_user_id_by_email",
-            { _email: item.assignee_email },
+            { _email: email },
           );
           // skip (undefined => no change) when no match
           return (uid as string | null) ?? undefined;
-        }
+        };
 
         // ------ DELETE ------
         if (parsed.type === "item.deleted") {
