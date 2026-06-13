@@ -103,114 +103,147 @@ export async function dispatchToWpo(args: {
   bodyOverride?: Record<string, unknown>;
   departmentId?: string | null;
 }): Promise<DispatchResult> {
-  const supabaseAdmin = await loadAdmin();
   const { eventId, type } = args;
-
-  const { department_id, body } = args.bodyOverride
-    ? { department_id: args.departmentId ?? null, body: args.bodyOverride as any }
-    : await buildEventPayload(eventId);
-
-  if (!department_id) {
-    return { skipped: true, reason: "event has no department_id" };
+  let supabaseAdmin: Awaited<ReturnType<typeof loadAdmin>>;
+  try {
+    supabaseAdmin = await loadAdmin();
+  } catch (e) {
+    return { skipped: true, reason: `admin client unavailable: ${(e as Error).message}` };
   }
 
-  const { data: integ, error: integErr } = await supabaseAdmin
-    .from("workplanos_integration")
-    .select("department_id, wpo_base_url, wpo_workspace_id, shared_secret, enabled")
-    .eq("department_id", department_id)
-    .maybeSingle();
-  if (integErr) throw new Error(integErr.message);
+  // Helper that logs a failure row to integration_dispatches without throwing.
+  const logFailure = async (
+    departmentId: string | null,
+    payload: unknown,
+    message: string,
+  ) => {
+    try {
+      await supabaseAdmin.from("integration_dispatches").insert({
+        department_id: departmentId,
+        direction: "outbound",
+        payload: payload ?? { type, eventId },
+        attempts: 1,
+        status_code: null,
+        error: message.slice(0, 500),
+      });
+    } catch {
+      // swallow — we tried our best
+    }
+  };
 
-  if (!integ || !integ.enabled) {
-    return { skipped: true, reason: "integration disabled" };
-  }
-  if (!integ.wpo_base_url || !integ.shared_secret) {
-    return { skipped: true, reason: "integration missing base_url or secret" };
-  }
+  try {
+    const built = args.bodyOverride
+      ? { department_id: args.departmentId ?? null, body: args.bodyOverride as any }
+      : await buildEventPayload(eventId);
+    const { department_id, body } = built;
 
-  const url = `${integ.wpo_base_url.replace(/\/$/, "")}/api/public/integrations/tess/inbound`;
-  const outboundBody =
-    typeof (body as any).url === "string" && (body as any).url.startsWith("/")
-      ? { ...body, url: withOrigin((body as any).url) }
-      : body;
-  const payload = { type, event: outboundBody };
-  const raw = JSON.stringify(payload);
-  const signature =
-    "sha256=" + createHmac("sha256", integ.shared_secret).update(raw).digest("hex");
+    if (!department_id) {
+      await logFailure(null, { type, eventId, body }, "event has no department_id");
+      return { skipped: true, reason: "event has no department_id" };
+    }
 
-  // Pre-insert the dispatch row so we always have an id to update
-  let { data: pre, error: preErr } = await supabaseAdmin
-    .from("integration_dispatches")
-    .insert({
-      department_id,
-      event_id: eventId,
-      direction: "outbound",
-      payload,
-      attempts: 1,
-    })
-    .select("id")
-    .single();
-  if (preErr || !pre) {
-    // Older databases constrained event_id to legacy community events only.
-    // Retry without event_id so city schedule sessions can still reach WPO.
-    const retry = await supabaseAdmin
+    const { data: integ, error: integErr } = await supabaseAdmin
+      .from("workplanos_integration")
+      .select("department_id, wpo_base_url, wpo_workspace_id, shared_secret, enabled")
+      .eq("department_id", department_id)
+      .maybeSingle();
+    if (integErr) throw new Error(integErr.message);
+
+    if (!integ || !integ.enabled) {
+      return { skipped: true, reason: "integration disabled" };
+    }
+    if (!integ.wpo_base_url || !integ.shared_secret) {
+      return { skipped: true, reason: "integration missing base_url or secret" };
+    }
+
+    const url = `${integ.wpo_base_url.replace(/\/$/, "")}/api/public/integrations/tess/inbound`;
+    const outboundBody =
+      typeof (body as any).url === "string" && (body as any).url.startsWith("/")
+        ? { ...body, url: withOrigin((body as any).url) }
+        : body;
+    const payload = { type, event: outboundBody };
+    const raw = JSON.stringify(payload);
+    const signature =
+      "sha256=" + createHmac("sha256", integ.shared_secret).update(raw).digest("hex");
+
+    // Pre-insert the dispatch row so we always have an id to update
+    let { data: pre, error: preErr } = await supabaseAdmin
       .from("integration_dispatches")
       .insert({
         department_id,
+        event_id: eventId,
         direction: "outbound",
         payload,
         attempts: 1,
-        error: `event_id log omitted: ${preErr?.message ?? "unknown"}`.slice(0, 500),
       })
       .select("id")
       .single();
-    if (retry.error || !retry.data) {
-      throw new Error(retry.error?.message ?? "Failed to log dispatch");
+    if (preErr || !pre) {
+      const retry = await supabaseAdmin
+        .from("integration_dispatches")
+        .insert({
+          department_id,
+          direction: "outbound",
+          payload,
+          attempts: 1,
+          error: `event_id log omitted: ${preErr?.message ?? "unknown"}`.slice(0, 500),
+        })
+        .select("id")
+        .single();
+      if (retry.error || !retry.data) {
+        throw new Error(retry.error?.message ?? "Failed to log dispatch");
+      }
+      pre = retry.data;
     }
-    pre = retry.data;
-  }
 
-  let status = 0;
-  let errMsg: string | null = null;
-  try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-tess-workspace": integ.wpo_workspace_id ?? "",
-        "x-tess-signature": signature,
-      },
-      body: raw,
-      signal: ctrl.signal,
-    }).finally(() => clearTimeout(timer));
-    status = res.status;
-    if (!res.ok) {
-      errMsg = (await res.text().catch(() => "")).slice(0, 500) || `HTTP ${status}`;
+    let status = 0;
+    let errMsg: string | null = null;
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-tess-workspace": integ.wpo_workspace_id ?? "",
+          "x-tess-signature": signature,
+        },
+        body: raw,
+        signal: ctrl.signal,
+      }).finally(() => clearTimeout(timer));
+      status = res.status;
+      if (!res.ok) {
+        errMsg = (await res.text().catch(() => "")).slice(0, 500) || `HTTP ${status}`;
+      }
+    } catch (e) {
+      errMsg = (e as Error).message.slice(0, 500);
     }
+
+    const success = !errMsg && status >= 200 && status < 300;
+    const nextRetry = success
+      ? null
+      : new Date(Date.now() + 5 * 60 * 1000).toISOString();
+
+    await supabaseAdmin
+      .from("integration_dispatches")
+      .update({
+        status_code: status || null,
+        error: errMsg,
+        next_retry_at: nextRetry,
+      })
+      .eq("id", pre.id);
+
+    if (success) {
+      return { ok: true, status, dispatch_id: pre.id };
+    }
+    return { ok: false, status, error: errMsg ?? "unknown", dispatch_id: pre.id };
   } catch (e) {
-    errMsg = (e as Error).message.slice(0, 500);
+    const message = (e as Error).message ?? "unknown dispatcher error";
+    // eslint-disable-next-line no-console
+    console.error("[wpo] dispatchToWpo caught:", message);
+    await logFailure(args.departmentId ?? null, { type, eventId }, message);
+    return { ok: false, status: 0, error: message, dispatch_id: "" };
   }
-
-  const success = !errMsg && status >= 200 && status < 300;
-  const nextRetry = success
-    ? null
-    : new Date(Date.now() + 5 * 60 * 1000).toISOString();
-
-  await supabaseAdmin
-    .from("integration_dispatches")
-    .update({
-      status_code: status || null,
-      error: errMsg,
-      next_retry_at: nextRetry,
-    })
-    .eq("id", pre.id);
-
-  if (success) {
-    return { ok: true, status, dispatch_id: pre.id };
-  }
-  return { ok: false, status, error: errMsg ?? "unknown", dispatch_id: pre.id };
 }
 
 // Safe wrapper: never throws. Must be awaited in Cloudflare Workers —
