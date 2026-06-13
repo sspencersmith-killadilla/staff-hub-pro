@@ -165,14 +165,16 @@ export async function dispatchToWpo(args: {
   return { ok: false, status, error: errMsg ?? "unknown", dispatch_id: pre.id };
 }
 
-// Fire-and-forget wrapper: never throws, never blocks the caller.
-export function dispatchToWpoSafe(args: {
+// Safe wrapper: never throws. Must be awaited in Cloudflare Workers —
+// fire-and-forget promises are cancelled when the response returns.
+export async function dispatchToWpoSafe(args: {
   eventId: string;
   type: WpoOutboundType;
-}): void {
-  // Intentionally not awaited.
-  void dispatchToWpo(args).catch((err) => {
+}): Promise<void> {
+  try {
+    await dispatchToWpo(args);
+  } catch (err) {
     // eslint-disable-next-line no-console
     console.error("[wpo] outbound dispatch failed:", err);
-  });
+  }
 }
