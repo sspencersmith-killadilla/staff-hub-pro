@@ -1,47 +1,42 @@
-## Re-scope WPO integration: tenant → department
+## What I found
 
-Switch the WorkPlanOS connection from per-tenant to per-department so each department (Parks, Police, etc.) connects its own WPO workspace, managed by that department's `super_admin` / `dept_admin`.
+- The deployed server logs still show the old crash: `column events.wpo_status does not exist`.
+- The app does have an Integrations settings route at `/staff/integrations`, but there is no separate `/integration_dispatches` page. Recent sync activity is embedded in that Integrations page and is only reachable from Staff Admin → WorkPlanOS integration.
+- `updateEvent` is wired to call `dispatchToWpoSafe`, so the hook exists. The likely issue is that the fix has not been published yet, or the dispatcher still has unlogged schema failure paths.
+- The outbound log table was built as `integration_dispatches`, not `wpo_dispatches`, which has made debugging confusing.
 
-### Database (migration `060_wpo_department_scope.sql`)
+## Plan
 
-1. `workplanos_integration`
-   - Drop `tenant_id` column and its index/constraints.
-   - Add `department_id uuid not null references public.departments(id) on delete cascade`.
-   - Unique index on `(department_id)`.
-2. `integration_dispatches`
-   - Drop `tenant_id`, add `department_id uuid references public.departments(id) on delete cascade`.
-   - Index on `(department_id, created_at desc)`.
-3. Replace `public.can_manage_wpo(uuid)`:
-   - Signature: `can_manage_wpo(_department_id uuid) returns boolean`, security definer.
-   - Returns true if caller is global `admin` (via `has_role`) **or** has `super_admin` / `dept_admin` in `public.department_roles` for that department.
-4. Rebuild RLS policies on both tables using the new helper. Re-issue grants (authenticated select/insert/update/delete, service_role all).
+1. **Make the dispatcher schema-proof**
+   - Keep `sessions` as the primary event source.
+   - Ensure legacy `events` fallback selects only columns that actually exist.
+   - Remove every remaining dependency on `events.wpo_status` and `events.wpo_assignee_id` from outbound code.
+   - Ensure *every* dispatcher failure inserts an `integration_dispatches` row with `direction = 'outbound'`, `status_code = null`, and the error message.
 
-### Inbound webhook (`src/routes/api/public/integrations/wpo/inbound.ts`)
+2. **Fix the manual resend/retry visibility problem**
+   - Add a direct Staff route for sync logs, e.g. `/staff/integration-dispatches`, so there is an obvious “integration dispatches area.”
+   - Show the latest 50 outbound rows with `status_code`, `error`, timestamp, event id, and payload preview.
+   - Keep retry buttons for failed outbound rows.
+   - Add navigation from the Staff/Admin integration area so it is discoverable.
 
-- Header changes from `x-wpo-tenant` (and legacy `x-wpo-workspace`) to **`x-wpo-department`**. Look up `workplanos_integration` by `department_id`.
-- `integration_dispatches` insert uses `department_id`.
-- Optional safety: when an event match is found, verify `events.department_id` equals the integration's `department_id`; otherwise mark `linked: false` and 200.
+3. **Align naming to the original prompt without breaking existing code**
+   - Keep using `integration_dispatches` as the actual table if it already exists.
+   - Add UI labels that explicitly say “Outbound WorkPlanOS dispatches” so it is not hidden behind a generic name.
+   - Do not create `events.wpo_status` or `events.wpo_assignee_id` columns.
 
-### Server functions (`src/lib/workplanos.functions.ts`)
+4. **Add diagnostic server-side breadcrumbs**
+   - Log a short line when dispatch starts, when it skips because config is missing/disabled, when it POSTs, and when it writes the dispatch row.
+   - Keep logs free of secrets and full payload dumps.
 
-- Replace every `tenantId` parameter with `departmentId`.
-- `userCanManage(departmentId)` calls the new `can_manage_wpo` RPC.
-- `canManageWpoIntegration` returns the list of departments the current user can manage (admin → all departments; otherwise their `super_admin`/`dept_admin` rows). UI uses this to populate the picker.
-- All CRUD/secret-rotation/list-dispatches fns are keyed by `departmentId`.
+5. **Verify with real signal**
+   - Use server-function logs after the change to confirm the `events.wpo_status` crash no longer appears.
+   - Trigger or use the manual resend path to confirm a new `integration_dispatches` outbound row is created.
+   - Confirm the UI page shows that row, including `status_code`, `error`, and payload preview.
 
-### Staff UI (`src/routes/_authenticated/staff/integrations.tsx`)
+## Acceptance criteria
 
-- Replace the "Select tenant" picker with a **"Select department"** picker, fed by the manageable-departments list above.
-- Empty state when user manages zero departments: "You don't have permission to manage any department integrations."
-- Webhook URL helper text updated to mention header `x-wpo-department: <department-id>`.
-- All copy: "tenant" → "department" where it refers to the connection scope.
-
-### Out of scope
-
-- No changes to the `tenants` table or branding engine.
-- No new departments are created by this work — the user uses existing departments. (If only "Default Department" exists, that's the one that connects.)
-
-### Technical notes
-
-- Migration is destructive for any existing rows in `workplanos_integration` / `integration_dispatches` from the previous tenant-scoped migration (058). Since the feature isn't live yet, the migration will `truncate` both tables before the column swap rather than attempting a tenant→department backfill.
-- `has_role` + `department_roles` are already in the schema (migs 019 + earlier roles migration), so no new role plumbing is needed.
+- Updating a TESS staff event creates an `integration_dispatches` row with `direction = 'outbound'`.
+- If WorkPlanOS rejects or is unreachable, the row still exists with `status_code`/`error` and a retry time.
+- The dispatcher no longer queries non-existent WPO columns on `events`.
+- There is a visible staff page for outbound dispatch activity.
+- WPO receives the POST when `workplanos_integration.enabled = true`, `wpo_base_url` is correct, and `shared_secret` is set.
