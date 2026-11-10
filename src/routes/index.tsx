@@ -30,7 +30,7 @@ export const Route = createFileRoute("/")({
   component: Home,
   errorComponent: ({ error }) => (
     <div className="p-8 text-sm text-destructive">
-      Couldn't load home page: {error.message}
+      Couldn't load home page: {(error as Error).message}
     </div>
   ),
 });

@@ -43,7 +43,7 @@ export const Route = createFileRoute("/community-events/$id")({
   ),
   errorComponent: ({ error }) => (
     <div className="min-h-dvh flex items-center justify-center text-destructive p-8">
-      {error.message}
+      {(error as Error).message}
     </div>
   ),
 });

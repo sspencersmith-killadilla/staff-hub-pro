@@ -92,7 +92,7 @@ export function SiteHeader() {
           <Link to="/manual" className="text-sm text-muted-foreground hover:text-foreground">
             Help Manual
           </Link>
-          <Link to="https://totaleventsystemsolutions.lovable.app/ReproductionInstruction.pdf" className="text-sm text-muted-foreground hover:text-foreground">
+          <a href="https://totaleventsystemsolutions.lovable.app/ReproductionInstruction.pdf" className="text-sm text-muted-foreground hover:text-foreground">
             Reproduction Instructions
           </Link>
         </div>

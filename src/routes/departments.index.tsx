@@ -29,7 +29,7 @@ export const Route = createFileRoute("/departments/")({
   }),
   errorComponent: ({ error }) => (
     <div className="p-8 text-sm text-destructive">
-      Couldn't load departments: {error.message}
+      Couldn't load departments: {(error as Error).message}
     </div>
   ),
   notFoundComponent: () => (
