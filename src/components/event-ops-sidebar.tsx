@@ -64,8 +64,8 @@ const items: Item[] = [
   { title: "Social Command", url: "/staff/admin/social", icon: Share2, module: "social_command", permission: "page.social_command" },
   { title: "Communications", url: "/staff/communications", icon: Mail, permission: "page.communications" },
   { title: "Surveys", url: "/staff/surveys", icon: ClipboardList, permission: "page.surveys" },
-  { title: "311 Dispatch", url: "/staff/dispatch", icon: AlertTriangle },
-  { title: "311 Assets", url: "/staff/assets", icon: AlertTriangle },
+  { title: "311 Dispatch", url: "/staff/dispatch", icon: AlertTriangle, module: "reports_311" },
+  { title: "311 Assets", url: "/staff/assets", icon: AlertTriangle, module: "reports_311" },
   { title: "Platform Settings", url: "/staff/settings", icon: Settings, permission: "page.settings" },
 ];
 

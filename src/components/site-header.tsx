@@ -112,10 +112,11 @@ export function SiteHeader() {
               <SheetTitle>Menu</SheetTitle>
             </SheetHeader>
             <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-6 py-4">
-              <SheetLink to="/events">Events</SheetLink>
-              <SheetLink to="/classes">Classes</SheetLink>
+              {isEnabled("events") && <SheetLink to="/events">Events</SheetLink>}
+              {isEnabled("classes") && <SheetLink to="/classes">Classes</SheetLink>}
               <SheetLink to="/departments">Departments</SheetLink>
-              <SheetLink to="/report">Report 311</SheetLink>
+              {isEnabled("reports_311") && <SheetLink to="/report">Report 311</SheetLink>}
+              {isEnabled("civic_quests") && <SheetLink to="/explore">Civic Quests</SheetLink>}
               {isEnabled("room_reservations") && (
                 <SheetLink to="/rooms">Rooms</SheetLink>
               )}
