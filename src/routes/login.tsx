@@ -8,8 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const Route = createFileRoute("/login")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    redirect: (s.redirect as string) || "/hub",
+  validateSearch: (s: { redirect?: unknown }): { redirect?: string } => ({
+    redirect: typeof s.redirect === "string" && s.redirect ? s.redirect : undefined,
   }),
   component: LoginPage,
 });

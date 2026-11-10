@@ -78,7 +78,7 @@ function ClassesIndex() {
           <label className="text-sm font-medium">Department:</label>
           <div className="w-64">
             <Select value={deptId} onValueChange={setDeptId}>
-              <SelectTrigger>
+              <SelectTrigger aria-label="Filter by department">
                 <SelectValue placeholder="All departments" />
               </SelectTrigger>
               <SelectContent>

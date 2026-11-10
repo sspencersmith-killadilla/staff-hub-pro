@@ -63,22 +63,22 @@ export const COLOR_THEMES: ColorTheme[] = [
 export function portalThemeClasses(theme: string) {
   switch (theme) {
     case "amber":
-      return { iconBg: "bg-amber-50 border-amber-200", iconColor: "text-amber-600", linkColor: "text-amber-600" };
+      return { iconBg: "bg-amber-50 border-amber-200", iconColor: "text-amber-600", linkColor: "text-amber-800" };
     case "indigo":
-      return { iconBg: "bg-indigo-50 border-indigo-200", iconColor: "text-indigo-600", linkColor: "text-indigo-600" };
+      return { iconBg: "bg-indigo-50 border-indigo-200", iconColor: "text-indigo-600", linkColor: "text-indigo-800" };
     case "pink":
-      return { iconBg: "bg-pink-50 border-pink-100", iconColor: "text-pink-500", linkColor: "text-pink-500" };
+      return { iconBg: "bg-pink-50 border-pink-100", iconColor: "text-pink-500", linkColor: "text-pink-800" };
     case "green":
       return { iconBg: "bg-green-50 border-green-200", iconColor: "text-green-700", linkColor: "text-green-700" };
     case "cyan":
-      return { iconBg: "bg-cyan-50 border-cyan-200", iconColor: "text-cyan-600", linkColor: "text-cyan-600" };
+      return { iconBg: "bg-cyan-50 border-cyan-200", iconColor: "text-cyan-600", linkColor: "text-cyan-800" };
     case "blue":
-      return { iconBg: "bg-blue-50 border-blue-100", iconColor: "text-blue-600", linkColor: "text-blue-600" };
+      return { iconBg: "bg-blue-50 border-blue-100", iconColor: "text-blue-600", linkColor: "text-blue-800" };
     case "navy":
       return { iconBg: "bg-slate-100 border-slate-200", iconColor: "text-slate-700", linkColor: "text-slate-700" };
     case "emerald":
     default:
-      return { iconBg: "bg-emerald-50 border-emerald-200", iconColor: "text-emerald-600", linkColor: "text-emerald-600" };
+      return { iconBg: "bg-emerald-50 border-emerald-200", iconColor: "text-emerald-600", linkColor: "text-emerald-800" };
   }
 }
 

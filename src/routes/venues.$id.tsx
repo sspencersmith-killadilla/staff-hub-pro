@@ -40,7 +40,7 @@ export const Route = createFileRoute("/venues/$id")({
     <div className="p-12 text-center text-slate-500">Venue not found.</div>
   ),
   errorComponent: ({ error }) => (
-    <div className="p-12 text-center text-slate-500">{error.message}</div>
+    <div className="p-12 text-center text-slate-500">{(error as Error).message}</div>
   ),
 });
 

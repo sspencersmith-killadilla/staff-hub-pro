@@ -39,7 +39,7 @@ const VendorPin = React.memo(function VendorPin({
     if (vendor.logo_url) {
       const img = new window.Image();
       img.src = vendor.logo_url;
-      img.crossOrigin = "Anonymous";
+      img.crossOrigin = "anonymous";
       img.onload = () => setImage(img);
     }
   }, [vendor.logo_url]);
@@ -113,7 +113,7 @@ export default function RobustMap({
     if (backgroundImage) {
       const img = new window.Image();
       img.src = backgroundImage;
-      img.crossOrigin = "Anonymous";
+      img.crossOrigin = "anonymous";
       img.onload = () => setBgImage(img);
       img.onerror = () => console.error("Failed to load map background");
     } else {

@@ -31,7 +31,7 @@ import {
 import { toDateTimeLocalInput, localInputToIso } from "@/lib/format-time";
 
 export const Route = createFileRoute("/events/permits/apply")({
-  validateSearch: (s: Record<string, unknown>) => ({
+  validateSearch: (s: { id?: unknown }): { id?: string } => ({
     id: typeof s.id === "string" ? s.id : undefined,
   }),
   head: () => ({

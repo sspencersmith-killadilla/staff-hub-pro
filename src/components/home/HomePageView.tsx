@@ -116,15 +116,15 @@ export function HomePageView({
       ))}
 
       {/* FOOTER */}
-      <footer className="bg-[#001f2b] text-muted-foreground py-12 text-center mt-auto border-t border-[#002f49]">
+      <footer className="bg-[#001f2b] text-slate-300 py-12 text-center mt-auto border-t border-[#002f49]">
         <div className="max-w-4xl mx-auto px-6">
           {content.footer_tagline && (
-            <p className="text-xs font-black uppercase tracking-[0.3em] mb-4 text-muted-foreground">
+            <p className="text-xs font-black uppercase tracking-[0.3em] mb-4 text-slate-300">
               {content.footer_tagline}
             </p>
           )}
           {content.footer_body && (
-            <p className="text-sm text-muted-foreground mb-6">{content.footer_body}</p>
+            <p className="text-sm text-slate-300 mb-6">{content.footer_body}</p>
           )}
           {content.footer_copyright && (
             <p className="text-[10px] font-bold tracking-widest uppercase">
@@ -141,7 +141,7 @@ function HeroCta({ cta }: { cta: HeroSecondaryCta }) {
   const isPrimary = cta.style === "primary" || cta.style === undefined;
   // Default first CTA primary-emerald; others outline-style
   const className = isPrimary
-    ? "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg text-center uppercase tracking-wider text-sm w-full sm:w-auto"
+    ? "bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg text-center uppercase tracking-wider text-sm w-full sm:w-auto"
     : "bg-white/10 hover:bg-white/20 text-white border border-white/30 font-bold py-3 px-6 rounded-lg transition-colors text-center uppercase tracking-wider text-sm w-full sm:w-auto";
   if (cta.href.startsWith("/")) {
     return (
@@ -285,7 +285,7 @@ function SectionRenderer({
               {section.title}
             </h2>
           )}
-          <div className="prose prose-slate max-w-none whitespace-pre-wrap">
+          <div className={`prose max-w-none whitespace-pre-wrap ${section.background === "navy" ? "prose-invert" : "prose-slate"}`}>
             {section.body_md}
           </div>
         </div>

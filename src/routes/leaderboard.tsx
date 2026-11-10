@@ -27,7 +27,7 @@ export const Route = createFileRoute("/leaderboard")({
   }),
   errorComponent: ({ error }) => (
     <div className="p-10 text-sm text-rose-700" role="alert">
-      Could not load the leaderboard: {error.message}
+      Could not load the leaderboard: {(error as Error).message}
     </div>
   ),
   notFoundComponent: () => <div className="p-10">Leaderboard not found.</div>,

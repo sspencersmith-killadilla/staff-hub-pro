@@ -31,7 +31,7 @@ export const Route = createFileRoute("/stages/$id")({
   },
   component: StageDetail,
   errorComponent: ({ error }) => (
-    <div className="p-12 text-center text-slate-500">{error.message}</div>
+    <div className="p-12 text-center text-slate-500">{(error as Error).message}</div>
   ),
 });
 
