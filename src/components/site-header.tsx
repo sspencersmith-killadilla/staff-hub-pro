@@ -94,7 +94,7 @@ export function SiteHeader() {
           </Link>
           <a href="https://totaleventsystemsolutions.lovable.app/ReproductionInstruction.pdf" className="text-sm text-muted-foreground hover:text-foreground">
             Reproduction Instructions
-          </Link>
+          </a>
         </div>
 
         {/* Right Side: Hamburger Navigation */}
