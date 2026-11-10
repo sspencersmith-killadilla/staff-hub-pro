@@ -9,176 +9,115 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as VenuesRouteImport } from './routes/venues'
-import { Route as VendorRouteImport } from './routes/vendor'
-import { Route as StreetbeatsRouteImport } from './routes/streetbeats'
-import { Route as SponsorsRouteImport } from './routes/sponsors'
-import { Route as SignupRouteImport } from './routes/signup'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as ReportRouteImport } from './routes/report'
-import { Route as NoAccessRouteImport } from './routes/no-access'
-import { Route as ManualRouteImport } from './routes/manual'
-import { Route as ManifestDotwebmanifestRouteImport } from './routes/manifest[.]webmanifest'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as LeaderboardRouteImport } from './routes/leaderboard'
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
-import { Route as CommunityRouteImport } from './routes/community'
-import { Route as ClassesRouteImport } from './routes/classes'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as RoomsIndexRouteImport } from './routes/rooms.index'
-import { Route as ExploreIndexRouteImport } from './routes/explore.index'
-import { Route as EventsIndexRouteImport } from './routes/events.index'
-import { Route as DepartmentsIndexRouteImport } from './routes/departments.index'
-import { Route as VenuesIdRouteImport } from './routes/venues.$id'
-import { Route as SurveyIdRouteImport } from './routes/survey.$id'
-import { Route as StagesIdRouteImport } from './routes/stages.$id'
-import { Route as RoomsIdRouteImport } from './routes/rooms.$id'
-import { Route as GigsIdRouteImport } from './routes/gigs.$id'
-import { Route as ExploreQuestIdRouteImport } from './routes/explore.$questId'
-import { Route as EventsIdRouteImport } from './routes/events.$id'
-import { Route as DepartmentsIdRouteImport } from './routes/departments.$id'
-import { Route as CommunityEventsIdRouteImport } from './routes/community-events.$id'
-import { Route as ClassesIdRouteImport } from './routes/classes.$id'
-import { Route as ArtistsIdRouteImport } from './routes/artists.$id'
-import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
-import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
-import { Route as AuthenticatedMyTicketsRouteImport } from './routes/_authenticated/my-tickets'
-import { Route as AuthenticatedMyScheduleRouteImport } from './routes/_authenticated/my-schedule'
-import { Route as AuthenticatedMyReservationsRouteImport } from './routes/_authenticated/my-reservations'
-import { Route as AuthenticatedMyReportsRouteImport } from './routes/_authenticated/my-reports'
-import { Route as AuthenticatedMyPermitsRouteImport } from './routes/_authenticated/my-permits'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as ClassesRouteImport } from './routes/classes'
+import { Route as CommunityRouteImport } from './routes/community'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ManifestDotwebmanifestRouteImport } from './routes/manifest[.]webmanifest'
+import { Route as ManualRouteImport } from './routes/manual'
+import { Route as NoAccessRouteImport } from './routes/no-access'
+import { Route as ReportRouteImport } from './routes/report'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SponsorsRouteImport } from './routes/sponsors'
+import { Route as StreetbeatsRouteImport } from './routes/streetbeats'
+import { Route as VendorRouteImport } from './routes/vendor'
+import { Route as VenuesRouteImport } from './routes/venues'
 import { Route as AuthenticatedHubRouteImport } from './routes/_authenticated/hub'
-import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff/index'
-import { Route as EventsPermitsApplyRouteImport } from './routes/events.permits.apply'
-import { Route as ApiPublicUnsubscribeRouteImport } from './routes/api/public/unsubscribe'
-import { Route as ApiPublicDispatchDueRouteImport } from './routes/api/public/dispatch-due'
-import { Route as ApiPublicAppleTouchIconDotpngRouteImport } from './routes/api/public/apple-touch-icon[.]png'
-import { Route as AuthenticatedStreetbeatsMyGigsRouteImport } from './routes/_authenticated/streetbeats/my-gigs'
-import { Route as AuthenticatedStreetbeatsApplyRouteImport } from './routes/_authenticated/streetbeats/apply'
-import { Route as AuthenticatedStaffVenuesRouteImport } from './routes/_authenticated/staff/venues'
-import { Route as AuthenticatedStaffVendorsRouteImport } from './routes/_authenticated/staff/vendors'
-import { Route as AuthenticatedStaffSurveysRouteImport } from './routes/_authenticated/staff/surveys'
-import { Route as AuthenticatedStaffSponsorsRouteImport } from './routes/_authenticated/staff/sponsors'
-import { Route as AuthenticatedStaffSettingsRouteImport } from './routes/_authenticated/staff/settings'
-import { Route as AuthenticatedStaffRoomReservationsRouteImport } from './routes/_authenticated/staff/room-reservations'
-import { Route as AuthenticatedStaffRedeemRouteImport } from './routes/_authenticated/staff/redeem'
-import { Route as AuthenticatedStaffQuestsReportRouteImport } from './routes/_authenticated/staff/quests-report'
-import { Route as AuthenticatedStaffMapRouteImport } from './routes/_authenticated/staff/map'
-import { Route as AuthenticatedStaffIntegrationsRouteImport } from './routes/_authenticated/staff/integrations'
-import { Route as AuthenticatedStaffIntegrationDispatchesRouteImport } from './routes/_authenticated/staff/integration-dispatches'
-import { Route as AuthenticatedStaffDispatchRouteImport } from './routes/_authenticated/staff/dispatch'
-import { Route as AuthenticatedStaffCommunityOrganizationsRouteImport } from './routes/_authenticated/staff/community-organizations'
-import { Route as AuthenticatedStaffCommunityMusicRouteImport } from './routes/_authenticated/staff/community-music'
-import { Route as AuthenticatedStaffCommunityEventsRouteImport } from './routes/_authenticated/staff/community-events'
-import { Route as AuthenticatedStaffCommunicationsRouteImport } from './routes/_authenticated/staff/communications'
-import { Route as AuthenticatedStaffClassesRouteImport } from './routes/_authenticated/staff/classes'
-import { Route as AuthenticatedStaffAttendeesRouteImport } from './routes/_authenticated/staff/attendees'
-import { Route as AuthenticatedStaffAssetsRouteImport } from './routes/_authenticated/staff/assets'
-import { Route as AuthenticatedStaffAdminRouteImport } from './routes/_authenticated/staff/admin'
-import { Route as AuthenticatedCommunityManageRouteImport } from './routes/_authenticated/community/manage'
+import { Route as AuthenticatedMyPermitsRouteImport } from './routes/_authenticated/my-permits'
+import { Route as AuthenticatedMyReportsRouteImport } from './routes/_authenticated/my-reports'
+import { Route as AuthenticatedMyReservationsRouteImport } from './routes/_authenticated/my-reservations'
+import { Route as AuthenticatedMyScheduleRouteImport } from './routes/_authenticated/my-schedule'
+import { Route as AuthenticatedMyTicketsRouteImport } from './routes/_authenticated/my-tickets'
+import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
+import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
+import { Route as ArtistsIdRouteImport } from './routes/artists.$id'
+import { Route as ClassesIdRouteImport } from './routes/classes.$id'
+import { Route as CommunityEventsIdRouteImport } from './routes/community-events.$id'
+import { Route as DepartmentsIndexRouteImport } from './routes/departments.index'
+import { Route as DepartmentsIdRouteImport } from './routes/departments.$id'
+import { Route as EventsIndexRouteImport } from './routes/events.index'
+import { Route as EventsIdRouteImport } from './routes/events.$id'
+import { Route as ExploreIndexRouteImport } from './routes/explore.index'
+import { Route as ExploreQuestIdRouteImport } from './routes/explore.$questId'
+import { Route as GigsIdRouteImport } from './routes/gigs.$id'
+import { Route as RoomsIndexRouteImport } from './routes/rooms.index'
+import { Route as RoomsIdRouteImport } from './routes/rooms.$id'
+import { Route as StagesIdRouteImport } from './routes/stages.$id'
+import { Route as SurveyIdRouteImport } from './routes/survey.$id'
+import { Route as VenuesIdRouteImport } from './routes/venues.$id'
 import { Route as AuthenticatedCommunityApplyRouteImport } from './routes/_authenticated/community/apply'
-import { Route as AuthenticatedStaffSurveysIndexRouteImport } from './routes/_authenticated/staff/surveys.index'
-import { Route as AuthenticatedStaffCommunicationsIndexRouteImport } from './routes/_authenticated/staff/communications.index'
-import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
-import { Route as AuthenticatedStaffSurveysIdRouteImport } from './routes/_authenticated/staff/surveys.$id'
-import { Route as AuthenticatedStaffEventsIdRouteImport } from './routes/_authenticated/staff/events.$id'
-import { Route as AuthenticatedStaffCommunicationsIdRouteImport } from './routes/_authenticated/staff/communications.$id'
-import { Route as AuthenticatedStaffAssetsIdRouteImport } from './routes/_authenticated/staff/assets.$id'
-import { Route as AuthenticatedStaffAdminTenantsRouteImport } from './routes/_authenticated/staff/admin.tenants'
-import { Route as AuthenticatedStaffAdminSocialIntegrationsRouteImport } from './routes/_authenticated/staff/admin.social-integrations'
-import { Route as AuthenticatedStaffAdminSocialRouteImport } from './routes/_authenticated/staff/admin.social'
-import { Route as AuthenticatedStaffAdminRafflesRouteImport } from './routes/_authenticated/staff/admin.raffles'
-import { Route as AuthenticatedStaffAdminQuestsRouteImport } from './routes/_authenticated/staff/admin.quests'
-import { Route as AuthenticatedStaffAdminPrizesRouteImport } from './routes/_authenticated/staff/admin.prizes'
-import { Route as AuthenticatedStaffAdminPermitsRouteImport } from './routes/_authenticated/staff/admin.permits'
-import { Route as AuthenticatedStaffAdminPermissionsRouteImport } from './routes/_authenticated/staff/admin.permissions'
-import { Route as AuthenticatedStaffAdminIssueCategoriesRouteImport } from './routes/_authenticated/staff/admin.issue-categories'
-import { Route as AuthenticatedStaffAdminHomeRouteImport } from './routes/_authenticated/staff/admin.home'
-import { Route as AuthenticatedStaffAdminGuidebookPublisherRouteImport } from './routes/_authenticated/staff/admin.guidebook-publisher'
-import { Route as AuthenticatedStaffAdminGuidebookCanvasRouteImport } from './routes/_authenticated/staff/admin.guidebook-canvas'
-import { Route as AuthenticatedStaffAdminGuidebookRouteImport } from './routes/_authenticated/staff/admin.guidebook'
-import { Route as AuthenticatedStaffAdminEmailSettingsRouteImport } from './routes/_authenticated/staff/admin.email-settings'
-import { Route as AuthenticatedStaffAdminDepartmentsRouteImport } from './routes/_authenticated/staff/admin.departments'
-import { Route as AuthenticatedStaffAdminBrandingRouteImport } from './routes/_authenticated/staff/admin.branding'
+import { Route as AuthenticatedCommunityManageRouteImport } from './routes/_authenticated/community/manage'
+import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff/index'
+import { Route as AuthenticatedStaffAdminRouteImport } from './routes/_authenticated/staff/admin'
+import { Route as AuthenticatedStaffAssetsRouteImport } from './routes/_authenticated/staff/assets'
+import { Route as AuthenticatedStaffAttendeesRouteImport } from './routes/_authenticated/staff/attendees'
+import { Route as AuthenticatedStaffClassesRouteImport } from './routes/_authenticated/staff/classes'
+import { Route as AuthenticatedStaffCommunicationsRouteImport } from './routes/_authenticated/staff/communications'
+import { Route as AuthenticatedStaffCommunityEventsRouteImport } from './routes/_authenticated/staff/community-events'
+import { Route as AuthenticatedStaffCommunityMusicRouteImport } from './routes/_authenticated/staff/community-music'
+import { Route as AuthenticatedStaffCommunityOrganizationsRouteImport } from './routes/_authenticated/staff/community-organizations'
+import { Route as AuthenticatedStaffDispatchRouteImport } from './routes/_authenticated/staff/dispatch'
+import { Route as AuthenticatedStaffIntegrationDispatchesRouteImport } from './routes/_authenticated/staff/integration-dispatches'
+import { Route as AuthenticatedStaffIntegrationsRouteImport } from './routes/_authenticated/staff/integrations'
+import { Route as AuthenticatedStaffMapRouteImport } from './routes/_authenticated/staff/map'
+import { Route as AuthenticatedStaffQuestsReportRouteImport } from './routes/_authenticated/staff/quests-report'
+import { Route as AuthenticatedStaffRedeemRouteImport } from './routes/_authenticated/staff/redeem'
+import { Route as AuthenticatedStaffRoomReservationsRouteImport } from './routes/_authenticated/staff/room-reservations'
+import { Route as AuthenticatedStaffSettingsRouteImport } from './routes/_authenticated/staff/settings'
+import { Route as AuthenticatedStaffSponsorsRouteImport } from './routes/_authenticated/staff/sponsors'
+import { Route as AuthenticatedStaffSurveysRouteImport } from './routes/_authenticated/staff/surveys'
+import { Route as AuthenticatedStaffVendorsRouteImport } from './routes/_authenticated/staff/vendors'
+import { Route as AuthenticatedStaffVenuesRouteImport } from './routes/_authenticated/staff/venues'
+import { Route as AuthenticatedStreetbeatsApplyRouteImport } from './routes/_authenticated/streetbeats/apply'
+import { Route as AuthenticatedStreetbeatsMyGigsRouteImport } from './routes/_authenticated/streetbeats/my-gigs'
+import { Route as ApiPublicAppleTouchIconDotpngRouteImport } from './routes/api/public/apple-touch-icon[.]png'
+import { Route as ApiPublicDispatchDueRouteImport } from './routes/api/public/dispatch-due'
+import { Route as ApiPublicUnsubscribeRouteImport } from './routes/api/public/unsubscribe'
+import { Route as EventsPermitsApplyRouteImport } from './routes/events.permits.apply'
 import { Route as AuthenticatedStaffAdminAnalyticsRouteImport } from './routes/_authenticated/staff/admin.analytics'
-import { Route as AuthenticatedStaffSurveysIdIndexRouteImport } from './routes/_authenticated/staff/surveys.$id.index'
-import { Route as ApiPublicOauthMetaCallbackRouteImport } from './routes/api/public/oauth/meta/callback'
-import { Route as ApiPublicOauthLinkedinCallbackRouteImport } from './routes/api/public/oauth/linkedin/callback'
-import { Route as ApiPublicIntegrationsWpoInboundRouteImport } from './routes/api/public/integrations/wpo/inbound'
-import { Route as AuthenticatedStaffSurveysIdAnalyticsRouteImport } from './routes/_authenticated/staff/surveys.$id.analytics'
+import { Route as AuthenticatedStaffAdminBrandingRouteImport } from './routes/_authenticated/staff/admin.branding'
+import { Route as AuthenticatedStaffAdminDepartmentsRouteImport } from './routes/_authenticated/staff/admin.departments'
+import { Route as AuthenticatedStaffAdminEmailSettingsRouteImport } from './routes/_authenticated/staff/admin.email-settings'
+import { Route as AuthenticatedStaffAdminGuidebookRouteImport } from './routes/_authenticated/staff/admin.guidebook'
+import { Route as AuthenticatedStaffAdminGuidebookCanvasRouteImport } from './routes/_authenticated/staff/admin.guidebook-canvas'
+import { Route as AuthenticatedStaffAdminGuidebookPublisherRouteImport } from './routes/_authenticated/staff/admin.guidebook-publisher'
+import { Route as AuthenticatedStaffAdminHomeRouteImport } from './routes/_authenticated/staff/admin.home'
+import { Route as AuthenticatedStaffAdminIssueCategoriesRouteImport } from './routes/_authenticated/staff/admin.issue-categories'
+import { Route as AuthenticatedStaffAdminPermissionsRouteImport } from './routes/_authenticated/staff/admin.permissions'
+import { Route as AuthenticatedStaffAdminPermitsRouteImport } from './routes/_authenticated/staff/admin.permits'
+import { Route as AuthenticatedStaffAdminPrizesRouteImport } from './routes/_authenticated/staff/admin.prizes'
+import { Route as AuthenticatedStaffAdminQuestsRouteImport } from './routes/_authenticated/staff/admin.quests'
+import { Route as AuthenticatedStaffAdminRafflesRouteImport } from './routes/_authenticated/staff/admin.raffles'
+import { Route as AuthenticatedStaffAdminSocialRouteImport } from './routes/_authenticated/staff/admin.social'
+import { Route as AuthenticatedStaffAdminSocialIntegrationsRouteImport } from './routes/_authenticated/staff/admin.social-integrations'
+import { Route as AuthenticatedStaffAdminTenantsRouteImport } from './routes/_authenticated/staff/admin.tenants'
+import { Route as AuthenticatedStaffAssetsIdRouteImport } from './routes/_authenticated/staff/assets.$id'
+import { Route as AuthenticatedStaffCommunicationsIndexRouteImport } from './routes/_authenticated/staff/communications.index'
+import { Route as AuthenticatedStaffCommunicationsIdRouteImport } from './routes/_authenticated/staff/communications.$id'
+import { Route as AuthenticatedStaffEventsIdRouteImport } from './routes/_authenticated/staff/events.$id'
+import { Route as AuthenticatedStaffSurveysIndexRouteImport } from './routes/_authenticated/staff/surveys.index'
+import { Route as AuthenticatedStaffSurveysIdRouteImport } from './routes/_authenticated/staff/surveys.$id'
+import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
 import { Route as AuthenticatedStaffAdminSocialConnectionsRouteImport } from './routes/_authenticated/staff/admin.social.connections'
-import { Route as ApiPublicEmailTrackOpenRidRouteImport } from './routes/api/public/email.track.open.$rid'
+import { Route as AuthenticatedStaffSurveysIdIndexRouteImport } from './routes/_authenticated/staff/surveys.$id.index'
+import { Route as AuthenticatedStaffSurveysIdAnalyticsRouteImport } from './routes/_authenticated/staff/surveys.$id.analytics'
+import { Route as ApiPublicIntegrationsWpoInboundRouteImport } from './routes/api/public/integrations/wpo/inbound'
+import { Route as ApiPublicOauthLinkedinCallbackRouteImport } from './routes/api/public/oauth/linkedin/callback'
+import { Route as ApiPublicOauthMetaCallbackRouteImport } from './routes/api/public/oauth/meta/callback'
 import { Route as ApiPublicEmailTrackClickRidRouteImport } from './routes/api/public/email.track.click.$rid'
+import { Route as ApiPublicEmailTrackOpenRidRouteImport } from './routes/api/public/email.track.open.$rid'
 
-const VenuesRoute = VenuesRouteImport.update({
-  id: '/venues',
-  path: '/venues',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VendorRoute = VendorRouteImport.update({
-  id: '/vendor',
-  path: '/vendor',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StreetbeatsRoute = StreetbeatsRouteImport.update({
-  id: '/streetbeats',
-  path: '/streetbeats',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SponsorsRoute = SponsorsRouteImport.update({
-  id: '/sponsors',
-  path: '/sponsors',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReportRoute = ReportRouteImport.update({
-  id: '/report',
-  path: '/report',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NoAccessRoute = NoAccessRouteImport.update({
-  id: '/no-access',
-  path: '/no-access',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ManualRoute = ManualRouteImport.update({
-  id: '/manual',
-  path: '/manual',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ManifestDotwebmanifestRoute = ManifestDotwebmanifestRouteImport.update({
-  id: '/manifest.webmanifest',
-  path: '/manifest.webmanifest',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LeaderboardRoute = LeaderboardRouteImport.update({
-  id: '/leaderboard',
-  path: '/leaderboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CommunityRoute = CommunityRouteImport.update({
-  id: '/community',
-  path: '/community',
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClassesRoute = ClassesRouteImport.update({
@@ -186,108 +125,89 @@ const ClassesRoute = ClassesRouteImport.update({
   path: '/classes',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RoomsIndexRoute = RoomsIndexRouteImport.update({
-  id: '/rooms/',
-  path: '/rooms/',
+const LeaderboardRoute = LeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ExploreIndexRoute = ExploreIndexRouteImport.update({
-  id: '/explore/',
-  path: '/explore/',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EventsIndexRoute = EventsIndexRouteImport.update({
-  id: '/events/',
-  path: '/events/',
+const ManifestDotwebmanifestRoute = ManifestDotwebmanifestRouteImport.update({
+  id: '/manifest.webmanifest',
+  path: '/manifest.webmanifest',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DepartmentsIndexRoute = DepartmentsIndexRouteImport.update({
-  id: '/departments/',
-  path: '/departments/',
+const ManualRoute = ManualRouteImport.update({
+  id: '/manual',
+  path: '/manual',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VenuesIdRoute = VenuesIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => VenuesRoute,
-} as any)
-const SurveyIdRoute = SurveyIdRouteImport.update({
-  id: '/survey/$id',
-  path: '/survey/$id',
+const NoAccessRoute = NoAccessRouteImport.update({
+  id: '/no-access',
+  path: '/no-access',
   getParentRoute: () => rootRouteImport,
 } as any)
-const StagesIdRoute = StagesIdRouteImport.update({
-  id: '/stages/$id',
-  path: '/stages/$id',
+const ReportRoute = ReportRouteImport.update({
+  id: '/report',
+  path: '/report',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RoomsIdRoute = RoomsIdRouteImport.update({
-  id: '/rooms/$id',
-  path: '/rooms/$id',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const GigsIdRoute = GigsIdRouteImport.update({
-  id: '/gigs/$id',
-  path: '/gigs/$id',
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ExploreQuestIdRoute = ExploreQuestIdRouteImport.update({
-  id: '/explore/$questId',
-  path: '/explore/$questId',
+const SponsorsRoute = SponsorsRouteImport.update({
+  id: '/sponsors',
+  path: '/sponsors',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EventsIdRoute = EventsIdRouteImport.update({
-  id: '/events/$id',
-  path: '/events/$id',
+const StreetbeatsRoute = StreetbeatsRouteImport.update({
+  id: '/streetbeats',
+  path: '/streetbeats',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DepartmentsIdRoute = DepartmentsIdRouteImport.update({
-  id: '/departments/$id',
-  path: '/departments/$id',
+const VendorRoute = VendorRouteImport.update({
+  id: '/vendor',
+  path: '/vendor',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CommunityEventsIdRoute = CommunityEventsIdRouteImport.update({
-  id: '/community-events/$id',
-  path: '/community-events/$id',
+const VenuesRoute = VenuesRouteImport.update({
+  id: '/venues',
+  path: '/venues',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ClassesIdRoute = ClassesIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ClassesRoute,
-} as any)
-const ArtistsIdRoute = ArtistsIdRouteImport.update({
-  id: '/artists/$id',
-  path: '/artists/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
-  id: '/wallet',
-  path: '/wallet',
+const AuthenticatedHubRoute = AuthenticatedHubRouteImport.update({
+  id: '/hub',
+  path: '/hub',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
-  id: '/staff',
-  path: '/staff',
+const AuthenticatedMyPermitsRoute = AuthenticatedMyPermitsRouteImport.update({
+  id: '/my-permits',
+  path: '/my-permits',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedMyTicketsRoute = AuthenticatedMyTicketsRouteImport.update({
-  id: '/my-tickets',
-  path: '/my-tickets',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedMyScheduleRoute = AuthenticatedMyScheduleRouteImport.update({
-  id: '/my-schedule',
-  path: '/my-schedule',
+const AuthenticatedMyReportsRoute = AuthenticatedMyReportsRouteImport.update({
+  id: '/my-reports',
+  path: '/my-reports',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedMyReservationsRoute =
@@ -296,158 +216,127 @@ const AuthenticatedMyReservationsRoute =
     path: '/my-reservations',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedMyReportsRoute = AuthenticatedMyReportsRouteImport.update({
-  id: '/my-reports',
-  path: '/my-reports',
+const AuthenticatedMyScheduleRoute = AuthenticatedMyScheduleRouteImport.update({
+  id: '/my-schedule',
+  path: '/my-schedule',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedMyPermitsRoute = AuthenticatedMyPermitsRouteImport.update({
-  id: '/my-permits',
-  path: '/my-permits',
+const AuthenticatedMyTicketsRoute = AuthenticatedMyTicketsRouteImport.update({
+  id: '/my-tickets',
+  path: '/my-tickets',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedHubRoute = AuthenticatedHubRouteImport.update({
-  id: '/hub',
-  path: '/hub',
+const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
+  id: '/staff',
+  path: '/staff',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const ArtistsIdRoute = ArtistsIdRouteImport.update({
+  id: '/artists/$id',
+  path: '/artists/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClassesIdRoute = ClassesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ClassesRoute,
+} as any)
+const CommunityEventsIdRoute = CommunityEventsIdRouteImport.update({
+  id: '/community-events/$id',
+  path: '/community-events/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DepartmentsIndexRoute = DepartmentsIndexRouteImport.update({
+  id: '/departments/',
+  path: '/departments/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DepartmentsIdRoute = DepartmentsIdRouteImport.update({
+  id: '/departments/$id',
+  path: '/departments/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsIndexRoute = EventsIndexRouteImport.update({
+  id: '/events/',
+  path: '/events/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsIdRoute = EventsIdRouteImport.update({
+  id: '/events/$id',
+  path: '/events/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExploreIndexRoute = ExploreIndexRouteImport.update({
+  id: '/explore/',
+  path: '/explore/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExploreQuestIdRoute = ExploreQuestIdRouteImport.update({
+  id: '/explore/$questId',
+  path: '/explore/$questId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GigsIdRoute = GigsIdRouteImport.update({
+  id: '/gigs/$id',
+  path: '/gigs/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoomsIndexRoute = RoomsIndexRouteImport.update({
+  id: '/rooms/',
+  path: '/rooms/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoomsIdRoute = RoomsIdRouteImport.update({
+  id: '/rooms/$id',
+  path: '/rooms/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StagesIdRoute = StagesIdRouteImport.update({
+  id: '/stages/$id',
+  path: '/stages/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SurveyIdRoute = SurveyIdRouteImport.update({
+  id: '/survey/$id',
+  path: '/survey/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VenuesIdRoute = VenuesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => VenuesRoute,
+} as any)
+const AuthenticatedCommunityApplyRoute =
+  AuthenticatedCommunityApplyRouteImport.update({
+    id: '/community/apply',
+    path: '/community/apply',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedCommunityManageRoute =
+  AuthenticatedCommunityManageRouteImport.update({
+    id: '/community/manage',
+    path: '/community/manage',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedStaffIndexRoute = AuthenticatedStaffIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedStaffRoute,
 } as any)
-const EventsPermitsApplyRoute = EventsPermitsApplyRouteImport.update({
-  id: '/events/permits/apply',
-  path: '/events/permits/apply',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicUnsubscribeRoute = ApiPublicUnsubscribeRouteImport.update({
-  id: '/api/public/unsubscribe',
-  path: '/api/public/unsubscribe',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicDispatchDueRoute = ApiPublicDispatchDueRouteImport.update({
-  id: '/api/public/dispatch-due',
-  path: '/api/public/dispatch-due',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicAppleTouchIconDotpngRoute =
-  ApiPublicAppleTouchIconDotpngRouteImport.update({
-    id: '/api/public/apple-touch-icon.png',
-    path: '/api/public/apple-touch-icon.png',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const AuthenticatedStreetbeatsMyGigsRoute =
-  AuthenticatedStreetbeatsMyGigsRouteImport.update({
-    id: '/streetbeats/my-gigs',
-    path: '/streetbeats/my-gigs',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedStreetbeatsApplyRoute =
-  AuthenticatedStreetbeatsApplyRouteImport.update({
-    id: '/streetbeats/apply',
-    path: '/streetbeats/apply',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedStaffVenuesRoute =
-  AuthenticatedStaffVenuesRouteImport.update({
-    id: '/venues',
-    path: '/venues',
-    getParentRoute: () => AuthenticatedStaffRoute,
-  } as any)
-const AuthenticatedStaffVendorsRoute =
-  AuthenticatedStaffVendorsRouteImport.update({
-    id: '/vendors',
-    path: '/vendors',
-    getParentRoute: () => AuthenticatedStaffRoute,
-  } as any)
-const AuthenticatedStaffSurveysRoute =
-  AuthenticatedStaffSurveysRouteImport.update({
-    id: '/surveys',
-    path: '/surveys',
-    getParentRoute: () => AuthenticatedStaffRoute,
-  } as any)
-const AuthenticatedStaffSponsorsRoute =
-  AuthenticatedStaffSponsorsRouteImport.update({
-    id: '/sponsors',
-    path: '/sponsors',
-    getParentRoute: () => AuthenticatedStaffRoute,
-  } as any)
-const AuthenticatedStaffSettingsRoute =
-  AuthenticatedStaffSettingsRouteImport.update({
-    id: '/settings',
-    path: '/settings',
-    getParentRoute: () => AuthenticatedStaffRoute,
-  } as any)
-const AuthenticatedStaffRoomReservationsRoute =
-  AuthenticatedStaffRoomReservationsRouteImport.update({
-    id: '/room-reservations',
-    path: '/room-reservations',
-    getParentRoute: () => AuthenticatedStaffRoute,
-  } as any)
-const AuthenticatedStaffRedeemRoute =
-  AuthenticatedStaffRedeemRouteImport.update({
-    id: '/redeem',
-    path: '/redeem',
-    getParentRoute: () => AuthenticatedStaffRoute,
-  } as any)
-const AuthenticatedStaffQuestsReportRoute =
-  AuthenticatedStaffQuestsReportRouteImport.update({
-    id: '/quests-report',
-    path: '/quests-report',
-    getParentRoute: () => AuthenticatedStaffRoute,
-  } as any)
-const AuthenticatedStaffMapRoute = AuthenticatedStaffMapRouteImport.update({
-  id: '/map',
-  path: '/map',
+const AuthenticatedStaffAdminRoute = AuthenticatedStaffAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => AuthenticatedStaffRoute,
 } as any)
-const AuthenticatedStaffIntegrationsRoute =
-  AuthenticatedStaffIntegrationsRouteImport.update({
-    id: '/integrations',
-    path: '/integrations',
-    getParentRoute: () => AuthenticatedStaffRoute,
-  } as any)
-const AuthenticatedStaffIntegrationDispatchesRoute =
-  AuthenticatedStaffIntegrationDispatchesRouteImport.update({
-    id: '/integration-dispatches',
-    path: '/integration-dispatches',
-    getParentRoute: () => AuthenticatedStaffRoute,
-  } as any)
-const AuthenticatedStaffDispatchRoute =
-  AuthenticatedStaffDispatchRouteImport.update({
-    id: '/dispatch',
-    path: '/dispatch',
-    getParentRoute: () => AuthenticatedStaffRoute,
-  } as any)
-const AuthenticatedStaffCommunityOrganizationsRoute =
-  AuthenticatedStaffCommunityOrganizationsRouteImport.update({
-    id: '/community-organizations',
-    path: '/community-organizations',
-    getParentRoute: () => AuthenticatedStaffRoute,
-  } as any)
-const AuthenticatedStaffCommunityMusicRoute =
-  AuthenticatedStaffCommunityMusicRouteImport.update({
-    id: '/community-music',
-    path: '/community-music',
-    getParentRoute: () => AuthenticatedStaffRoute,
-  } as any)
-const AuthenticatedStaffCommunityEventsRoute =
-  AuthenticatedStaffCommunityEventsRouteImport.update({
-    id: '/community-events',
-    path: '/community-events',
-    getParentRoute: () => AuthenticatedStaffRoute,
-  } as any)
-const AuthenticatedStaffCommunicationsRoute =
-  AuthenticatedStaffCommunicationsRouteImport.update({
-    id: '/communications',
-    path: '/communications',
-    getParentRoute: () => AuthenticatedStaffRoute,
-  } as any)
-const AuthenticatedStaffClassesRoute =
-  AuthenticatedStaffClassesRouteImport.update({
-    id: '/classes',
-    path: '/classes',
+const AuthenticatedStaffAssetsRoute =
+  AuthenticatedStaffAssetsRouteImport.update({
+    id: '/assets',
+    path: '/assets',
     getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
 const AuthenticatedStaffAttendeesRoute =
@@ -456,159 +345,144 @@ const AuthenticatedStaffAttendeesRoute =
     path: '/attendees',
     getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
-const AuthenticatedStaffAssetsRoute =
-  AuthenticatedStaffAssetsRouteImport.update({
-    id: '/assets',
-    path: '/assets',
+const AuthenticatedStaffClassesRoute =
+  AuthenticatedStaffClassesRouteImport.update({
+    id: '/classes',
+    path: '/classes',
     getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
-const AuthenticatedStaffAdminRoute = AuthenticatedStaffAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const AuthenticatedStaffCommunicationsRoute =
+  AuthenticatedStaffCommunicationsRouteImport.update({
+    id: '/communications',
+    path: '/communications',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
+const AuthenticatedStaffCommunityEventsRoute =
+  AuthenticatedStaffCommunityEventsRouteImport.update({
+    id: '/community-events',
+    path: '/community-events',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
+const AuthenticatedStaffCommunityMusicRoute =
+  AuthenticatedStaffCommunityMusicRouteImport.update({
+    id: '/community-music',
+    path: '/community-music',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
+const AuthenticatedStaffCommunityOrganizationsRoute =
+  AuthenticatedStaffCommunityOrganizationsRouteImport.update({
+    id: '/community-organizations',
+    path: '/community-organizations',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
+const AuthenticatedStaffDispatchRoute =
+  AuthenticatedStaffDispatchRouteImport.update({
+    id: '/dispatch',
+    path: '/dispatch',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
+const AuthenticatedStaffIntegrationDispatchesRoute =
+  AuthenticatedStaffIntegrationDispatchesRouteImport.update({
+    id: '/integration-dispatches',
+    path: '/integration-dispatches',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
+const AuthenticatedStaffIntegrationsRoute =
+  AuthenticatedStaffIntegrationsRouteImport.update({
+    id: '/integrations',
+    path: '/integrations',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
+const AuthenticatedStaffMapRoute = AuthenticatedStaffMapRouteImport.update({
+  id: '/map',
+  path: '/map',
   getParentRoute: () => AuthenticatedStaffRoute,
 } as any)
-const AuthenticatedCommunityManageRoute =
-  AuthenticatedCommunityManageRouteImport.update({
-    id: '/community/manage',
-    path: '/community/manage',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedCommunityApplyRoute =
-  AuthenticatedCommunityApplyRouteImport.update({
-    id: '/community/apply',
-    path: '/community/apply',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedStaffSurveysIndexRoute =
-  AuthenticatedStaffSurveysIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedStaffSurveysRoute,
-  } as any)
-const AuthenticatedStaffCommunicationsIndexRoute =
-  AuthenticatedStaffCommunicationsIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedStaffCommunicationsRoute,
-  } as any)
-const ApiPublicManifestWebmanifestRoute =
-  ApiPublicManifestWebmanifestRouteImport.update({
-    id: '/api/public/manifest/webmanifest',
-    path: '/api/public/manifest/webmanifest',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const AuthenticatedStaffSurveysIdRoute =
-  AuthenticatedStaffSurveysIdRouteImport.update({
-    id: '/$id',
-    path: '/$id',
-    getParentRoute: () => AuthenticatedStaffSurveysRoute,
-  } as any)
-const AuthenticatedStaffEventsIdRoute =
-  AuthenticatedStaffEventsIdRouteImport.update({
-    id: '/events/$id',
-    path: '/events/$id',
+const AuthenticatedStaffQuestsReportRoute =
+  AuthenticatedStaffQuestsReportRouteImport.update({
+    id: '/quests-report',
+    path: '/quests-report',
     getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
-const AuthenticatedStaffCommunicationsIdRoute =
-  AuthenticatedStaffCommunicationsIdRouteImport.update({
-    id: '/$id',
-    path: '/$id',
-    getParentRoute: () => AuthenticatedStaffCommunicationsRoute,
+const AuthenticatedStaffRedeemRoute =
+  AuthenticatedStaffRedeemRouteImport.update({
+    id: '/redeem',
+    path: '/redeem',
+    getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
-const AuthenticatedStaffAssetsIdRoute =
-  AuthenticatedStaffAssetsIdRouteImport.update({
-    id: '/$id',
-    path: '/$id',
-    getParentRoute: () => AuthenticatedStaffAssetsRoute,
+const AuthenticatedStaffRoomReservationsRoute =
+  AuthenticatedStaffRoomReservationsRouteImport.update({
+    id: '/room-reservations',
+    path: '/room-reservations',
+    getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
-const AuthenticatedStaffAdminTenantsRoute =
-  AuthenticatedStaffAdminTenantsRouteImport.update({
-    id: '/tenants',
-    path: '/tenants',
-    getParentRoute: () => AuthenticatedStaffAdminRoute,
+const AuthenticatedStaffSettingsRoute =
+  AuthenticatedStaffSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
-const AuthenticatedStaffAdminSocialIntegrationsRoute =
-  AuthenticatedStaffAdminSocialIntegrationsRouteImport.update({
-    id: '/social-integrations',
-    path: '/social-integrations',
-    getParentRoute: () => AuthenticatedStaffAdminRoute,
+const AuthenticatedStaffSponsorsRoute =
+  AuthenticatedStaffSponsorsRouteImport.update({
+    id: '/sponsors',
+    path: '/sponsors',
+    getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
-const AuthenticatedStaffAdminSocialRoute =
-  AuthenticatedStaffAdminSocialRouteImport.update({
-    id: '/social',
-    path: '/social',
-    getParentRoute: () => AuthenticatedStaffAdminRoute,
+const AuthenticatedStaffSurveysRoute =
+  AuthenticatedStaffSurveysRouteImport.update({
+    id: '/surveys',
+    path: '/surveys',
+    getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
-const AuthenticatedStaffAdminRafflesRoute =
-  AuthenticatedStaffAdminRafflesRouteImport.update({
-    id: '/raffles',
-    path: '/raffles',
-    getParentRoute: () => AuthenticatedStaffAdminRoute,
+const AuthenticatedStaffVendorsRoute =
+  AuthenticatedStaffVendorsRouteImport.update({
+    id: '/vendors',
+    path: '/vendors',
+    getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
-const AuthenticatedStaffAdminQuestsRoute =
-  AuthenticatedStaffAdminQuestsRouteImport.update({
-    id: '/quests',
-    path: '/quests',
-    getParentRoute: () => AuthenticatedStaffAdminRoute,
+const AuthenticatedStaffVenuesRoute =
+  AuthenticatedStaffVenuesRouteImport.update({
+    id: '/venues',
+    path: '/venues',
+    getParentRoute: () => AuthenticatedStaffRoute,
   } as any)
-const AuthenticatedStaffAdminPrizesRoute =
-  AuthenticatedStaffAdminPrizesRouteImport.update({
-    id: '/prizes',
-    path: '/prizes',
-    getParentRoute: () => AuthenticatedStaffAdminRoute,
+const AuthenticatedStreetbeatsApplyRoute =
+  AuthenticatedStreetbeatsApplyRouteImport.update({
+    id: '/streetbeats/apply',
+    path: '/streetbeats/apply',
+    getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedStaffAdminPermitsRoute =
-  AuthenticatedStaffAdminPermitsRouteImport.update({
-    id: '/permits',
-    path: '/permits',
-    getParentRoute: () => AuthenticatedStaffAdminRoute,
+const AuthenticatedStreetbeatsMyGigsRoute =
+  AuthenticatedStreetbeatsMyGigsRouteImport.update({
+    id: '/streetbeats/my-gigs',
+    path: '/streetbeats/my-gigs',
+    getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedStaffAdminPermissionsRoute =
-  AuthenticatedStaffAdminPermissionsRouteImport.update({
-    id: '/permissions',
-    path: '/permissions',
-    getParentRoute: () => AuthenticatedStaffAdminRoute,
+const ApiPublicAppleTouchIconDotpngRoute =
+  ApiPublicAppleTouchIconDotpngRouteImport.update({
+    id: '/api/public/apple-touch-icon.png',
+    path: '/api/public/apple-touch-icon.png',
+    getParentRoute: () => rootRouteImport,
   } as any)
-const AuthenticatedStaffAdminIssueCategoriesRoute =
-  AuthenticatedStaffAdminIssueCategoriesRouteImport.update({
-    id: '/issue-categories',
-    path: '/issue-categories',
-    getParentRoute: () => AuthenticatedStaffAdminRoute,
-  } as any)
-const AuthenticatedStaffAdminHomeRoute =
-  AuthenticatedStaffAdminHomeRouteImport.update({
-    id: '/home',
-    path: '/home',
-    getParentRoute: () => AuthenticatedStaffAdminRoute,
-  } as any)
-const AuthenticatedStaffAdminGuidebookPublisherRoute =
-  AuthenticatedStaffAdminGuidebookPublisherRouteImport.update({
-    id: '/guidebook-publisher',
-    path: '/guidebook-publisher',
-    getParentRoute: () => AuthenticatedStaffAdminRoute,
-  } as any)
-const AuthenticatedStaffAdminGuidebookCanvasRoute =
-  AuthenticatedStaffAdminGuidebookCanvasRouteImport.update({
-    id: '/guidebook-canvas',
-    path: '/guidebook-canvas',
-    getParentRoute: () => AuthenticatedStaffAdminRoute,
-  } as any)
-const AuthenticatedStaffAdminGuidebookRoute =
-  AuthenticatedStaffAdminGuidebookRouteImport.update({
-    id: '/guidebook',
-    path: '/guidebook',
-    getParentRoute: () => AuthenticatedStaffAdminRoute,
-  } as any)
-const AuthenticatedStaffAdminEmailSettingsRoute =
-  AuthenticatedStaffAdminEmailSettingsRouteImport.update({
-    id: '/email-settings',
-    path: '/email-settings',
-    getParentRoute: () => AuthenticatedStaffAdminRoute,
-  } as any)
-const AuthenticatedStaffAdminDepartmentsRoute =
-  AuthenticatedStaffAdminDepartmentsRouteImport.update({
-    id: '/departments',
-    path: '/departments',
+const ApiPublicDispatchDueRoute = ApiPublicDispatchDueRouteImport.update({
+  id: '/api/public/dispatch-due',
+  path: '/api/public/dispatch-due',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicUnsubscribeRoute = ApiPublicUnsubscribeRouteImport.update({
+  id: '/api/public/unsubscribe',
+  path: '/api/public/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsPermitsApplyRoute = EventsPermitsApplyRouteImport.update({
+  id: '/events/permits/apply',
+  path: '/events/permits/apply',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedStaffAdminAnalyticsRoute =
+  AuthenticatedStaffAdminAnalyticsRouteImport.update({
+    id: '/analytics',
+    path: '/analytics',
     getParentRoute: () => AuthenticatedStaffAdminRoute,
   } as any)
 const AuthenticatedStaffAdminBrandingRoute =
@@ -617,11 +491,143 @@ const AuthenticatedStaffAdminBrandingRoute =
     path: '/branding',
     getParentRoute: () => AuthenticatedStaffAdminRoute,
   } as any)
-const AuthenticatedStaffAdminAnalyticsRoute =
-  AuthenticatedStaffAdminAnalyticsRouteImport.update({
-    id: '/analytics',
-    path: '/analytics',
+const AuthenticatedStaffAdminDepartmentsRoute =
+  AuthenticatedStaffAdminDepartmentsRouteImport.update({
+    id: '/departments',
+    path: '/departments',
     getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
+const AuthenticatedStaffAdminEmailSettingsRoute =
+  AuthenticatedStaffAdminEmailSettingsRouteImport.update({
+    id: '/email-settings',
+    path: '/email-settings',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
+const AuthenticatedStaffAdminGuidebookRoute =
+  AuthenticatedStaffAdminGuidebookRouteImport.update({
+    id: '/guidebook',
+    path: '/guidebook',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
+const AuthenticatedStaffAdminGuidebookCanvasRoute =
+  AuthenticatedStaffAdminGuidebookCanvasRouteImport.update({
+    id: '/guidebook-canvas',
+    path: '/guidebook-canvas',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
+const AuthenticatedStaffAdminGuidebookPublisherRoute =
+  AuthenticatedStaffAdminGuidebookPublisherRouteImport.update({
+    id: '/guidebook-publisher',
+    path: '/guidebook-publisher',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
+const AuthenticatedStaffAdminHomeRoute =
+  AuthenticatedStaffAdminHomeRouteImport.update({
+    id: '/home',
+    path: '/home',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
+const AuthenticatedStaffAdminIssueCategoriesRoute =
+  AuthenticatedStaffAdminIssueCategoriesRouteImport.update({
+    id: '/issue-categories',
+    path: '/issue-categories',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
+const AuthenticatedStaffAdminPermissionsRoute =
+  AuthenticatedStaffAdminPermissionsRouteImport.update({
+    id: '/permissions',
+    path: '/permissions',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
+const AuthenticatedStaffAdminPermitsRoute =
+  AuthenticatedStaffAdminPermitsRouteImport.update({
+    id: '/permits',
+    path: '/permits',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
+const AuthenticatedStaffAdminPrizesRoute =
+  AuthenticatedStaffAdminPrizesRouteImport.update({
+    id: '/prizes',
+    path: '/prizes',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
+const AuthenticatedStaffAdminQuestsRoute =
+  AuthenticatedStaffAdminQuestsRouteImport.update({
+    id: '/quests',
+    path: '/quests',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
+const AuthenticatedStaffAdminRafflesRoute =
+  AuthenticatedStaffAdminRafflesRouteImport.update({
+    id: '/raffles',
+    path: '/raffles',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
+const AuthenticatedStaffAdminSocialRoute =
+  AuthenticatedStaffAdminSocialRouteImport.update({
+    id: '/social',
+    path: '/social',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
+const AuthenticatedStaffAdminSocialIntegrationsRoute =
+  AuthenticatedStaffAdminSocialIntegrationsRouteImport.update({
+    id: '/social-integrations',
+    path: '/social-integrations',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
+const AuthenticatedStaffAdminTenantsRoute =
+  AuthenticatedStaffAdminTenantsRouteImport.update({
+    id: '/tenants',
+    path: '/tenants',
+    getParentRoute: () => AuthenticatedStaffAdminRoute,
+  } as any)
+const AuthenticatedStaffAssetsIdRoute =
+  AuthenticatedStaffAssetsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedStaffAssetsRoute,
+  } as any)
+const AuthenticatedStaffCommunicationsIndexRoute =
+  AuthenticatedStaffCommunicationsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedStaffCommunicationsRoute,
+  } as any)
+const AuthenticatedStaffCommunicationsIdRoute =
+  AuthenticatedStaffCommunicationsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedStaffCommunicationsRoute,
+  } as any)
+const AuthenticatedStaffEventsIdRoute =
+  AuthenticatedStaffEventsIdRouteImport.update({
+    id: '/events/$id',
+    path: '/events/$id',
+    getParentRoute: () => AuthenticatedStaffRoute,
+  } as any)
+const AuthenticatedStaffSurveysIndexRoute =
+  AuthenticatedStaffSurveysIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedStaffSurveysRoute,
+  } as any)
+const AuthenticatedStaffSurveysIdRoute =
+  AuthenticatedStaffSurveysIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedStaffSurveysRoute,
+  } as any)
+const ApiPublicManifestWebmanifestRoute =
+  ApiPublicManifestWebmanifestRouteImport.update({
+    id: '/api/public/manifest/webmanifest',
+    path: '/api/public/manifest/webmanifest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedStaffAdminSocialConnectionsRoute =
+  AuthenticatedStaffAdminSocialConnectionsRouteImport.update({
+    id: '/connections',
+    path: '/connections',
+    getParentRoute: () => AuthenticatedStaffAdminSocialRoute,
   } as any)
 const AuthenticatedStaffSurveysIdIndexRoute =
   AuthenticatedStaffSurveysIdIndexRouteImport.update({
@@ -629,10 +635,16 @@ const AuthenticatedStaffSurveysIdIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedStaffSurveysIdRoute,
   } as any)
-const ApiPublicOauthMetaCallbackRoute =
-  ApiPublicOauthMetaCallbackRouteImport.update({
-    id: '/api/public/oauth/meta/callback',
-    path: '/api/public/oauth/meta/callback',
+const AuthenticatedStaffSurveysIdAnalyticsRoute =
+  AuthenticatedStaffSurveysIdAnalyticsRouteImport.update({
+    id: '/analytics',
+    path: '/analytics',
+    getParentRoute: () => AuthenticatedStaffSurveysIdRoute,
+  } as any)
+const ApiPublicIntegrationsWpoInboundRoute =
+  ApiPublicIntegrationsWpoInboundRouteImport.update({
+    id: '/api/public/integrations/wpo/inbound',
+    path: '/api/public/integrations/wpo/inbound',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicOauthLinkedinCallbackRoute =
@@ -641,34 +653,22 @@ const ApiPublicOauthLinkedinCallbackRoute =
     path: '/api/public/oauth/linkedin/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicIntegrationsWpoInboundRoute =
-  ApiPublicIntegrationsWpoInboundRouteImport.update({
-    id: '/api/public/integrations/wpo/inbound',
-    path: '/api/public/integrations/wpo/inbound',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const AuthenticatedStaffSurveysIdAnalyticsRoute =
-  AuthenticatedStaffSurveysIdAnalyticsRouteImport.update({
-    id: '/analytics',
-    path: '/analytics',
-    getParentRoute: () => AuthenticatedStaffSurveysIdRoute,
-  } as any)
-const AuthenticatedStaffAdminSocialConnectionsRoute =
-  AuthenticatedStaffAdminSocialConnectionsRouteImport.update({
-    id: '/connections',
-    path: '/connections',
-    getParentRoute: () => AuthenticatedStaffAdminSocialRoute,
-  } as any)
-const ApiPublicEmailTrackOpenRidRoute =
-  ApiPublicEmailTrackOpenRidRouteImport.update({
-    id: '/api/public/email/track/open/$rid',
-    path: '/api/public/email/track/open/$rid',
+const ApiPublicOauthMetaCallbackRoute =
+  ApiPublicOauthMetaCallbackRouteImport.update({
+    id: '/api/public/oauth/meta/callback',
+    path: '/api/public/oauth/meta/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicEmailTrackClickRidRoute =
   ApiPublicEmailTrackClickRidRouteImport.update({
     id: '/api/public/email/track/click/$rid',
     path: '/api/public/email/track/click/$rid',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicEmailTrackOpenRidRoute =
+  ApiPublicEmailTrackOpenRidRouteImport.update({
+    id: '/api/public/email/track/open/$rid',
+    path: '/api/public/email/track/open/$rid',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -1327,109 +1327,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/venues': {
-      id: '/venues'
-      path: '/venues'
-      fullPath: '/venues'
-      preLoaderRoute: typeof VenuesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/vendor': {
-      id: '/vendor'
-      path: '/vendor'
-      fullPath: '/vendor'
-      preLoaderRoute: typeof VendorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/streetbeats': {
-      id: '/streetbeats'
-      path: '/streetbeats'
-      fullPath: '/streetbeats'
-      preLoaderRoute: typeof StreetbeatsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sponsors': {
-      id: '/sponsors'
-      path: '/sponsors'
-      fullPath: '/sponsors'
-      preLoaderRoute: typeof SponsorsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/report': {
-      id: '/report'
-      path: '/report'
-      fullPath: '/report'
-      preLoaderRoute: typeof ReportRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/no-access': {
-      id: '/no-access'
-      path: '/no-access'
-      fullPath: '/no-access'
-      preLoaderRoute: typeof NoAccessRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/manual': {
-      id: '/manual'
-      path: '/manual'
-      fullPath: '/manual'
-      preLoaderRoute: typeof ManualRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/manifest.webmanifest': {
-      id: '/manifest.webmanifest'
-      path: '/manifest.webmanifest'
-      fullPath: '/manifest.webmanifest'
-      preLoaderRoute: typeof ManifestDotwebmanifestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/leaderboard': {
-      id: '/leaderboard'
-      path: '/leaderboard'
-      fullPath: '/leaderboard'
-      preLoaderRoute: typeof LeaderboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/community': {
-      id: '/community'
-      path: '/community'
-      fullPath: '/community'
-      preLoaderRoute: typeof CommunityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/classes': {
-      id: '/classes'
-      path: '/classes'
-      fullPath: '/classes'
-      preLoaderRoute: typeof ClassesRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -1439,158 +1341,116 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/classes': {
+      id: '/classes'
+      path: '/classes'
+      fullPath: '/classes'
+      preLoaderRoute: typeof ClassesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/rooms/': {
-      id: '/rooms/'
-      path: '/rooms'
-      fullPath: '/rooms/'
-      preLoaderRoute: typeof RoomsIndexRouteImport
+    '/community': {
+      id: '/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof CommunityRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/explore/': {
-      id: '/explore/'
-      path: '/explore'
-      fullPath: '/explore/'
-      preLoaderRoute: typeof ExploreIndexRouteImport
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/events/': {
-      id: '/events/'
-      path: '/events'
-      fullPath: '/events/'
-      preLoaderRoute: typeof EventsIndexRouteImport
+    '/leaderboard': {
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/departments/': {
-      id: '/departments/'
-      path: '/departments'
-      fullPath: '/departments/'
-      preLoaderRoute: typeof DepartmentsIndexRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/venues/$id': {
-      id: '/venues/$id'
-      path: '/$id'
-      fullPath: '/venues/$id'
-      preLoaderRoute: typeof VenuesIdRouteImport
-      parentRoute: typeof VenuesRoute
-    }
-    '/survey/$id': {
-      id: '/survey/$id'
-      path: '/survey/$id'
-      fullPath: '/survey/$id'
-      preLoaderRoute: typeof SurveyIdRouteImport
+    '/manifest.webmanifest': {
+      id: '/manifest.webmanifest'
+      path: '/manifest.webmanifest'
+      fullPath: '/manifest.webmanifest'
+      preLoaderRoute: typeof ManifestDotwebmanifestRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/stages/$id': {
-      id: '/stages/$id'
-      path: '/stages/$id'
-      fullPath: '/stages/$id'
-      preLoaderRoute: typeof StagesIdRouteImport
+    '/manual': {
+      id: '/manual'
+      path: '/manual'
+      fullPath: '/manual'
+      preLoaderRoute: typeof ManualRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/rooms/$id': {
-      id: '/rooms/$id'
-      path: '/rooms/$id'
-      fullPath: '/rooms/$id'
-      preLoaderRoute: typeof RoomsIdRouteImport
+    '/no-access': {
+      id: '/no-access'
+      path: '/no-access'
+      fullPath: '/no-access'
+      preLoaderRoute: typeof NoAccessRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/gigs/$id': {
-      id: '/gigs/$id'
-      path: '/gigs/$id'
-      fullPath: '/gigs/$id'
-      preLoaderRoute: typeof GigsIdRouteImport
+    '/report': {
+      id: '/report'
+      path: '/report'
+      fullPath: '/report'
+      preLoaderRoute: typeof ReportRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/explore/$questId': {
-      id: '/explore/$questId'
-      path: '/explore/$questId'
-      fullPath: '/explore/$questId'
-      preLoaderRoute: typeof ExploreQuestIdRouteImport
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/events/$id': {
-      id: '/events/$id'
-      path: '/events/$id'
-      fullPath: '/events/$id'
-      preLoaderRoute: typeof EventsIdRouteImport
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/departments/$id': {
-      id: '/departments/$id'
-      path: '/departments/$id'
-      fullPath: '/departments/$id'
-      preLoaderRoute: typeof DepartmentsIdRouteImport
+    '/sponsors': {
+      id: '/sponsors'
+      path: '/sponsors'
+      fullPath: '/sponsors'
+      preLoaderRoute: typeof SponsorsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/community-events/$id': {
-      id: '/community-events/$id'
-      path: '/community-events/$id'
-      fullPath: '/community-events/$id'
-      preLoaderRoute: typeof CommunityEventsIdRouteImport
+    '/streetbeats': {
+      id: '/streetbeats'
+      path: '/streetbeats'
+      fullPath: '/streetbeats'
+      preLoaderRoute: typeof StreetbeatsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/classes/$id': {
-      id: '/classes/$id'
-      path: '/$id'
-      fullPath: '/classes/$id'
-      preLoaderRoute: typeof ClassesIdRouteImport
-      parentRoute: typeof ClassesRoute
-    }
-    '/artists/$id': {
-      id: '/artists/$id'
-      path: '/artists/$id'
-      fullPath: '/artists/$id'
-      preLoaderRoute: typeof ArtistsIdRouteImport
+    '/vendor': {
+      id: '/vendor'
+      path: '/vendor'
+      fullPath: '/vendor'
+      preLoaderRoute: typeof VendorRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/wallet': {
-      id: '/_authenticated/wallet'
-      path: '/wallet'
-      fullPath: '/wallet'
-      preLoaderRoute: typeof AuthenticatedWalletRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/venues': {
+      id: '/venues'
+      path: '/venues'
+      fullPath: '/venues'
+      preLoaderRoute: typeof VenuesRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/staff': {
-      id: '/_authenticated/staff'
-      path: '/staff'
-      fullPath: '/staff'
-      preLoaderRoute: typeof AuthenticatedStaffRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/my-tickets': {
-      id: '/_authenticated/my-tickets'
-      path: '/my-tickets'
-      fullPath: '/my-tickets'
-      preLoaderRoute: typeof AuthenticatedMyTicketsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/my-schedule': {
-      id: '/_authenticated/my-schedule'
-      path: '/my-schedule'
-      fullPath: '/my-schedule'
-      preLoaderRoute: typeof AuthenticatedMyScheduleRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/my-reservations': {
-      id: '/_authenticated/my-reservations'
-      path: '/my-reservations'
-      fullPath: '/my-reservations'
-      preLoaderRoute: typeof AuthenticatedMyReservationsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/my-reports': {
-      id: '/_authenticated/my-reports'
-      path: '/my-reports'
-      fullPath: '/my-reports'
-      preLoaderRoute: typeof AuthenticatedMyReportsRouteImport
+    '/_authenticated/hub': {
+      id: '/_authenticated/hub'
+      path: '/hub'
+      fullPath: '/hub'
+      preLoaderRoute: typeof AuthenticatedHubRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/my-permits': {
@@ -1600,11 +1460,165 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMyPermitsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/hub': {
-      id: '/_authenticated/hub'
-      path: '/hub'
-      fullPath: '/hub'
-      preLoaderRoute: typeof AuthenticatedHubRouteImport
+    '/_authenticated/my-reports': {
+      id: '/_authenticated/my-reports'
+      path: '/my-reports'
+      fullPath: '/my-reports'
+      preLoaderRoute: typeof AuthenticatedMyReportsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/my-reservations': {
+      id: '/_authenticated/my-reservations'
+      path: '/my-reservations'
+      fullPath: '/my-reservations'
+      preLoaderRoute: typeof AuthenticatedMyReservationsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/my-schedule': {
+      id: '/_authenticated/my-schedule'
+      path: '/my-schedule'
+      fullPath: '/my-schedule'
+      preLoaderRoute: typeof AuthenticatedMyScheduleRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/my-tickets': {
+      id: '/_authenticated/my-tickets'
+      path: '/my-tickets'
+      fullPath: '/my-tickets'
+      preLoaderRoute: typeof AuthenticatedMyTicketsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/staff': {
+      id: '/_authenticated/staff'
+      path: '/staff'
+      fullPath: '/staff'
+      preLoaderRoute: typeof AuthenticatedStaffRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/wallet': {
+      id: '/_authenticated/wallet'
+      path: '/wallet'
+      fullPath: '/wallet'
+      preLoaderRoute: typeof AuthenticatedWalletRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/artists/$id': {
+      id: '/artists/$id'
+      path: '/artists/$id'
+      fullPath: '/artists/$id'
+      preLoaderRoute: typeof ArtistsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/classes/$id': {
+      id: '/classes/$id'
+      path: '/$id'
+      fullPath: '/classes/$id'
+      preLoaderRoute: typeof ClassesIdRouteImport
+      parentRoute: typeof ClassesRoute
+    }
+    '/community-events/$id': {
+      id: '/community-events/$id'
+      path: '/community-events/$id'
+      fullPath: '/community-events/$id'
+      preLoaderRoute: typeof CommunityEventsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/departments/': {
+      id: '/departments/'
+      path: '/departments'
+      fullPath: '/departments/'
+      preLoaderRoute: typeof DepartmentsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/departments/$id': {
+      id: '/departments/$id'
+      path: '/departments/$id'
+      fullPath: '/departments/$id'
+      preLoaderRoute: typeof DepartmentsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events/': {
+      id: '/events/'
+      path: '/events'
+      fullPath: '/events/'
+      preLoaderRoute: typeof EventsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events/$id': {
+      id: '/events/$id'
+      path: '/events/$id'
+      fullPath: '/events/$id'
+      preLoaderRoute: typeof EventsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/explore/': {
+      id: '/explore/'
+      path: '/explore'
+      fullPath: '/explore/'
+      preLoaderRoute: typeof ExploreIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/explore/$questId': {
+      id: '/explore/$questId'
+      path: '/explore/$questId'
+      fullPath: '/explore/$questId'
+      preLoaderRoute: typeof ExploreQuestIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gigs/$id': {
+      id: '/gigs/$id'
+      path: '/gigs/$id'
+      fullPath: '/gigs/$id'
+      preLoaderRoute: typeof GigsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rooms/': {
+      id: '/rooms/'
+      path: '/rooms'
+      fullPath: '/rooms/'
+      preLoaderRoute: typeof RoomsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rooms/$id': {
+      id: '/rooms/$id'
+      path: '/rooms/$id'
+      fullPath: '/rooms/$id'
+      preLoaderRoute: typeof RoomsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stages/$id': {
+      id: '/stages/$id'
+      path: '/stages/$id'
+      fullPath: '/stages/$id'
+      preLoaderRoute: typeof StagesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/survey/$id': {
+      id: '/survey/$id'
+      path: '/survey/$id'
+      fullPath: '/survey/$id'
+      preLoaderRoute: typeof SurveyIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/venues/$id': {
+      id: '/venues/$id'
+      path: '/$id'
+      fullPath: '/venues/$id'
+      preLoaderRoute: typeof VenuesIdRouteImport
+      parentRoute: typeof VenuesRoute
+    }
+    '/_authenticated/community/apply': {
+      id: '/_authenticated/community/apply'
+      path: '/community/apply'
+      fullPath: '/community/apply'
+      preLoaderRoute: typeof AuthenticatedCommunityApplyRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/community/manage': {
+      id: '/_authenticated/community/manage'
+      path: '/community/manage'
+      fullPath: '/community/manage'
+      preLoaderRoute: typeof AuthenticatedCommunityManageRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/staff/': {
@@ -1614,172 +1628,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffIndexRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
     }
-    '/events/permits/apply': {
-      id: '/events/permits/apply'
-      path: '/events/permits/apply'
-      fullPath: '/events/permits/apply'
-      preLoaderRoute: typeof EventsPermitsApplyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/unsubscribe': {
-      id: '/api/public/unsubscribe'
-      path: '/api/public/unsubscribe'
-      fullPath: '/api/public/unsubscribe'
-      preLoaderRoute: typeof ApiPublicUnsubscribeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/dispatch-due': {
-      id: '/api/public/dispatch-due'
-      path: '/api/public/dispatch-due'
-      fullPath: '/api/public/dispatch-due'
-      preLoaderRoute: typeof ApiPublicDispatchDueRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/apple-touch-icon.png': {
-      id: '/api/public/apple-touch-icon.png'
-      path: '/api/public/apple-touch-icon.png'
-      fullPath: '/api/public/apple-touch-icon.png'
-      preLoaderRoute: typeof ApiPublicAppleTouchIconDotpngRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/streetbeats/my-gigs': {
-      id: '/_authenticated/streetbeats/my-gigs'
-      path: '/streetbeats/my-gigs'
-      fullPath: '/streetbeats/my-gigs'
-      preLoaderRoute: typeof AuthenticatedStreetbeatsMyGigsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/streetbeats/apply': {
-      id: '/_authenticated/streetbeats/apply'
-      path: '/streetbeats/apply'
-      fullPath: '/streetbeats/apply'
-      preLoaderRoute: typeof AuthenticatedStreetbeatsApplyRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/staff/venues': {
-      id: '/_authenticated/staff/venues'
-      path: '/venues'
-      fullPath: '/staff/venues'
-      preLoaderRoute: typeof AuthenticatedStaffVenuesRouteImport
-      parentRoute: typeof AuthenticatedStaffRoute
-    }
-    '/_authenticated/staff/vendors': {
-      id: '/_authenticated/staff/vendors'
-      path: '/vendors'
-      fullPath: '/staff/vendors'
-      preLoaderRoute: typeof AuthenticatedStaffVendorsRouteImport
-      parentRoute: typeof AuthenticatedStaffRoute
-    }
-    '/_authenticated/staff/surveys': {
-      id: '/_authenticated/staff/surveys'
-      path: '/surveys'
-      fullPath: '/staff/surveys'
-      preLoaderRoute: typeof AuthenticatedStaffSurveysRouteImport
-      parentRoute: typeof AuthenticatedStaffRoute
-    }
-    '/_authenticated/staff/sponsors': {
-      id: '/_authenticated/staff/sponsors'
-      path: '/sponsors'
-      fullPath: '/staff/sponsors'
-      preLoaderRoute: typeof AuthenticatedStaffSponsorsRouteImport
-      parentRoute: typeof AuthenticatedStaffRoute
-    }
-    '/_authenticated/staff/settings': {
-      id: '/_authenticated/staff/settings'
-      path: '/settings'
-      fullPath: '/staff/settings'
-      preLoaderRoute: typeof AuthenticatedStaffSettingsRouteImport
-      parentRoute: typeof AuthenticatedStaffRoute
-    }
-    '/_authenticated/staff/room-reservations': {
-      id: '/_authenticated/staff/room-reservations'
-      path: '/room-reservations'
-      fullPath: '/staff/room-reservations'
-      preLoaderRoute: typeof AuthenticatedStaffRoomReservationsRouteImport
-      parentRoute: typeof AuthenticatedStaffRoute
-    }
-    '/_authenticated/staff/redeem': {
-      id: '/_authenticated/staff/redeem'
-      path: '/redeem'
-      fullPath: '/staff/redeem'
-      preLoaderRoute: typeof AuthenticatedStaffRedeemRouteImport
-      parentRoute: typeof AuthenticatedStaffRoute
-    }
-    '/_authenticated/staff/quests-report': {
-      id: '/_authenticated/staff/quests-report'
-      path: '/quests-report'
-      fullPath: '/staff/quests-report'
-      preLoaderRoute: typeof AuthenticatedStaffQuestsReportRouteImport
-      parentRoute: typeof AuthenticatedStaffRoute
-    }
-    '/_authenticated/staff/map': {
-      id: '/_authenticated/staff/map'
-      path: '/map'
-      fullPath: '/staff/map'
-      preLoaderRoute: typeof AuthenticatedStaffMapRouteImport
-      parentRoute: typeof AuthenticatedStaffRoute
-    }
-    '/_authenticated/staff/integrations': {
-      id: '/_authenticated/staff/integrations'
-      path: '/integrations'
-      fullPath: '/staff/integrations'
-      preLoaderRoute: typeof AuthenticatedStaffIntegrationsRouteImport
-      parentRoute: typeof AuthenticatedStaffRoute
-    }
-    '/_authenticated/staff/integration-dispatches': {
-      id: '/_authenticated/staff/integration-dispatches'
-      path: '/integration-dispatches'
-      fullPath: '/staff/integration-dispatches'
-      preLoaderRoute: typeof AuthenticatedStaffIntegrationDispatchesRouteImport
-      parentRoute: typeof AuthenticatedStaffRoute
-    }
-    '/_authenticated/staff/dispatch': {
-      id: '/_authenticated/staff/dispatch'
-      path: '/dispatch'
-      fullPath: '/staff/dispatch'
-      preLoaderRoute: typeof AuthenticatedStaffDispatchRouteImport
-      parentRoute: typeof AuthenticatedStaffRoute
-    }
-    '/_authenticated/staff/community-organizations': {
-      id: '/_authenticated/staff/community-organizations'
-      path: '/community-organizations'
-      fullPath: '/staff/community-organizations'
-      preLoaderRoute: typeof AuthenticatedStaffCommunityOrganizationsRouteImport
-      parentRoute: typeof AuthenticatedStaffRoute
-    }
-    '/_authenticated/staff/community-music': {
-      id: '/_authenticated/staff/community-music'
-      path: '/community-music'
-      fullPath: '/staff/community-music'
-      preLoaderRoute: typeof AuthenticatedStaffCommunityMusicRouteImport
-      parentRoute: typeof AuthenticatedStaffRoute
-    }
-    '/_authenticated/staff/community-events': {
-      id: '/_authenticated/staff/community-events'
-      path: '/community-events'
-      fullPath: '/staff/community-events'
-      preLoaderRoute: typeof AuthenticatedStaffCommunityEventsRouteImport
-      parentRoute: typeof AuthenticatedStaffRoute
-    }
-    '/_authenticated/staff/communications': {
-      id: '/_authenticated/staff/communications'
-      path: '/communications'
-      fullPath: '/staff/communications'
-      preLoaderRoute: typeof AuthenticatedStaffCommunicationsRouteImport
-      parentRoute: typeof AuthenticatedStaffRoute
-    }
-    '/_authenticated/staff/classes': {
-      id: '/_authenticated/staff/classes'
-      path: '/classes'
-      fullPath: '/staff/classes'
-      preLoaderRoute: typeof AuthenticatedStaffClassesRouteImport
-      parentRoute: typeof AuthenticatedStaffRoute
-    }
-    '/_authenticated/staff/attendees': {
-      id: '/_authenticated/staff/attendees'
-      path: '/attendees'
-      fullPath: '/staff/attendees'
-      preLoaderRoute: typeof AuthenticatedStaffAttendeesRouteImport
+    '/_authenticated/staff/admin': {
+      id: '/_authenticated/staff/admin'
+      path: '/admin'
+      fullPath: '/staff/admin'
+      preLoaderRoute: typeof AuthenticatedStaffAdminRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
     }
     '/_authenticated/staff/assets': {
@@ -1789,179 +1642,179 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffAssetsRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
     }
-    '/_authenticated/staff/admin': {
-      id: '/_authenticated/staff/admin'
-      path: '/admin'
-      fullPath: '/staff/admin'
-      preLoaderRoute: typeof AuthenticatedStaffAdminRouteImport
+    '/_authenticated/staff/attendees': {
+      id: '/_authenticated/staff/attendees'
+      path: '/attendees'
+      fullPath: '/staff/attendees'
+      preLoaderRoute: typeof AuthenticatedStaffAttendeesRouteImport
       parentRoute: typeof AuthenticatedStaffRoute
     }
-    '/_authenticated/community/manage': {
-      id: '/_authenticated/community/manage'
-      path: '/community/manage'
-      fullPath: '/community/manage'
-      preLoaderRoute: typeof AuthenticatedCommunityManageRouteImport
+    '/_authenticated/staff/classes': {
+      id: '/_authenticated/staff/classes'
+      path: '/classes'
+      fullPath: '/staff/classes'
+      preLoaderRoute: typeof AuthenticatedStaffClassesRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/communications': {
+      id: '/_authenticated/staff/communications'
+      path: '/communications'
+      fullPath: '/staff/communications'
+      preLoaderRoute: typeof AuthenticatedStaffCommunicationsRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/community-events': {
+      id: '/_authenticated/staff/community-events'
+      path: '/community-events'
+      fullPath: '/staff/community-events'
+      preLoaderRoute: typeof AuthenticatedStaffCommunityEventsRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/community-music': {
+      id: '/_authenticated/staff/community-music'
+      path: '/community-music'
+      fullPath: '/staff/community-music'
+      preLoaderRoute: typeof AuthenticatedStaffCommunityMusicRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/community-organizations': {
+      id: '/_authenticated/staff/community-organizations'
+      path: '/community-organizations'
+      fullPath: '/staff/community-organizations'
+      preLoaderRoute: typeof AuthenticatedStaffCommunityOrganizationsRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/dispatch': {
+      id: '/_authenticated/staff/dispatch'
+      path: '/dispatch'
+      fullPath: '/staff/dispatch'
+      preLoaderRoute: typeof AuthenticatedStaffDispatchRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/integration-dispatches': {
+      id: '/_authenticated/staff/integration-dispatches'
+      path: '/integration-dispatches'
+      fullPath: '/staff/integration-dispatches'
+      preLoaderRoute: typeof AuthenticatedStaffIntegrationDispatchesRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/integrations': {
+      id: '/_authenticated/staff/integrations'
+      path: '/integrations'
+      fullPath: '/staff/integrations'
+      preLoaderRoute: typeof AuthenticatedStaffIntegrationsRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/map': {
+      id: '/_authenticated/staff/map'
+      path: '/map'
+      fullPath: '/staff/map'
+      preLoaderRoute: typeof AuthenticatedStaffMapRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/quests-report': {
+      id: '/_authenticated/staff/quests-report'
+      path: '/quests-report'
+      fullPath: '/staff/quests-report'
+      preLoaderRoute: typeof AuthenticatedStaffQuestsReportRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/redeem': {
+      id: '/_authenticated/staff/redeem'
+      path: '/redeem'
+      fullPath: '/staff/redeem'
+      preLoaderRoute: typeof AuthenticatedStaffRedeemRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/room-reservations': {
+      id: '/_authenticated/staff/room-reservations'
+      path: '/room-reservations'
+      fullPath: '/staff/room-reservations'
+      preLoaderRoute: typeof AuthenticatedStaffRoomReservationsRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/settings': {
+      id: '/_authenticated/staff/settings'
+      path: '/settings'
+      fullPath: '/staff/settings'
+      preLoaderRoute: typeof AuthenticatedStaffSettingsRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/sponsors': {
+      id: '/_authenticated/staff/sponsors'
+      path: '/sponsors'
+      fullPath: '/staff/sponsors'
+      preLoaderRoute: typeof AuthenticatedStaffSponsorsRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/surveys': {
+      id: '/_authenticated/staff/surveys'
+      path: '/surveys'
+      fullPath: '/staff/surveys'
+      preLoaderRoute: typeof AuthenticatedStaffSurveysRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/vendors': {
+      id: '/_authenticated/staff/vendors'
+      path: '/vendors'
+      fullPath: '/staff/vendors'
+      preLoaderRoute: typeof AuthenticatedStaffVendorsRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/venues': {
+      id: '/_authenticated/staff/venues'
+      path: '/venues'
+      fullPath: '/staff/venues'
+      preLoaderRoute: typeof AuthenticatedStaffVenuesRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/streetbeats/apply': {
+      id: '/_authenticated/streetbeats/apply'
+      path: '/streetbeats/apply'
+      fullPath: '/streetbeats/apply'
+      preLoaderRoute: typeof AuthenticatedStreetbeatsApplyRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/community/apply': {
-      id: '/_authenticated/community/apply'
-      path: '/community/apply'
-      fullPath: '/community/apply'
-      preLoaderRoute: typeof AuthenticatedCommunityApplyRouteImport
+    '/_authenticated/streetbeats/my-gigs': {
+      id: '/_authenticated/streetbeats/my-gigs'
+      path: '/streetbeats/my-gigs'
+      fullPath: '/streetbeats/my-gigs'
+      preLoaderRoute: typeof AuthenticatedStreetbeatsMyGigsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/staff/surveys/': {
-      id: '/_authenticated/staff/surveys/'
-      path: '/'
-      fullPath: '/staff/surveys/'
-      preLoaderRoute: typeof AuthenticatedStaffSurveysIndexRouteImport
-      parentRoute: typeof AuthenticatedStaffSurveysRoute
-    }
-    '/_authenticated/staff/communications/': {
-      id: '/_authenticated/staff/communications/'
-      path: '/'
-      fullPath: '/staff/communications/'
-      preLoaderRoute: typeof AuthenticatedStaffCommunicationsIndexRouteImport
-      parentRoute: typeof AuthenticatedStaffCommunicationsRoute
-    }
-    '/api/public/manifest/webmanifest': {
-      id: '/api/public/manifest/webmanifest'
-      path: '/api/public/manifest/webmanifest'
-      fullPath: '/api/public/manifest/webmanifest'
-      preLoaderRoute: typeof ApiPublicManifestWebmanifestRouteImport
+    '/api/public/apple-touch-icon.png': {
+      id: '/api/public/apple-touch-icon.png'
+      path: '/api/public/apple-touch-icon.png'
+      fullPath: '/api/public/apple-touch-icon.png'
+      preLoaderRoute: typeof ApiPublicAppleTouchIconDotpngRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/staff/surveys/$id': {
-      id: '/_authenticated/staff/surveys/$id'
-      path: '/$id'
-      fullPath: '/staff/surveys/$id'
-      preLoaderRoute: typeof AuthenticatedStaffSurveysIdRouteImport
-      parentRoute: typeof AuthenticatedStaffSurveysRoute
+    '/api/public/dispatch-due': {
+      id: '/api/public/dispatch-due'
+      path: '/api/public/dispatch-due'
+      fullPath: '/api/public/dispatch-due'
+      preLoaderRoute: typeof ApiPublicDispatchDueRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/staff/events/$id': {
-      id: '/_authenticated/staff/events/$id'
-      path: '/events/$id'
-      fullPath: '/staff/events/$id'
-      preLoaderRoute: typeof AuthenticatedStaffEventsIdRouteImport
-      parentRoute: typeof AuthenticatedStaffRoute
+    '/api/public/unsubscribe': {
+      id: '/api/public/unsubscribe'
+      path: '/api/public/unsubscribe'
+      fullPath: '/api/public/unsubscribe'
+      preLoaderRoute: typeof ApiPublicUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/staff/communications/$id': {
-      id: '/_authenticated/staff/communications/$id'
-      path: '/$id'
-      fullPath: '/staff/communications/$id'
-      preLoaderRoute: typeof AuthenticatedStaffCommunicationsIdRouteImport
-      parentRoute: typeof AuthenticatedStaffCommunicationsRoute
+    '/events/permits/apply': {
+      id: '/events/permits/apply'
+      path: '/events/permits/apply'
+      fullPath: '/events/permits/apply'
+      preLoaderRoute: typeof EventsPermitsApplyRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/staff/assets/$id': {
-      id: '/_authenticated/staff/assets/$id'
-      path: '/$id'
-      fullPath: '/staff/assets/$id'
-      preLoaderRoute: typeof AuthenticatedStaffAssetsIdRouteImport
-      parentRoute: typeof AuthenticatedStaffAssetsRoute
-    }
-    '/_authenticated/staff/admin/tenants': {
-      id: '/_authenticated/staff/admin/tenants'
-      path: '/tenants'
-      fullPath: '/staff/admin/tenants'
-      preLoaderRoute: typeof AuthenticatedStaffAdminTenantsRouteImport
-      parentRoute: typeof AuthenticatedStaffAdminRoute
-    }
-    '/_authenticated/staff/admin/social-integrations': {
-      id: '/_authenticated/staff/admin/social-integrations'
-      path: '/social-integrations'
-      fullPath: '/staff/admin/social-integrations'
-      preLoaderRoute: typeof AuthenticatedStaffAdminSocialIntegrationsRouteImport
-      parentRoute: typeof AuthenticatedStaffAdminRoute
-    }
-    '/_authenticated/staff/admin/social': {
-      id: '/_authenticated/staff/admin/social'
-      path: '/social'
-      fullPath: '/staff/admin/social'
-      preLoaderRoute: typeof AuthenticatedStaffAdminSocialRouteImport
-      parentRoute: typeof AuthenticatedStaffAdminRoute
-    }
-    '/_authenticated/staff/admin/raffles': {
-      id: '/_authenticated/staff/admin/raffles'
-      path: '/raffles'
-      fullPath: '/staff/admin/raffles'
-      preLoaderRoute: typeof AuthenticatedStaffAdminRafflesRouteImport
-      parentRoute: typeof AuthenticatedStaffAdminRoute
-    }
-    '/_authenticated/staff/admin/quests': {
-      id: '/_authenticated/staff/admin/quests'
-      path: '/quests'
-      fullPath: '/staff/admin/quests'
-      preLoaderRoute: typeof AuthenticatedStaffAdminQuestsRouteImport
-      parentRoute: typeof AuthenticatedStaffAdminRoute
-    }
-    '/_authenticated/staff/admin/prizes': {
-      id: '/_authenticated/staff/admin/prizes'
-      path: '/prizes'
-      fullPath: '/staff/admin/prizes'
-      preLoaderRoute: typeof AuthenticatedStaffAdminPrizesRouteImport
-      parentRoute: typeof AuthenticatedStaffAdminRoute
-    }
-    '/_authenticated/staff/admin/permits': {
-      id: '/_authenticated/staff/admin/permits'
-      path: '/permits'
-      fullPath: '/staff/admin/permits'
-      preLoaderRoute: typeof AuthenticatedStaffAdminPermitsRouteImport
-      parentRoute: typeof AuthenticatedStaffAdminRoute
-    }
-    '/_authenticated/staff/admin/permissions': {
-      id: '/_authenticated/staff/admin/permissions'
-      path: '/permissions'
-      fullPath: '/staff/admin/permissions'
-      preLoaderRoute: typeof AuthenticatedStaffAdminPermissionsRouteImport
-      parentRoute: typeof AuthenticatedStaffAdminRoute
-    }
-    '/_authenticated/staff/admin/issue-categories': {
-      id: '/_authenticated/staff/admin/issue-categories'
-      path: '/issue-categories'
-      fullPath: '/staff/admin/issue-categories'
-      preLoaderRoute: typeof AuthenticatedStaffAdminIssueCategoriesRouteImport
-      parentRoute: typeof AuthenticatedStaffAdminRoute
-    }
-    '/_authenticated/staff/admin/home': {
-      id: '/_authenticated/staff/admin/home'
-      path: '/home'
-      fullPath: '/staff/admin/home'
-      preLoaderRoute: typeof AuthenticatedStaffAdminHomeRouteImport
-      parentRoute: typeof AuthenticatedStaffAdminRoute
-    }
-    '/_authenticated/staff/admin/guidebook-publisher': {
-      id: '/_authenticated/staff/admin/guidebook-publisher'
-      path: '/guidebook-publisher'
-      fullPath: '/staff/admin/guidebook-publisher'
-      preLoaderRoute: typeof AuthenticatedStaffAdminGuidebookPublisherRouteImport
-      parentRoute: typeof AuthenticatedStaffAdminRoute
-    }
-    '/_authenticated/staff/admin/guidebook-canvas': {
-      id: '/_authenticated/staff/admin/guidebook-canvas'
-      path: '/guidebook-canvas'
-      fullPath: '/staff/admin/guidebook-canvas'
-      preLoaderRoute: typeof AuthenticatedStaffAdminGuidebookCanvasRouteImport
-      parentRoute: typeof AuthenticatedStaffAdminRoute
-    }
-    '/_authenticated/staff/admin/guidebook': {
-      id: '/_authenticated/staff/admin/guidebook'
-      path: '/guidebook'
-      fullPath: '/staff/admin/guidebook'
-      preLoaderRoute: typeof AuthenticatedStaffAdminGuidebookRouteImport
-      parentRoute: typeof AuthenticatedStaffAdminRoute
-    }
-    '/_authenticated/staff/admin/email-settings': {
-      id: '/_authenticated/staff/admin/email-settings'
-      path: '/email-settings'
-      fullPath: '/staff/admin/email-settings'
-      preLoaderRoute: typeof AuthenticatedStaffAdminEmailSettingsRouteImport
-      parentRoute: typeof AuthenticatedStaffAdminRoute
-    }
-    '/_authenticated/staff/admin/departments': {
-      id: '/_authenticated/staff/admin/departments'
-      path: '/departments'
-      fullPath: '/staff/admin/departments'
-      preLoaderRoute: typeof AuthenticatedStaffAdminDepartmentsRouteImport
+    '/_authenticated/staff/admin/analytics': {
+      id: '/_authenticated/staff/admin/analytics'
+      path: '/analytics'
+      fullPath: '/staff/admin/analytics'
+      preLoaderRoute: typeof AuthenticatedStaffAdminAnalyticsRouteImport
       parentRoute: typeof AuthenticatedStaffAdminRoute
     }
     '/_authenticated/staff/admin/branding': {
@@ -1971,12 +1824,166 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffAdminBrandingRouteImport
       parentRoute: typeof AuthenticatedStaffAdminRoute
     }
-    '/_authenticated/staff/admin/analytics': {
-      id: '/_authenticated/staff/admin/analytics'
-      path: '/analytics'
-      fullPath: '/staff/admin/analytics'
-      preLoaderRoute: typeof AuthenticatedStaffAdminAnalyticsRouteImport
+    '/_authenticated/staff/admin/departments': {
+      id: '/_authenticated/staff/admin/departments'
+      path: '/departments'
+      fullPath: '/staff/admin/departments'
+      preLoaderRoute: typeof AuthenticatedStaffAdminDepartmentsRouteImport
       parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
+    '/_authenticated/staff/admin/email-settings': {
+      id: '/_authenticated/staff/admin/email-settings'
+      path: '/email-settings'
+      fullPath: '/staff/admin/email-settings'
+      preLoaderRoute: typeof AuthenticatedStaffAdminEmailSettingsRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
+    '/_authenticated/staff/admin/guidebook': {
+      id: '/_authenticated/staff/admin/guidebook'
+      path: '/guidebook'
+      fullPath: '/staff/admin/guidebook'
+      preLoaderRoute: typeof AuthenticatedStaffAdminGuidebookRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
+    '/_authenticated/staff/admin/guidebook-canvas': {
+      id: '/_authenticated/staff/admin/guidebook-canvas'
+      path: '/guidebook-canvas'
+      fullPath: '/staff/admin/guidebook-canvas'
+      preLoaderRoute: typeof AuthenticatedStaffAdminGuidebookCanvasRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
+    '/_authenticated/staff/admin/guidebook-publisher': {
+      id: '/_authenticated/staff/admin/guidebook-publisher'
+      path: '/guidebook-publisher'
+      fullPath: '/staff/admin/guidebook-publisher'
+      preLoaderRoute: typeof AuthenticatedStaffAdminGuidebookPublisherRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
+    '/_authenticated/staff/admin/home': {
+      id: '/_authenticated/staff/admin/home'
+      path: '/home'
+      fullPath: '/staff/admin/home'
+      preLoaderRoute: typeof AuthenticatedStaffAdminHomeRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
+    '/_authenticated/staff/admin/issue-categories': {
+      id: '/_authenticated/staff/admin/issue-categories'
+      path: '/issue-categories'
+      fullPath: '/staff/admin/issue-categories'
+      preLoaderRoute: typeof AuthenticatedStaffAdminIssueCategoriesRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
+    '/_authenticated/staff/admin/permissions': {
+      id: '/_authenticated/staff/admin/permissions'
+      path: '/permissions'
+      fullPath: '/staff/admin/permissions'
+      preLoaderRoute: typeof AuthenticatedStaffAdminPermissionsRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
+    '/_authenticated/staff/admin/permits': {
+      id: '/_authenticated/staff/admin/permits'
+      path: '/permits'
+      fullPath: '/staff/admin/permits'
+      preLoaderRoute: typeof AuthenticatedStaffAdminPermitsRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
+    '/_authenticated/staff/admin/prizes': {
+      id: '/_authenticated/staff/admin/prizes'
+      path: '/prizes'
+      fullPath: '/staff/admin/prizes'
+      preLoaderRoute: typeof AuthenticatedStaffAdminPrizesRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
+    '/_authenticated/staff/admin/quests': {
+      id: '/_authenticated/staff/admin/quests'
+      path: '/quests'
+      fullPath: '/staff/admin/quests'
+      preLoaderRoute: typeof AuthenticatedStaffAdminQuestsRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
+    '/_authenticated/staff/admin/raffles': {
+      id: '/_authenticated/staff/admin/raffles'
+      path: '/raffles'
+      fullPath: '/staff/admin/raffles'
+      preLoaderRoute: typeof AuthenticatedStaffAdminRafflesRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
+    '/_authenticated/staff/admin/social': {
+      id: '/_authenticated/staff/admin/social'
+      path: '/social'
+      fullPath: '/staff/admin/social'
+      preLoaderRoute: typeof AuthenticatedStaffAdminSocialRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
+    '/_authenticated/staff/admin/social-integrations': {
+      id: '/_authenticated/staff/admin/social-integrations'
+      path: '/social-integrations'
+      fullPath: '/staff/admin/social-integrations'
+      preLoaderRoute: typeof AuthenticatedStaffAdminSocialIntegrationsRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
+    '/_authenticated/staff/admin/tenants': {
+      id: '/_authenticated/staff/admin/tenants'
+      path: '/tenants'
+      fullPath: '/staff/admin/tenants'
+      preLoaderRoute: typeof AuthenticatedStaffAdminTenantsRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminRoute
+    }
+    '/_authenticated/staff/assets/$id': {
+      id: '/_authenticated/staff/assets/$id'
+      path: '/$id'
+      fullPath: '/staff/assets/$id'
+      preLoaderRoute: typeof AuthenticatedStaffAssetsIdRouteImport
+      parentRoute: typeof AuthenticatedStaffAssetsRoute
+    }
+    '/_authenticated/staff/communications/': {
+      id: '/_authenticated/staff/communications/'
+      path: '/'
+      fullPath: '/staff/communications/'
+      preLoaderRoute: typeof AuthenticatedStaffCommunicationsIndexRouteImport
+      parentRoute: typeof AuthenticatedStaffCommunicationsRoute
+    }
+    '/_authenticated/staff/communications/$id': {
+      id: '/_authenticated/staff/communications/$id'
+      path: '/$id'
+      fullPath: '/staff/communications/$id'
+      preLoaderRoute: typeof AuthenticatedStaffCommunicationsIdRouteImport
+      parentRoute: typeof AuthenticatedStaffCommunicationsRoute
+    }
+    '/_authenticated/staff/events/$id': {
+      id: '/_authenticated/staff/events/$id'
+      path: '/events/$id'
+      fullPath: '/staff/events/$id'
+      preLoaderRoute: typeof AuthenticatedStaffEventsIdRouteImport
+      parentRoute: typeof AuthenticatedStaffRoute
+    }
+    '/_authenticated/staff/surveys/': {
+      id: '/_authenticated/staff/surveys/'
+      path: '/'
+      fullPath: '/staff/surveys/'
+      preLoaderRoute: typeof AuthenticatedStaffSurveysIndexRouteImport
+      parentRoute: typeof AuthenticatedStaffSurveysRoute
+    }
+    '/_authenticated/staff/surveys/$id': {
+      id: '/_authenticated/staff/surveys/$id'
+      path: '/$id'
+      fullPath: '/staff/surveys/$id'
+      preLoaderRoute: typeof AuthenticatedStaffSurveysIdRouteImport
+      parentRoute: typeof AuthenticatedStaffSurveysRoute
+    }
+    '/api/public/manifest/webmanifest': {
+      id: '/api/public/manifest/webmanifest'
+      path: '/api/public/manifest/webmanifest'
+      fullPath: '/api/public/manifest/webmanifest'
+      preLoaderRoute: typeof ApiPublicManifestWebmanifestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/staff/admin/social/connections': {
+      id: '/_authenticated/staff/admin/social/connections'
+      path: '/connections'
+      fullPath: '/staff/admin/social/connections'
+      preLoaderRoute: typeof AuthenticatedStaffAdminSocialConnectionsRouteImport
+      parentRoute: typeof AuthenticatedStaffAdminSocialRoute
     }
     '/_authenticated/staff/surveys/$id/': {
       id: '/_authenticated/staff/surveys/$id/'
@@ -1985,11 +1992,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffSurveysIdIndexRouteImport
       parentRoute: typeof AuthenticatedStaffSurveysIdRoute
     }
-    '/api/public/oauth/meta/callback': {
-      id: '/api/public/oauth/meta/callback'
-      path: '/api/public/oauth/meta/callback'
-      fullPath: '/api/public/oauth/meta/callback'
-      preLoaderRoute: typeof ApiPublicOauthMetaCallbackRouteImport
+    '/_authenticated/staff/surveys/$id/analytics': {
+      id: '/_authenticated/staff/surveys/$id/analytics'
+      path: '/analytics'
+      fullPath: '/staff/surveys/$id/analytics'
+      preLoaderRoute: typeof AuthenticatedStaffSurveysIdAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedStaffSurveysIdRoute
+    }
+    '/api/public/integrations/wpo/inbound': {
+      id: '/api/public/integrations/wpo/inbound'
+      path: '/api/public/integrations/wpo/inbound'
+      fullPath: '/api/public/integrations/wpo/inbound'
+      preLoaderRoute: typeof ApiPublicIntegrationsWpoInboundRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/oauth/linkedin/callback': {
@@ -1999,32 +2013,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicOauthLinkedinCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/integrations/wpo/inbound': {
-      id: '/api/public/integrations/wpo/inbound'
-      path: '/api/public/integrations/wpo/inbound'
-      fullPath: '/api/public/integrations/wpo/inbound'
-      preLoaderRoute: typeof ApiPublicIntegrationsWpoInboundRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/staff/surveys/$id/analytics': {
-      id: '/_authenticated/staff/surveys/$id/analytics'
-      path: '/analytics'
-      fullPath: '/staff/surveys/$id/analytics'
-      preLoaderRoute: typeof AuthenticatedStaffSurveysIdAnalyticsRouteImport
-      parentRoute: typeof AuthenticatedStaffSurveysIdRoute
-    }
-    '/_authenticated/staff/admin/social/connections': {
-      id: '/_authenticated/staff/admin/social/connections'
-      path: '/connections'
-      fullPath: '/staff/admin/social/connections'
-      preLoaderRoute: typeof AuthenticatedStaffAdminSocialConnectionsRouteImport
-      parentRoute: typeof AuthenticatedStaffAdminSocialRoute
-    }
-    '/api/public/email/track/open/$rid': {
-      id: '/api/public/email/track/open/$rid'
-      path: '/api/public/email/track/open/$rid'
-      fullPath: '/api/public/email/track/open/$rid'
-      preLoaderRoute: typeof ApiPublicEmailTrackOpenRidRouteImport
+    '/api/public/oauth/meta/callback': {
+      id: '/api/public/oauth/meta/callback'
+      path: '/api/public/oauth/meta/callback'
+      fullPath: '/api/public/oauth/meta/callback'
+      preLoaderRoute: typeof ApiPublicOauthMetaCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/email/track/click/$rid': {
@@ -2032,6 +2025,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/email/track/click/$rid'
       fullPath: '/api/public/email/track/click/$rid'
       preLoaderRoute: typeof ApiPublicEmailTrackClickRidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/email/track/open/$rid': {
+      id: '/api/public/email/track/open/$rid'
+      path: '/api/public/email/track/open/$rid'
+      fullPath: '/api/public/email/track/open/$rid'
+      preLoaderRoute: typeof ApiPublicEmailTrackOpenRidRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
