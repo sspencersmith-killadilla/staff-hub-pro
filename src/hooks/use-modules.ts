@@ -17,6 +17,8 @@ const DEFAULTS: Record<ModuleKey, boolean> = {
   guidebook: true,
   events: true,
   civic_quests: true,
+  reports_311: true,
+  prizes_raffles: true,
 };
 
 export function useModules() {

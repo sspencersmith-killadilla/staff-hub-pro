@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { ROLE_PRESETS } from "./staff-role-presets";
-import { ALL_PERMISSIONS } from "./staff-permissions";
+import { ROLE_PRESETS } from "@/lib/staff-role-presets";
+import { ALL_PERMISSIONS } from "@/lib/staff-permissions";
 
 describe("role presets", () => {
   it("only grant permissions that exist", () => {
