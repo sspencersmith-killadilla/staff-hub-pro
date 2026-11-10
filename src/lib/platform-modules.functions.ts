@@ -14,7 +14,9 @@ export type ModuleKey =
   | "social_command"
   | "guidebook"
   | "events"
-  | "civic_quests";
+  | "civic_quests"
+  | "reports_311"
+  | "prizes_raffles";
 
 export type PlatformModule = {
   key: ModuleKey;
@@ -36,6 +38,8 @@ const DEFAULT_MODULES: PlatformModule[] = [
   { key: "social_command", label: "Social Media Command Center", description: "Cross-platform social scheduling, planner, and integrations.", enabled: true },
   { key: "guidebook", label: "Guidebook Publisher", description: "Magazine-style guidebook editor and PDF export.", enabled: true },
   { key: "civic_quests", label: "Civic Quests & Discovery", description: "Gamified self-guided adventures: badges, points, QR/geo waypoints, leaderboard, and reports.", enabled: true },
+  { key: "reports_311", label: "311 Reports & Dispatch", description: "Residents report non-emergency issues; staff dispatch, track costs and assets.", enabled: true },
+  { key: "prizes_raffles", label: "Prizes & Raffles", description: "Quest prize tickets, redemption scanning, and raffle drawings.", enabled: true },
 ];
 
 function mergeWithDefaults(modules?: PlatformModule[] | null) {

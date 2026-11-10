@@ -1,3 +1,4 @@
+import { ROLE_PRESETS } from "@/lib/staff-role-presets";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -423,6 +424,26 @@ function GlobalGrid({
 
   return (
     <div className="space-y-6">
+      <div>
+        <h3 className="text-sm font-semibold mb-1">Start from a job role</h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          Picks a sensible set of pages for this person. Adjust the boxes below, then save.
+        </p>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {ROLE_PRESETS.map((p) => (
+            <Button
+              key={p.key}
+              type="button"
+              variant="outline"
+              className="h-auto flex-col items-start whitespace-normal py-2 text-left"
+              onClick={() => setGlobalSet(new Set(p.permissions))}
+            >
+              <span className="font-semibold">{p.label}</span>
+              <span className="text-xs font-normal text-muted-foreground">{p.description}</span>
+            </Button>
+          ))}
+        </div>
+      </div>
       <PermissionSection
         title="Sidebar pages"
         items={PAGE_PERMISSIONS}
