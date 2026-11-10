@@ -122,7 +122,7 @@ function RoomsIndex() {
                   })
                 }
               >
-                <SelectTrigger className="mt-1">
+                <SelectTrigger className="mt-1" aria-label="Filter by venue">
                   <SelectValue placeholder="Any venue" />
                 </SelectTrigger>
                 <SelectContent>

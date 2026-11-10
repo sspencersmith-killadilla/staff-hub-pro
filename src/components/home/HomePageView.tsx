@@ -141,7 +141,7 @@ function HeroCta({ cta }: { cta: HeroSecondaryCta }) {
   const isPrimary = cta.style === "primary" || cta.style === undefined;
   // Default first CTA primary-emerald; others outline-style
   const className = isPrimary
-    ? "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg text-center uppercase tracking-wider text-sm w-full sm:w-auto"
+    ? "bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg text-center uppercase tracking-wider text-sm w-full sm:w-auto"
     : "bg-white/10 hover:bg-white/20 text-white border border-white/30 font-bold py-3 px-6 rounded-lg transition-colors text-center uppercase tracking-wider text-sm w-full sm:w-auto";
   if (cta.href.startsWith("/")) {
     return (
